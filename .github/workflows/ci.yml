@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: 类型检查 / 单测 / 构建 / 端到端
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Node 20（npm 缓存）
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 安装 Playwright Chromium 与系统依赖
+        run: npx playwright install --with-deps chromium
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      - name: 单元测试
+        run: npm test
+
+      - name: 生产构建
+        run: npm run build
+
+      # 双端口：audit / gameplay / boss-room / runtime-bugs 走 5173，
+      # canvas.spec.ts 硬编码 http://localhost:5199/，因此两个 dev server 必须同时运行。
+      - name: 启动双 Vite dev server 并运行 Playwright 测试
+        env:
+          PORT: '5173'
+          LS_SHOT_DIR: ${{ runner.temp }}/screens
+        run: |
+          set -euo pipefail
+          mkdir -p "$LS_SHOT_DIR"
+
+          # 后台启动两个 Vite dev server；--strictPort 防止端口被自动顺延。
+          # 直接调用本地 vite 可执行文件，便于后续用 PID 精确停止。
+          ./node_modules/.bin/vite --port 5173 --strictPort > "$RUNNER_TEMP/vite-5173.log" 2>&1 < /dev/null &
+          vite_5173_pid=$!
+          echo "$vite_5173_pid" > "$RUNNER_TEMP/vite-5173.pid"
+          ./node_modules/.bin/vite --port 5199 --strictPort > "$RUNNER_TEMP/vite-5199.log" 2>&1 < /dev/null &
+          vite_5199_pid=$!
+          echo "$vite_5199_pid" > "$RUNNER_TEMP/vite-5199.pid"
+
+          # 本步骤退出时（成功或失败）先停止 server，最后还有独立的清理步骤兜底。
+          stop_servers() {
+            kill "$vite_5173_pid" "$vite_5199_pid" 2>/dev/null || true
+          }
+          trap stop_servers EXIT
+
+          # 用 curl 循环等待两个端口就绪，不引入额外的就绪等待依赖。
+          for port in 5173 5199; do
+            ready=0
+            for attempt in $(seq 1 90); do
+              if curl --fail --silent --max-time 2 --output /dev/null "http://localhost:${port}/" > /dev/null 2>&1; then
+                echo "端口 ${port} 的 Vite dev server 已就绪"
+                ready=1
+                break
+              fi
+              sleep 1
+            done
+            if [ "$ready" -ne 1 ]; then
+              echo "::error::端口 ${port} 的 Vite dev server 未在 90 秒内就绪"
+              cat "$RUNNER_TEMP/vite-${port}.log" || true
+              exit 1
+            fi
+          done
+
+          # PORT=5173 决定 playwright.config.ts 的 baseURL；
+          # LS_SHOT_DIR 把截图/errors 产物写到 runner temp 下的 screens 目录。
+          npx playwright test --reporter=line --workers=1
+
+      - name: 停止两个 Vite dev server
+        if: always()
+        run: |
+          for port in 5173 5199; do
+            pidfile="$RUNNER_TEMP/vite-${port}.pid"
+            if [ -f "$pidfile" ]; then
+              kill "$(cat "$pidfile")" 2>/dev/null || true
+              rm -f "$pidfile"
+            fi
+          done
