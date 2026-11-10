@@ -129,7 +129,11 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
     const bar = gs.bossBarFill;
     const barScreenX = (bar.x - bx) / ax;
     const barScreenY = (bar.y - by) / ay;
-    const barData = ctx.getImageData(470, 40, 340, 40).data;
+    const barRectX = Math.max(0, Math.round(barScreenX - 170));
+    const barRectY = Math.max(0, Math.round(barScreenY - 20));
+    const barRectW = Math.min(canvas.width - barRectX, 340);
+    const barRectH = Math.min(canvas.height - barRectY, 40);
+    const barData = ctx.getImageData(barRectX, barRectY, barRectW, barRectH).data;
     let bossBarRed = 0;
     for (let i = 0; i < barData.length; i += 4) {
       if (barData[i] > 180 && barData[i + 1] < 100 && barData[i + 2] < 120) bossBarRed++;
@@ -164,6 +168,9 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
   expect(m.barScreenY, 'boss HP fill stays near its HUD y under shake').toBeGreaterThan(30);
   expect(m.barScreenY, 'boss HP fill stays near its HUD y under shake').toBeLessThan(80);
   expect(m.barWidth, 'boss HP fill has non-zero width').toBeGreaterThan(0);
-  expect(m.bossBarRed, 'boss HP bar shows red fill').toBeGreaterThan(1000);
+  expect(
+    m.bossBarRed,
+    'boss HP bar shows red fill: ' + JSON.stringify({ x: m.barScreenX, y: m.barScreenY, width: m.barWidth, red: m.bossBarRed })
+  ).toBeGreaterThan(1000);
   expect(errors, 'no pageerror / console error').toHaveLength(0);
 });

@@ -6,7 +6,7 @@
 
 ## [Unreleased]
 
-### 仓库美化（当前阶段，仅文档与资源，不改源码）
+### 仓库美化与 CI 稳定性修复
 - 新增 `README.md`：项目简介、当前可玩特性、截图区、快速开始、操作表、测试命令、项目结构、已有设计文档列表、路线图简述、已知限制、许可。
 - 新增 `LICENSE`：MIT 许可证（Copyright (c) 2026 LAST SIGNAL contributors）。
 - 新增 `CHANGELOG.md`（本文件）。
@@ -15,6 +15,8 @@
 - 新增文档用资源 `assets/banner.svg`、`assets/social-preview.png` 与 `assets/screenshots/`（01–06，由仓库美化流程生成）。
 - 修正 `tests/runtime-bugs.spec.ts` 的硬编码 Windows 路径；CI 通过 `LAST_SIGNAL_ROOT` 指向仓库根目录。
 - 放宽 Boss HP 条在屏震下的坐标断言，避免非确定性抖动导致 CI 误报。
+- 调整 `src/scenes/LevelUpScene.ts` 的描述文本换行宽度，适配 Linux CI 字体回退；对应回归断言输出诊断 JSON。
+- Boss HP 条回归改为按实时相机变换计算采样区域，避免屏震偏移导致误报。
 
 ## [0.2.0] — 设计审计文档（文档里程碑，非代码版本）
 

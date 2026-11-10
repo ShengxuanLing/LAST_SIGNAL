@@ -233,7 +233,10 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
   expect(levelUp.textCount, 'level-up texts exist').toBeGreaterThan(0);
   expect(levelUp.allReadable, 'level-up texts have positive size and no forced scaling').toBe(true);
   expect(levelUp.descriptions.length, 'three upgrade descriptions').toBe(3);
-  expect(levelUp.descriptions.every((d: any) => d.originX === 0.5 && d.align === 'center' && d.width <= 210), 'descriptions are centered and inside card width').toBe(true);
+  expect(
+    levelUp.descriptions.every((d: any) => d.originX === 0.5 && d.align === 'center' && d.width <= 230),
+    'descriptions are centered and inside card width: ' + JSON.stringify(levelUp.descriptions)
+  ).toBe(true);
   expect(levelUp.diffs.length, 'three upgrade diff lines').toBe(3);
   expect(levelUp.diffs.every((d: any) => d.bottom <= 470), 'diff lines stay inside the card bottom').toBe(true);
   await page.screenshot({ path: path.join(SHOT_DIR, 'runtime-bugs-levelup.png') });

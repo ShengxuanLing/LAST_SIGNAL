@@ -123,7 +123,9 @@ export class LevelUpScene extends Phaser.Scene {
     return out;
   }
 
-  private wrapText(text: Phaser.GameObjects.Text, x: number, y: number, width: number, charWidth = 8): void {
+  // 10px per character is intentionally conservative: Linux CI font fallback can be
+  // wider than Windows Consolas, and descriptions must stay inside the 230px card.
+  private wrapText(text: Phaser.GameObjects.Text, x: number, y: number, width: number, charWidth = 10): void {
     const words = (text.text as string).split(' ');
     let line = '';
     const lines: string[] = [];
