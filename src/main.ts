@@ -7,7 +7,6 @@ import { GameScene } from './scenes/GameScene';
 import { LevelUpScene } from './scenes/LevelUpScene';
 import { GameOverScene } from './scenes/GameOverScene';
 import { PauseScene } from './scenes/PauseScene';
-import { SaveSystem } from './systems/SaveSystem';
 
 export const game = new Phaser.Game({
   type: Phaser.CANVAS,
@@ -33,6 +32,6 @@ export const game = new Phaser.Game({
   dom: { createContainer: true }
 });
 
-export const saveSystem = new SaveSystem();
+export { saveSystem } from './systems/SaveSystem';
 
 ;(window as any).__game = game;

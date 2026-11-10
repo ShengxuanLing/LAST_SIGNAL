@@ -2,11 +2,17 @@ import Phaser from 'phaser';
 import { GAME, SAVE_VERSION } from '../config/game';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
+import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
+
+interface MenuConfig {
+  view?: 'checkpoint' | 'permanent' | 'replace';
+  notice?: string;
+}
 
 export class MainMenuScene extends Phaser.Scene {
   constructor() { super('MainMenuScene'); }
 
-  create(): void {
+  create(config: MenuConfig = {}): void {
     this.cameras.main.setBounds(0, 0, GAME.WINDOW_W, GAME.WINDOW_H);
     const bg = this.textures.get('bg');
     if (bg) this.add.image(GAME.WINDOW_W / 2, GAME.WINDOW_H / 2, bg);
@@ -26,18 +32,62 @@ export class MainMenuScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5);
 
     const save = saveSystem.load();
+    if (config.view === 'permanent') {
+      this.line(cx, 260, `PERMANENT CORES: ${save.permanent.cores}`, '#ffd233');
+      this.line(cx, 292, 'Earn one core per boss victory. Talents apply to new runs.');
+      PERMANENT_TALENTS.forEach(({ key, label, effect }, index) => {
+        const rank = save.permanent[key];
+        const locked = rank >= PERMANENT_TALENT_CAP || save.permanent.cores < 1;
+        this._button(cx, 338 + index * 54, `${label} ${rank} · ${effect} · 1 CORE`, 520, () => {
+          if (locked) return;
+          if (saveSystem.buyTalent(key)) this.scene.restart({ view: 'permanent' });
+          else this._flash('TALENT PURCHASE NOT SAVED');
+        }, 0x274a55, locked);
+      });
+      this.line(cx, 490, `UNLOCKED WEAPONS: ${save.permanent.unlockedWeapons.join(' · ').toUpperCase()}`);
+      this._button(cx, 586, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
+      return;
+    }
+
+    if (config.view === 'checkpoint' && save.run) {
+      const { player, clearedRooms, seed } = save.run;
+      this.line(cx, 266, `CHECKPOINT · SEED ${seed}`, '#33e0ff');
+      this.line(cx, 305, `ROOMS CLEARED ${clearedRooms.length} · LEVEL ${player.level} · RUN CREDITS ${player.currency}`);
+      this.line(cx, 336, `RUN UPGRADES ${player.upgrades.length} · HP ${Math.ceil(player.hp)}/${player.maxHp}`);
+      this._button(cx, 400, 'RESUME CHECKPOINT', 360, () => this.scene.start('GameScene', { resume: true }), 0x33e0ff);
+      this._button(cx, 460, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
+      return;
+    }
+
+    if (config.view === 'replace') {
+      this.line(cx, 287, 'STARTING OVER REPLACES THE CURRENT RUN CHECKPOINT.', '#ff8a3c');
+      this.line(cx, 323, 'Permanent cores, talents and weapon unlocks are kept.');
+      this._button(cx, 400, 'REPLACE AND START', 360, () => this.scene.start('GameScene', {}), 0x5a2a3a);
+      this._button(cx, 460, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
+      return;
+    }
+
     this.add.text(cx, 250, `VERSION ${SAVE_VERSION} · RUNS ${save.permanent.runs} · BOSSES ${save.permanent.bossesDefeated}`, {
       fontFamily: 'monospace', fontSize: '13px', color: '#5a7480'
     }).setOrigin(0.5, 0.5);
 
     const menuY = 340;
-    this._button(cx, menuY, 'NEW RUN', 360, () => this.scene.start('GameScene'), 0x33e0ff);
-    this._button(cx, menuY + 60, 'LOAD RUN · 暂未实现', 360, () => {
-      this._flash('暂未实现：读档尚未实现 (NOT IMPLEMENTED)');
-    }, 0x1a2830, true);
-    this._button(cx, menuY + 120, 'CONTINUE · 暂未实现', 360, () => {
-      this._flash('暂未实现：读档尚未实现 (NOT IMPLEMENTED)');
-    }, 0x1a2830, true);
+    this._button(cx, menuY, 'NEW RUN', 360, () => {
+      if (saveSystem.load().run) this.scene.restart({ view: 'replace' });
+      else this.scene.start('GameScene', {});
+    }, 0x33e0ff);
+    this._button(cx, menuY + 60, 'LOAD RUN', 360, () => {
+      if (saveSystem.load().run) this.scene.restart({ view: 'checkpoint' });
+      else this._flash('NO CHECKPOINT AVAILABLE');
+    }, 0x274a55, !save.run);
+    this._button(cx, menuY + 120, 'CONTINUE', 360, () => {
+      if (saveSystem.load().run) this.scene.start('GameScene', { resume: true });
+      else this._flash('NO CHECKPOINT AVAILABLE');
+    }, 0x274a55, !save.run);
+    this._button(cx, menuY + 180, `PERMANENT TALENTS · ${save.permanent.cores} CORES`, 450, () => {
+      this.scene.restart({ view: 'permanent' });
+    }, 0x274a55);
+    if (config.notice) this._flash(config.notice);
 
     this.add.text(cx, GAME.WINDOW_H - 30, 'WASD move · MOUSE aim · CLICK fire · SPACE dash · F interact · I inventory · ESC pause', {
       fontFamily: 'monospace', fontSize: '13px', color: '#48606b'
@@ -48,6 +98,10 @@ export class MainMenuScene extends Phaser.Scene {
 
   scanlines: Phaser.GameObjects.Graphics | null = null;
   _continueState: any = null;
+
+  private line(x: number, y: number, message: string, color = '#8fb8c8'): void {
+    this.add.text(x, y, message, { fontFamily: 'monospace', fontSize: '16px', color }).setOrigin(0.5);
+  }
 
   private drawScanlines(): void {
     this.scanlines?.clear();
@@ -83,7 +137,7 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private _flash(msg: string): void {
-    const t = this.add.text(GAME.WINDOW_W / 2, 540, msg, { fontFamily: 'monospace', fontSize: '14px', color: '#ff8a3c' }).setOrigin(0.5, 0.5).setDepth(10);
+    const t = this.add.text(GAME.WINDOW_W / 2, 625, msg, { fontFamily: 'monospace', fontSize: '14px', color: '#ff8a3c' }).setOrigin(0.5, 0.5).setDepth(10);
     this.time.addEvent({ delay: 1800, callback: () => t.destroy() });
   }
 

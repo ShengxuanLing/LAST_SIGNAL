@@ -8,12 +8,9 @@ import { RNG } from '../core/random';
 import { Player } from '../entities/Player';
 import { Enemy } from '../entities/Enemy';
 import { Boss } from '../entities/Boss';
-import { SaveSystem } from '../systems/SaveSystem';
-import { saveSystem } from '../systems/SaveSystem';
 import { RoomDepth } from '../world/roomdepth';
 import { WorldRenderer } from '../world/WorldRenderer';
-import { UPGRADES } from '../config/upgrades';
-import { SaveData } from '../types';
+import type { RunCheckpoint, SaveData } from '../types';
 import { audio } from '../systems/AudioSystem';
 
 export interface WorldCallbacks {
@@ -58,7 +55,7 @@ export class World {
   private _maxY = 0;
   private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number; wx: number; wy: number } | null = null;
 
-  constructor(scene: Phaser.Scene, map: MapData, save: ReturnType<SaveSystem['load']>, callbacks: WorldCallbacks) {
+  constructor(scene: Phaser.Scene, map: MapData, save: SaveData, callbacks: WorldCallbacks) {
     this.scene = scene;
     this.map = map;
     this.callbacks = callbacks;
@@ -192,19 +189,19 @@ export class World {
     const r = this.map.rooms[room.id];
     this.enteredRooms.add(room.id);
     if (!r.spawned) {
-      if (r.kind !== 'boss' && r.kind !== 'start') this.spawnForRoom(r);
       if (r.kind === 'boss') this.spawnBoss(r);
+      else this.spawnForRoom(r);
+      if (r.kind === 'resource' || r.kind === 'shop') this.spawnResourceLoot(r);
       this.callbacks.onRoomEntered(room);
     }
-    if (room.kind === 'resource' || room.kind === 'shop') this.spawnResourceLoot(r);
     this.placePortal(r);
   }
 
-  private placePortal(r: Room): void {
+  private placePortal(r: Room, savedTarget?: number | null): void {
     // Prefer the first step toward any unvisited room. If every room is already
     // visited, allow backtracking instead of destroying the portal and soft-locking
     // the run in a leaf room.
-    let target = this.nextRoomTowardUnvisited(r.id);
+    let target = savedTarget ?? this.nextRoomTowardUnvisited(r.id);
     if (target === null) {
       const neighbors = r.connectedTo.filter((n) => n !== r.id);
       if (neighbors.length === 0) {
@@ -433,8 +430,8 @@ export class World {
     this.projectiles.push({ spr, data });
   }
 
-  spawnLoot(x: number, y: number, kind: ItemKind, key: string, amount: number): void {
-    const drop: LootDrop = { x, y, kind, key, amount, bob: Math.random() * Math.PI * 2 };
+  spawnLoot(x: number, y: number, kind: ItemKind, key: string, amount: number, bob = Math.random() * Math.PI * 2): void {
+    const drop: LootDrop = { x, y, kind, key, amount, bob };
     const color = kind === 'health' ? 0xff3355 : kind === 'currency' ? 0xffd233 : 0x33e0ff;
     const s = this.worldToScreen(x, y);
     const spr = this.scene.add.sprite(s.x, s.y, 'icon_' + (kind === 'currency' ? 'currency' : kind === 'health' ? 'health' : 'upgrade'));
@@ -576,7 +573,7 @@ export class World {
       const dx = this.player.x - l.data.x, dy = this.player.y - l.data.y;
       const d = Math.hypot(dx, dy);
       // magnet
-      if (d < this.player.data.pickupRange) {
+      if (d > 0 && d < this.player.data.pickupRange) {
         const pull = 120 * (1 - d / this.player.data.pickupRange);
         l.data.x += (dx / d) * pull * dt;
         l.data.y += (dy / d) * pull * dt;
@@ -674,31 +671,45 @@ export class World {
     this.callbacks.onLevelUp(level);
   }
 
-  saveProgress(): void {
-    const data = this.playerDataSave();
-    saveSystem.save(data);
+  captureCheckpoint(id: string, seed: number, stats: RunCheckpoint['stats']): RunCheckpoint | null {
+    const room = this.currentRoom();
+    if (!room || !this.map.rooms[room.id].cleared || !this.player.alive ||
+        this.won || this.boss || this.enemies.some((enemy) => enemy.alive) ||
+        this.map.rooms.some((entry) => entry.spawned && !entry.cleared)) return null;
+    return {
+      id, seed, stats, roomId: room.id,
+      position: { x: this.player.x, y: this.player.y },
+      clearedRooms: this.map.rooms.filter((entry) => entry.cleared).map((entry) => entry.id),
+      portalTarget: this.currentRoomId === room.id ? this.portal?.targetRoom ?? null : null,
+      rngState: this.rng.snapshot(),
+      player: this.player.data,
+      loot: this.loot.map(({ data }) => data)
+    };
   }
 
-  playerDataSave(): SaveData {
-    const save = saveSystem.load();
-    const p = save.permanent;
-    // upgrades -> track highest levels as permanent bonuses
-    for (const u of this.player.data.upgrades) {
-      const def = UPGRADES[u.key];
-      if (!def) continue;
-      if (u.key === 'vitality') p.maxHpBonus = Math.max(p.maxHpBonus, u.level);
-      if (u.key === 'speed') p.speedBonus = Math.max(p.speedBonus, u.level);
-      if (u.key === 'power') p.damageBonus = Math.max(p.damageBonus, u.level);
-      if (u.key === 'critical') p.critChanceBonus = Math.max(p.critChanceBonus, u.level);
-      if (u.key === 'armor') p.armorBonus = Math.max(p.armorBonus, u.level);
-      if (u.key === 'datapad') p.xpBonus = Math.max(p.xpBonus, u.level);
-      if (u.key === 'magnet') p.currencyBonus = Math.max(p.currencyBonus, u.level);
+  restoreCheckpoint(run: RunCheckpoint): boolean {
+    const room = this.map.rooms[run.roomId];
+    if (!room || !run.clearedRooms.every((id) => this.map.rooms[id]?.kind && this.map.rooms[id].kind !== 'boss') ||
+        (run.portalTarget !== null && !room.connectedTo.includes(run.portalTarget))) return false;
+
+    for (const id of run.clearedRooms) {
+      this.map.rooms[id].cleared = this.map.rooms[id].spawned = true;
+      this.enteredRooms.add(id);
     }
-    // unlock weapons the player actually acquired
-    const owned = this.player.data.weapons.map((w) => w.key);
-    p.unlockedWeapons = Array.from(new Set([...p.unlockedWeapons, ...owned]));
-    saveSystem.save(save);
-    return save;
+    this.player.data = run.player;
+    // Capture the checkpoint's HP *before* reset(): reset() heals to full, but a
+    // resumed run must keep exactly the HP it had when the checkpoint was saved.
+    const restoredHp = this.player.data.hp;
+    const { x, y } = run.position;
+    const inside = x >= room.gx && x < room.gx + room.w && y >= room.gy && y < room.gy + room.h;
+    const position = inside && this.isWalkable(x, y) ? run.position : this.findWalkableInRoom(room);
+    this.player.reset(position.x, position.y);
+    this.player.data.hp = restoredHp;
+    this.currentRoomId = room.id;
+    this.placePortal(room, run.portalTarget);
+    this.rng.restore(run.rngState);
+    for (const drop of run.loot) this.spawnLoot(drop.x, drop.y, drop.kind, drop.key, drop.amount, drop.bob);
+    return true;
   }
 
   reset(): void {

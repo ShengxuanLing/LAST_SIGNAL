@@ -57,13 +57,13 @@ export class PauseScene extends Phaser.Scene {
         `Level ${s.level}`, `HP ${Math.ceil(s.hp)}/${s.maxHp}`, `Speed ${Math.round(s.speed)}`,
         `Damage ${s.damage.toFixed(2)}`, `Crit ${Math.round(s.critChance * 100)}%`, `Crit Dmg ${s.critDamage.toFixed(2)}x`,
         `Armor ${s.armor}`, `Pierce ${s.pierceCount}`, `Regen ${s.hpRegen}/s`, `Magnet ${Math.round(s.pickupRange)}`,
-        `Credits ${s.currency}`
+        `Run credits ${s.currency}`
       ];
       stats.forEach((txt, i) => this.add.text(520, 186 + i * 26, txt, { fontFamily: 'monospace', fontSize: '15px', color: '#eafaff' }));
 
       // upgrades
       const activeUp = player.data.upgrades.filter((u) => u.level > 0);
-      this.add.text(900, 150, 'UPGRADES', { fontFamily: 'monospace', fontSize: '18px', color: '#ff8a3c' });
+      this.add.text(900, 150, 'RUN UPGRADES', { fontFamily: 'monospace', fontSize: '18px', color: '#ff8a3c' });
       if (activeUp.length === 0) this.add.text(900, 186, 'none yet', { fontFamily: 'monospace', fontSize: '15px', color: '#8fb8c8' });
       activeUp.forEach((u, i) => {
         const def = UPGRADES[u.key];
@@ -78,12 +78,16 @@ export class PauseScene extends Phaser.Scene {
       this._button(GAME.WINDOW_W / 2, 360, 'INVENTORY', () => this.scene.restart({ mode: 'inventory' }), 0x274a55);
       this._button(GAME.WINDOW_W / 2, 420, 'SETTINGS', () => this.showSettings(), 0x274a55);
       this._button(GAME.WINDOW_W / 2, 480, 'QUIT TO MENU', () => {
+        parent.saveCheckpoint();
         // scene.start() only shuts down the calling scene; GameScene would stay
         // active (and paused) underneath the menu. Stop it explicitly so a later
         // NEW RUN boots a fresh, unpaused run.
         this.scene.stop('GameScene');
-        this.scene.start('MainMenuScene');
+        this.scene.start('MainMenuScene', {});
       }, 0x5a2a3a);
+      this.add.text(GAME.WINDOW_W / 2, 530, 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
+        fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8'
+      }).setOrigin(0.5);
     }
   }
 
@@ -114,9 +118,10 @@ export class PauseScene extends Phaser.Scene {
       vol.setText(`MASTER ${Math.round(master * 100)}%`);
       sfx.setText(`SFX ${Math.round(sfxVol * 100)}%`);
       audio.setVolumes(master, sfxVol);
-      save.settings.masterVolume = master;
-      save.settings.sfxVolume = sfxVol;
-      saveSystem.save(save);
+      const latest = saveSystem.load();
+      latest.settings.masterVolume = master;
+      latest.settings.sfxVolume = sfxVol;
+      saveSystem.save(latest);
     };
     const step = (v: number, delta: number) => Math.max(0, Math.min(1, Math.round((v + delta) * 10) / 10));
     masterLeft.on('pointerdown', () => { master = step(master, -0.1); apply(); audio.ui(); });

@@ -39,7 +39,7 @@ docs: 补充 README 操作表
 ```bash
 npm ci               # 用 package-lock.json 安装锁定版本依赖
 npm run typecheck    # tsc --noEmit 类型检查
-npm test             # Vitest 单测（src/core/runtime.test.ts 等，7 个用例）
+npm test             # Vitest 单测（src/core/runtime.test.ts，15 个用例）
 npm run test:watch   # Vitest 监听模式
 npm run build        # 生产构建（输出 dist/）
 npm run playwright   # Playwright 端到端回归
@@ -50,7 +50,7 @@ npm run playwright   # Playwright 端到端回归
 ### 双 Vite dev server（运行 e2e 前必须）
 部分 Playwright 用例对端口有硬约束，运行 `npm run playwright` 前**必须同时启动两个 Vite dev server**：
 
-- `tests/audit.spec.ts`、`tests/gameplay.spec.ts` 走 `http://localhost:5173/`（默认 `PORT=5173`）。
+- `tests/audit.spec.ts`、`tests/gameplay.spec.ts`、`tests/checkpoint.spec.ts`、`tests/runtime-bugs.spec.ts` 走 `http://localhost:5173/`（默认 `PORT=5173`）。`tests/checkpoint.spec.ts` 为局内检查点续局 / 永久天赋隔离的端到端回归，务必随其余 5173 用例一起运行。
 - `tests/canvas.spec.ts` 硬编码 `http://localhost:5199/`。
 
 ```bash

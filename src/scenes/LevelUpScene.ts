@@ -12,11 +12,15 @@ export class LevelUpScene extends Phaser.Scene {
   private buttons: Phaser.GameObjects.Rectangle[] = [];
   private player!: PlayerData;
   private chosen = false;
+  // Public callback the parent (GameScene) supplies via launch config so the
+  // scene can hand control back without poking the parent's paused/alpha directly.
+  private onClose: (() => void) | null = null;
 
-  create(config: { level: number }): void {
+  create(config: { level: number; onClose?: () => void }): void {
     // Scene instances are reused between level-ups, so reset per-open state.
     this.chosen = false;
     this.buttons = [];
+    this.onClose = config.onClose ?? null;
     const parent = this.scene.get<GameScene>('GameScene');
     const data = parent?.world?.player?.data as PlayerData | undefined;
     this.player = data ?? ({ ...basePlayerData(), level: config?.level ?? 1, upgrades: [] } as unknown as PlayerData);
@@ -150,16 +154,13 @@ export class LevelUpScene extends Phaser.Scene {
     applyUpgrade(def, this.player, newLevel);
     if (prog) prog.level = newLevel;
     else this.player.upgrades.push({ key, level: newLevel });
-    // persist permanent progression
     const parent = this.scene.get<GameScene>('GameScene');
-    parent?.world?.saveProgress();
-    // hand back to the game after a short beat
-    this.time.delayedCall(180, () => {
-      this.scene.stop();
-      if (parent) {
-        parent.paused = false;
-        parent.cameras.main.setAlpha(1);
-      }
+    parent?.saveCheckpoint();
+    // Hand control back to the parent: it (re)opens the next pending level-up or
+    // resumes the game. We must not set parent.paused/alpha directly here.
+    this.time.delayedCall(120, () => {
+      if (parent && this.onClose) this.onClose();
+      else this.scene.stop();
     });
   }
 }

@@ -78,6 +78,10 @@ export class RNG {
   seed(seed: number): void {
     this.state = this._hashSeed(seed);
   }
+
+  snapshot(): number { return this.state; }
+
+  restore(state: number): void { this.state = state >>> 0; }
 }
 
 export const TAU = Math.PI * 2;

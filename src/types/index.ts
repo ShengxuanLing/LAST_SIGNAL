@@ -93,22 +93,36 @@ export interface UpgradeProgress { key: string; level: number; }
 
 export interface HudData { show: boolean; fps: number; roomIndex: number; roomTotal: number; }
 
+export interface RunCheckpoint {
+  id: string;
+  seed: number;
+  roomId: number;
+  position: Vec2;
+  clearedRooms: number[];
+  portalTarget: number | null;
+  rngState: number;
+  player: PlayerData;
+  loot: LootDrop[];
+  stats: { kills: number; items: number; damage: number; elapsedSeconds: number; };
+}
+
 export interface SaveData {
   version: number; createdAt: string; updatedAt: string;
   permanent: {
     maxHpBonus: number; speedBonus: number; damageBonus: number; critChanceBonus: number;
     armorBonus: number; xpBonus: number; currencyBonus: number;
     unlockedWeapons: string[]; unlockedAbilities: string[];
-    runs: number; bossesDefeated: number; bestSeed: number;
+    cores: number; runs: number; bossesDefeated: number; bestSeed: number;
   };
   settings: {
     masterVolume: number; sfxVolume: number; mouseDpi: number;
     fullscreen: boolean; screenShake: boolean;
   };
   stats: { enemiesKilled: number; itemsCollected: number; damageDealt: number; playTimeSeconds: number; };
+  run?: RunCheckpoint;
 }
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export interface ProjectileData {
   id: number; ownerId: number; side: 'player' | 'enemy';

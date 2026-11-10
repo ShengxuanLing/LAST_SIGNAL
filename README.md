@@ -35,14 +35,14 @@
 
 以下特性均来自 `0.1.0` 真实源码（已逐文件复核）：
 
-- **主菜单 / NEW RUN**：开始一局程序化生成的等距地牢（5–9 个房间，房间深度逐层递增）。`LOAD RUN` / `CONTINUE` 按钮**暂未实现**（点击仅提示「暂未实现」）。
+- **主菜单**：`NEW RUN` 开始新的随机地牢。已有一局时，会先确认是否替换检查点。`LOAD RUN` 查看检查点，`CONTINUE` 直接恢复。
 - **等距房间与地图**：`src/world/MapGenerator.ts` 生成房间深度（RoomDepth）结构，`WorldRenderer` 把整张地图烘焙成单张等距纹理；带小地图（minimap）与相机跟随 / 缩放（`CAM_ZOOM_MIN 0.8` ~ `CAM_ZOOM_MAX 1.25`）。
 - **战斗**：鼠标瞄准、按住左键射击；`SPACE` 冲刺（dash）；敌人含 drone / stalker / hunter / sentinel 四型（随房间深度解锁更强类型），掉落资源 / 经验 / 信用点（credits）。
 - **武器系统**：4 把武器（Pulse Rifle / Scatter Gun / Plasma Cannon / Arc Drone），`Q` / `E` 切换，`F` 与场景互动物（传送门 / 拾取）交互；弹匣耗尽自动换弹。
-- **升级与成长**：击杀获得经验，升级时从加权池中随机给 3 选 1 升级卡（共 12 项升级）；永久存档（`SaveSystem`）记录 `runs`、`bossesDefeated`、解锁武器与各项永久加成。
+- **升级与成长**：击杀获得经验，升级时从加权池中随机给 3 选 1 升级卡（共 12 项局内升级）。击败 Boss 可获得 1 枚永久核心，在主菜单的 `PERMANENT TALENTS` 中购买生命、伤害或护甲天赋。永久天赋在新开局时生效。
 - **Boss 房**：深层房间生成三阶段 Boss（含激光、环形弹幕与召唤无人机），击破后进入胜利结算。
 - **暂停 / 局内统计 / 结算**：`ESC` 暂停并显示当前武器与升级；死亡进入 GameOver 结算页。
-- **本地存档**：`localStorage` 持久化设置（音量、全屏、屏震等）与永久统计；存档格式带版本号与校验，损坏 / 过期时安全回退到默认值（**仅永久数据，暂无局内快照**）。
+- **本地存档**：每个浏览器地址保留一个局内检查点。开始游戏、清房和安全区域内拾取时自动保存，包含房间进度、生命、经验、弹药、信用点、升级卡和未捡掉落。战斗中退出会回到上一处安全检查点。死亡或击败 Boss 后清除这局的检查点，信用点和升级卡不会计入永久档。旧存档中的设置、统计、武器解锁和已有永久加成会保留。
 
 ## 截图
 
@@ -100,10 +100,10 @@ npm run preview   # 预览生产构建
 
 ```bash
 npm run typecheck   # tsc --noEmit，类型检查
-npm test            # Vitest 单测（src/core/runtime.test.ts 等，7 个用例）
+npm test            # Vitest 单测（src/core/runtime.test.ts，15 个用例）
 npm run test:watch  # Vitest 监听模式
 
-npm run playwright  # Playwright 端到端回归（tests/ 下 audit/canvas/gameplay/boss-room/runtime-bugs）
+npm run playwright  # Playwright 端到端回归（tests/ 下 audit/canvas/gameplay/checkpoint/boss-room/runtime-bugs）
 ```
 
 运行 Playwright 前**需同时启动两个 Vite dev server**（见 `CONTRIBUTING.md`）：
@@ -175,11 +175,12 @@ LAST_SIGNAL/
 ## 已知限制
 
 - **Signal Manipulation、Agent Bridge、Human+AI Co-op 目前只有设计文档，尚未实现。** 当前版本没有任何 WebSocket / MCP / Agent / Harness 代码。
-- **`LOAD RUN` / `CONTINUE` 暂未实现**：主菜单这两个按钮点击只提示「暂未实现」，目前只能从 `NEW RUN` 开始。
 - **无云端 AI 依赖，也无任何 AI 功能**：全部逻辑在浏览器本地运行，无网络请求、无远端服务。
 - **不使用外部图片资源**：美术与音效均程序化生成（见 `docs/STYLE_GUIDE.md`）。
 - **仅桌面键鼠**：未做移动端触控适配（Touch API 已禁用，专注 pointer/keyboard）。
-- **存档仅持久化永久统计与设置**：`SaveData` 无局内快照，刷新即丢失当前一局进度。
+- **局内检查点（checkpoint）仅在安全点 / 清房点保存**：开始游戏、清房、安全区域内拾取时自动写入当前浏览器地址的 `run` 检查点；战斗中途退出会回到上一处安全检查点，而非实时快照。
+- **`NEW RUN` 会替换并覆盖旧检查点**：同一地址只保留一个局内检查点，开始新一局即弃用上一局的 `run`。
+- **失败 / 胜利结算会清档**：死亡或击败 Boss 进入结算时清除这局的 `run` 检查点；本局信用点（credits）与升级卡只在本局有效，不计入永久档（永久 `cores` 与天赋仅在击败 Boss 后写入 `permanent`）。
 - **生产包为单 chunk（≈1.5 MB / gzip ≈364 kB）**，有 >500 kB 警告，分包待 PHASE 0 处理。
 - **`gameBus` 事件总线暂无消费者**；通关（首房到 Boss 胜利）尚无非人工的端到端验收用例。
 
