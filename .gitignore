@@ -22,6 +22,9 @@ inspect_full.txt
 *.p12
 *.pfx
 
+# Nested clone of this repository created locally; do not commit it into the project.
+/LAST_SIGNAL/
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
