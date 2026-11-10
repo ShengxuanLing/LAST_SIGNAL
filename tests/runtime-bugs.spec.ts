@@ -7,7 +7,7 @@ const SHOT_DIR = process.env.LS_SHOT_DIR
   ? path.resolve(process.env.LS_SHOT_DIR)
   : path.resolve('screens');
 
-const PROJECT = 'D:/Project/LAST_SIGNAL';
+const PROJECT = path.resolve(process.env.LAST_SIGNAL_ROOT ?? process.cwd());
 
 async function scaleState(page: any) {
   return page.evaluate(() => {

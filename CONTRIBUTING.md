@@ -45,6 +45,8 @@ npm run build        # 生产构建（输出 dist/）
 npm run playwright   # Playwright 端到端回归
 ```
 
+> 请从仓库根目录执行以上命令。`tests/runtime-bugs.spec.ts` 会读取项目源码做静态断言；如从其他目录运行 Playwright，请设置 `LAST_SIGNAL_ROOT` 指向仓库根目录。
+
 ### 双 Vite dev server（运行 e2e 前必须）
 部分 Playwright 用例对端口有硬约束，运行 `npm run playwright` 前**必须同时启动两个 Vite dev server**：
 

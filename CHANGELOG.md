@@ -11,7 +11,10 @@
 - 新增 `LICENSE`：MIT 许可证（Copyright (c) 2026 LAST SIGNAL contributors）。
 - 新增 `CHANGELOG.md`（本文件）。
 - 新增 `CONTRIBUTING.md`：分支/提交规范、测试命令、双 Vite dev server（5173/5199）说明、忽略产物与 `docs/STYLE_GUIDE.md` 约定。
+- 新增 `docs/README.md`：设计文档索引与历史快照说明。
 - 新增文档用资源 `assets/banner.svg`、`assets/social-preview.png` 与 `assets/screenshots/`（01–06，由仓库美化流程生成）。
+- 修正 `tests/runtime-bugs.spec.ts` 的硬编码 Windows 路径；CI 通过 `LAST_SIGNAL_ROOT` 指向仓库根目录。
+- 放宽 Boss HP 条在屏震下的坐标断言，避免非确定性抖动导致 CI 误报。
 
 ## [0.2.0] — 设计审计文档（文档里程碑，非代码版本）
 

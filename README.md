@@ -150,6 +150,7 @@ LAST_SIGNAL/
 
 | 文档 | 内容 |
 | --- | --- |
+| [`docs/README.md`](docs/README.md) | 设计文档索引与历史快照说明；解释审计文档里的 Git / 测试状态为何不能再当作当前状态。 |
 | [`docs/STYLE_GUIDE.md`](docs/STYLE_GUIDE.md) | 美术风格指南（暗底单色辉光、几何极简、青色为「系统/我方」、程序化纹理，无外部图片资源）——**已生效**，改动美术须遵守。 |
 | [`docs/PROJECT_ROADMAP.md`](docs/PROJECT_ROADMAP.md) | 项目路线图（PHASE 0–5 与 `0.2.0-alpha/beta/rc` 节奏）。 |
 | [`docs/ARCHITECTURE_DECISIONS.md`](docs/ARCHITECTURE_DECISIONS.md) | 架构决策记录（ADR 集合）。 |
