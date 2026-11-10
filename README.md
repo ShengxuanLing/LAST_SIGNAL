@@ -100,10 +100,10 @@ npm run preview   # 预览生产构建
 
 ```bash
 npm run typecheck   # tsc --noEmit，类型检查
-npm test            # Vitest 单测（src/core/runtime.test.ts 等，7 个用例）
+npm test            # Vitest 单测（src/core/runtime.test.ts，15 个用例）
 npm run test:watch  # Vitest 监听模式
 
-npm run playwright  # Playwright 端到端回归（tests/ 下 audit/canvas/gameplay/boss-room/runtime-bugs）
+npm run playwright  # Playwright 端到端回归（tests/ 下 audit/canvas/gameplay/checkpoint/boss-room/runtime-bugs）
 ```
 
 运行 Playwright 前**需同时启动两个 Vite dev server**（见 `CONTRIBUTING.md`）：
@@ -175,11 +175,12 @@ LAST_SIGNAL/
 ## 已知限制
 
 - **Signal Manipulation、Agent Bridge、Human+AI Co-op 目前只有设计文档，尚未实现。** 当前版本没有任何 WebSocket / MCP / Agent / Harness 代码。
-- **`LOAD RUN` / `CONTINUE` 暂未实现**：主菜单这两个按钮点击只提示「暂未实现」，目前只能从 `NEW RUN` 开始。
 - **无云端 AI 依赖，也无任何 AI 功能**：全部逻辑在浏览器本地运行，无网络请求、无远端服务。
 - **不使用外部图片资源**：美术与音效均程序化生成（见 `docs/STYLE_GUIDE.md`）。
 - **仅桌面键鼠**：未做移动端触控适配（Touch API 已禁用，专注 pointer/keyboard）。
-- **存档仅持久化永久统计与设置**：`SaveData` 无局内快照，刷新即丢失当前一局进度。
+- **局内检查点（checkpoint）仅在安全点 / 清房点保存**：开始游戏、清房、安全区域内拾取时自动写入当前浏览器地址的 `run` 检查点；战斗中途退出会回到上一处安全检查点，而非实时快照。
+- **`NEW RUN` 会替换并覆盖旧检查点**：同一地址只保留一个局内检查点，开始新一局即弃用上一局的 `run`。
+- **失败 / 胜利结算会清档**：死亡或击败 Boss 进入结算时清除这局的 `run` 检查点；本局信用点（credits）与升级卡只在本局有效，不计入永久档（永久 `cores` 与天赋仅在击败 Boss 后写入 `permanent`）。
 - **生产包为单 chunk（≈1.5 MB / gzip ≈364 kB）**，有 >500 kB 警告，分包待 PHASE 0 处理。
 - **`gameBus` 事件总线暂无消费者**；通关（首房到 Boss 胜利）尚无非人工的端到端验收用例。
 

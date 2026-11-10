@@ -17,8 +17,8 @@
 ## 当前实现边界
 
 - `0.1.0` 是**可玩纵向切片**：程序化地图、战斗、升级、Boss、暂停、结算、本地永久存档与基础音效已实现。
+- **局内检查点与永久进度已实现**：`NEW RUN` 在开始新局时覆盖旧检查点；`LOAD RUN` / `CONTINUE` 可查看 / 直接恢复检查点；死亡或击败 Boss 进入结算时清除这局的 `run` 检查点。击败 Boss 可获得永久 `cores`，在 `PERMANENT TALENTS` 中购买天赋，永久加成在下次开局生效。
 - Signal Manipulation、Agent Bridge、Human+AI Co-op **目前只有设计文档，尚未实现**；代码中没有 WebSocket / MCP / Agent / Harness。
-- `LOAD RUN` / `CONTINUE` 暂未实现；当前只能从 `NEW RUN` 开始。
 - 设计文档里大量 `TBD — Requires User Decision` 与「需新建 / 需扩展」状态标签，代表未来提案，不代表当前代码能力。
 
 需要了解如何启动、测试与贡献，请先看仓库根目录的 [`README.md`](../README.md) 和 [`CONTRIBUTING.md`](../CONTRIBUTING.md)。

@@ -50,6 +50,11 @@ export class GameScene extends Phaser.Scene {
   private runId = '';
   private checkpointDirty = false;
   private runFinished = false;
+  // Pending level-up levels. When one XP gain crosses several levels, addXp()
+  // fires onLevelUp multiple times; we queue them and open the scene one at a
+  // time so no upgrade is skipped and the scene is never launched twice.
+  private pendingLevels: number[] = [];
+  private levelUpActive = false;
 
   seed = 0;
 
@@ -65,9 +70,14 @@ export class GameScene extends Phaser.Scene {
       this.scene.start('MainMenuScene', { notice: 'NO CHECKPOINT AVAILABLE' });
       return;
     }
-    this.runId = crypto.getRandomValues(new Uint32Array(4)).join('-');
+    // A resumed run keeps the checkpoint's id; a brand-new run gets a fresh id.
+    // A NEW RUN must not carry over a previous run's id, and its first checkpoint
+    // write replaces the old on-disk run (see the undefined expectedId below).
+    this.runId = checkpoint ? checkpoint.id : crypto.getRandomValues(new Uint32Array(4)).join('-');
     this.checkpointDirty = false;
     this.runFinished = false;
+    this.pendingLevels = [];
+    this.levelUpActive = false;
     this.enemiesKilled = checkpoint?.stats.kills ?? 0;
     this.itemsCollected = checkpoint?.stats.items ?? 0;
     this.damageDealt = checkpoint?.stats.damage ?? 0;
@@ -98,7 +108,12 @@ export class GameScene extends Phaser.Scene {
     }
     if (!checkpoint) this.world.updateRoom();
     const firstCheckpoint = this.world.captureCheckpoint(this.runId, this.seed, this.runStats());
-    if (firstCheckpoint) saveSystem.writeCheckpoint(firstCheckpoint, save.run?.id);
+    if (firstCheckpoint) {
+      // First write replaces any existing on-disk checkpoint (expectedId ===
+      // undefined) so a NEW RUN clears the old run and a RESUME re-saves the same
+      // id. Later writes pass this.runId so they can only touch the active run.
+      saveSystem.writeCheckpoint(firstCheckpoint, undefined);
+    }
     this.checkpointDirty = false;
 
     // Camera bounds must follow the real isometric world layer, not the tile-grid
@@ -262,7 +277,7 @@ export class GameScene extends Phaser.Scene {
 
     // screen shake: Phaser expects intensity as a 0..1 fraction of the viewport,
     // not a pixel count (SHAKE_MAX / WINDOW_W is at most ~0.014).
-    if (this.world.shakeAmount > 0.5 && saveSystem.load().settings.screenShake) {
+    if (this.world.shakeAmount > 0.5 && saveSystem.getSettings().screenShake) {
       this.cam.shake(100, this.world.shakeAmount / GAME.WINDOW_W);
     }
 
@@ -298,7 +313,8 @@ export class GameScene extends Phaser.Scene {
     this.txtEnemies.setText(`HOSTILES ${aliveEnemies}`);
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.timer.setText(`${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, '0')}`);
-    audio.setVolumes(saveSystem.load().settings.masterVolume, saveSystem.load().settings.sfxVolume);
+    const settings = saveSystem.getSettings();
+    audio.setVolumes(settings.masterVolume, settings.sfxVolume);
   }
 
   private refreshMinimap(): void {
@@ -357,10 +373,31 @@ export class GameScene extends Phaser.Scene {
 
   private onLevelUp(level: number): void {
     if (this.world.won || this.runFinished) return;
+    this.pendingLevels.push(level);
+    if (!this.levelUpActive) this.openNextLevelUp();
+  }
+
+  private openNextLevelUp(): void {
+    const level = this.pendingLevels.shift();
+    if (level === undefined) return;
+    this.levelUpActive = true;
     audio.levelup();
     this.paused = true;
     this.cameras.main.setAlpha(0.5);
-    this.scene.launch('LevelUpScene', { level });
+    this.scene.launch('LevelUpScene', { level, onClose: () => this.onLevelUpClosed() });
+  }
+
+  /** Public callback invoked by LevelUpScene.choose() after a choice is applied. */
+  onLevelUpClosed(): void {
+    this.scene.stop('LevelUpScene');
+    this.levelUpActive = false;
+    if (this.pendingLevels.length > 0) {
+      // More levels queued from the same XP gain: open the next one.
+      this.openNextLevelUp();
+    } else {
+      this.paused = false;
+      this.cameras.main.setAlpha(1);
+    }
   }
 
   private onRoomEntered(room: RoomInfo): void {
@@ -374,8 +411,11 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: t, alpha: 0, duration: 1200, onComplete: () => t.destroy() });
   }
 
-  private onRoomCleared(_room: RoomInfo): void {
+  private onRoomCleared(room: RoomInfo): void {
     this.checkpointDirty = true;
+    // The start room is marked cleared on create so a fresh run can be persisted;
+    // do not flash a combat banner or play the clear cue for this synthetic event.
+    if (room.kind === 'start') return;
     audio.wave();
     const p = this.world.player;
     const s = this.world.worldToScreen(p.x, p.y);
@@ -388,6 +428,8 @@ export class GameScene extends Phaser.Scene {
   private onDeath(): void {
     if (this.runFinished) return;
     this.runFinished = true;
+    this.pendingLevels = [];
+    this.levelUpActive = false;
     audio.death();
     saveSystem.finishRun(this.runId, false, this.seed, this.runStats());
     this.scene.stop('LevelUpScene');
@@ -398,6 +440,8 @@ export class GameScene extends Phaser.Scene {
     if (this.runFinished) return;
     this.runFinished = true;
     const coreAwarded = saveSystem.finishRun(this.runId, true, this.seed, this.runStats());
+    this.pendingLevels = [];
+    this.levelUpActive = false;
     audio.bossroar();
     const p = this.world.player;
     const s = this.world.worldToScreen(p.x, p.y);

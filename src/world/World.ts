@@ -697,10 +697,14 @@ export class World {
       this.enteredRooms.add(id);
     }
     this.player.data = run.player;
+    // Capture the checkpoint's HP *before* reset(): reset() heals to full, but a
+    // resumed run must keep exactly the HP it had when the checkpoint was saved.
+    const restoredHp = this.player.data.hp;
     const { x, y } = run.position;
     const inside = x >= room.gx && x < room.gx + room.w && y >= room.gy && y < room.gy + room.h;
     const position = inside && this.isWalkable(x, y) ? run.position : this.findWalkableInRoom(room);
     this.player.reset(position.x, position.y);
+    this.player.data.hp = restoredHp;
     this.currentRoomId = room.id;
     this.placePortal(room, run.portalTarget);
     this.rng.restore(run.rngState);

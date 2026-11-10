@@ -88,6 +88,56 @@ describe('run and permanent saves', () => {
     expect(system.finishRun(run.id, false, run.seed, run.stats)).toBe(true);
     expect(system.load().permanent).toMatchObject({ cores: 0, bossesDefeated: 1, damageBonus: 1, runs: 2 });
   });
+
+  it('discardCheckpoint removes the run only when the id matches', () => {
+    const system = storage();
+    const run = checkpoint();
+    expect(system.writeCheckpoint(run, undefined)).toBe(true);
+    // A mismatched id is a no-op and must not touch the run.
+    system.discardCheckpoint('other-id');
+    expect(system.load().run?.id).toBe('run-a');
+    // A matching id clears the run.
+    system.discardCheckpoint('run-a');
+    expect(system.load().run).toBeUndefined();
+  });
+
+  it('keeps a still-valid run through _upgrade when the save structure is invalid', () => {
+    // A version mismatch makes validate() fail, so load() routes through _upgrade.
+    const badVersion = { ...save(), version: 1, run: checkpoint() };
+    const system = storage(badVersion);
+    const loaded = system.load();
+    // Contract: an overall-invalid save must NOT discard a still-valid run.
+    expect(loaded.run?.id).toBe('run-a');
+    expect(loaded.run?.player.currency).toBe(42);
+    expect(loaded.version).toBe(SAVE_VERSION);
+    expect(loaded.permanent.cores).toBe(0);
+  });
+
+  it('writeCheckpoint(undefined) replaces a previously saved run', () => {
+    const system = storage();
+    const first = checkpoint();
+    expect(system.writeCheckpoint(first, undefined)).toBe(true);
+    const second = { ...checkpoint(), id: 'run-b' };
+    // Contract: undefined expectedId may overwrite ANY existing run.
+    expect(system.writeCheckpoint(second, undefined)).toBe(true);
+    expect(system.load().run?.id).toBe('run-b');
+  });
+
+  it('writeCheckpoint(expectedId) rejects stale writes and writes with no existing run', () => {
+    const system = storage();
+    const a = checkpoint();
+    const b = { ...checkpoint(), id: 'run-b' };
+    // No run yet: a string expectedId has nothing to match -> rejected.
+    expect(system.writeCheckpoint(a, 'run-a')).toBe(false);
+    // Seed the run (undefined expectedId, no old run).
+    expect(system.writeCheckpoint(a, undefined)).toBe(true);
+    // Replace A with B using the correct expectedId.
+    expect(system.writeCheckpoint(b, 'run-a')).toBe(true);
+    expect(system.load().run?.id).toBe('run-b');
+    // Stale write: A is no longer the current run -> rejected, run unchanged.
+    expect(system.writeCheckpoint(a, 'run-a')).toBe(false);
+    expect(system.load().run?.id).toBe('run-b');
+  });
 });
 
 describe('iso projection', () => {
@@ -153,5 +203,56 @@ describe('validate', () => {
     expect(validate(bad)).toBe(false);
     expect(validate(null)).toBe(false);
     expect(validate({ version: 1 })).toBe(false);
+  });
+});
+
+// Lightweight model of the GameScene multi-level XP behaviour, without Phaser.
+// A single XP gain can cross several level thresholds; each level-up is queued
+// and processed one at a time (one card choice per level) so none is dropped.
+function makeLevelQueue() {
+  let level = 1;
+  let xp = 0;
+  let xpToNext = 30;
+  const pending: number[] = [];
+  let upgradesApplied = 0;
+  const gainXp = (amount: number) => {
+    xp += amount;
+    while (xp >= xpToNext) {
+      xp -= xpToNext;
+      level += 1;
+      xpToNext = Math.round(30 * Math.pow(level, 1.3));
+      pending.push(level); // enqueue every level-up, one per threshold
+    }
+  };
+  const processOne = () => {
+    const lvl = pending.shift();
+    if (lvl === undefined) return false;
+    upgradesApplied += 1; // a card is chosen for this level
+    return true;
+  };
+  return {
+    gainXp, processOne,
+    get pending() { return pending.length; },
+    get level() { return level; },
+    get upgrades() { return upgradesApplied; }
+  };
+}
+
+describe('multi-level XP queue', () => {
+  it('processes every pending level-up without dropping an upgrade', () => {
+    const q = makeLevelQueue();
+    // A single large XP gain crosses several thresholds at once.
+    q.gainXp(100000);
+    expect(q.level).toBeGreaterThan(3);
+    expect(q.pending).toBe(q.level - 1); // every crossed threshold is queued
+
+    // More XP arrives before the queue is drained -> more levels queued, none lost.
+    q.gainXp(100000);
+    expect(q.pending).toBe(q.level - 1);
+
+    // Drain exactly like the card-choosing loop would.
+    while (q.processOne()) { /* one upgrade applied per level */ }
+    expect(q.pending).toBe(0);
+    expect(q.upgrades).toBe(q.level - 1); // one upgrade per level gained, none dropped
   });
 });

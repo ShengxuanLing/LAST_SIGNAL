@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
 const PORT = Number(process.env.PORT ?? 5173);
+const SHOT_DIR = process.env.LS_SHOT_DIR
+  ? path.resolve(process.env.LS_SHOT_DIR)
+  : path.join(tmpdir(), 'last_signal_screens');
 const ERRORS: string[] = [];
 
 test.beforeEach(async ({ page }) => {
@@ -16,25 +21,26 @@ test('menu + gameplay render', async ({ page }) => {
     return !l || l.style.display === 'none';
   }, { timeout: 10000 }).catch(() => {});
   await page.waitForTimeout(1500);
-  await page.screenshot({ path: 'tests/screens/main-menu.png' });
+  mkdirSync(SHOT_DIR, { recursive: true });
+  await page.screenshot({ path: path.join(SHOT_DIR, 'main-menu.png') });
 
   // Click NEW RUN button (center 640, 340)
   await page.mouse.click(640, 340);
   await page.waitForTimeout(2000);
-  await page.screenshot({ path: 'tests/screens/gameplay.png' });
+  await page.screenshot({ path: path.join(SHOT_DIR, 'gameplay.png') });
 
   // Movement + firing + dash
   await page.keyboard.press('KeyW');
   await page.mouse.move(820, 400);
   await page.mouse.down();
   await page.waitForTimeout(2500);
-  await page.screenshot({ path: 'tests/screens/combat.png' });
+  await page.screenshot({ path: path.join(SHOT_DIR, 'combat.png') });
   await page.keyboard.press('Space');
   await page.waitForTimeout(1500);
   await page.mouse.up();
   await page.keyboard.up('Space');
 
-  writeFileSync('tests/screens/errors.json', JSON.stringify(ERRORS, null, 2));
+  writeFileSync(path.join(SHOT_DIR, 'errors.json'), JSON.stringify(ERRORS, null, 2));
   console.log('CONSOLE ERRORS:', ERRORS.length);
   for (const e of ERRORS.slice(0, 30)) console.log('  ERROR:', e);
 

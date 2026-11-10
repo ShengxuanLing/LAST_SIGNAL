@@ -66,6 +66,9 @@ export function validate(data: any): data is SaveData {
 
 export class SaveSystem {
   private useStorage: () => Storage | null;
+  // In-memory settings cache so per-frame callers (HUD) don't re-parse the full
+  // localStorage blob (which includes the run checkpoint) every frame.
+  private settingsCache: SaveData['settings'] | null = null;
 
   constructor(opts: { useStorage?: () => Storage | null } = {}) {
     this.useStorage = opts.useStorage ?? (() => {
@@ -78,6 +81,12 @@ export class SaveSystem {
   }
 
   load(): SaveData {
+    const result = this._load();
+    this.settingsCache = result.settings;
+    return result;
+  }
+
+  private _load(): SaveData {
     const store = this.useStorage();
     if (!store) return emptySave();
     let raw: string | null = null;
@@ -123,6 +132,12 @@ export class SaveSystem {
     base.stats.itemsCollected = typeof st.itemsCollected === 'number' ? st.itemsCollected : base.stats.itemsCollected;
     base.stats.damageDealt = typeof st.damageDealt === 'number' ? st.damageDealt : base.stats.damageDealt;
     base.stats.playTimeSeconds = typeof st.playTimeSeconds === 'number' ? st.playTimeSeconds : base.stats.playTimeSeconds;
+    // A run checkpoint is independent of the save's version/schema. If the save
+    // was outdated/invalid but the embedded run still validates, keep it so a
+    // version bump never silently destroys an in-progress run.
+    if (parsed?.run !== undefined && validateCheckpoint(parsed.run)) {
+      base.run = parsed.run;
+    }
     base.createdAt = typeof parsed?.createdAt === 'string' ? parsed.createdAt : base.createdAt;
     return base;
   }
@@ -135,6 +150,7 @@ export class SaveSystem {
     if (!validate(data) || (data.run !== undefined && !validateCheckpoint(data.run))) return false;
     try {
       store.setItem(SAVE_KEY, JSON.stringify(data));
+      this.settingsCache = data.settings;
       return true;
     } catch {
       // Storage full or unavailable — failure is non-fatal to gameplay.
@@ -142,9 +158,23 @@ export class SaveSystem {
     }
   }
 
+  /** Cached read of settings; avoids re-parsing localStorage (incl. the run) each frame. */
+  getSettings(): SaveData['settings'] {
+    return this.settingsCache ?? this.load().settings;
+  }
+
+  /** Force a re-read of settings from storage (call after a settings change has been saved). */
+  refreshSettings(): void {
+    this.settingsCache = this.load().settings;
+  }
+
   writeCheckpoint(run: RunCheckpoint, expectedId: string | undefined): boolean {
     const save = this.load();
-    if (save.run?.id !== expectedId) return false;
+    // Contract:
+    //  - expectedId === undefined  -> replace ANY existing on-disk run (new run / first write).
+    //  - expectedId is a string     -> only write when save.run?.id === expectedId
+    //                                 (guards against writing over a different active run).
+    if (expectedId !== undefined && save.run?.id !== expectedId) return false;
     save.run = run;
     return this.save(save);
   }
