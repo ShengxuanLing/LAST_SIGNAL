@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>LAST SIGNAL</title>
+    <meta name="description" content="LAST SIGNAL — 2.5D isometric sci-fi roguelite" />
+    <script>
+      window.addEventListener('error', (e) => {
+        try { console.error('RAWSTACK', e.error && e.error.stack ? e.error.stack : e.message);
+        } catch (_x) {}
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        try { console.error('REJECTION', (e.reason && e.reason.stack) || e.reason);
+        } catch (_x) {}
+      });
+    </script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #05070c; }
+      #game { display: block; margin: 0 auto; width: 100vw; height: 100vh; touch-action: none; }
+      #game canvas { display: block; }
+      #loader {
+        position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+        color: #33e0ff; font-family: monospace; font-size: 18px; letter-spacing: 3px;
+        background: #05070c;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="loader">INITIALIZING LAST SIGNAL...</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

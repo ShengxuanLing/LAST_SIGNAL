@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Test / verification artifacts (screenshots, results, diagnostics)
+test-results/
+playwright-report/
+tests/screens/
+screens/
+coverage/
+inspect_full.txt
+*.log
+
+# Local environment & secrets (keep example configs tracked)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.local
