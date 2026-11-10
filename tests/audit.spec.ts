@@ -13,7 +13,7 @@ import path from 'node:path';
 // input and asserts the whole core loop. Every step must pass with no pageerror
 // or console error.
 
-const PORT = 5173;
+const PORT = Number(process.env.PORT ?? 5173);
 const SEED = 424242;
 const SHOT_DIR = process.env.LS_SHOT_DIR
   ? path.resolve(process.env.LS_SHOT_DIR)
@@ -87,8 +87,8 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
 
   // 1) Blank click / LOAD RUN / CONTINUE must NOT start GameScene.
   await page.mouse.click(100, 100);
-  await page.mouse.click(640, 400); // LOAD RUN -> "暂未实现"
-  await page.mouse.click(640, 460); // CONTINUE -> "暂未实现"
+  await page.mouse.click(640, 400); // LOAD RUN, no checkpoint
+  await page.mouse.click(640, 460); // CONTINUE, no checkpoint
   await page.waitForTimeout(200);
   const menuState = await page.evaluate(() => ({
     active: (window as any).__game.scene.getScenes(true).map((s: any) => s.constructor.name),
@@ -451,6 +451,8 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   expect(afterQuit.menuActive, 'MainMenuScene active after quit').toBe(true);
   expect(afterQuit.active, 'GameScene stopped after quit').not.toContain('GameScene');
   await page.mouse.click(640, 340); // NEW RUN again
+  await page.waitForTimeout(200);
+  await page.mouse.click(640, 400); // REPLACE AND START
   await page.waitForTimeout(1200);
   const secondRun = await worldState(page);
   expect(secondRun.active, 'second GameScene active').toContain('GameScene');
@@ -467,7 +469,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
 // Covers: normalised Boss bullet speed + visible/surviving bullets after 0.5s,
 // screen-locked worldLight under camera scroll/zoom, unlockedWeapons from the
 // save + Q/E switching + auto-reload, single UI sound per click, and the
-// dimmed "暂未实现" LOAD RUN / CONTINUE buttons.
+// dimmed LOAD RUN / CONTINUE buttons when there is no checkpoint.
 // ---------------------------------------------------------------------------
 test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound', async ({ page }) => {
   const errors: string[] = [];
@@ -511,15 +513,15 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
     m.scene.start = (key: string, data?: any) => key === 'GameScene' ? o(key, { seed }) : o(key, data);
   }, SEED);
 
-  // LOAD RUN / CONTINUE must stay dimmed + show "暂未实现", never start GameScene.
+  // LOAD RUN / CONTINUE must stay dimmed when no checkpoint exists.
   const disabled = await page.evaluate(() => {
     const g: any = (window as any).__game;
     const m: any = g.scene.getScene('MainMenuScene');
     const labels = m.children.list.filter((c: any) => c.type === 'Text').map((c: any) => c.text);
-    const dimRects = m.children.list.filter((c: any) => c.type === 'Rectangle' && c.fillColor === 0x1a2830).length;
+    const dimRects = m.children.list.filter((c: any) => c.type === 'Rectangle' && c.fillAlpha === 0.16).length;
     return { labels, dimRects };
   });
-  expect(disabled.labels.filter((t: string) => t.includes('暂未实现')).length, 'both disabled buttons labelled 暂未实现').toBe(2);
+  expect(disabled.labels).toEqual(expect.arrayContaining(['LOAD RUN', 'CONTINUE']));
   expect(disabled.dimRects, 'two dimmed button backgrounds').toBe(2);
   await page.mouse.click(640, 400); // LOAD RUN
   await page.mouse.click(640, 460); // CONTINUE
@@ -529,11 +531,11 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
     ui: (window as any).__uiCount,
     flash: ((window as any).__game.scene.getScene('MainMenuScene').children.list
       .filter((c: any) => c.type === 'Text').map((c: any) => c.text) as string[])
-      .some((t) => t.includes('暂未实现') && t.includes('NOT IMPLEMENTED'))
+      .includes('NO CHECKPOINT AVAILABLE')
   }));
   expect(afterDisabled.active, 'disabled buttons do not start GameScene').toContain('MainMenuScene');
   expect(afterDisabled.active, 'no GameScene from LOAD RUN/CONTINUE').not.toContain('GameScene');
-  expect(afterDisabled.flash, '暂未实现 prompt rendered').toBe(true);
+  expect(afterDisabled.flash, 'missing-checkpoint prompt rendered').toBe(true);
   expect(afterDisabled.ui, 'one UI sound per disabled-button click').toBe(2);
 
   await page.mouse.click(640, 340); // NEW RUN

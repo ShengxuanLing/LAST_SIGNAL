@@ -150,9 +150,8 @@ export class LevelUpScene extends Phaser.Scene {
     applyUpgrade(def, this.player, newLevel);
     if (prog) prog.level = newLevel;
     else this.player.upgrades.push({ key, level: newLevel });
-    // persist permanent progression
     const parent = this.scene.get<GameScene>('GameScene');
-    parent?.world?.saveProgress();
+    parent?.saveCheckpoint();
     // hand back to the game after a short beat
     this.time.delayedCall(180, () => {
       this.scene.stop();

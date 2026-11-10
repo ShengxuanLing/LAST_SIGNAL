@@ -6,34 +6,20 @@ import { audio } from '../systems/AudioSystem';
 export class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
 
-  create(config: { seed: number; killCount?: number; dmg?: number; won?: boolean }): void {
+  create(config: { seed: number; killCount?: number; dmg?: number; won?: boolean; coreAwarded?: boolean }): void {
     const won = config?.won === true;
     const killCount = config?.killCount ?? 0;
     const dmg = config?.dmg ?? 0;
     const seed = config?.seed ?? 0;
 
-    // Finalize the run on the permanent save.
     const save = saveSystem.load();
-    save.permanent.runs += 1;
-    save.stats.enemiesKilled += killCount;
-    save.stats.damageDealt += dmg;
-    save.stats.playTimeSeconds += Math.floor((this.time.now) / 1000);
-    if (won) {
-      save.permanent.bossesDefeated += 1;
-      // reward: unlock remaining weapons
-      for (const w of ['scatter', 'plasma', 'arc']) {
-        if (!save.permanent.unlockedWeapons.includes(w)) save.permanent.unlockedWeapons.push(w);
-      }
-      if (seed > save.permanent.bestSeed) save.permanent.bestSeed = seed;
-    }
-    saveSystem.save(save);
 
     this.cameras.main.setBounds(0, 0, GAME.WINDOW_W, GAME.WINDOW_H);
     const bg = this.textures.get('bg');
     if (bg) this.add.image(GAME.WINDOW_W / 2, GAME.WINDOW_H / 2, bg);
 
     const title = won ? 'EXTRACT COMPLETE' : 'SIGNAL LOST';
-    const subtitle = won ? 'You uncovered another truth.' : 'The city keeps its secrets.';
+    const subtitle = config?.coreAwarded ? '+1 PERMANENT CORE' : won ? 'You uncovered another truth.' : 'The city keeps its secrets.';
     this.add.text(GAME.WINDOW_W / 2, 120, title, {
       fontFamily: 'monospace', fontSize: '48px', color: won ? '#ffd233' : '#ff3355', fontStyle: 'bold', letterSpacing: 4
     }).setOrigin(0.5, 0.5);
@@ -53,8 +39,11 @@ export class GameOverScene extends Phaser.Scene {
       this.add.text(GAME.WINDOW_W / 2, 408, save.permanent.unlockedWeapons.join(' · '), { fontFamily: 'monospace', fontSize: '14px', color: '#ffd233' }).setOrigin(0.5, 0.5);
     }
 
-    this._button(GAME.WINDOW_W / 2, 500, won ? 'NEW RUN' : 'RETRY', () => this.scene.start('GameScene'), 0x33e0ff);
-    this._button(GAME.WINDOW_W / 2, 560, 'MAIN MENU', () => this.scene.start('MainMenuScene'), 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 500, won ? 'NEW RUN' : 'RETRY', () => {
+      if (saveSystem.load().run) this.scene.start('MainMenuScene', { view: 'replace' });
+      else this.scene.start('GameScene', {});
+    }, 0x33e0ff);
+    this._button(GAME.WINDOW_W / 2, 560, 'MAIN MENU', () => this.scene.start('MainMenuScene', {}), 0x274a55);
   }
 
   private _button(cx: number, y: number, label: string, cb: () => void, color: number): void {

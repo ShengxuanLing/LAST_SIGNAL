@@ -36,6 +36,7 @@ export class Player {
   constructor(public world: World, x: number, y: number, private save: ReturnType<SaveSystem['load']>) {
     const stats = basePlayerData();
     stats.maxHp = Math.round(stats.maxHp * (1 + save.permanent.maxHpBonus * 0.2));
+    stats.hp = stats.maxHp;
     stats.speed *= (1 + save.permanent.speedBonus * 0.08);
     stats.damage += save.permanent.damageBonus * 0.1;
     stats.critChance = clamp(stats.critChance + save.permanent.critChanceBonus * 0.05, 0, 0.8);

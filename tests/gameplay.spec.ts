@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 
-const PORT = 5173;
+const PORT = Number(process.env.PORT ?? 5173);
 const ERRORS: string[] = [];
 
 test.beforeEach(async ({ page }) => {
