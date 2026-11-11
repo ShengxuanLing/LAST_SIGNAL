@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="LAST SIGNAL with run credits and supply terminals.">
+    <title>LAST SIGNAL · Supply Terminals</title>
+  </head>
+  <body>
+    <main id="game" aria-label="LAST SIGNAL"></main>
+    <div id="loader" role="status">INITIALIZING LAST SIGNAL...</div>
+
+    <div id="supply-controls" hidden>
+      <span id="supply-hint" role="status"></span>
+      <button id="supply-open" type="button" aria-keyshortcuts="G">Supply terminal <kbd>G</kbd></button>
+    </div>
+    <p id="supply-reward" role="status" hidden></p>
+
+    <dialog id="supply-dialog" aria-labelledby="supply-title" aria-describedby="supply-balance">
+      <header>
+        <h1 id="supply-title">Supply terminal</h1>
+        <p id="supply-balance" aria-live="polite"></p>
+      </header>
+      <ul id="supply-stock"></ul>
+      <p id="supply-feedback" role="status"></p>
+      <button id="supply-close" type="button">Return to game <kbd>Esc</kbd></button>
+    </dialog>
+
+    <script type="module" src="/src/economy/main.ts"></script>
+  </body>
+</html>
