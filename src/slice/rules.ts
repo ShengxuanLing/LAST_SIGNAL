@@ -1,6 +1,7 @@
 // VS-00 minimal causal model: Scan -> Jam -> Door, plus a fixed-tick energy/cooldown loop.
 // Pure TypeScript (no Phaser / no DOM), so it can be unit-tested in the node Vitest env.
 import {
+  canFit,
   ROOM,
   distanceToReceiver,
   distanceToSource,
@@ -8,30 +9,11 @@ import {
   isOccupyingDoor,
   isWalkableCell,
 } from './room';
+import { Corridor, type CorridorCheckpoint, type CorridorReveal, type CorridorSnapshot } from './corridor';
+import { CORRIDOR } from './corridorRoom';
+import { SLICE } from './tuning';
 
-export const SLICE = {
-  TICK_HZ: 60,
-  TICK_MS: 1000 / 60,
-  ENERGY_MAX: 100,
-  REGEN_PER_SEC: 5,
-  // 60 Hz / 5 per second => 1 energy every 12 logic ticks.
-  REGEN_TICKS: 12,
-  SCAN_COST: 10,
-  SCAN_CD_TICKS: 120, // 2 s
-  SCAN_REVEAL_TICKS: 480, // 8 s
-  SCAN_RADIUS: 12,
-  JAM_COST: 25,
-  JAM_CD_TICKS: 480, // 8 s
-  JAM_DURATION_TICKS: 360, // 6 s
-  JAM_RANGE: 6,
-  SAFE_CLEAR_DELAY_TICKS: 60, // 1 s
-  // Prototype-only manual interact radius; deliberately separate from JAM_RANGE.
-  // Kept at 6 for VS-00 so existing E2E can press F from the spawn area; not a rule-layer claim.
-  INTERACT_RANGE: 6,
-  MAX_FRAME_DELTA_MS: 250,
-  MAX_TICKS_PER_FRAME: 15,
-  MOVE_SPEED: 3.4375,
-} as const;
+export { SLICE } from './tuning';
 
 export type DoorState = 'SEALED' | 'JAMMED_OPEN' | 'OPEN' | 'CLOSED' | 'SAFE_PENDING_CLOSE';
 
@@ -42,7 +24,8 @@ export type ResultCode =
   | 'E_RETRYABLE'
   | 'E_LINK_UNAVAILABLE'
   | 'E_ILLEGAL_TARGET'
-  | 'E_PAUSED';
+  | 'E_PAUSED'
+  | 'E_PERMISSION';
 
 export interface ActionResult {
   code: ResultCode;
@@ -75,6 +58,8 @@ export interface SliceSnapshot {
   pendingSafeClose: boolean;
   position: { x: number; y: number };
   reveal: SliceReveal | null;
+  corridor: CorridorSnapshot | null;
+  corridorReveal: CorridorReveal | null;
 }
 
 export interface PersistedSliceState {
@@ -88,6 +73,7 @@ export interface PersistedSliceState {
   sealSourcePresent: boolean;
   passed: boolean;
   position: { x: number; y: number };
+  corridor?: CorridorCheckpoint;
   remaining: {
     jam: number;
     jamCooldown: number;
@@ -121,6 +107,9 @@ export class SliceModel {
   private occupancy = false;
   private passedFlag = false;
   private pausedFlag = false;
+  private corridor: Corridor | null = null;
+  private corridorReveal: CorridorReveal | null = null;
+  private lastRelayInteractTick = -1;
 
   lastResult: ActionResult = { code: 'OK', message: START_HINT, cost: 0 };
 
@@ -134,7 +123,10 @@ export class SliceModel {
   get paused(): boolean { return this.pausedFlag; }
   get tick(): number { return this.tickIndex; }
   /** Read-only authoritative position; the Scene must draw from this after restore. */
-  get position(): { x: number; y: number } { return { x: this.playerX, y: this.playerY }; }
+  get position(): { x: number; y: number } { return this.corridor?.position ?? { x: this.playerX, y: this.playerY }; }
+  get inCorridor(): boolean { return this.corridor !== null; }
+  get failed(): boolean { return this.corridor !== null && !this.corridor.alive; }
+  get canCheckpoint(): boolean { return !this.corridor || this.corridor.canSave; }
   get jamActive(): boolean { return this.jamRemainingTicks > 0; }
   get doorPassable(): boolean {
     return this.door === 'JAMMED_OPEN' || this.door === 'OPEN' || this.door === 'SAFE_PENDING_CLOSE';
@@ -145,9 +137,31 @@ export class SliceModel {
    * AABB footprint the Scene uses for movement collision.
    */
   setPlayerPos(x: number, y: number): void {
+    if (this.corridor) {
+      this.corridor.moveTo(x, y);
+      return;
+    }
     this.playerX = x;
     this.playerY = y;
     this.occupancy = isOccupyingDoor(x, y);
+  }
+
+  canStand(x: number, y: number): boolean {
+    return this.corridor?.canStand(x, y) ??
+      canFit(x, y, (cx, cy) => isWalkableCell(cx, cy, this.doorPassable));
+  }
+
+  enterCorridor(): boolean {
+    if (this.corridor || this.paused || !this.passed ||
+        Math.hypot(this.playerX - ROOM.exit.x, this.playerY - ROOM.exit.y) >= 0.45) return false;
+    this.corridor = new Corridor();
+    // Door-only effects stay in R1. Shared energy and cooldowns carry over.
+    this.jamRemainingTicks = 0;
+    this.scanRevealTicks = 0;
+    this.revealDoorReceiver = this.revealSealSource = false;
+    this.solveDoor();
+    this.ok('失稳走廊：按 Z 观察连接。J 或点击守卫开火，F 操作两岸控制器。', 0);
+    return true;
   }
 
   /** Domain hook for connection-change tests. The UI never exposes free source toggling. */
@@ -162,19 +176,18 @@ export class SliceModel {
   }
 
   /**
-   * Fixed 60 Hz accumulator. `onTick` runs at the START of each logic tick so the
-   * Scene can move the player with fixed dt and the CURRENT door passability, then
-   * occupancy/expiry/recompute happen inside the same tick (no render-delta drift).
+   * Fixed 60 Hz accumulator. The lab retains its door occupancy order.
+   * In the corridor, deadlines resolve against the previous position before movement.
    */
   step(deltaMs: number, onTick?: () => void): number {
-    if (this.pausedFlag) {
+    if (this.pausedFlag || this.failed) {
       this.accumulatorMs = 0;
       return 0;
     }
     const clamped = Math.min(Math.max(deltaMs, 0), SLICE.MAX_FRAME_DELTA_MS);
     this.accumulatorMs += clamped;
     let advanced = 0;
-    while (this.accumulatorMs >= SLICE.TICK_MS && advanced < SLICE.MAX_TICKS_PER_FRAME) {
+    while (this.accumulatorMs >= SLICE.TICK_MS && advanced < SLICE.MAX_TICKS_PER_FRAME && !this.failed) {
       this.tickOnce(onTick);
       this.accumulatorMs -= SLICE.TICK_MS;
       advanced++;
@@ -188,6 +201,7 @@ export class SliceModel {
 
   scan(): ActionResult {
     if (this.pausedFlag) return this.fail('E_PAUSED', '已暂停，操作不可用。');
+    if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
     if (this.scanCooldownTicks > 0) {
       return this.fail('E_COOLDOWN', `扫描冷却中，还需 ${Math.ceil(this.scanCooldownTicks / SLICE.TICK_HZ)} 秒。`);
     }
@@ -195,6 +209,11 @@ export class SliceModel {
     this.energyValue -= SLICE.SCAN_COST;
     this.scanCooldownTicks = SLICE.SCAN_CD_TICKS;
     this.scanRevealTicks = SLICE.SCAN_REVEAL_TICKS;
+    if (this.corridor) {
+      this.corridorReveal = this.corridor.scan();
+      const found = Object.values(this.corridorReveal).some(Boolean);
+      return this.ok(found ? '扫描完成：发现当前可见的设备和连接。' : '扫描完成：范围内未发现可操作目标。', SLICE.SCAN_COST);
+    }
     // A scan is a single pulse: an empty scan is legal and still costs 10.
     const receiverInRange = distanceToReceiver(this.playerX, this.playerY) < SLICE.SCAN_RADIUS;
     const sourceInRange = distanceToSource(this.playerX, this.playerY) < SLICE.SCAN_RADIUS;
@@ -217,22 +236,24 @@ export class SliceModel {
 
   jam(): ActionResult {
     if (this.pausedFlag) return this.fail('E_PAUSED', '已暂停，操作不可用。');
+    if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
+    if (this.corridor) {
+      if (!this.corridor.canJam()) return this.fail('E_ILLEGAL_TARGET', '中继器超出 6 格施法范围或被遮挡。');
+      const blocked = this.jamBlocker();
+      if (blocked) return blocked;
+      this.startJam();
+      this.corridor.setJammed(this.tickIndex, true);
+      return this.ok('中继器发射已压制。开关意图与供电保留。', SLICE.JAM_COST);
+    }
     if (!(distanceToReceiver(this.playerX, this.playerY) < SLICE.JAM_RANGE)) {
       return this.fail('E_ILLEGAL_TARGET', '距离门接收器太远（需严格小于 6 格）。');
     }
     if (!hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y)) {
       return this.fail('E_ILLEGAL_TARGET', '门接收器被遮挡，无法压制。');
     }
-    if (this.jamRemainingTicks > 0) {
-      return this.fail('E_RETRYABLE', '已有压制效果生效，未扣能量；无需重复使用。');
-    }
-    if (this.jamCooldownTicks > 0) {
-      return this.fail('E_COOLDOWN', `压制冷却中，还需 ${Math.ceil(this.jamCooldownTicks / SLICE.TICK_HZ)} 秒。`);
-    }
-    if (this.energyValue < SLICE.JAM_COST) return this.insufficient(SLICE.JAM_COST);
-    this.energyValue -= SLICE.JAM_COST;
-    this.jamRemainingTicks = SLICE.JAM_DURATION_TICKS;
-    this.jamCooldownTicks = SLICE.JAM_CD_TICKS;
+    const blocked = this.jamBlocker();
+    if (blocked) return blocked;
+    this.startJam();
     this.pendingSafeClose = false;
     this.solveDoor();
     return this.ok('压制成功：门接收器被压制，门现在可通行。', SLICE.JAM_COST);
@@ -240,6 +261,15 @@ export class SliceModel {
 
   interact(): ActionResult {
     if (this.pausedFlag) return this.fail('E_PAUSED', '已暂停，操作不可用。');
+    if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
+    if (this.corridor) {
+      if (!this.corridor.canInteract()) return this.fail('E_ILLEGAL_TARGET', '请靠近无遮挡的岸边控制器。');
+      if (this.lastRelayInteractTick === this.tickIndex) return this.fail('E_RETRYABLE', '本逻辑帧已提交开关操作。');
+      this.lastRelayInteractTick = this.tickIndex;
+      this.corridor.toggle(this.tickIndex, this.jamActive);
+      const { manualEnabled, relay } = this.corridor.snapshot(this.tickIndex);
+      return this.ok(`中继器开关已${manualEnabled ? '开启' : '关闭'}。${relay === 'JAMMED' ? '压制仍在生效。' : ''}`, 0);
+    }
     if (!(distanceToReceiver(this.playerX, this.playerY) < SLICE.INTERACT_RANGE)) {
       return this.fail('E_ILLEGAL_TARGET', '距离门太远。');
     }
@@ -256,6 +286,17 @@ export class SliceModel {
     this.manualOpenIntent = !this.manualOpenIntent;
     this.solveDoor();
     return this.ok(this.manualOpenIntent ? '普通开门成功。' : '普通关门成功。', 0);
+  }
+
+  shootGuard(): ActionResult {
+    if (this.paused) return this.fail('E_PAUSED', '已暂停，操作不可用。');
+    if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
+    switch (this.corridor?.shoot(this.tickIndex)) {
+      case 'hit': return this.ok('命中守卫。', 0);
+      case 'cleared': return this.ok('守卫已清除。', 0);
+      case 'cooldown': return this.fail('E_COOLDOWN', '脉冲步枪冷却中。');
+      default: return this.fail('E_ILLEGAL_TARGET', '没有可射击的守卫。');
+    }
   }
 
   markPassed(): void {
@@ -289,10 +330,14 @@ export class SliceModel {
             link: this.revealDoorReceiver && this.revealSealSource,
           }
         : null,
+      corridor: this.corridor?.snapshot(this.tickIndex) ?? null,
+      corridorReveal: scanning && this.corridorReveal ? { ...this.corridorReveal } : null,
     };
   }
 
   serialize(): PersistedSliceState {
+    const corridor = this.corridor?.capture(this.jamRemainingTicks, this.scanRevealTicks, this.corridorReveal);
+    if (this.corridor && !corridor) throw new Error('Unsafe corridor checkpoint');
     return {
       schema: 'last_signal_station_zero_vs00_v1',
       version: 1,
@@ -304,11 +349,12 @@ export class SliceModel {
       sealSourcePresent: this.sealSourcePresent,
       passed: this.passedFlag,
       position: { x: this.playerX, y: this.playerY },
+      ...(corridor ? { corridor } : {}),
       remaining: {
-        jam: this.jamRemainingTicks,
+        jam: corridor ? 0 : this.jamRemainingTicks,
         jamCooldown: this.jamCooldownTicks,
         scanCooldown: this.scanCooldownTicks,
-        scanReveal: this.scanRevealTicks,
+        scanReveal: corridor ? 0 : this.scanRevealTicks,
         safeClear: this.safeClearTicks,
         regenAcc: this.regenAcc,
       },
@@ -316,6 +362,10 @@ export class SliceModel {
   }
 
   reset(): void {
+    this.dispose();
+    this.corridor = null;
+    this.corridorReveal = null;
+    this.lastRelayInteractTick = -1;
     this.energyValue = SLICE.ENERGY_MAX;
     this.tickIndex = 0;
     this.door = 'SEALED';
@@ -339,8 +389,10 @@ export class SliceModel {
     this.lastResult = { code: 'OK', message: '已重开：固定房间与能量已重置。', cost: 0 };
   }
 
+  dispose(): void { this.corridor?.dispose(); }
+
   private tickOnce(onTick?: () => void): void {
-    onTick?.();
+    if (!this.corridor) onTick?.();
     this.tickIndex++;
 
     // Energy regeneration: 1 per REGEN_TICKS, capped. At full energy keep the
@@ -362,12 +414,26 @@ export class SliceModel {
       if (this.scanRevealTicks === 0) {
         this.revealDoorReceiver = false;
         this.revealSealSource = false;
+        this.corridorReveal = null;
       }
     }
     if (this.jamCooldownTicks > 0) this.jamCooldownTicks--;
 
     const wasJammed = this.jamRemainingTicks > 0;
     if (this.jamRemainingTicks > 0) this.jamRemainingTicks--;
+    if (this.corridor) {
+      const rescued = this.corridor.advance(this.tickIndex, this.jamActive);
+      if (!rescued && !this.failed) onTick?.();
+      if (rescued) {
+        const failure = this.failed ? '本局失败，请重开。' : '';
+        this.ok(`桥梁失稳：已返回${rescued === 'west' ? '西' : '东'}岸安全点，损失 ${CORRIDOR.dangerHp} HP。${failure}`, 0);
+      } else if (this.failed) {
+        this.ok('本局失败。请选择重开。', 0);
+      } else if (wasJammed && !this.jamActive) {
+        this.ok('压制到期：中继器与下游已按当前供电和开关重新求解。', 0);
+      }
+      return;
+    }
     if (wasJammed && this.jamRemainingTicks === 0) {
       // Expiry only changes remaining ticks; the resolver decides the door state.
       this.pendingSafeClose = true;
@@ -451,17 +517,7 @@ export class SliceModel {
       this.door === 'SAFE_PENDING_CLOSE';
     const px = Number(p.position?.x);
     const py = Number(p.position?.y);
-    const rr = ROOM.playerRadius;
-    const footprintOk =
-      Number.isFinite(px) &&
-      Number.isFinite(py) &&
-      [
-        [px, py],
-        [px - rr, py - rr],
-        [px + rr, py - rr],
-        [px - rr, py + rr],
-        [px + rr, py + rr],
-      ].every(([sx, sy]) => isWalkableCell(Math.floor(sx), Math.floor(sy), doorPassable));
+    const footprintOk = canFit(px, py, (x, y) => isWalkableCell(x, y, doorPassable));
     this.playerX = footprintOk ? px : ROOM.spawn.x;
     this.playerY = footprintOk ? py : ROOM.spawn.y;
     this.accumulatorMs = 0;
@@ -480,6 +536,28 @@ export class SliceModel {
       hasLineOfSight(this.playerX, this.playerY, ROOM.source.x, ROOM.source.y, ROOM.sourceCell);
     this.lastResult = { code: 'OK', message: '已从本原型存档恢复。', cost: 0 };
     this.solveDoor();
+    if (p.corridor) {
+      this.corridor = new Corridor(p.corridor);
+      this.jamRemainingTicks = p.corridor.jamRemaining;
+      this.scanRevealTicks = p.corridor.scanRemaining;
+      this.corridorReveal = p.corridor.reveal ? { ...p.corridor.reveal } : null;
+    }
+  }
+
+  private jamBlocker(): ActionResult | null {
+    if (this.jamActive) return this.fail('E_RETRYABLE', '已有压制效果生效，未扣能量；无需重复使用。');
+    if (this.inCorridor && this.energyValue < SLICE.JAM_COST) return this.insufficient(SLICE.JAM_COST);
+    if (this.jamCooldownTicks > 0) {
+      return this.fail('E_COOLDOWN', `压制冷却中，还需 ${Math.ceil(this.jamCooldownTicks / SLICE.TICK_HZ)} 秒。`);
+    }
+    if (this.energyValue < SLICE.JAM_COST) return this.insufficient(SLICE.JAM_COST);
+    return null;
+  }
+
+  private startJam(): void {
+    this.energyValue -= SLICE.JAM_COST;
+    this.jamRemainingTicks = SLICE.JAM_DURATION_TICKS;
+    this.jamCooldownTicks = SLICE.JAM_CD_TICKS;
   }
 
   private ok(message: string, cost: number): ActionResult {
