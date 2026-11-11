@@ -27,6 +27,13 @@
 - 集成复检后修复：resume 复用 checkpoint `runId`、恢复保存 HP、旧存档迁移保留有效 `run`、多级 XP 用队列逐个升级、缓存 settings 避免每帧解析存档；新开局不再误弹 `ROOM CLEARED`。
 - 新增 Playwright 端到端回归 `tests/checkpoint.spec.ts`，覆盖清房续局、resume 稳定 id 与 HP 恢复、死亡清档、局内升级 / 永久天赋隔离；单测扩至 15 个，文档计数同步。
 
+### docs: archive Game Design Bible and design alignment artifacts
+- 新增 [`docs/GAME_DESIGN_BIBLE.md`](docs/GAME_DESIGN_BIBLE.md)：归档版 Game Design Bible（V1.0 Draft），作为统一世界观、核心玩法、叙事、AI 角色与开发方向的权威设计方向依据。
+- 新增 [`docs/GAME_DESIGN_BIBLE_ALIGNMENT.md`](docs/GAME_DESIGN_BIBLE_ALIGNMENT.md)：设计对齐报告，记录 GDB 与 `0.2.0` 设计审计文档、`0.1.0` 可玩切片的对齐分析。
+- 新增 [`docs/DESIGN_DECISION_REGISTER.md`](docs/DESIGN_DECISION_REGISTER.md)：待决问题登记册，汇总对齐过程中需用户决策的设计问题及状态。
+- 本次仅归档与设计分析，不涉及源码实现；GDB 是设计方向依据，Signal Manipulation / Agent Bridge / Human+AI Co-op 仍为设计提案，未因归档而自动实现。代码 `version` 仍为 `0.1.0`。
+- 补录 [`docs/ECONOMY_MODE.md`](docs/ECONOMY_MODE.md) 到 `docs/README.md` 索引；该文件由远端 `f01e3f0` 引入，本次未改动其正文。
+
 ## [0.2.0] — 设计审计文档（文档里程碑，非代码版本）
 
 > 仅完成 `docs/` 下 6 篇技术设计与架构审计文档。**本阶段未授权实现**，不改源码、不装依赖、不提交功能代码；仓库 Git 基线在后续仓库发布阶段建立。代码 `version` 仍为 `0.1.0`。

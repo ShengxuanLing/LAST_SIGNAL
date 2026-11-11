@@ -159,6 +159,8 @@ LAST_SIGNAL/
 | [`docs/HUMAN_AGENT_COOP_DESIGN.md`](docs/HUMAN_AGENT_COOP_DESIGN.md) | Human–Agent Co-op 设计（PHASE 4，Mode A/B/C、输入仲裁）。 |
 | [`docs/IMPLEMENTATION_TASKS.md`](docs/IMPLEMENTATION_TASKS.md) | 0.2.0 实施工单拆解（PHASE 0–5 任务清单）。 |
 
+> **Game Design Bible（V1.0 Draft，归档版）**：[`docs/GAME_DESIGN_BIBLE.md`](docs/GAME_DESIGN_BIBLE.md) 是统一世界观、核心玩法、叙事、AI 角色与开发方向的**设计方向依据**（配套设计对齐报告与待决问题登记册见 `docs/README.md`）。GDB 归档的是高层产品方向与 V1.0 创意提案，**内容未落地**：Signal Manipulation / Agent Bridge / Human+AI Co-op 仍为设计提案，未因归档而自动实现。当前 `0.1.0` 已实现的局内检查点（checkpoint）与永久进度，仍以上文「当前可玩特性」及「已知限制」的诚实描述为准。
+
 ## 路线图简述
 
 `0.1.0` → 计划 `0.2.0`，按 PHASE 0–5 推进（全部日期 `TBD`）：
