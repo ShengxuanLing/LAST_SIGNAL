@@ -17,8 +17,12 @@
 | [`GAME_DESIGN_BIBLE.md`](GAME_DESIGN_BIBLE.md) | **权威设计方向（V1.0 Draft，归档版）** | 统一世界观、核心玩法、叙事、AI 角色与开发方向的最高设计依据。高层产品方向已确认；世界观细节、剧情年份、角色名称、技能参数、关卡与结局均为 V1.0 创意提案，不自动视为已批准技术规格，亦不代表已实现功能。 |
 | [`GAME_DESIGN_BIBLE_ALIGNMENT.md`](GAME_DESIGN_BIBLE_ALIGNMENT.md) | 设计对齐报告 | GDB 与现有 `0.2.0` 设计审计文档、`0.1.0` 可玩纵向切片之间的设计对齐分析：一致点、冲突、缺口与需澄清项；仅分析归档，不含实现结论。 |
 | [`DESIGN_DECISION_REGISTER.md`](DESIGN_DECISION_REGISTER.md) | 待决问题登记册 | 汇总对齐过程中识别的待用户决策问题、状态与影响范围，供后续 ADR 与实施工单引用；未决条目不代表已批准实现。 |
+| [`REALITY_ENGINEERING_RULES.md`](REALITY_ENGINEERING_RULES.md) | GDD-02 规则提案 | 四类目标状态机、操作矩阵、因果顺序、Energy、可见性、恢复与存档边界。已批准方向与建议细则分别标记。 |
+| [`VERTICAL_SLICE_CAUSAL_CHAINS.md`](VERTICAL_SLICE_CAUSAL_CHAINS.md) | GDD-02 因果链 | 观测实验室、失稳走廊多解法与 Warden 机制的规则应用；具体布局与剧情留待 GDD-03。 |
+| [`GDD_02_TEST_SPEC.md`](GDD_02_TEST_SPEC.md) | GDD-02 测试规格提案 | 状态机、因果链、真实浏览器 E2E 与无提示试玩的待执行验收规格。 |
+| [`GDD_02_REVIEW_REPORT.md`](GDD_02_REVIEW_REPORT.md) | GDD-02 独立设计复核 | 规则一致性、软锁、架构兼容、范围与剩余 ADR 的独立审查。 |
 
-> **归档说明**：上表最后三行为 2026-11-10 新增的归档产物，本次仅归档与设计分析，不涉及源码实现。GDB 是设计方向依据；Signal Manipulation / Agent Bridge / Human+AI Co-op 仍为设计提案，未因归档而自动实现。前述 6 份 `0.2.0` 审计文档保持原样，历史快照说明仅适用于它们。
+> **归档说明**：GDB、设计对齐报告和登记册于 2026-11-10 归档。2026-11-11 的 GDD-02 交付补充规则提案、因果链、测试规格和独立复核，并在登记册第 7 节记录批准层级。本次仅设计文档工作。GDB 是设计方向依据，Signal Manipulation / Reality Engineering / Agent Bridge / Human+AI Co-op 均未因文档交付自动实现。前述 6 份 `0.2.0` 审计文档保持原样，历史快照说明仅适用于它们。
 
 ## 当前实现边界
 

@@ -1,5 +1,7 @@
 # LAST SIGNAL — Game Design Bible 设计对齐报告
 
+> **2026-11-11 GDD-02 补充**　本报告主体保留归档时点。用户现已明确批准首切片必须击败 Warden 才可进入结尾，以及仅门、中继器、预设桥梁、敌人感知连接四类可操纵目标。D4 仅原则批准状态表、安全恢复及非法零扣费，D3、D5–D9 仅原则认可。新增细则见[规则规格](REALITY_ENGINEERING_RULES.md)、[因果链](VERTICAL_SLICE_CAUSAL_CHAINS.md)、[测试规格](GDD_02_TEST_SPEC.md)与[复核报告](GDD_02_REVIEW_REPORT.md)，批准范围见[登记册第 7 节](DESIGN_DECISION_REGISTER.md#7-gdd-02-决策记录2026-11-11)。本次不改 GDB 原文、不实施功能，主体中撤离胜利候选及“先收敛全部未决项”的建议须按本补充限定到本轮授权范围。
+
 > **审查对象：** [`GAME_DESIGN_BIBLE.md`](GAME_DESIGN_BIBLE.md) V1.0 Draft（归档版）  
 > **审查范围：** GDB 全文、现有 7 份 `docs/` 技术/美术文档、当前 `main` 源码与测试、GitHub Actions 状态  
 > **归档时点：** 本地已快进到远端 `main` `f01e3f0fbcede3704b1f0759d492c86a52aedd1b` 后；本次新增/修改仍为 docs-only 工作区改动  
