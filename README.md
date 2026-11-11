@@ -27,9 +27,9 @@
 - **Vite 5 + TypeScript 5 + Phaser 3.90**（`Phaser.CANVAS` 渲染），纯前端、零后端。
 - **Vitest** 覆盖纯逻辑单测，**Playwright** 覆盖端到端可玩性回归。
 - **不使用任何外部图片资源**：所有美术（玩家机体、敌人、道具、房间、HUD）均由 `src/core/GraphicsFactory.ts` 与 `src/world/WorldRenderer.ts` 用 Canvas 程序化生成；音效由 `src/systems/AudioSystem.ts` 用 Web Audio API 实时合成。
-- **无云端 AI 依赖**：当前版本没有任何网络请求、远端服务或 AI 调用，全部逻辑在浏览器本地运行。下文提到的「Signal Manipulation / Agent Bridge / Human+AI Co-op」目前**仅存在于设计文档，尚未实现**。
+- **无云端 AI 依赖**：游戏逻辑在浏览器本地运行。Station Zero 提供独立的 Signal 玩法原型。
 
-> 项目愿景是 *A Game for Humans and Agents*（为人类与 AI Agent 共同游玩而设计的游戏）；这些能力在 `docs/` 的 `0.2.0` 设计审计文档中规划，但代码侧暂未落地，请勿将其误认为已实现功能。
+> 项目愿景是 *A Game for Humans and Agents*（为人类与 AI Agent 共同游玩而设计的游戏）。Agent Bridge 与 Human+AI Co-op 的规划见 `docs/`。
 
 ## 当前可玩特性
 
@@ -71,6 +71,8 @@ npm ci            # 安装与 package-lock.json 完全一致的依赖
 npm run dev       # 启动 Vite 开发服务器
 # 然后在浏览器打开：http://localhost:5173/
 ```
+
+同一地址下的 `/station-zero.html` 是独立原型入口。穿过实验室后，可以清除守卫再建桥，也可以用一次压制留守卫过桥。[操作与存档说明](docs/VS_01_IMPLEMENTATION.md)
 
 可选：
 
@@ -159,7 +161,7 @@ LAST_SIGNAL/
 | [`docs/HUMAN_AGENT_COOP_DESIGN.md`](docs/HUMAN_AGENT_COOP_DESIGN.md) | Human–Agent Co-op 设计（PHASE 4，Mode A/B/C、输入仲裁）。 |
 | [`docs/IMPLEMENTATION_TASKS.md`](docs/IMPLEMENTATION_TASKS.md) | 0.2.0 实施工单拆解（PHASE 0–5 任务清单）。 |
 
-> **Game Design Bible（V1.0 Draft，归档版）**：[`docs/GAME_DESIGN_BIBLE.md`](docs/GAME_DESIGN_BIBLE.md) 是统一世界观、核心玩法、叙事、AI 角色与开发方向的**设计方向依据**（配套设计对齐报告与待决问题登记册见 `docs/README.md`）。GDB 归档的是高层产品方向与 V1.0 创意提案，**内容未落地**：Signal Manipulation / Agent Bridge / Human+AI Co-op 仍为设计提案，未因归档而自动实现。当前 `0.1.0` 已实现的局内检查点（checkpoint）与永久进度，仍以上文「当前可玩特性」及「已知限制」的诚实描述为准。
+> **Game Design Bible（V1.0 Draft，归档版）**：[`docs/GAME_DESIGN_BIBLE.md`](docs/GAME_DESIGN_BIBLE.md) 记录世界观、核心玩法、叙事、AI 角色与开发方向。配套设计对齐报告与待决问题登记册见 `docs/README.md`。
 
 ## 路线图简述
 
@@ -172,11 +174,11 @@ LAST_SIGNAL/
 - **PHASE 4 — Human–Agent Co-op**：Mode A/B/C、Input Arbitration、AI 状态面板、接管与断线降级。
 - **PHASE 5 — 0.2.0 集成、加固与发布验收**：性能/分包、回归矩阵、文档对齐、发布验收。
 
-> 以上路线图与 6 篇设计文档均为 `0.2.0` 规划，**当前 `0.1.0` 代码仅含可玩纵向切片，未实现其中任何一项**。
+> 以上路线图与 6 篇设计文档记录 `0.2.0` 的规划。Station Zero 的已实现范围见 [走廊原型说明](docs/VS_01_IMPLEMENTATION.md)。
 
 ## 已知限制
 
-- **Signal Manipulation、Agent Bridge、Human+AI Co-op 目前只有设计文档，尚未实现。** 当前版本没有任何 WebSocket / MCP / Agent / Harness 代码。
+- **Station Zero** 的 Signal 原型覆盖实验室门和失稳走廊。Agent Bridge 与 Human+AI Co-op 仍处于设计阶段。
 - **无云端 AI 依赖，也无任何 AI 功能**：全部逻辑在浏览器本地运行，无网络请求、无远端服务。
 - **不使用外部图片资源**：美术与音效均程序化生成（见 `docs/STYLE_GUIDE.md`）。
 - **仅桌面键鼠**：未做移动端触控适配（Touch API 已禁用，专注 pointer/keyboard）。

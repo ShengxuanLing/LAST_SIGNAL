@@ -1,8 +1,8 @@
-import { ENEMY_STATS } from '../config/enemies';
 import { GAME } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import type { Cell } from './room';
 import { SLICE } from './tuning';
+import { CorridorGuard, type GuardSnapshot } from './corridorGuard';
 import {
   CORRIDOR, canStandInCorridor, corridorLineOfSight, nearControl,
   occupiesBridge, shoreOf, validateCorridorTemplate, type Shore,
@@ -10,11 +10,6 @@ import {
 
 export type RelayState = 'ACTIVE' | 'INACTIVE' | 'JAMMED' | 'DISABLED';
 export type BridgeState = 'UNAVAILABLE' | 'TRANSITIONING' | 'STABLE' | 'UNSTABLE' | 'DISABLED';
-
-export const CORRIDOR_LINKS = [
-  { id: 'bridge-support', target: CORRIDOR.bridgePort },
-  { id: 'perception-uplink', target: CORRIDOR.guard },
-] as const;
 
 export interface CorridorReveal {
   relay: boolean;
@@ -53,14 +48,15 @@ export interface CorridorSnapshot extends CorridorSignal {
   position: Cell;
   hp: number;
   guardHp: number;
+  guard: GuardSnapshot;
   crossed: boolean;
+  crossedAtTick: number | null;
   canInteract: boolean;
   bridgeRemainingTicks: number;
   lastShore: Shore;
   onBridge: boolean;
 }
 
-const DRONE = ENEMY_STATS.drone;
 const PULSE = WEAPONS.pulse;
 const TEMPLATE_VALID = validateCorridorTemplate();
 
@@ -116,17 +112,17 @@ export class Corridor {
   private location: Cell;
   private lastShore: Shore;
   private health: number;
-  private guardHealth: number;
+  private readonly guard: CorridorGuard;
   private crossedFlag: boolean;
+  private crossedAtTick: number | null = null;
   private nextShotTick = 0;
-  private nextGuardAttack = 0;
 
   constructor(checkpoint?: CorridorCheckpoint) {
     if (!TEMPLATE_VALID) throw new Error('E_NO_FAR_SHORE');
     this.location = { ...(checkpoint?.position ?? CORRIDOR.spawn) };
     this.lastShore = shoreOf(this.location);
     this.health = checkpoint?.hp ?? CORRIDOR.maxHp;
-    this.guardHealth = checkpoint?.guardCleared ? 0 : DRONE.maxHp;
+    this.guard = new CorridorGuard(checkpoint?.guardCleared ?? false);
     this.crossedFlag = checkpoint?.crossed ?? false;
     const enabled = checkpoint?.relayEnabled ?? false;
     const powered = checkpoint?.powered ?? true;
@@ -140,7 +136,7 @@ export class Corridor {
   get alive(): boolean { return this.health > 0; }
   get crossed(): boolean { return this.crossedFlag; }
   get canSave(): boolean {
-    return this.alive && this.guardHealth === 0 && !occupiesBridge(this.location) &&
+    return this.alive && this.guard.hp === 0 && !occupiesBridge(this.location) &&
       (this.signal.bridge === 'STABLE' || this.signal.bridge === 'UNAVAILABLE');
   }
 
@@ -162,22 +158,33 @@ export class Corridor {
     return !this.disposed && this.alive && this.inRange(CORRIDOR.relay, SLICE.JAM_RANGE);
   }
 
+  canJamGuard(): boolean {
+    return !this.disposed && !this.publishing && this.alive && this.guard.hp > 0 &&
+      this.inRange(this.guard.position, SLICE.JAM_RANGE);
+  }
+
+  isGuardJammed(tick: number): boolean { return this.guard.isJammed(tick); }
+
+  jamGuard(tick: number): void {
+    if (this.canJamGuard() && !this.isGuardJammed(tick)) this.guard.jam(tick);
+  }
+
   scan(): CorridorReveal {
     const relay = this.inRange(CORRIDOR.relay, SLICE.SCAN_RADIUS);
     return {
       relay,
-      bridge: this.inRange(CORRIDOR_LINKS[0].target, SLICE.SCAN_RADIUS),
-      perceptionPort: this.inRange(CORRIDOR_LINKS[1].target, SLICE.SCAN_RADIUS),
+      bridge: this.inRange(CORRIDOR.bridgePort, SLICE.SCAN_RADIUS),
+      perceptionPort: this.inRange(this.guard.position, SLICE.SCAN_RADIUS),
     };
   }
 
   shoot(tick: number): 'hit' | 'cleared' | 'cooldown' | 'unavailable' {
-    if (this.disposed || this.publishing || !this.alive || this.guardHealth === 0 ||
-        !this.inRange(CORRIDOR.guard, PULSE.baseRange / GAME.PIXEL_TO_TILE)) return 'unavailable';
+    if (this.disposed || this.publishing || !this.alive || this.guard.hp === 0 ||
+        !this.inRange(this.guard.position, PULSE.baseRange / GAME.PIXEL_TO_TILE)) return 'unavailable';
     if (tick < this.nextShotTick) return 'cooldown';
     this.nextShotTick = tick + Math.ceil(SLICE.TICK_HZ / PULSE.baseRate);
-    this.guardHealth = Math.max(0, this.guardHealth - PULSE.baseDamage);
-    return this.guardHealth === 0 ? 'cleared' : 'hit';
+    this.guard.takeHit(PULSE.baseDamage);
+    return this.guard.hp === 0 ? 'cleared' : 'hit';
   }
 
   setEnabled(enabled: boolean, tick: number, jammed: boolean): void {
@@ -200,20 +207,15 @@ export class Corridor {
     if (this.disposed || this.publishing || !this.alive) return null;
     const rescued = this.resolve(tick, jammed, this.signal.manualEnabled, this.signal.powered);
     if (!this.alive) return rescued;
-    // VS-01 guard uses only local range/LOS. The published uplink is available
-    // for the future perception consumer and cannot steer this guard.
-    if (this.guardHealth > 0 && this.inRange(CORRIDOR.guard, DRONE.attackRange / GAME.PIXEL_TO_TILE)) {
-      if (this.nextGuardAttack === 0) this.nextGuardAttack = tick + Math.ceil(DRONE.attackCooldown * SLICE.TICK_HZ);
-      if (tick >= this.nextGuardAttack) {
-        this.health = Math.max(0, this.health - DRONE.damage);
-        this.nextGuardAttack = 0;
-      }
-    } else {
-      this.nextGuardAttack = 0;
-    }
+    const { perceptionFeed, bridgePassable } = this.signal;
+    const damage = this.guard.advance(tick, this.location, perceptionFeed, bridgePassable);
+    this.health = Math.max(0, this.health - damage);
     const exit = CORRIDOR.shores.east;
-    if (this.alive && this.signal.bridge === 'STABLE' && !occupiesBridge(this.location) &&
-        Math.hypot(this.location.x - exit.x, this.location.y - exit.y) < 0.45) this.crossedFlag = true;
+    if (!this.crossed && this.alive && this.signal.bridge === 'STABLE' &&
+        this.location.x >= exit.x && Math.hypot(this.location.x - exit.x, this.location.y - exit.y) < 0.45) {
+      this.crossedFlag = true;
+      this.crossedAtTick = tick;
+    }
     return rescued;
   }
 
@@ -231,8 +233,9 @@ export class Corridor {
 
   snapshot(tick: number): CorridorSnapshot {
     return {
-      ...this.signal, position: this.position, hp: this.health, guardHp: this.guardHealth,
-      crossed: this.crossed, canInteract: this.canInteract(), lastShore: this.lastShore,
+      ...this.signal, position: this.position, hp: this.health, guardHp: this.guard.hp,
+      guard: this.guard.snapshot(tick, this.signal.perceptionFeed),
+      crossed: this.crossed, crossedAtTick: this.crossedAtTick, canInteract: this.canInteract(), lastShore: this.lastShore,
       bridgeRemainingTicks: Math.max(0, this.signal.deadline - tick),
       onBridge: occupiesBridge(this.location),
     };
