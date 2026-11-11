@@ -22,6 +22,24 @@ function readSave(page: Page) {
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SLICE_KEY);
 }
 
+test('each action key event is handled once when Scan and Jam arrive in the same frame', async ({ page }) => {
+  await page.goto('/station-zero.html');
+  await expect(page.locator('body')).toHaveAttribute('data-vs00-ready', '1');
+  // Deliver two complete presses in one browser task so the engine cannot clear its queue between them.
+  await page.evaluate(() => {
+    for (const [key, keyCode] of [['z', 90], ['x', 88]] as const) {
+      for (const type of ['keydown', 'keyup']) {
+        window.dispatchEvent(new KeyboardEvent(type, { key, keyCode }));
+      }
+    }
+  });
+  const feedback = page.getByTestId('vs00-feedback');
+  await expect(page.getByTestId('vs00-door-state')).toHaveAttribute('data-state', 'JAMMED_OPEN');
+  await expect(feedback).toHaveAttribute('data-cost', '25');
+  await page.keyboard.press('x');
+  await expect(feedback).toHaveAttribute('data-code', 'E_RETRYABLE');
+});
+
 test('VS-01 follows real keyboard input from the lab to a safe collapse and across the rebuilt bridge', async ({ page }) => {
   const errors: string[] = [];
   const offOrigin: string[] = [];

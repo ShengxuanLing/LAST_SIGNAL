@@ -37,8 +37,9 @@
 ## 验证
 
 - 基线 `d85784d` 在 Windows PowerShell、Node 24 和 Chromium 上通过 Typecheck、46 项 Vitest、19 项 Playwright 及两种生产构建。
-- VS-01 通过类型检查、60 项 Vitest、21 项 Playwright、默认生产构建及 economy 生产构建。完整 Playwright 回归需要 5173 与 5199 两个本机 Vite 服务，命令为 `npm run playwright`。
-- 同样的 2 项走廊专项测试在默认生产预览上通过。主流程未发现控制台错误或未捕获异常。
+- VS-01 通过类型检查、60 项 Vitest、22 项 Playwright、默认生产构建及 economy 生产构建。运行 `npm run typecheck`、`npm test -- --no-cache`、`npm run build`、`npm run build -- --config vite.economy.config.ts`。完整浏览器回归需要 5173 与 5199 两个本机 Vite 服务，命令为 `npm run playwright`。
+- 首次 GitHub 检查发现 Phaser 在同一帧重放按键，覆盖 VS-00 的压制消耗反馈。现按浏览器事件对象去重，独立按下相同按键仍能产生新操作。新增同帧按键回归用例，原 E1 断言保留。
+- 3 项专项测试在默认生产预览上通过。主流程未发现控制台错误或未捕获异常。
 - 专项浏览器测试使用真实键盘穿过实验室门、进入走廊、观察两路连接、清除守卫、建桥、在桥上压制、暂停预警、扣血送岸、保存刷新及再次过桥。死亡用例从低血量检查点开始，实际走到桥上触发失稳并重开。
 - 生产预览交互试玩确认预警倒计时与撤离方向可见。桥中央暂停时仍为 100 HP，恢复后送回 `(9.5, 9.5)` 并变为 80 HP。Jam 到期后桥重建，沿桥走到东岸并保存。
 - 独立复审复现并确认了到期帧先结算占位、订阅者异常隔离、过期会话保留较新存档。复审未发现剩余阻断问题。

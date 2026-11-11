@@ -188,8 +188,11 @@ export class SliceScene extends Phaser.Scene {
 
   private bindKey(event: string, fn: () => void): void {
     if (!this.kb) return;
+    const handled = new WeakSet<KeyboardEvent>();
     const handler = (e: KeyboardEvent): void => {
-      if (e.repeat) return; // OS key auto-repeat must not keep consuming resources
+      // Phaser can replay queued DOM events when several inputs arrive in one frame.
+      if (e.repeat || handled.has(e)) return;
+      handled.add(e);
       fn();
     };
     this.kb.on(event, handler);
