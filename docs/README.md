@@ -28,6 +28,7 @@
 | [`VERTICAL_SLICE_IMPLEMENTATION_PLAN.md`](VERTICAL_SLICE_IMPLEMENTATION_PLAN.md) | GDD-03 实施计划 | 真实模块复用、适配、新增任务、依赖与验收；本轮不执行。 |
 | [`GDD_03_TEST_SPEC.md`](GDD_03_TEST_SPEC.md) | GDD-03 待执行验收规格 | 完整路径、双解法、Boss、双选择、恢复隔离与无提示试玩。 |
 | [`GDD_03_REVIEW_REPORT.md`](GDD_03_REVIEW_REPORT.md) | GDD-03 独立复核 | 规则/教学/技术/节奏/软锁审查，区分设计结论与实现验收。 |
+| [`VS_00_IMPLEMENTATION.md`](VS_00_IMPLEMENTATION.md) | VS-00 最小可玩原型 | 独立入口、固定房间、隔离存档与 Scan→Jam→Door；运行地址 `/station-zero.html`，不包含后续切片章节。 |
 
 > **归档说明**：GDB、设计对齐报告和登记册于 2026-11-10 归档。2026-11-11 的 GDD-02 交付补充规则提案、因果链、测试规格和独立复核，并在登记册第 7 节记录批准层级。本次仅设计文档工作。GDB 是设计方向依据，Signal Manipulation / Reality Engineering / Agent Bridge / Human+AI Co-op 均未因文档交付自动实现。前述 6 份 `0.2.0` 审计文档保持原样，历史快照说明仅适用于它们。
 

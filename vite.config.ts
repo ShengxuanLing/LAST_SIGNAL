@@ -7,7 +7,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    target: 'es2020'
+    target: 'es2020',
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        'station-zero': fileURLToPath(new URL('./station-zero.html', import.meta.url))
+      }
+    }
   },
   server: {
     port: 5173,
