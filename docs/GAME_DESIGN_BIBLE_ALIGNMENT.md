@@ -1,5 +1,7 @@
 # LAST SIGNAL — Game Design Bible 设计对齐报告
 
+> **2026-11-11 GDD-03 补充**　[白盒](VERTICAL_SLICE_LEVEL_DESIGN.md)、[体验流程](VERTICAL_SLICE_EXPERIENCE_FLOW.md)、[ECHO脚本](ECHO_VERTICAL_SLICE_SCRIPT.md)、[UI](VERTICAL_SLICE_UI_SPEC.md)、[实施计划](VERTICAL_SLICE_IMPLEMENTATION_PLAN.md)、[验收规格](GDD_03_TEST_SPEC.md)与[独立复核](GDD_03_REVIEW_REPORT.md)将GDD-02推荐规则映射到首切片设计。新增坐标、候选台词/选择、提示与预算尚待评审；原GDD-02未批准细则不自动冻结。完整世界真相和ECHO最终身份继续延后，原版/economy与切片记录隔离，当前源码状态以仓库为准。本轮只修改授权设计文档。
+
 > **2026-11-11 GDD-02 补充**　本报告主体保留归档时点。用户现已明确批准首切片必须击败 Warden 才可进入结尾，以及仅门、中继器、预设桥梁、敌人感知连接四类可操纵目标。D4 仅原则批准状态表、安全恢复及非法零扣费，D3、D5–D9 仅原则认可。新增细则见[规则规格](REALITY_ENGINEERING_RULES.md)、[因果链](VERTICAL_SLICE_CAUSAL_CHAINS.md)、[测试规格](GDD_02_TEST_SPEC.md)与[复核报告](GDD_02_REVIEW_REPORT.md)，批准范围见[登记册第 7 节](DESIGN_DECISION_REGISTER.md#7-gdd-02-决策记录2026-11-11)。本次不改 GDB 原文、不实施功能，主体中撤离胜利候选及“先收敛全部未决项”的建议须按本补充限定到本轮授权范围。
 
 > **审查对象：** [`GAME_DESIGN_BIBLE.md`](GAME_DESIGN_BIBLE.md) V1.0 Draft（归档版）  
