@@ -4,7 +4,7 @@ import { isoToScreen } from '../core/iso';
 import { GAME } from '../config/game';
 import { ROOM, isStaticWallCell } from './room';
 import { SliceModel, SLICE, type DoorState, type SliceSnapshot } from './rules';
-import { CORRIDOR_LINKS, type BridgeState } from './corridor';
+import type { BridgeState } from './corridor';
 import { CORRIDOR, corridorTile, isBridgeCell } from './corridorRoom';
 import { clearSlice, loadSlice, saveSlice } from './storage';
 
@@ -74,6 +74,8 @@ export class SliceScene extends Phaser.Scene {
   private healthReadout!: HTMLElement;
   private hint!: HTMLElement;
   private interactButton!: HTMLElement;
+  private jamButton!: HTMLElement;
+  private jamGuardButton!: HTMLElement;
 
   constructor() {
     super('SliceScene');
@@ -117,6 +119,7 @@ export class SliceScene extends Phaser.Scene {
       this.keys = kb.addKeys('W,A,S,D') as unknown as Record<'W' | 'A' | 'S' | 'D', Phaser.Input.Keyboard.Key>;
       this.bindKey('keydown-Z', () => this.doScan());
       this.bindKey('keydown-X', () => this.doJam());
+      this.bindKey('keydown-G', () => { if (this.model.inCorridor) this.doJam('guard'); });
       this.bindKey('keydown-F', () => this.doInteract());
       this.bindKey('keydown-J', () => this.doShoot());
       this.bindKey('keydown-ESC', () => this.doTogglePause());
@@ -137,6 +140,8 @@ export class SliceScene extends Phaser.Scene {
     this.healthReadout = document.querySelector<HTMLElement>('[data-testid="vs01-health"]')!;
     this.hint = document.querySelector<HTMLElement>('#slice-hint')!;
     this.interactButton = document.querySelector<HTMLElement>('[data-testid="vs00-btn-interact"]')!;
+    this.jamButton = document.querySelector<HTMLElement>('[data-testid="vs00-btn-jam"]')!;
+    this.jamGuardButton = document.querySelector<HTMLElement>('[data-testid="vs01-btn-jam-guard"]')!;
     this.bindButtons();
 
     window.addEventListener('blur', this.onWindowBlur);
@@ -205,9 +210,9 @@ export class SliceScene extends Phaser.Scene {
     this.refreshHud();
   }
 
-  private doJam(): void {
+  private doJam(target: 'relay' | 'guard' = 'relay'): void {
     this.notice = '';
-    this.model.jam();
+    this.model.jam(target);
     this.refreshHud();
   }
 
@@ -268,6 +273,7 @@ export class SliceScene extends Phaser.Scene {
     };
     bind('vs00-btn-scan', () => this.doScan());
     bind('vs00-btn-jam', () => this.doJam());
+    bind('vs01-btn-jam-guard', () => this.doJam('guard'));
     bind('vs00-btn-interact', () => this.doInteract());
     bind('vs00-btn-pause', () => this.doTogglePause());
     bind('vs00-btn-restart', () => this.doRestart());
@@ -374,8 +380,7 @@ export class SliceScene extends Phaser.Scene {
   private drawRoom(): void {
     this.computeOffsets();
     this.playerSprite.setScale(this.roomScale);
-    const guard = this.toScreen(CORRIDOR.guard.x, CORRIDOR.guard.y);
-    this.guardSprite.setPosition(guard.x, guard.y).setScale(this.roomScale * 1.25).setTint(0xff8a3c);
+    this.guardSprite.setScale(this.roomScale * 1.25);
     const { floors, walls } = this;
     floors.clear();
     walls.clear();
@@ -443,6 +448,8 @@ export class SliceScene extends Phaser.Scene {
 
   private renderCorridor(snapshot: SliceSnapshot): void {
     const c = snapshot.corridor!;
+    const guard = this.toScreen(c.guard.position.x, c.guard.position.y);
+    this.guardSprite.setPosition(guard.x, guard.y).setTint(c.guard.link === 'JAMMED' ? 0xa398ff : 0xff8a3c);
     const g = this.markerGfx;
     const { left, right, top, bottom } = CORRIDOR.bridge;
     if (c.bridgePassable || c.bridge === 'TRANSITIONING') {
@@ -475,13 +482,16 @@ export class SliceScene extends Phaser.Scene {
 
     const reveal = snapshot.corridorReveal;
     if (!reveal?.relay) return;
-    g.lineStyle(2, outputColor, 0.9);
-    for (const [index, revealed] of [reveal.bridge, reveal.perceptionPort].entries()) {
-      if (!revealed) continue;
-      const target = CORRIDOR_LINKS[index].target;
-      const p = this.toScreen(target.x, target.y);
+    if (reveal.bridge) {
+      const p = this.toScreen(CORRIDOR.bridgePort.x, CORRIDOR.bridgePort.y);
+      g.lineStyle(2, outputColor, 0.9);
       g.lineBetween(relay.x, relay.y - 12, p.x, p.y);
       g.strokeCircle(p.x, p.y, 6);
+    }
+    if (reveal.perceptionPort && c.guardHp > 0) {
+      g.lineStyle(2, c.guard.link === 'JAMMED' ? 0xa398ff : outputColor, 0.9);
+      g.lineBetween(relay.x, relay.y - 12, guard.x, guard.y);
+      g.strokeCircle(guard.x, guard.y, 6);
     }
   }
 
@@ -489,10 +499,12 @@ export class SliceScene extends Phaser.Scene {
     const c = snapshot.corridor;
     this.labReadout.hidden = !!c;
     this.corridorReadout.hidden = !c;
+    this.jamGuardButton.hidden = !c;
+    setText(this.jamButton, c ? '压制中继器' : '压制');
     const interact = c ? '切换中继器' : '开门尝试';
     setText(this.interactButton, interact);
     setText(this.hint, c
-      ? 'Z 扫描 · X 压制中继器 · F 操作控制器 · J 或点击守卫开火'
+      ? 'Z 扫描 · X 压制中继器 · G 压制守卫 · F 操作控制器 · J 开火'
       : '目标：穿过实验室的封锁门，走到东侧青色出口。能量不足时可等待恢复。');
     if (!c) return;
 
@@ -512,25 +524,37 @@ export class SliceScene extends Phaser.Scene {
     this.relayReadout.dataset.output = c.effectiveOutput ? '1' : '0';
     this.relayReadout.dataset.jamTicks = String(snapshot.jamRemainingTicks);
     this.relayReadout.dataset.cooldownTicks = String(snapshot.jamCooldownTicks);
-    setText(this.healthReadout, `HP ${c.hp} / ${CORRIDOR.maxHp} · ${c.guardHp > 0 ? '守卫在场' : '守卫已清除'}`);
+    const guard = c.guard;
+    const guardStatus = guard.link === 'DEAD' ? '守卫已清除'
+      : guard.link === 'JAMMED' ? `守卫压制中 ${seconds(guard.jamRemainingTicks)} 秒`
+      : guard.behavior === 'INVESTIGATING' ? '守卫正在调查' : '守卫在场';
+    setText(this.healthReadout, `HP ${c.hp} / ${CORRIDOR.maxHp} · ${guardStatus}`);
     this.healthReadout.dataset.hp = String(c.hp);
     this.healthReadout.dataset.guard = String(c.guardHp);
+    this.healthReadout.dataset.guardLink = guard.link;
+    this.healthReadout.dataset.guardShared = guard.sharedConnected ? '1' : '0';
+    this.healthReadout.dataset.guardJamTicks = String(guard.jamRemainingTicks);
+    this.healthReadout.dataset.guardJamUntil = guard.jamRemainingTicks ? String(snapshot.tick + guard.jamRemainingTicks) : '';
     this.healthReadout.dataset.onBridge = c.onBridge ? '1' : '0';
 
     const reveal = snapshot.corridorReveal;
     const details: string[] = [];
     if (reveal?.relay) details.push('中继器');
     if (reveal?.bridge) details.push(reveal.relay ? '中继器 → 桥梁承重' : '桥梁承重');
-    if (reveal?.relay && reveal.perceptionPort) {
-      details.push(`中继器 → 感知端口（预留，${c.perceptionFeed ? '有' : '无'}信号）`);
+    if (reveal?.perceptionPort) {
+      const linkStatus = guard.link === 'DEAD' ? '守卫已清除'
+        : guard.link === 'JAMMED' ? '压制中'
+        : guard.sharedConnected ? '已连接' : '已断开';
+      details.push(`${reveal.relay ? '中继器 → ' : ''}守卫感知（${linkStatus}）`);
     }
     setText(this.els.scan, reveal
       ? `扫描：${details.length > 0 ? details.join(' · ') : '范围内未发现可操作目标。'}`
       : '未扫描。按 Z 观察中继器的连接。');
     this.els.scan.dataset.revealed = reveal ? '1' : '0';
     this.els.scan.dataset.link = reveal?.relay && reveal.bridge ? '1' : '0';
-    setText(this.els.complete, c.hp === 0 ? '本局失败 · 可重开' : c.crossed ? '已到达东岸 · VS-01 完成 ✓' : '失稳走廊 · 前往东岸');
+    setText(this.els.complete, c.hp === 0 ? '本局失败 · 可重开' : c.crossed ? '已到达东岸 · 走廊完成 ✓' : '失稳走廊 · 前往东岸');
     this.els.complete.dataset.complete = c.crossed && c.hp > 0 ? '1' : '0';
+    this.els.complete.dataset.crossedTick = c.crossedAtTick?.toString() ?? '';
   }
 
   private refreshHud(): void {

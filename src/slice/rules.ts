@@ -160,7 +160,7 @@ export class SliceModel {
     this.scanRevealTicks = 0;
     this.revealDoorReceiver = this.revealSealSource = false;
     this.solveDoor();
-    this.ok('失稳走廊：按 Z 观察连接。J 或点击守卫开火，F 操作两岸控制器。', 0);
+    this.ok('失稳走廊：可清除守卫，或按 G 压制守卫后用 F 建桥。', 0);
     return true;
   }
 
@@ -234,9 +234,19 @@ export class SliceModel {
     );
   }
 
-  jam(): ActionResult {
+  jam(target: 'relay' | 'guard' = 'relay'): ActionResult {
     if (this.pausedFlag) return this.fail('E_PAUSED', '已暂停，操作不可用。');
     if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
+    if (target === 'guard') {
+      if (!this.corridor?.canJamGuard()) {
+        return this.fail('E_ILLEGAL_TARGET', '没有 6 格内无遮挡的存活守卫。');
+      }
+      const blocked = this.jamBlocker(this.corridor.isGuardJammed(this.tickIndex));
+      if (blocked) return blocked;
+      this.startJam(false);
+      this.corridor.jamGuard(this.tickIndex);
+      return this.ok('守卫感知压制 6 秒。可用 F 开启中继器并过桥。', SLICE.JAM_COST);
+    }
     if (this.corridor) {
       if (!this.corridor.canJam()) return this.fail('E_ILLEGAL_TARGET', '中继器超出 6 格施法范围或被遮挡。');
       const blocked = this.jamBlocker();
@@ -544,8 +554,8 @@ export class SliceModel {
     }
   }
 
-  private jamBlocker(): ActionResult | null {
-    if (this.jamActive) return this.fail('E_RETRYABLE', '已有压制效果生效，未扣能量；无需重复使用。');
+  private jamBlocker(active = this.jamActive): ActionResult | null {
+    if (active) return this.fail('E_RETRYABLE', '已有压制效果生效，未扣能量；无需重复使用。');
     if (this.inCorridor && this.energyValue < SLICE.JAM_COST) return this.insufficient(SLICE.JAM_COST);
     if (this.jamCooldownTicks > 0) {
       return this.fail('E_COOLDOWN', `压制冷却中，还需 ${Math.ceil(this.jamCooldownTicks / SLICE.TICK_HZ)} 秒。`);
@@ -554,10 +564,10 @@ export class SliceModel {
     return null;
   }
 
-  private startJam(): void {
+  private startJam(affectsDevice = true): void {
     this.energyValue -= SLICE.JAM_COST;
-    this.jamRemainingTicks = SLICE.JAM_DURATION_TICKS;
     this.jamCooldownTicks = SLICE.JAM_CD_TICKS;
+    if (affectsDevice) this.jamRemainingTicks = SLICE.JAM_DURATION_TICKS;
   }
 
   private ok(message: string, cost: number): ActionResult {

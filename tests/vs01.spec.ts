@@ -69,7 +69,7 @@ test('VS-01 follows real keyboard input from the lab to a safe collapse and acro
   await expect(feedback).toHaveAttribute('data-cost', '0');
   await page.keyboard.press('z');
   await expect(scan).toContainText('中继器 → 桥梁承重');
-  await expect(scan).toContainText('感知端口（预留，无信号）');
+  await expect(scan).toContainText('中继器 → 守卫感知（已断开）');
   await expect(bridge).toHaveAttribute('data-state', 'UNAVAILABLE');
 
   await page.keyboard.press('j');
@@ -126,6 +126,73 @@ test('VS-01 follows real keyboard input from the lab to a safe collapse and acro
   expect(await page.evaluate((key) => localStorage.getItem(key), MAIN_KEY)).toBe('original-and-economy-save');
   expect(errors).toEqual([]);
   expect(offOrigin).toEqual([]);
+});
+
+test('route B reaches the east shore within one guard Jam from the real entrance', async ({ page }) => {
+  await page.goto('/station-zero.html');
+  const room = page.locator('body');
+  const bridge = page.getByTestId('vs01-bridge-state');
+  const relay = page.getByTestId('vs01-relay-state');
+  const health = page.getByTestId('vs01-health');
+  const complete = page.getByTestId('vs00-complete');
+  const feedback = page.getByTestId('vs00-feedback');
+  await expect(room).toHaveAttribute('data-vs00-ready', '1');
+  await page.keyboard.press('x');
+  await expect(page.getByTestId('vs00-door-state')).toHaveAttribute('data-state', 'JAMMED_OPEN');
+  await walk(page, east, async () => (await room.getAttribute('data-slice-room')) === 'corridor');
+  await expect(relay).toHaveAttribute('data-cooldown-ticks', '0', { timeout: 10000 });
+  expect(await coordinate(page, 'x')).toBeLessThanOrEqual(2.6);
+  expect(await coordinate(page, 'y')).toBe(10.5);
+  const labCheckpoint = await readSave(page);
+  expect(labCheckpoint.corridor).toBeUndefined();
+
+  const elapsed = page.evaluate(() => new Promise<number>((resolve) => {
+    const guard = document.querySelector('[data-testid="vs01-health"]')!;
+    const eastShore = document.querySelector('[data-testid="vs00-complete"]')!;
+    let started: number | undefined;
+    const observer = new MutationObserver(() => {
+      if (started === undefined && guard.getAttribute('data-guard-link') === 'JAMMED') started = performance.now();
+      if (started !== undefined && eastShore.getAttribute('data-complete') === '1') {
+        observer.disconnect();
+        resolve(performance.now() - started);
+      }
+    });
+    observer.observe(guard, { attributes: true, attributeFilter: ['data-guard-link'] });
+    observer.observe(eastShore, { attributes: true, attributeFilter: ['data-complete'] });
+  }));
+  await page.keyboard.press('g');
+  await expect(feedback).toHaveAttribute('data-cost', '25');
+  const jamUntil = Number(await health.getAttribute('data-guard-jam-until'));
+  expect(jamUntil).toBeGreaterThan(0);
+  await walk(page, north, async () => (await coordinate(page, 'y')) <= 9.5);
+  for (const key of east) await page.keyboard.down(key);
+  try {
+    await expect.poll(() => coordinate(page, 'x'), { intervals: [16] }).toBeGreaterThanOrEqual(8.4);
+    await page.keyboard.press('f');
+    await expect(bridge).toHaveAttribute('data-state', 'TRANSITIONING');
+    await expect(health).toHaveAttribute('data-guard-shared', '1');
+    await expect(health).toHaveAttribute('data-guard-jam-until', String(jamUntil));
+    await expect(complete).toHaveAttribute('data-complete', '1', { timeout: 6000 });
+  } finally {
+    for (const key of east) await page.keyboard.up(key);
+  }
+  const duration = await elapsed;
+  const elapsedTicks = Number(await complete.getAttribute('data-crossed-tick')) - (jamUntil - 360);
+  console.log(`Route B reached SAFE_E in ${duration.toFixed(0)}ms / ${elapsedTicks} logic ticks`);
+  expect(duration).toBeLessThanOrEqual(6000);
+  expect(elapsedTicks).toBeGreaterThan(0);
+  expect(elapsedTicks).toBeLessThanOrEqual(360);
+  expect(await coordinate(page, 'x')).toBeGreaterThanOrEqual(16.5);
+  await expect(health).toHaveAttribute('data-guard', '24');
+  await expect(bridge).toHaveAttribute('data-state', 'STABLE');
+  await expect(feedback).toContainText('守卫仍在场');
+  await page.getByTestId('vs00-btn-save').click();
+  expect(await readSave(page)).toEqual(labCheckpoint);
+  await page.reload();
+  await expect(room).toHaveAttribute('data-slice-room', 'corridor');
+  await expect(bridge).toHaveAttribute('data-state', 'UNAVAILABLE');
+  await expect(health).toHaveAttribute('data-guard-link', 'DISCONNECTED');
+  await expect(complete).toHaveAttribute('data-complete', '0');
 });
 
 test('a lethal collapse clears the run and permits a fresh start', async ({ page }) => {

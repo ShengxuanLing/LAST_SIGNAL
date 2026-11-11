@@ -29,6 +29,7 @@
 | [`GDD_03_TEST_SPEC.md`](GDD_03_TEST_SPEC.md) | GDD-03 待执行验收规格 | 完整路径、双解法、Boss、双选择、恢复隔离与无提示试玩。 |
 | [`GDD_03_REVIEW_REPORT.md`](GDD_03_REVIEW_REPORT.md) | GDD-03 独立复核 | 规则/教学/技术/节奏/软锁审查，区分设计结论与实现验收。 |
 | [`VS_00_IMPLEMENTATION.md`](VS_00_IMPLEMENTATION.md) | VS-00 最小可玩原型 | 独立入口、固定房间、隔离存档与 Scan→Jam→Door；运行地址 `/station-zero.html`，不包含后续切片章节。 |
+| [`VS_01_IMPLEMENTATION.md`](VS_01_IMPLEMENTATION.md) | Station Zero 失稳走廊 | 中继器、桥梁、守卫感知、两条过桥路线及测试记录。 |
 
 > **归档说明**：GDB、设计对齐报告和登记册于 2026-11-10 归档。2026-11-11 的 GDD-02 交付补充规则提案、因果链、测试规格和独立复核，并在登记册第 7 节记录批准层级。本次仅设计文档工作。GDB 是设计方向依据，Signal Manipulation / Reality Engineering / Agent Bridge / Human+AI Co-op 均未因文档交付自动实现。前述 6 份 `0.2.0` 审计文档保持原样，历史快照说明仅适用于它们。
 
@@ -36,8 +37,8 @@
 
 - `0.1.0` 是**可玩纵向切片**：程序化地图、战斗、升级、Boss、暂停、结算、本地永久存档与基础音效已实现。
 - **局内检查点与永久进度已实现**：`NEW RUN` 在开始新局时覆盖旧检查点；`LOAD RUN` / `CONTINUE` 可查看 / 直接恢复检查点；死亡或击败 Boss 进入结算时清除这局的 `run` 检查点。击败 Boss 可获得永久 `cores`，在 `PERMANENT TALENTS` 中购买天赋，永久加成在下次开局生效。
-- Signal Manipulation、Agent Bridge、Human+AI Co-op **目前只有设计文档，尚未实现**；代码中没有 WebSocket / MCP / Agent / Harness。
-- 可选补给终端入口已由远端 `f01e3f0` 引入（见 `ECONOMY_MODE.md`）；它是额外可选模式，不改变上述 Signal / Agent 未实现的结论。
+- 独立的 Station Zero 入口包含扫描、压制、门、中继器、失稳桥梁及走廊守卫感知。Agent Bridge 与 Human+AI Co-op 仍处于设计阶段。
+- 可选补给终端入口已由远端 `f01e3f0` 引入（见 `ECONOMY_MODE.md`）。
 - 设计文档里大量 `TBD — Requires User Decision` 与「需新建 / 需扩展」状态标签，代表未来提案，不代表当前代码能力。
 
 需要了解如何启动、测试与贡献，请先看仓库根目录的 [`README.md`](../README.md) 和 [`CONTRIBUTING.md`](../CONTRIBUTING.md)。
