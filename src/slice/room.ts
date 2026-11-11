@@ -15,6 +15,7 @@ export const ROOM = {
   source: { x: 7.5, y: 3.5 },
   sourceCell: { x: 7, y: 3 } as Cell,
   eastThresholdX: 8.0,
+  exit: { x: 12.5, y: 5.5 },
   playerRadius: 0.35,
 } as const;
 
@@ -63,6 +64,13 @@ export function isOccupyingDoor(x: number, y: number, radius = ROOM.playerRadius
   return maxX >= DOOR_RECT.minX && minX <= DOOR_RECT.maxX && maxY >= DOOR_RECT.minY && minY <= DOOR_RECT.maxY;
 }
 
+export function canFit(x: number, y: number, walkable: (cx: number, cy: number) => boolean): boolean {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+  const r = ROOM.playerRadius;
+  return [[x, y], [x - r, y - r], [x + r, y - r], [x - r, y + r], [x + r, y + r]]
+    .every(([sx, sy]) => walkable(Math.floor(sx), Math.floor(sy)));
+}
+
 /**
  * Minimal same-room supercover LOS using grid-line (DDA) traversal.
  * - walks cell to cell; at an exact corner crossing it checks BOTH adjacent
@@ -78,6 +86,14 @@ export function hasLineOfSight(
   by: number,
   allow?: Cell
 ): boolean {
+  return gridLineOfSight(ax, ay, bx, by, (x, y) =>
+    isStaticWallCell(x, y) && !(allow && allow.x === x && allow.y === y));
+}
+
+export function gridLineOfSight(
+  ax: number, ay: number, bx: number, by: number,
+  isBlocked: (cx: number, cy: number) => boolean,
+): boolean {
   const startX = Math.floor(ax);
   const startY = Math.floor(ay);
   const endX = Math.floor(bx);
@@ -86,9 +102,7 @@ export function hasLineOfSight(
 
   const blocked = (cx: number, cy: number): boolean => {
     if ((cx === endX && cy === endY) || (cx === startX && cy === startY)) return false;
-    if (!isStaticWallCell(cx, cy)) return false;
-    if (allow && allow.x === cx && allow.y === cy) return false;
-    return true;
+    return isBlocked(cx, cy);
   };
 
   const dx = bx - ax;

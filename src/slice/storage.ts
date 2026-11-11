@@ -1,6 +1,8 @@
 // VS-00 storage adapter. Writes ONLY the prototype's own key; never touches
 // last_signal_save_v1 / SAVE_VERSION / the future full-slice save key.
-import { ROOM, isWalkableCell } from './room';
+import { canFit, isWalkableCell } from './room';
+import { CORRIDOR, canStandInCorridor, occupiesBridge } from './corridorRoom';
+import { SLICE } from './tuning';
 import type { PersistedSliceState } from './rules';
 
 export const SLICE_STORAGE_KEY = 'last_signal_station_zero_vs00_v1';
@@ -14,6 +16,7 @@ const DOOR_STATES = ['SEALED', 'JAMMED_OPEN', 'OPEN', 'CLOSED', 'SAFE_PENDING_CL
 // Restart that successfully removes the key unlocks it. This prevents a Save or
 // an auto-save on passing the door from overwriting a bad/high-schema original.
 let sessionWriteLocked = false;
+let observedRaw: string | null = null;
 
 export function isSliceWriteLocked(): boolean {
   return sessionWriteLocked;
@@ -26,19 +29,29 @@ function isValidPosition(p: unknown, doorPassable: boolean): boolean {
   if (!p || typeof p !== 'object') return false;
   const v = p as Record<string, unknown>;
   if (typeof v.x !== 'number' || typeof v.y !== 'number') return false;
-  if (!Number.isFinite(v.x) || !Number.isFinite(v.y)) return false;
-  const r = ROOM.playerRadius;
-  const samples: Array<[number, number]> = [
-    [v.x, v.y],
-    [v.x - r, v.y - r],
-    [v.x + r, v.y - r],
-    [v.x - r, v.y + r],
-    [v.x + r, v.y + r],
-  ];
   // Same 5-point footprint as Scene.canStand; door passability comes from the save
   // (jam / JAMMED_OPEN / OPEN / SAFE_PENDING_CLOSE). This rejects a centre-legal
   // position whose body would intersect a wall, e.g. (12.9,5.5) or (6.7,1.5).
-  return samples.every(([sx, sy]) => isWalkableCell(Math.floor(sx), Math.floor(sy), doorPassable));
+  return canFit(v.x, v.y, (x, y) => isWalkableCell(x, y, doorPassable));
+}
+
+function isCorridorCheckpoint(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  if (v.template !== CORRIDOR.template || v.guardCleared !== true ||
+      typeof v.relayEnabled !== 'boolean' || typeof v.powered !== 'boolean' ||
+      typeof v.crossed !== 'boolean' || !isInt(v.hp, 1, CORRIDOR.maxHp) ||
+      !isInt(v.jamRemaining, 0, SLICE.JAM_DURATION_TICKS) ||
+      !isInt(v.scanRemaining, 0, SLICE.SCAN_REVEAL_TICKS)) return false;
+  const expected = v.relayEnabled && v.powered && v.jamRemaining === 0 ? 'STABLE' : 'UNAVAILABLE';
+  if (v.bridge !== expected || !v.position || typeof v.position !== 'object') return false;
+  const { x, y } = v.position as Record<string, unknown>;
+  if (typeof x !== 'number' || typeof y !== 'number' ||
+      !canStandInCorridor(x, y, false) || occupiesBridge({ x, y })) return false;
+  if (v.scanRemaining === 0) return v.reveal === null;
+  if (!v.reveal || typeof v.reveal !== 'object') return false;
+  const { relay, bridge, perceptionPort } = v.reveal as Record<string, unknown>;
+  return [relay, bridge, perceptionPort].every((field) => typeof field === 'boolean');
 }
 
 function isPersistedSliceState(value: unknown): value is PersistedSliceState {
@@ -66,6 +79,8 @@ function isPersistedSliceState(value: unknown): value is PersistedSliceState {
     v.doorState === 'OPEN' ||
     v.doorState === 'SAFE_PENDING_CLOSE';
   if (!isValidPosition(v.position, doorPassable)) return false;
+  if (v.corridor !== undefined &&
+      (v.passed !== true || rem.jam !== 0 || rem.scanReveal !== 0 || !isCorridorCheckpoint(v.corridor))) return false;
   return true;
 }
 
@@ -98,6 +113,7 @@ export function loadSlice(): { state: PersistedSliceState | null; status: Storag
     sessionWriteLocked = true;
     return { state: null, status: 'unavailable' };
   }
+  observedRaw = raw;
   if (raw == null) {
     sessionWriteLocked = false;
     return { state: null, status: 'missing' };
@@ -118,13 +134,14 @@ export function loadSlice(): { state: PersistedSliceState | null; status: Storag
 }
 
 export function saveSlice(state: PersistedSliceState): boolean {
-  if (sessionWriteLocked) return false;
+  if (sessionWriteLocked || !isPersistedSliceState(state)) return false;
   const ls = storage();
   if (!ls) return false;
   // Defence in depth: never overwrite an existing unknown/invalid value, even if
   // the session lock was somehow bypassed.
   try {
     const raw = ls.getItem(SLICE_STORAGE_KEY);
+    if (raw !== observedRaw) return false;
     if (raw != null) {
       let parsed: unknown;
       try {
@@ -142,19 +159,23 @@ export function saveSlice(state: PersistedSliceState): boolean {
     return false;
   }
   try {
-    ls.setItem(SLICE_STORAGE_KEY, JSON.stringify(state));
+    const next = JSON.stringify(state);
+    ls.setItem(SLICE_STORAGE_KEY, next);
+    observedRaw = next;
     return true;
   } catch {
     return false;
   }
 }
 
-/** Explicit restart clears only this prototype's key; success unlocks writes. */
-export function clearSlice(): boolean {
+/** Explicit restart can clear rejected data. Automatic failure only clears valid saves. */
+export function clearSlice(preserveRejected = false): boolean {
   const ls = storage();
   if (!ls) return false;
   try {
+    if (ls.getItem(SLICE_STORAGE_KEY) !== observedRaw || (preserveRejected && sessionWriteLocked)) return false;
     ls.removeItem(SLICE_STORAGE_KEY);
+    observedRaw = null;
     sessionWriteLocked = false;
     return true;
   } catch {

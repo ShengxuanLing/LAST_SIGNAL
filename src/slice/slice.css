@@ -128,7 +128,22 @@ html, body {
   bottom: 64px;
   transform: translateX(-50%);
   font-size: 11px;
-  color: #5a7480;
+  color: #8fb8c8;
   text-align: center;
   max-width: 80vw;
+}
+
+[data-testid="vs01-bridge-state"][data-state="UNSTABLE"] { color: #ffac79; }
+[data-testid="vs01-bridge-state"][data-state="STABLE"] { color: #7ff0ff; }
+
+@media (max-width: 800px) {
+  .vs00-panel { min-width: 0; max-width: 47vw; }
+  .vs00-top-left { top: 8px; left: 8px; }
+  .vs00-top-right { top: 8px; right: 8px; }
+  .vs00-value { font-size: 16px; }
+  .vs00-complete { top: auto; bottom: 155px; width: max-content; max-width: 90vw; text-align: center; }
+  .vs00-buttons { width: max-content; max-width: 94vw; bottom: 10px; }
+  .vs00-hint { bottom: 78px; width: max-content; max-width: 90vw; }
+  .vs00-bottom-left { bottom: 100px; left: 8px; max-width: 72vw; }
+  .vs00-bottom-right { bottom: 100px; right: 8px; }
 }
