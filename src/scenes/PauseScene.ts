@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { GAME, DEFAULT_SETTINGS } from '../config/game';
-import { UPGRADE_LIST, UPGRADES } from '../config/upgrades';
+import { GAME } from '../config/game';
+import { UPGRADES } from '../config/upgrades';
 import { WEAPONS } from '../config/weapons';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
@@ -42,13 +42,31 @@ export class PauseScene extends Phaser.Scene {
 
       // weapons
       this.add.text(120, 150, 'WEAPON ARSENAL', { fontFamily: 'monospace', fontSize: '18px', color: '#ff8a3c' });
-      player.data.weapons.forEach((w, i) => {
+      const refreshWeaponRows = player.data.weapons.map((w, i) => {
         const def = WEAPONS[w.key];
-        const active = player.data.weaponKey === w.key;
-        this.add.text(120, 186 + i * 44, `${def ? def.name : w.key}`, { fontFamily: 'monospace', fontSize: '18px', color: active ? '#ffd233' : '#cfe8ef' });
-        this.add.text(120, 206 + i * 44, `level ${w.level} · ${w.magazine > 0 ? `${w.ammo}/${w.magazine}` : '∞ energy'}`, { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' });
-        if (active) this.add.text(420, 186, 'EQUIPPED', { fontFamily: 'monospace', fontSize: '13px', color: '#7ff0ff' });
+        const y = 186 + i * 44;
+        const name = this.add.text(120, y, def?.name ?? w.key, { fontFamily: 'monospace', fontSize: '18px' });
+        this.add.text(120, y + 20, `level ${w.level} · ${w.magazine > 0 ? `${w.ammo}/${w.magazine}` : '∞ energy'}`, { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' });
+        const equip = this.add.text(420, y, '', {
+          fontFamily: 'monospace', fontSize: '13px', padding: { x: 8, y: 3 }
+        }).setOrigin(0.5, 0);
+        equip.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+          event.stopPropagation();
+          if (closing || !player.equipWeapon(w.key)) return;
+          audio.ui();
+          refreshWeaponRows.forEach((refresh) => refresh());
+        });
+        return () => {
+          const active = player.data.weaponKey === w.key;
+          name.setColor(active ? '#ffd233' : '#cfe8ef');
+          equip.setText(active ? 'EQUIPPED' : 'EQUIP')
+            .setColor(active ? '#7ff0ff' : '#eafaff')
+            .setBackgroundColor(active ? '#00000000' : '#274a55');
+          if (active) equip.disableInteractive();
+          else equip.setInteractive({ useHandCursor: true });
+        };
       });
+      refreshWeaponRows.forEach((refresh) => refresh());
 
       // stats
       const s = player.data;

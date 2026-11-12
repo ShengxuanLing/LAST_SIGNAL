@@ -50,6 +50,59 @@ async function pickFirstCard(page: Page) {
   await page.mouse.click(Math.round(card!.x), Math.round(card!.y));
 }
 
+test('inventory equips an owned weapon and the safe checkpoint restores the selection', async ({ page }) => {
+  await page.goto('/');
+  await waitForScene(page, 'MainMenuScene');
+  await fixSeed(page, 424242);
+  await page.evaluate((key) => {
+    localStorage.setItem(key, JSON.stringify({ permanent: { unlockedWeapons: ['pulse', 'scatter', 'plasma'] } }));
+  }, SAVE_KEY);
+  await clickButton(page, 'NEW RUN');
+  await waitForScene(page, 'GameScene');
+
+  const inventory = () => page.evaluate(() => {
+    const game = (window as any).__game;
+    const scene = game.scene.getScene('PauseScene');
+    const player = game.scene.getScene('GameScene').world.player;
+    const buttons = scene.children.list
+      .filter((child: any) => child.type === 'Text' && ['EQUIP', 'EQUIPPED'].includes(child.text))
+      .map((child: any) => ({ label: child.text, y: child.y, enabled: child.input?.enabled ?? false }));
+    return { weapon: player.data.weaponKey, buttons };
+  });
+
+  await page.keyboard.press('i');
+  await expect.poll(async () => (await inventory()).buttons).toEqual([
+    { label: 'EQUIPPED', y: 186, enabled: false },
+    { label: 'EQUIP', y: 230, enabled: true },
+    { label: 'EQUIP', y: 274, enabled: true }
+  ]);
+  await page.mouse.click(420, 242); // Equip Scatter Gun using its on-screen button.
+  await expect.poll(inventory).toEqual({
+    weapon: 'scatter',
+    buttons: [
+      { label: 'EQUIP', y: 186, enabled: true },
+      { label: 'EQUIPPED', y: 230, enabled: false },
+      { label: 'EQUIP', y: 274, enabled: true }
+    ]
+  });
+  await page.keyboard.press('e');
+  expect((await inventory()).weapon).toBe('scatter');
+
+  await clickButton(page, 'CLOSE');
+  await page.waitForFunction(() => !(window as any).__game.scene.isActive('PauseScene'));
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => (window as any).__game.scene.isActive('PauseScene'));
+  await clickButton(page, 'QUIT TO MENU');
+  await waitForScene(page, 'MainMenuScene');
+  expect((await readSave(page)).run.player.weaponKey).toBe('scatter');
+
+  await clickButton(page, 'CONTINUE');
+  await waitForScene(page, 'GameScene');
+  await page.keyboard.press('i');
+  await expect.poll(async () => (await inventory()).buttons[1]?.label).toBe('EQUIPPED');
+  expect((await inventory()).weapon).toBe('scatter');
+});
+
 test('resume reuses the checkpoint id and restores saved HP / run-scoped progress', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));

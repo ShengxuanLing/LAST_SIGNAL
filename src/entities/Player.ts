@@ -123,6 +123,12 @@ export class Player {
 
   get weapon() { return WEAPONS[this.data.weaponKey] ?? WEAPONS.pulse; }
 
+  equipWeapon(key: string): boolean {
+    if (key === this.data.weaponKey || !this.data.weapons.some((weapon) => weapon.key === key)) return false;
+    this.data.weaponKey = key;
+    return true;
+  }
+
   aimFromPointer(pointer: Phaser.Input.Pointer): void {
     const cam = this.world.scene.cameras.main;
     const wp = cam.getWorldPoint(pointer.x, pointer.y);

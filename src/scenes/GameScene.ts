@@ -470,16 +470,17 @@ export class GameScene extends Phaser.Scene {
   onResume(): void { this.paused = false; }
 
   private switchWeapon(dir: number): void {
+    if (this.paused) return;
     const owned = this.world.player.data.weapons.map((w) => w.key);
     if (owned.length <= 1) return;
     const idx = owned.indexOf(this.world.player.data.weaponKey);
     if (idx < 0) return;
     const next = owned[(idx + dir + owned.length) % owned.length];
-    this.world.player.data.weaponKey = next;
-    audio.ui();
+    if (this.world.player.equipWeapon(next)) audio.ui();
   }
 
   private toggleInventory(): void {
+    if (this.paused) return;
     this.paused = true;
     this.scene.launch('PauseScene', { mode: 'inventory' });
   }
