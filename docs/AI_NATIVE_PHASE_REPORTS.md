@@ -43,3 +43,19 @@
 最终证据位于仓库外 `D:/Project/AI-NATIVE-01-evidence/`：`p1-review-residual-final.md`、`p1-tester-residual-final.md`、`p1-residual-{developer,reviewer,tester}-*.log`。性能采样见 `p1-final-tester-perf.log/.json`：1000 ticks 5.50ms、10000 ticks 8.84ms、10 实例 9.91ms、合法链 8.17ms（重复 2.62ms）；仅为本机测量，CPU 粒度较粗，不作为通用性能保证。默认后续并发预算建议 2、硬上限 10，单操作受 tick/事件/时间预算限制，P2/P3 结合调度再落实。
 
 最终源码 MD5：runtime `b6a5474a2d456bd84651dab5823c574f`，rules `55fb1552845c770e59bef27a23a6f093`，storage `addd69bd1af496131398ed2efe851d2c`；完整清单见独立验收报告。P0 已推送，草稿 PR 为 https://github.com/ShengxuanLing/LAST_SIGNAL/pull/3；P1 推送结果以实际回执为准，禁止自动合并。
+
+## P2 — Session / Action / Observation Gateway
+
+- 阶段：PASS，最终事务残留经 Tester/Reviewer 独立验收关闭。
+- Git 分支：`feat/ai-native-runtime`；父提交 `8a5b7c250b6a878c77bfee99b65163ba2c907b5d`，P2 hash 见本节所在提交。
+- 已完成：实例级 SessionManager、Player/Owner/Test/Companion 能力分面、闭合请求校验、会话/actor/epoch/tick 绑定、request/action 幂等、有界高级动作与取消、生命周期/回收、多实例隔离、P0 观察和事件投影。
+- 实际修改文件：新增 `src/ai-native/sessions.ts`、`sessions.test.ts`、`sessionClient.mts`、`docs/AI_NATIVE_SESSIONS.md`；适配 `protocol.ts` 真实事件枚举、`runtime.ts` 内部非签发事务接缝；更新测试报告和本阶段报告。
+- 新增接口：`createSessionManager`、Player/Owner/Test/Companion closure handles；moveTo/approach/scanTarget/interactWith/waitUntil 有界高级动作及可观测 actionId；Test snapshot/restore/replay/inspect。fixture 注入仍 unavailable，未计作完成。
+- 运行命令：typecheck、43 项 sessions 定向测试、229 项全单测、build、真实 `sessionClient.mts`、独立事务及49项回归探针；slice 未改，浏览器沿用受影响13项已通过证据。
+- 测试结果：43/43 定向、229/229 全单测；独立事务10/10、独立回归49/49；真实 production Player 合法动作整链 tick518 完成、取消停 tick、回收退出正常。固定客户端仍不是 P4 真实 Agent 自主游玩。
+- 失败项：非法输入/绑定/批内幂等/预算/Player生命周期权限、reset 在飞动作污染、cancelAction失效及提交后校验失败均曾阻断；已修并保留失败历史。最终 rollback 不推进 tick/资源/事件/epoch，失败 request 重试一致，不驱逐已有快照。
+- 独立复核：Orca Worker tester “P2 PASS”；Orca Worker reviewer “P2 代码可接受，无未关闭阻断”。实现由 Orca Worker developer 完成。
+- 剩余风险：尚无 MCP/LLM/ECHO 实体或 fixture 注入，跨进程导入仍拒绝。同 seed 的不同会话 actorId 可相同，但 session 绑定严格隔离，actorId 视为 session 内标识。Player 不能 pause/resume/reset，可信 Owner 独立。结构校验不替代服务端授权。
+- 下一阶段：P3 标准 MCP stdio、Dev Harness/fixture审计、batch/compare、真实 MCP 客户端工具记录和后台资源验证。
+
+证据：`D:/Project/AI-NATIVE-01-evidence/p2-review-transaction-final.md`、`p2-tester-transaction-final.md`、`p2-transaction-final-{reviewer,tester}-*.log`、`p2-residual-developer-{unit,build,client}.log`。最终 MD5：sessions `e6ca754a1a9012dd5920d634b1894879`，sessions.test `e6109981e7a6f0445de200ec143cf1a1`，runtime `58413a99ad9ca3ded9dae901f3c781fa`。

@@ -551,7 +551,8 @@ export type EventTypeV1 =
   | 'SCAN_EVIDENCE_CREATED' | 'SCAN_EVIDENCE_EXPIRED'
   | 'JAM_APPLIED' | 'JAM_EXPIRED' | 'DOOR_STATE_CHANGED'
   | 'RELAY_STATE_CHANGED' | 'BRIDGE_STATE_CHANGED' | 'GUARD_LINK_CHANGED'
-  | 'GUARD_HIT' | 'GUARD_CLEARED' | 'PLAYER_RESCUED'
+  | 'GUARD_HIT' | 'GUARD_CLEARED' | 'PLAYER_RESCUED' | 'PLAYER_DAMAGED'
+  | 'ROOM_ENTERED' | 'DOOR_PASSED' | 'EAST_CROSSED'
   | 'RUN_COMPLETED' | 'RUN_FAILED'
   | 'SNAPSHOT_SAVED' | 'SNAPSHOT_RESTORED' | 'REPLAY_STARTED' | 'REPLAY_FINISHED'
   | 'DEV_FIXTURE_INJECTED'
@@ -563,7 +564,8 @@ export const AI_NATIVE_EVENT_TYPES_V1 = Object.freeze([
   'SCAN_EVIDENCE_CREATED', 'SCAN_EVIDENCE_EXPIRED',
   'JAM_APPLIED', 'JAM_EXPIRED', 'DOOR_STATE_CHANGED',
   'RELAY_STATE_CHANGED', 'BRIDGE_STATE_CHANGED', 'GUARD_LINK_CHANGED',
-  'GUARD_HIT', 'GUARD_CLEARED', 'PLAYER_RESCUED',
+  'GUARD_HIT', 'GUARD_CLEARED', 'PLAYER_RESCUED', 'PLAYER_DAMAGED',
+  'ROOM_ENTERED', 'DOOR_PASSED', 'EAST_CROSSED',
   'RUN_COMPLETED', 'RUN_FAILED',
   'SNAPSHOT_SAVED', 'SNAPSHOT_RESTORED', 'REPLAY_STARTED', 'REPLAY_FINISHED',
   'DEV_FIXTURE_INJECTED',
@@ -1285,7 +1287,7 @@ const EVENT_PAYLOAD_KEYS: Readonly<Record<string, readonly string[]>> = Object.f
   devFixture: Object.freeze(['fixtureId', 'actorId', 'tick', 'targetId']),
   denial: Object.freeze(['code', 'requestId']),
 });
-const EVENT_GROUP: Readonly<Record<string, string>> = Object.freeze({
+export const AI_NATIVE_EVENT_GROUP_V1: Readonly<Record<string, string>> = Object.freeze({
   SESSION_CREATED: 'lifecycle', SESSION_PAUSED: 'lifecycle', SESSION_RESUMED: 'lifecycle',
   SESSION_RESET: 'lifecycle', SESSION_CLOSED: 'lifecycle',
   ACTION_ACCEPTED: 'actionResult', ACTION_REJECTED: 'actionResult', ACTION_COMPLETED: 'actionResult',
@@ -1294,7 +1296,8 @@ const EVENT_GROUP: Readonly<Record<string, string>> = Object.freeze({
   SCAN_EVIDENCE_CREATED: 'evidence', SCAN_EVIDENCE_EXPIRED: 'evidence',
   JAM_APPLIED: 'device', JAM_EXPIRED: 'device', DOOR_STATE_CHANGED: 'device',
   RELAY_STATE_CHANGED: 'downstream', BRIDGE_STATE_CHANGED: 'downstream', GUARD_LINK_CHANGED: 'downstream',
-  GUARD_HIT: 'guard', GUARD_CLEARED: 'guard', PLAYER_RESCUED: 'guard',
+  GUARD_HIT: 'guard', GUARD_CLEARED: 'guard', PLAYER_RESCUED: 'guard', PLAYER_DAMAGED: 'guard',
+  ROOM_ENTERED: 'downstream', DOOR_PASSED: 'device', EAST_CROSSED: 'downstream',
   RUN_COMPLETED: 'run', RUN_FAILED: 'run',
   SNAPSHOT_SAVED: 'snapshot', SNAPSHOT_RESTORED: 'snapshot',
   REPLAY_STARTED: 'snapshot', REPLAY_FINISHED: 'snapshot',
@@ -1327,7 +1330,7 @@ const EVENT: Spec = {
     const problem = validateSpec(value, EVENT_SHAPE, path, ctx);
     if (problem) return problem;
     if (!isPlainObject(value) || typeof value.type !== 'string') return issue('E_SCHEMA', path);
-    const group = EVENT_GROUP[value.type];
+    const group = AI_NATIVE_EVENT_GROUP_V1[value.type];
     const keys = group ? EVENT_PAYLOAD_KEYS[group] : undefined;
     if (!keys || !isPlainObject(value.payload)) return issue('E_SCHEMA', `${path}.payload`);
     for (const key of Object.keys(value.payload)) {
@@ -1691,7 +1694,7 @@ function observationExtras(record: Record<string, unknown>): AiNativeValidationI
 function eventExtras(record: Record<string, unknown>): AiNativeValidationIssue | null {
   const type = record.type;
   if (typeof type !== 'string') return issue('E_SCHEMA', '$.type');
-  const group = EVENT_GROUP[type];
+  const group = AI_NATIVE_EVENT_GROUP_V1[type];
   const keys = group ? EVENT_PAYLOAD_KEYS[group] : undefined;
   if (!keys || !isPlainObject(record.payload)) return issue('E_SCHEMA', '$.payload');
   for (const key of Object.keys(record.payload)) {

@@ -223,3 +223,99 @@ E2E 由 `npx playwright test` 全量执行，**未加 `--grep`、未 skip、未�
 **Gate（FINAL residual）**：`npm run typecheck` PASS、`npm test` **186/186** PASS、`tests/vs00.spec.ts`+`tests/vs01.spec.ts` **13/13** PASS（双端口，产物项目外）。日志 `p1-residual-tester-*`。
 
 **边界**：公开 hash 只表完整性、不是授权；“Dev 可 fixture”不作为 restore 任意写的理由——该写面已由签发内容绑定关闭。跨进程任意导入明确不支持且实测被拒。未改源码/测试/配置、未 commit、未切分支。P2 权限系统不在本轮，未据此判 P1 失败。原失败历史保留在 §9/§10 与 `p1-fix-tester-*` / `p1-final-tester-*`。
+
+---
+
+## 12. P2 正式独立验收（BLOCKED，FIXED P2 snapshot）
+
+> FIXED P2 snapshot：HEAD `8a5b7c250b6a878c77bfee99b65163ba2c907b5d`；5 个 P2 关键文件 md5 与 Lead 提供值逐项 MATCH，复验期间 UNCHANGED；`src/slice/` 无改动（13 E2E 引用）。完整报告：`D:/Project/AI-NATIVE-01-evidence/p2-tester-report.md`；门禁：`p2-tester-gate-summary.log`。
+
+**判定：P2 = BLOCKED。** 验收套件 `p2-tester-api.ts` 36 checks / 3 FAIL（B7/D2/E1），另有同批重复 actionId 回执缺陷（C4/C5）。
+
+**通过**：Production PLAYER 句柄仅用底层合法动作完成整条门桥路线（`crossed=true && completed=true`，tick 518，room r2；非仅 passed；无 fixture/`getState`）；P0 `ObservationV1` 输出校验 + 无隐藏字段；角色/Dev 结构分离（Player 无 snapshot/restore/replay/inspectState/injectFixture）；summary/standard/debug 权限；未知 action 字段 `E_SCHEMA`、foreign actor `E_UNKNOWN_ACTOR`、stale epoch `E_STALE_EPOCH`、COMPANION `E_NOT_APPLICABLE`；跨批幂等与失败缓存；AbortSignal 取消与 waitUntil 超时；close 清理；多 manager 隔离、idle 回收、dispose、事件分页。基线：typecheck PASS、**218/218**、build PASS、真实 Node 客户端 exit 0。
+
+**阻断缺陷（最小反例见 `p2-tester-repro.log`）**：
+| 缺陷 | 关键行 | 结果 |
+| --- | --- | --- |
+| E1 `reset` 期间在飞高级动作污染新 run | `tickImmediatelyAfterReset:0 -> tickAfterReset:175` | **状态污染，阻断** |
+| D2 `cancelAction` 无法取消在飞高级动作 | `tickA:75 -> tickB:200`（只需 AbortSignal） | **要求内能力失效，阻断** |
+| B7 StepRequest 外来 `sessionId` 被接受并执行 | `foreign sessionId accepted, toTick:3` | **闭合校验缺口，阻断** |
+| C4/C5 同批重复 actionId 回执错误 | 只扣一次费，但结果为 `E_COOLDOWN`+`E_INTERNAL_TRANSACTION`；跨批重放返回被覆盖的最后回执 | 幂等回执缺陷 |
+
+**非阻断**：`observe('debug')` 拒绝码为 `E_INTERNAL_TRANSACTION`（应 `E_PERMISSION`）；自定义 `seedProvider` 重复 seed 会导致 sessionId 冲突并被 Map 覆盖；developer 的 `sessionClient.mts` 只到 passed（样例，非 gate）。
+
+**未实现范围（不判失败）**：MCP / LLM / ECHO 实体、跨进程 load/import、P4 AI 自主游玩；`injectFixture` 返回 unavailable。
+
+**边界**：未改源码/测试/配置、未 commit、未切分支；全程 headless。原失败历史保留在 §9–§11。
+
+---
+
+## 13. P2 阻断修复轮独立复现（PRE-FIX，BLOCKED）
+
+> PRE-FIX 快照：HEAD `8a5b7c250b6a878c77bfee99b65163ba2c907b5d`；md5 与冻结值一致、全程 UNCHANGED。**不是最终 P2 验收；218 旧测试全绿不通过 P2。** 完整报告：`D:/Project/AI-NATIVE-01-evidence/p2-fix-tester-report.md`；门禁：`p2-fix-tester-gate-summary.log`。
+
+**判定：P2 = BLOCKED（pre-fix）。** 独立探针 38 项检查：**29 FAIL / 9 PASS**，Reviewer B1–B6 与 Lead 幂等/owner/预算裁决全部复现。
+
+| 组 | 关键失败行 | 结果 |
+| --- | --- | --- |
+| B1 closed schema | `actions:null` 抛 `TypeError`；`actions:"x"` 静默执行；`ticks:NaN` → `E_INTERNAL_TRANSACTION`；`role/dev/audience` 被忽略执行；非法 requestId 执行 | FAIL |
+| B2 绑定 | foreign `request.sessionId` / `action.sessionId` / `action.epoch` / `targetTick=current+5` 均执行 | FAIL |
+| B3 同批重复 id | 结果 `[E_COOLDOWN, E_INTERNAL_TRANSACTION]`，energy 只扣一次但回执错位 | FAIL |
+| B4/Lead 幂等 | 同 requestId 完整重试仍推进 tick（1→2）；同 requestId 异 payload 未拒绝；actionId 指纹不含 epoch | FAIL |
+| B5 预算 | `maxSessions 11/1000`、`maxConcurrentSteps 3/64` 被接受；`1.5/NaN` 被接受；非整数 limits 被静默取整 | FAIL |
+| B6/owner | PLAYER 句柄有 `pause/resume/reset` 且均 ok；无独立 owner handle | FAIL |
+| R3 cancelAction | 在飞高级动作 tick 75→275，cancelAction 无效（仅 AbortSignal 有效） | FAIL |
+| R4 reset 竞态 | 在飞动作期间 reset，新 run tick 0→**175**（状态污染） | FAIL |
+
+**通过项**：真实 PLAYER 全路线（crossed && completed, tick 518, 无 fixture/getState）；AbortSignal 取消后停 tick；past targetTick → E_STALE_TICK；step epoch → E_STALE_EPOCH；缓存先于 stale targetTick；新 requestId 重复 actionId 不二次扣费；maxSessions 0/-1/Infinity 被拒。typecheck PASS、218/218、build PASS（均 pre-fix，仅记录，不作 P2 通过依据）。
+
+**未实现范围（不据此判失败）**：MCP/LLM/ECHO、跨进程 load、P4。修复后须复跑本 38 项探针 + 218 单测 + 13 E2E。原失败历史保留（§12 与 `p2-tester-*`）。
+
+---
+
+## 14. P2 事务残留定向复验（PRE-FIX 稳定快照，BLOCKED）
+
+> 稳定快照：`sessions.ts a323faac…` / `test 40cf16…` / `client 480034…` / `protocol 7dbbde…` / `runtime 459166…`；HEAD `8a5b7c2…`。Developer 于 23:06:52 起改源码（当前 `e6ca754a…`），后续为 MID-WRITE 已排除。完整报告：`D:/Project/AI-NATIVE-01-evidence/p2-residual-tester-report.md`；门禁：`p2-residual-tester-gate-summary.log`。
+
+**判定：P2 = BLOCKED（仅事务残留）。** bad-hasher 复现：`createSessionManager({hasher:()=>'bad-hash'})` → `step` 返回 `E_INTERNAL_TRANSACTION`，但 `observe().tick` 已 0→1；同一 `requestId` 重试 → `E_STALE_TICK`，不是原结果。对照（good hasher）正常。
+
+| 项 | 结果 | 关键行 |
+| --- | --- | --- |
+| T1 结构化错误、无异常 | PASS | `E_INTERNAL_TRANSACTION` |
+| T2 失败不留下已推进状态 | FAIL | `tickAfterFirst=1` |
+| T3 同 requestId 重试返回相同失败/原结果 | FAIL | `first=E_INTERNAL_TRANSACTION, second=E_STALE_TICK` |
+| T4 事务残留 | FAIL | `RESIDUAL_CONFIRMED=true` |
+
+**已关闭（同一稳定快照，引用上轮 49/49）**：B1 closed schema、B2 绑定、B3 同批去重、B4 requestId/actionId 幂等、B5 10/2 预算、B6 Player/Owner 拆分、真实 Player 全门桥、AbortSignal/`cancelAction`、owner.reset 竞态、close/restore 竞态、重复 seed/多 manager、idle/dispose、debug `E_PERMISSION`。typecheck / 225 单测 / build / sessionClient（同 md5）引用通过，未重复全套。
+
+**MID-WRITE 排除**：定向 `sessions.test.ts` 命中 Developer 中间态（`captureRollback is not a function`），14 失败**非产品回归**，已在日志顶部标注并排除。
+
+**修复方向**：`game.step` 前保存 pre-step snapshot 并在校验失败时原子回滚（或提交前完成 result 预校验）；失败 requestId 写幂等失败 entry，重试不得 `E_STALE_TICK`。修复终态由 Leader 另派残留定向复测。原失败历史保留（§12–§13、`p2-review-final.md`）。
+
+---
+
+## 15. P2 最终事务残留定向验收（PASS）
+
+> 快照：HEAD `8a5b7c250b6a878c77bfee99b65163ba2c907b5d`；`sessions.ts e6ca754a…`、`test e6109981…`、`runtime 58413a99…`、`protocol 7dbbde…`、`client 480034…`；md5 全程 UNCHANGED。完整报告：`D:/Project/AI-NATIVE-01-evidence/p2-tester-transaction-final.md`；门禁：`p2-transaction-final-tester-gate-summary.log`。
+
+**判定：P2 = PASS。** 事务残留（result 校验在 `game.step` 提交后）已关闭。
+
+| ID | 要求 | 结果 |
+| --- | --- | --- |
+| T1 | 坏 hasher → 结构化 `E_INTERNAL_TRANSACTION` | PASS |
+| T2 | 校验失败原子回滚 tick/energy/events/epoch | PASS（tick 0→0） |
+| T3 | 同 requestId 重试返回同一失败（非 `E_STALE_TICK`） | PASS |
+| T4 | 同 requestId 异 payload → `E_ID_PAYLOAD_MISMATCH` | PASS |
+| T5 | rollback 后同 actionId 新请求干净执行（无 action-cache 污染） | PASS（`replayed=false`, tick+1） |
+| T6/T7 | 抛异常 hasher 无逃逸、无提交、重试同一失败 | PASS |
+| T8 | 失败不驱逐已签发快照、不 bump epoch | PASS（epoch 0→0, restore ok） |
+| T9 | `postStateHash === canonicalState(issued snapshot)` | PASS |
+| T10 | good-hasher 对照：identical retry 返回原结果、无额外 tick | PASS |
+
+**回归**：此前 49 项探针在新 md5 复跑 **49/49 PASS**（B1–B6、真实 Player 全门桥、owner/Player 拆分、10/2 预算、同批/跨批幂等、`cancelAction`、owner.reset/close/restore 竞态、debug 权限、重复 seed/多 manager、idle/dispose），无退步。
+
+**Gate**：事务探针 10/10、49 回归、`npm run typecheck`、43 定向、真实 `sessionClient.mts`（exit 0）均 PASS；全量 229 与 build 同 md5 引用 developer 日志（未重复全套）；未重跑无关 E2E（slice 未改）。
+
+**实现要点**：runtime 非签发内部接缝 `captureInternalState/restoreInternalState/canonicalStateInternal/eventLog`；sessions 在 `game.step` 前 captureRollback，失败/抛异常时 applyRollback（含 idempotency cache）并返回脱敏错误；request cache 存成功/失败完整响应；`syncEvents`/`postStateHash` 不再逐步签发。
+
+**边界**：未扩 MCP/World/ECHO/旧档、未删/放宽测试、未 commit/切分支；headless；无残留进程。pre-fix 历史保留（§12–§14、`p2-review-final.md`）。

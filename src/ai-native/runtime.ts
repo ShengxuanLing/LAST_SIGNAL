@@ -280,6 +280,26 @@ export interface CreateGameOptions {
   readonly mode: 'headless';
 }
 
+/**
+ * Complete internal state used for transactional rollback at the gateway.
+ * Unlike `snapshot()`, capturing this NEVER allocates a snapshotId and NEVER
+ * touches the bounded issued-frame table, so a rolled-back step cannot evict
+ * previously issued frames or change the epoch.
+ */
+export interface InternalRuntimeState {
+  readonly status: RuntimeStatus;
+  readonly epoch: number;
+  readonly movement: MovementIntent;
+  readonly movementRemainingTicks: number;
+  readonly model: FullSliceState;
+  readonly events: readonly RuntimeEvent[];
+  readonly eventSeq: number;
+  readonly droppedEvents: number;
+  readonly actionSeq: number;
+  readonly actionLog: readonly RuntimeAction[];
+  readonly rngState: number;
+}
+
 export interface StepOptions {
   readonly actions?: readonly unknown[];
   readonly ticks: number;
@@ -324,6 +344,69 @@ export class HeadlessGame {
   get tick(): number { return this.model.tick; }
   get paused(): boolean { return this.status === 'paused'; }
   get finished(): boolean { return this.status === 'finished'; }
+  get inCorridor(): boolean { return this.model.inCorridor; }
+  get passed(): boolean { return this.model.snapshot().passed; }
+  get crossed(): boolean { return this.model.snapshot().corridor?.crossed ?? false; }
+
+  /** Read-only event log accessor (no snapshot issuance). */
+  eventLog(): readonly RuntimeEvent[] { return this.events; }
+
+  /** Capture complete internal state for an atomic gateway rollback. */
+  captureInternalState(): InternalRuntimeState {
+    return {
+      status: this.status,
+      epoch: this.epoch,
+      movement: { ...this.movement },
+      movementRemainingTicks: this.movementRemainingTicks,
+      model: this.model.captureFull(),
+      events: this.events.map((e) => Object.freeze({ ...e, payload: { ...e.payload } })),
+      eventSeq: this.eventSeq,
+      droppedEvents: this.droppedEvents,
+      actionSeq: this.actionSeq,
+      actionLog: this.actionLog.map((a) => ({ ...a })),
+      rngState: this.rng.snapshot(),
+    };
+  }
+
+  /** Restore a previously captured internal state WITHOUT changing epoch or issued frames. */
+  restoreInternalState(state: InternalRuntimeState): void {
+    const candidate = new SliceModel();
+    candidate.restoreFull(state.model);
+    this.model.dispose();
+    this.model = candidate;
+    this.status = state.status;
+    this.epoch = state.epoch;
+    this.movement = { ...state.movement };
+    this.movementRemainingTicks = state.movementRemainingTicks;
+    this.events = state.events.map((e) => Object.freeze({ ...e, payload: { ...e.payload } }));
+    this.eventSeq = state.eventSeq;
+    this.droppedEvents = state.droppedEvents;
+    this.actionSeq = state.actionSeq;
+    this.actionLog = state.actionLog.map((a) => ({ ...a }));
+    this.rng.restore(state.rngState);
+  }
+
+  /** Canonical projection identical to canonicalState(snapshot()) but without snapshot issuance. */
+  canonicalStateInternal(): string {
+    const { accumulatorMs, lastResult, ...authoritativeModel } = this.model.captureFull();
+    void accumulatorMs;
+    void lastResult;
+    return canonicalJson({
+      schema: RUNTIME_SCHEMA,
+      protocolVersion: RUNTIME_VERSION,
+      kernelVersion: RUNTIME_KERNEL_VERSION,
+      scenario: RUNTIME_SCENARIO,
+      sessionId: this.sessionId,
+      seed: this.seed,
+      rngState: this.rng.snapshot(),
+      status: this.status,
+      tick: this.model.tick,
+      movement: { intent: { ...this.movement }, remainingTicks: this.movementRemainingTicks },
+      model: authoritativeModel,
+    });
+  }
+  /** Dispose the underlying model (gateway boundary cleanup). */
+  dispose(): void { this.model.dispose(); }
 
   pause(): RuntimeResult<{ status: RuntimeStatus }> {
     if (this.status === 'finished') return failure('E_PAUSED', 'run is already finished');
@@ -698,7 +781,7 @@ export class HeadlessGame {
   }
 
   /** Internal test-only teleport. NEVER exposed as an action or via the CLI. */
-  __testSetPosition(x: number, y: number): void {
+  __testSetPosition(x: number, y: number): void { // eslint-disable-line
     if (!Number.isFinite(x) || !Number.isFinite(y)) throw new TypeError('position must be finite');
     this.model.setPlayerPos(x, y);
   }
