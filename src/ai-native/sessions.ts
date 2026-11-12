@@ -28,7 +28,11 @@
  * `replayed: true`. Same-batch duplicates are deduped and mapped by index.
  */
 import { randomBytes, randomInt, createHash } from 'node:crypto';
-import { createGame, withHashes, type HeadlessGame, type RuntimeSnapshot, type InternalRuntimeState } from './runtime';
+import { createGame, withHashes, validateFullSliceRanges, type HeadlessGame, type RuntimeSnapshot, type InternalRuntimeState } from './runtime';
+import { canFit, isWalkableCell, isOccupyingDoor } from '../slice/room';
+import { canStandInCorridor, occupiesBridge } from '../slice/corridorRoom';
+import type { FullSliceState } from '../slice/fullState';
+import { SLICE } from '../slice/tuning';
 import {
   AI_NATIVE_PROTOCOL_VERSION, AI_NATIVE_DTO_SCHEMA_V1, AI_NATIVE_EVENT_SCHEMA_V1,
   AI_NATIVE_KERNEL_VERSION_V1, AI_NATIVE_SCENARIO_ID_V1, AI_NATIVE_LIMITS_V1,
@@ -67,6 +71,11 @@ function now(): number {
 }
 function isFiniteInt(value: unknown, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER): value is number {
   return typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value) && value >= min && value <= max;
+}
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
 }
 
 export class SessionError extends Error {
@@ -195,6 +204,22 @@ export interface CompanionSessionHandle {
   close(): SessionResponse<{ sessionId: SessionId }>;
 }
 
+/** Closed dev/test fixture inputs. No arbitrary full-state injection. */
+export type DevFixture =
+  | { readonly kind: 'named'; readonly name: 'lab_near_door' | 'lab_low_energy' | 'corridor_ready' | 'corridor_guard_low_hp' }
+  | { readonly kind: 'player'; readonly x?: number; readonly y?: number; readonly energy?: number; readonly hp?: number }
+  | { readonly kind: 'door'; readonly state: 'SEALED' | 'JAMMED_OPEN' | 'OPEN' | 'CLOSED' | 'SAFE_PENDING_CLOSE'; readonly jamTicks?: number }
+  | { readonly kind: 'guard'; readonly hp?: number; readonly jamTicks?: number; readonly x?: number; readonly y?: number }
+  | { readonly kind: 'relay'; readonly enabled?: boolean; readonly powered?: boolean; readonly bridge?: 'UNAVAILABLE' | 'STABLE' };
+
+export interface FixtureAudit {
+  readonly kind: string;
+  readonly name?: string;
+  readonly tick: number;
+  readonly epoch: number;
+  readonly atMs: number;
+}
+
 interface IdempotencyEntry {
   readonly fingerprint: string;
   readonly result: ActionResultV1;
@@ -212,6 +237,111 @@ interface SessionRollback {
   readonly lastGameEventSeq: number;
   readonly droppedEvents: number;
   readonly idempotency: Map<ActionId, IdempotencyEntry>;
+}
+
+
+type FixtureApply = { readonly ok: true } | { readonly ok: false; readonly code: ErrorCodeV1; readonly messageKey: string };
+
+function applyFixtureToModel(fixture: DevFixture, model: FullSliceState): FixtureApply {
+  const inCorridor = model.corridor !== null;
+  const bad = (code: ErrorCodeV1, messageKey: string): FixtureApply => ({ ok: false, code, messageKey });
+  if (fixture.kind === 'named') {
+    switch (fixture.name) {
+      case 'lab_near_door':
+        if (inCorridor) return bad('E_ILLEGAL_TARGET', 'lab fixture requires the laboratory');
+        model.playerX = 6.5; model.playerY = 5.5; model.occupancy = isOccupyingDoor(6.5, 5.5);
+        return { ok: true };
+      case 'lab_low_energy':
+        if (inCorridor) return bad('E_ILLEGAL_TARGET', 'lab fixture requires the laboratory');
+        model.energy = 10;
+        return { ok: true };
+      case 'corridor_ready': {
+        if (!model.corridor) return bad('E_ILLEGAL_TARGET', 'corridor fixture requires the corridor');
+        const c = model.corridor;
+        c.guard.health = 0; c.guard.evidence = null; c.guard.jamUntil = 0; c.guard.attackAt = 0; c.guard.watching = false;
+        c.manualEnabled = true; c.powered = true; c.relay = 'ACTIVE'; c.bridge = 'STABLE'; c.deadline = 0; c.disposed = false;
+        return { ok: true };
+      }
+      case 'corridor_guard_low_hp':
+        if (!model.corridor) return bad('E_ILLEGAL_TARGET', 'corridor fixture requires the corridor');
+        model.corridor.guard.health = 1;
+        return { ok: true };
+      default:
+        return bad('E_SCHEMA', 'unknown named fixture');
+    }
+  }
+  if (fixture.kind === 'player') {
+    if (fixture.x !== undefined || fixture.y !== undefined) {
+      if (typeof fixture.x !== 'number' || typeof fixture.y !== 'number' ||
+          !Number.isFinite(fixture.x) || !Number.isFinite(fixture.y)) return bad('E_SCHEMA', 'player position must be finite');
+      if (inCorridor) {
+        model.corridor!.location = { x: fixture.x, y: fixture.y };
+      } else {
+        model.playerX = fixture.x; model.playerY = fixture.y; model.occupancy = isOccupyingDoor(fixture.x, fixture.y);
+      }
+    }
+    if (fixture.energy !== undefined) {
+      if (!isFiniteInt(fixture.energy, 0, 100)) return bad('E_SCHEMA', 'energy must be an integer 0..100');
+      model.energy = fixture.energy;
+    }
+    if (fixture.hp !== undefined) {
+      if (!inCorridor) return bad('E_ILLEGAL_TARGET', 'hp fixture requires the corridor');
+      if (!isFiniteInt(fixture.hp, 0, 100)) return bad('E_SCHEMA', 'hp must be an integer 0..100');
+      model.corridor!.health = fixture.hp;
+    }
+    return { ok: true };
+  }
+  if (fixture.kind === 'door') {
+    const states = ['SEALED', 'JAMMED_OPEN', 'OPEN', 'CLOSED', 'SAFE_PENDING_CLOSE'];
+    if (!states.includes(fixture.state)) return bad('E_SCHEMA', 'door state invalid');
+    model.door = fixture.state;
+    if (fixture.jamTicks !== undefined) {
+      if (!isFiniteInt(fixture.jamTicks, 0, SLICE.JAM_DURATION_TICKS)) return bad('E_SCHEMA', 'jamTicks out of range');
+      model.jamRemainingTicks = fixture.jamTicks;
+    }
+    return { ok: true };
+  }
+  if (fixture.kind === 'guard') {
+    if (!model.corridor) return bad('E_ILLEGAL_TARGET', 'guard fixture requires the corridor');
+    const g = model.corridor.guard;
+    if (fixture.hp !== undefined) {
+      if (!isFiniteInt(fixture.hp, 0, 1000)) return bad('E_SCHEMA', 'guard hp must be an integer 0..1000');
+      g.health = fixture.hp;
+      if (fixture.hp === 0) { g.evidence = null; g.jamUntil = 0; g.attackAt = 0; g.watching = false; }
+    }
+    if (fixture.jamTicks !== undefined) {
+      if (!isFiniteInt(fixture.jamTicks, 0, SLICE.JAM_DURATION_TICKS)) return bad('E_SCHEMA', 'jamTicks out of range');
+      g.jamUntil = fixture.jamTicks === 0 ? 0 : model.tick + fixture.jamTicks;
+      g.attackAt = 0; g.watching = false;
+    }
+    if (fixture.x !== undefined || fixture.y !== undefined) {
+      if (typeof fixture.x !== 'number' || typeof fixture.y !== 'number' ||
+          !Number.isFinite(fixture.x) || !Number.isFinite(fixture.y)) return bad('E_SCHEMA', 'guard position must be finite');
+      g.location = { x: fixture.x, y: fixture.y };
+    }
+    return { ok: true };
+  }
+  if (fixture.kind === 'relay') {
+    if (!model.corridor) return bad('E_ILLEGAL_TARGET', 'relay fixture requires the corridor');
+    const c = model.corridor;
+    if (fixture.enabled !== undefined) {
+      if (typeof fixture.enabled !== 'boolean') return bad('E_SCHEMA', 'relay enabled must be boolean');
+      c.manualEnabled = fixture.enabled;
+    }
+    if (fixture.powered !== undefined) {
+      if (typeof fixture.powered !== 'boolean') return bad('E_SCHEMA', 'relay powered must be boolean');
+      c.powered = fixture.powered;
+    }
+    if (fixture.bridge !== undefined) {
+      if (fixture.bridge !== 'UNAVAILABLE' && fixture.bridge !== 'STABLE') return bad('E_SCHEMA', 'bridge fixture must be UNAVAILABLE or STABLE');
+      c.bridge = fixture.bridge;
+      c.deadline = 0;
+    }
+    c.relay = c.manualEnabled && c.powered ? 'ACTIVE' : 'INACTIVE';
+    c.disposed = false;
+    return { ok: true };
+  }
+  return bad('E_SCHEMA', 'unknown fixture kind');
 }
 
 function actionFingerprint(action: ActionRequestV1): string {
@@ -408,7 +538,7 @@ export class Session {
   private generation = 0;
   private runId = `run_${hexChars(8)}`;
   private runEndReason: RunEndReasonV1 = null;
-  private readonly actorId: ActorId;
+  readonly actorId: ActorId;
   private readonly isCompanion: boolean;
   private readonly clock: () => number;
   private readonly hasher: (canonical: string) => string;
@@ -421,6 +551,8 @@ export class Session {
   private eventSeq = 0;
   private lastGameEventSeq = -1;
   private droppedEvents = 0;
+  private devTampered = false;
+  private readonly fixtureLog: FixtureAudit[] = [];
   private readonly idempotency = new Map<ActionId, IdempotencyEntry>();
   private readonly requestCache = new Map<RequestId, RequestCacheEntry>();
   private readonly aborts = new Map<ActionId, { aborted: boolean }>();
@@ -698,7 +830,7 @@ export class Session {
       schema: AI_NATIVE_DTO_SCHEMA_V1, protocolVersion: AI_NATIVE_PROTOCOL_VERSION,
       sessionId: this.id, epoch: this.epoch, fromTick, toTick, status: stepStatus,
       actionResults: finalResults, events: page.events, eventCursor: page.nextCursor,
-      observation,
+      ...(observation ? { observation } : {}),
       postStateHash: this.hasher(this.game!.canonicalStateInternal()),
       resourceUsage: {
         wallMs: this.clock() - startedAt,
@@ -1027,14 +1159,17 @@ export class Session {
     this.cancelAllAdvanced();
     const result = this.game!.restore(frame);
     if (!result.ok) return this.fail('E_SNAPSHOT_INVALID', 'restore rejected', { sessionId: this.id, epoch: this.epoch });
-    this.epoch = result.value.epoch;
+    // Restore always advances THIS session's epoch, so a request issued before
+    // the restore is unambiguously stale even when the engine epoch is lower
+    // (e.g. after dev fixtures which only bump the session epoch).
+    this.epoch = Math.max(this.epoch + 1, result.value.epoch);
     this.status = result.value.status;
     this.syncEvents();
     this.idempotency.clear();
     this.requestCache.clear();
     if (this.status === 'finished') this.runEndReason = 'closed';
     this.touch();
-    return this.ok({ tick: result.value.tick, status: result.value.status, epoch: result.value.epoch });
+    return this.ok({ tick: result.value.tick, status: result.value.status, epoch: this.epoch });
   }
 
   replay(steps: ReadonlyArray<{ readonly actions?: readonly unknown[]; readonly ticks: number }>): SessionResponse<{ canonicalState: string; canonicalEvents: string }> {
@@ -1053,8 +1188,91 @@ export class Session {
     return this.ok({ fullState: snap.model, seed: this.seedOf(), rngState: snap.rngState });
   }
 
+  /** Kept for the P2 test surface: named/structured fixtures go through applyDevFixture. */
   injectFixture(_fixtureId: string): SessionResponse<{ status: 'unavailable' }> {
     return this.ok({ status: 'unavailable' });
+  }
+
+  get tickValue(): number { return this.game ? this.game.tick : 0; }
+  get epochValue(): Epoch { return this.epoch; }
+  get statusValue(): SessionStatusV1 { return this.status; }
+  get devTamperedFlag(): boolean { return this.devTampered; }
+  get fixtureAudit(): readonly FixtureAudit[] { return this.fixtureLog.slice(); }
+  /** Seed is only exposed on the dev/test facet, never on production. */
+  devSeed(): number | null { return this.kind === 'test' ? this.seedOf() : null; }
+
+  /**
+   * Apply a closed dev/test fixture through the domain full-state restore seam.
+   * Test-only; increments the epoch (old actions become E_STALE_EPOCH), records
+   * an audit event, and marks the run dev-tampered. It never fabricates an
+   * issued snapshot; a subsequent snapshot() issues a real frame from the new
+   * state, so stateHash matches the snapshot.
+   */
+  applyDevFixture(fixture: DevFixture): SessionResponse<{ epoch: Epoch; tick: number; tampered: true }> {
+    if (this.closedOrDisposed()) return this.closedError();
+    if (this.kind !== 'test') return this.fail('E_PERMISSION', 'fixtures are dev/test only', { sessionId: this.id, epoch: this.epoch });
+    if (!this.game) return this.fail('E_NOT_APPLICABLE', 'session has no engine', { sessionId: this.id, epoch: this.epoch });
+    if (!isPlainObject(fixture) || typeof fixture.kind !== 'string') {
+      return this.fail('E_SCHEMA', 'fixture shape is invalid', { sessionId: this.id, epoch: this.epoch });
+    }
+    const state = this.game.captureInternalState();
+    const model: FullSliceState = state.model;
+    const applied = applyFixtureToModel(fixture, model);
+    if (!applied.ok) return this.fail(applied.code, applied.messageKey, { sessionId: this.id, epoch: this.epoch });
+    const problem = validateFullSliceRanges(model);
+    if (problem) return this.fail('E_ILLEGAL_TARGET', 'fixture produces an illegal state', { sessionId: this.id, epoch: this.epoch });
+    this.cancelAllAdvanced();
+    this.game.restoreInternalState({ ...state, model });
+    this.epoch += 1;
+    this.requestCache.clear();
+    this.idempotency.clear();
+    this.devTampered = true;
+    const record: FixtureAudit = {
+      kind: fixture.kind,
+      ...(fixture.kind === 'named' ? { name: fixture.name } : {}),
+      tick: model.tick,
+      epoch: this.epoch,
+      atMs: this.clock(),
+    };
+    this.fixtureLog.push(record);
+    this.emit('DEV_FIXTURE_INJECTED', { fixtureId: fixture.kind === 'named' ? fixture.name : fixture.kind, tick: model.tick });
+    this.touch();
+    return this.ok({ epoch: this.epoch, tick: model.tick, tampered: true });
+  }
+
+  /** Full dev/test inspection (signal/Guard/collision) without issuing a snapshot. */
+  inspectDevState(): SessionResponse<{
+    tick: number; epoch: Epoch; status: SessionStatusV1; seed: number | null; rngState: number;
+    movement: InternalRuntimeState['movement']; movementRemainingTicks: number;
+    fullState: FullSliceState; signal: unknown; guard: unknown; collision: unknown;
+    devTampered: boolean; fixtures: readonly FixtureAudit[];
+  }> {
+    if (this.closedOrDisposed()) return this.closedError();
+    if (this.kind !== 'test') return this.fail('E_PERMISSION', 'inspect is dev/test only', { sessionId: this.id, epoch: this.epoch });
+    const state = this.game!.captureInternalState();
+    const model = state.model;
+    const corridor = model.corridor;
+    const signal = corridor
+      ? { relay: corridor.relay, bridge: corridor.bridge, powered: corridor.powered, manualEnabled: corridor.manualEnabled, deadline: corridor.deadline, bridgePassable: corridor.bridge === 'STABLE' || corridor.bridge === 'UNSTABLE' }
+      : { door: model.door, doorPassable: model.door === 'JAMMED_OPEN' || model.door === 'OPEN' || model.door === 'SAFE_PENDING_CLOSE', jamRemainingTicks: model.jamRemainingTicks };
+    const guard = corridor ? corridor.guard : null;
+    const position = corridor ? corridor.location : { x: model.playerX, y: model.playerY };
+    const bridgePassable = corridor ? corridor.bridge === 'STABLE' || corridor.bridge === 'UNSTABLE' : false;
+    const standable = corridor
+      ? canStandInCorridor(position.x, position.y, bridgePassable)
+      : canFit(position.x, position.y, (cx, cy) => isWalkableCell(cx, cy, model.door === 'JAMMED_OPEN' || model.door === 'OPEN' || model.door === 'SAFE_PENDING_CLOSE'));
+    const collision = {
+      position, standable,
+      occupancy: corridor ? false : isOccupyingDoor(position.x, position.y),
+      inCorridor: corridor !== null,
+      onBridge: corridor ? occupiesBridge(position) : false,
+      bridgePassable,
+    };
+    return this.ok({
+      tick: model.tick, epoch: this.epoch, status: this.status, seed: this.devSeed(), rngState: state.rngState,
+      movement: state.movement, movementRemainingTicks: state.movementRemainingTicks,
+      fullState: model, signal, guard, collision, devTampered: this.devTampered, fixtures: this.fixtureLog.slice(),
+    });
   }
 
   // --- internals -----------------------------------------------------------

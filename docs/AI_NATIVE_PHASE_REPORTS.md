@@ -59,3 +59,19 @@
 - 下一阶段：P3 标准 MCP stdio、Dev Harness/fixture审计、batch/compare、真实 MCP 客户端工具记录和后台资源验证。
 
 证据：`D:/Project/AI-NATIVE-01-evidence/p2-review-transaction-final.md`、`p2-tester-transaction-final.md`、`p2-transaction-final-{reviewer,tester}-*.log`、`p2-residual-developer-{unit,build,client}.log`。最终 MD5：sessions `e6ca754a1a9012dd5920d634b1894879`，sessions.test `e6109981e7a6f0445de200ec143cf1a1`，runtime `58413a99ad9ca3ded9dae901f3c781fa`。
+
+## P3 — 标准 MCP / Developer Harness（2026-11-13 验收）
+
+- 阶段：PASS，Tester/Reviewer 最终 epoch 定向验收均通过。
+- Git 分支：`feat/ai-native-runtime`；父提交 `5d4fe9128f21555997b2c301fe25a20a056f6490`；P3 hash 见本节所在提交。
+- 已完成：官方 MCP SDK stdio、默认 Player 6 工具/显式 Dev 16 工具双面隔离、严格 schema、结构化输出、Dev fixture/inspect/audit、受控快照引用/恢复/回放、run_scenario/run_batch/compare_runs、有界取消和后台资源清理。
+- 实际修改文件：新增 `src/ai-native/{harness.ts,harness.test.ts,mcpServer.ts,mcpClient.mts}`、`vite.mcp.config.ts`、`docs/AI_NATIVE_MCP.md`；适配 `sessions.ts` Dev fixture 接缝与单调 epoch；精确 SDK/schema 依赖与 package lock；更新测试/阶段报告，忽略生成目录 `dist-mcp/`。
+- 新增接口：官方 MCP Player/Dev 工具，详见 MCP 文档真实注册矩阵；Player 不注册 Dev 工具。直接入口 `node dist-mcp/mcpServer.mjs`，Dev 加 `--dev`；先执行 `npm run game:mcp:build`。不修改全局 MCP 配置。
+- 运行命令：typecheck、32 harness/43 sessions 定向测试、261 全单测、build、MCP build、官方 SDK Client 及独立 MCP 探针。
+- 测试结果：261/261 单测；独立 Reviewer 52/52 官方 Client 检查；独立 Tester 最终22/22检查，原8项幂等及正常门桥路线/Dev操作/退出通过。slice 未改，不重复浏览器全套。
+- 失败项：原始 MCP 请求默认 tick/actionId 变化导致重试冲突，以及缺 epoch 旧请求在 fixture/restore 后重执行；均已修。mutation 入口 epoch 强制必填，校验先于缓存，restore 保证单调 epoch。
+- 独立复核：Orca Worker reviewer “P3 现在可接受”；Orca Worker tester “P3 PASS”。实现由 Orca Worker developer 完成。
+- 剩余风险：固定官方客户端路线仍不是 P4 模型自主游玩；ECHO 实体未实现。跨进程原始快照导入不支持，Dev 通道仅本机可信启动；公开 hash 仅完整性。模型/Token/推理延迟未在此阶段测量。
+- 下一阶段：P4 由真实外部 Agent 仅经 Player MCP 逐步观察、决定动作并完成合法路线，保存可回放轨迹；再实施隔离最小 ECHO 双 Actor 场景。
+
+最终证据位于 `D:/Project/AI-NATIVE-01-evidence/p3-review-epoch-final.md`、`p3-tester-epoch-final.md`、`p3-epoch-final-{reviewer,tester}-*.log`、`p3-epoch-developer-*.log`。最终 MD5：harness `1db664997f3548df53968138801d93db`，server `83f600c92399b7b052acdf91418861b2`，client `475b77c7a42f4a1bc8e6572a3bfc3364`，sessions `b87fe02fa24e4f7d76c7102b7af3a16a`。所有完整日志仍在本机仓库外，尚未发布为远端附件；PR 保持 draft，禁止自动合并。

@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+dist-mcp/
 
 # Test / verification artifacts (screenshots, results, diagnostics)
 test-results/

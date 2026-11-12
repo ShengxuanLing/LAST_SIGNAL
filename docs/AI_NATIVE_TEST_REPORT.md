@@ -319,3 +319,68 @@ E2E 由 `npx playwright test` 全量执行，**未加 `--grep`、未 skip、未�
 **实现要点**：runtime 非签发内部接缝 `captureInternalState/restoreInternalState/canonicalStateInternal/eventLog`；sessions 在 `game.step` 前 captureRollback，失败/抛异常时 applyRollback（含 idempotency cache）并返回脱敏错误；request cache 存成功/失败完整响应；`syncEvents`/`postStateHash` 不再逐步签发。
 
 **边界**：未扩 MCP/World/ECHO/旧档、未删/放宽测试、未 commit/切分支；headless；无残留进程。pre-fix 历史保留（§12–§14、`p2-review-final.md`）。
+
+---
+
+## 16. P3 MCP 原始请求幂等残留定向复验（PRE-FIX，BLOCKED）
+
+> 快照：HEAD `5d4fe912…`；`harness f78bfefa…` / `mcpServer c358c10b…` / `mcpClient 755bcd0b…` / `harness.test 8377be06…` / `sessions d9d66875…`；md5 复验前后 UNCHANGED。完整报告：`D:/Project/AI-NATIVE-01-evidence/p3-fix-tester-report.md`；门禁：`p3-fix-tester-gate-summary.log`。
+
+**判定：P3 = BLOCKED（仅 MCP 原始请求幂等残留）。** 官方 SDK 复现：`game_step` / `game_execute_action` 在**省略 `fromTick`/`actionId`**、同一 `requestId`、字节相同工具参数重试时，第二次返回 `E_ID_PAYLOAD_MISMATCH`；tick 未推进。
+
+| ID | 场景 | 结果 |
+| --- | --- | --- |
+| R1 | `game_step` 同 requestId + 相同参数（省略 fromTick/actionId） | FAIL（step2 `E_ID_PAYLOAD_MISMATCH`） |
+| R2 | 重试是否推进 tick | PASS（未推进） |
+| R3 | 同 requestId + 不同参数 | PASS（正确冲突） |
+| R4 | 对照：显式 fromTick+actionId 重试 | PASS（说明缺口是省略默认被动态补全） |
+| R5 | `game_execute_action` 同 requestId + 相同参数（省略 actionId/fromTick） | FAIL |
+| R6 | 重试是否推进 tick | PASS |
+| R7 | `game_execute_action` 显式 fromTick/targetTick/actionId 重试 | FAIL（`executeAction` 未传显式调度字段，无隐藏绕过） |
+| R8 | Dev `game_step` 同 requestId + 相同参数 | FAIL |
+
+**成因**：`harness.step` 每次用当前 tick 补 `fromTick`、未传 `actionId` 时随机生成新 id；Session `payloadFingerprint` 因此变化 → 冲突。P2 下层幂等本身正确，修复不得放宽 `sessions.ts` 指纹校验来掩盖上层补全。
+
+**其余 P3（同 md5，引用通过）**：独立官方 SDK 31/31（Player 6 工具/无 Dev、合法整链 tick 518、P0 DTO、事件分页、Dev 16 工具、fixture 审计、inspect signal/Guard/collision、snapshot/step/restore/replay、scenario/batch 2 seeds×2 strategies、compare、多 session、cancel/timeout、bad handle/cross-session、10/8 预算、stdout 纯 JSON-RPC、无 npm banner、无网络/OS 输入、exit 0）；typecheck / 251 单测 / build / MCP build / client 同 md5 通过。未发现其他真实缺陷。
+
+**修复方向**：Harness/MCP 按 requestId 缓存**原始请求（未补全）→结果**；或强制显式 fromTick/actionId 且缺省拒绝；`game_execute_action` 必须传递显式调度字段。补官方 Client 回归（省略默认参数的同 requestId 重试必须返原结果且不推进）。P3 待 Developer 终态另派定向复验。原 P3 历史保留（`p3-review.md`、`p3-tester-*`）。
+
+---
+
+## 17. P3 MCP 原始请求幂等最终定向验收（PASS）
+
+> 快照：HEAD `5d4fe912…`；`harness 6f119818…` / `mcpServer c358c10b…` / `mcpClient 51fee6a2…` / `harness.test f25c8ab7…` / `sessions 63ee4e3f…` / `runtime 58413a99…`；md5 全程 UNCHANGED。完整报告：`D:/Project/AI-NATIVE-01-evidence/p3-tester-final.md`；门禁：`p3-final-tester-gate-summary.log`。
+
+**判定：P3 = PASS。** MCP 原始请求幂等残留已关闭；此前 31 项回归与新增定向缓存全部通过。
+
+| 组 | 关键结果 |
+| --- | --- |
+| 原 8 项幂等（R1–R8） | 全部 PASS：`game_step`/`game_execute_action`（Player 与 Dev）在同 requestId + **字节相同**工具参数（省略 fromTick/actionId）下返回原结果、tick 不推进；同 requestId 不同参数仍 `E_ID_PAYLOAD_MISMATCH`；显式值路径同样幂等 |
+| 定向缓存（C1–C6） | domain 不冲突；session 隔离；失败动作/请求级失败回执缓存（tick 不变）；fixture 清 epoch 缓存 + 显式旧 epoch `E_STALE_EPOCH`；restore 清缓存且同 requestId 在恢复态重新执行（scan 扣 10、tick+1） |
+| 此前 31 项回归 | 全部 PASS（Player 6/Dev 16 分面、合法整链 tick 518、P0 DTO、fixture 审计、inspect、snapshot/restore/replay、scenario/batch 2×2、compare、多 session、cancel/timeout、bad handle、10/8 预算、stdout 纯 JSON-RPC、无 npm banner、无网络/OS 输入、exit 0） |
+| Gate | typecheck PASS、29 定向 PASS；258 全量与 build 同 md5 引用 developer 日志（未重复全套）；MCP build PASS；md5 稳定 |
+
+**实现核对**：Harness 以 `(session, epoch, domain, requestId)` 缓存**原始参数**、先查再补默认；domain 隔离映射；失败回执缓存；fixture/restore 清缓存；P2 Session 指纹/事务校验未放宽。
+
+**边界**：未扩 P4/P5、未改主 World/旧档/全局 MCP 配置、未 commit/切分支、未删/放宽测试；`dist-mcp` 为未跟踪生成物未提交。pre-fix 失败历史保留（§16、`p3-review.md`、`p3-fix-tester-*`）。
+
+---
+
+## 18. P3 强制 epoch 契约最终定向验收（PASS）
+
+> 快照：HEAD `5d4fe912…`；`harness 1db66499…` / `mcpServer 83f600c9…` / `mcpClient 475b77c7…` / `harness.test 56e0e6d6…` / `sessions b87fe02f…` / `runtime 58413a99…`；md5 全程 UNCHANGED。完整报告：`D:/Project/AI-NATIVE-01-evidence/p3-tester-epoch-final.md`；门禁：`p3-epoch-final-tester-gate-summary.log`。
+
+**判定：P3 = PASS。** `game_step`/`game_execute_action`（含 advanced）强制 epoch，校验先于缓存/补默认；缺省/非整数拒绝、旧 epoch `E_STALE_EPOCH`；正例带 epoch、省略 fromTick/actionId 的字节相同重试返回原结果且不推进。fixture/restore 递增 epoch（restore = max(prev+1, engine)）；旧/缺/新 epoch 行为符合契约；advanced 无 epoch 无写入。
+
+| 组 | 关键结果 |
+| --- | --- |
+| A | create/observe 返回 epoch；缺失/非整数 epoch（step/execute_action/advanced）拒绝且无状态改变；旧 epoch `E_STALE_EPOCH` |
+| B | 8 项幂等（Player/Dev step、execute_action；带 epoch、省略 fromTick/actionId）全部返回原结果、不推进；同 requestId 不同参数冲突；显式字段控制通过 |
+| C | domain/session 隔离；失败动作回执缓存；fixture epoch 0→1 旧拒/缺拒/新执行；restore epoch 1→2 旧拒/缺拒/新执行 |
+| D | advanced 无 epoch 无写入；带 epoch 启动后 cancelAction 停 tick、超预算 timeout |
+| E/F | 真实 Player 门桥整链 tick 518（每步带 epoch，P0 DTO 通过）；Dev fixture/scenario/batch/compare；stdout 纯 JSON-RPC、无 npm banner、exit 0、无网络/OS 输入 |
+| Gate | typecheck PASS、32 定向 PASS；261 全量与 build 同 md5 引用 developer 日志；MCP build PASS；md5 稳定 |
+
+**实现核对**：epoch 在缓存/补默认前校验；MCP schema 强制 epoch；create/observe 返回 epoch；fixture/restore 递增 epoch；原有原始参数缓存与 P2 指纹/事务校验未放宽。
+
+**边界**：未扩 P4/P5、未改主 World/旧档/全局 MCP 配置、未 commit/切分支、未删/放宽测试；`dist-mcp` 未跟踪生成物未提交；未跑浏览器 E2E（slice 未改）。pre-fix 失败历史保留（§16–§17、`p3-review.md`、`p3-fix-tester-*`）。
