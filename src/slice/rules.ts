@@ -12,6 +12,8 @@ import {
 import { Corridor, type CorridorCheckpoint, type CorridorReveal, type CorridorSnapshot } from './corridor';
 import { CORRIDOR } from './corridorRoom';
 import { SLICE } from './tuning';
+import type { FullSliceState, SliceEvidenceV1 } from './fullState';
+import { isSliceEvidenceArray } from './fullState';
 
 export { SLICE } from './tuning';
 
@@ -26,6 +28,15 @@ export type ResultCode =
   | 'E_ILLEGAL_TARGET'
   | 'E_PAUSED'
   | 'E_PERMISSION';
+
+export type ActionAvailabilityStatus =
+  | 'available' | 'unavailable' | 'cooldown' | 'insufficient_energy' | 'permission_denied';
+
+export interface ActionAvailability {
+  readonly type: 'move' | 'scan' | 'jam' | 'interact' | 'shoot_guard' | 'wait' | 'aim' | 'fire' | 'decoy';
+  readonly status: ActionAvailabilityStatus;
+  readonly reasonCode?: ResultCode | 'E_NOT_APPLICABLE';
+}
 
 export interface ActionResult {
   code: ResultCode;
@@ -74,6 +85,12 @@ export interface PersistedSliceState {
   passed: boolean;
   position: { x: number; y: number };
   corridor?: CorridorCheckpoint;
+  /**
+   * P1 R9 COMPATIBLE EXTENSION (optional; key/schema/version unchanged).
+   * Old saves without this field are still readable but their active scan
+   * evidence is cleared and a rescan is required.
+   */
+  evidence?: SliceEvidenceV1[];
   remaining: {
     jam: number;
     jamCooldown: number;
@@ -110,6 +127,8 @@ export class SliceModel {
   private corridor: Corridor | null = null;
   private corridorReveal: CorridorReveal | null = null;
   private lastRelayInteractTick = -1;
+  private evidence: SliceEvidenceV1[] = [];
+  private evidenceRescanRequired = false;
 
   lastResult: ActionResult = { code: 'OK', message: START_HINT, cost: 0 };
 
@@ -131,6 +150,9 @@ export class SliceModel {
   get doorPassable(): boolean {
     return this.door === 'JAMMED_OPEN' || this.door === 'OPEN' || this.door === 'SAFE_PENDING_CLOSE';
   }
+  /** True when an old save without evidence was restored; hint the user to rescan. */
+  get evidenceRescanRequiredFlag(): boolean { return this.evidenceRescanRequired; }
+  get evidenceSnapshot(): readonly SliceEvidenceV1[] { return this.evidence.map((e) => ({ ...e, position: { ...e.position } })); }
 
   /**
    * Update the authoritative player position. Occupancy is derived from the same
@@ -155,10 +177,12 @@ export class SliceModel {
     if (this.corridor || this.paused || !this.passed ||
         Math.hypot(this.playerX - ROOM.exit.x, this.playerY - ROOM.exit.y) >= 0.45) return false;
     this.corridor = new Corridor();
-    // Door-only effects stay in R1. Shared energy and cooldowns carry over.
+    // Door-only effects/evidence stay in R1. Shared energy/cooldowns carry over.
     this.jamRemainingTicks = 0;
     this.scanRevealTicks = 0;
     this.revealDoorReceiver = this.revealSealSource = false;
+    this.evidence = [];
+    this.evidenceRescanRequired = false;
     this.solveDoor();
     this.ok('失稳走廊：可清除守卫，或按 G 压制守卫后用 F 建桥。', 0);
     return true;
@@ -179,7 +203,7 @@ export class SliceModel {
    * Fixed 60 Hz accumulator. The lab retains its door occupancy order.
    * In the corridor, deadlines resolve against the previous position before movement.
    */
-  step(deltaMs: number, onTick?: () => void): number {
+  step(deltaMs: number, onTick?: () => void, onCommit?: (before: SliceSnapshot) => void): number {
     if (this.pausedFlag || this.failed) {
       this.accumulatorMs = 0;
       return 0;
@@ -188,13 +212,36 @@ export class SliceModel {
     this.accumulatorMs += clamped;
     let advanced = 0;
     while (this.accumulatorMs >= SLICE.TICK_MS && advanced < SLICE.MAX_TICKS_PER_FRAME && !this.failed) {
+      const before = this.snapshot();
       this.tickOnce(onTick);
+      onCommit?.(before);
       this.accumulatorMs -= SLICE.TICK_MS;
       advanced++;
     }
     if (advanced === SLICE.MAX_TICKS_PER_FRAME) {
       // Drop whole-tick backlog, keep only the sub-tick remainder (no offline catch-up).
       this.accumulatorMs = this.accumulatorMs % SLICE.TICK_MS;
+    }
+    return advanced;
+  }
+
+  /**
+   * Fixed-tick stepping for the headless core: advances exactly `ticks` logic
+   * ticks (no wall clock, no frame accumulator). Same tickOnce ordering as the
+   * browser path, so lab (move then expiry) and corridor (expiry then move)
+   * semantics cannot diverge.
+   */
+  advanceTicks(ticks: number, onTick?: () => void, onCommit?: (before: SliceSnapshot) => void): number {
+    if (this.pausedFlag || this.failed) {
+      this.accumulatorMs = 0;
+      return 0;
+    }
+    let advanced = 0;
+    while (advanced < ticks && !this.failed) {
+      const before = this.snapshot();
+      this.tickOnce(onTick);
+      onCommit?.(before);
+      advanced++;
     }
     return advanced;
   }
@@ -212,6 +259,7 @@ export class SliceModel {
     if (this.corridor) {
       this.corridorReveal = this.corridor.scan();
       const found = Object.values(this.corridorReveal).some(Boolean);
+      this.evidence = this.buildCorridorEvidence();
       return this.ok(found ? '扫描完成：发现当前可见的设备和连接。' : '扫描完成：范围内未发现可操作目标。', SLICE.SCAN_COST);
     }
     // A scan is a single pulse: an empty scan is legal and still costs 10.
@@ -226,6 +274,7 @@ export class SliceModel {
       ROOM.sourceCell
     );
     const found = this.revealDoorReceiver || this.revealSealSource;
+    this.evidence = this.buildLabEvidence();
     return this.ok(
       found
         ? '扫描完成：已发现范围内的门接收器/封锁载波（只揭示，不开门）。'
@@ -309,6 +358,61 @@ export class SliceModel {
     }
   }
 
+  /**
+   * Public capability description derived from CURRENT authoritative model
+   * state. Used by the observation whitelist instead of a fixed "always legal"
+   * list; it does not execute actions or duplicate the rule resolvers.
+   */
+  actionAvailability(): ActionAvailability[] {
+    const stopped = this.pausedFlag || this.failed;
+    const stopReason: ResultCode = this.pausedFlag ? 'E_PAUSED' : 'E_PERMISSION';
+    const mk = (type: ActionAvailability['type'], status: ActionAvailabilityStatus, reasonCode?: ActionAvailability['reasonCode']): ActionAvailability =>
+      reasonCode ? { type, status, reasonCode } : { type, status };
+    const out: ActionAvailability[] = [
+      mk('move', stopped ? 'permission_denied' : 'available', stopped ? stopReason : undefined),
+      mk('wait', stopped ? 'permission_denied' : 'available', stopped ? stopReason : undefined),
+    ];
+    out.push(stopped ? mk('scan', 'permission_denied', stopReason)
+      : this.energyValue < SLICE.SCAN_COST ? mk('scan', 'insufficient_energy', 'E_ENERGY_INSUFFICIENT')
+      : this.scanCooldownTicks > 0 ? mk('scan', 'cooldown', 'E_COOLDOWN')
+      : mk('scan', 'available'));
+    let jam: ActionAvailability;
+    if (stopped) jam = mk('jam', 'permission_denied', stopReason);
+    else if (this.jamActive) jam = mk('jam', 'unavailable', 'E_RETRYABLE');
+    else if (this.jamCooldownTicks > 0) jam = mk('jam', 'cooldown', 'E_COOLDOWN');
+    else if (this.energyValue < SLICE.JAM_COST) jam = mk('jam', 'insufficient_energy', 'E_ENERGY_INSUFFICIENT');
+    else {
+      const legal = this.corridor
+        ? (this.corridor.canJam() || this.corridor.canJamGuard())
+        : (distanceToReceiver(this.playerX, this.playerY) < SLICE.JAM_RANGE &&
+           hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y));
+      jam = mk('jam', legal ? 'available' : 'unavailable', legal ? undefined : 'E_ILLEGAL_TARGET');
+    }
+    out.push(jam);
+    let interact: ActionAvailability;
+    if (stopped) interact = mk('interact', 'permission_denied', stopReason);
+    else {
+      const legal = this.corridor
+        ? this.corridor.canInteract()
+        : (distanceToReceiver(this.playerX, this.playerY) < SLICE.INTERACT_RANGE &&
+           hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y));
+      interact = mk('interact', legal ? 'available' : 'unavailable', legal ? undefined : 'E_ILLEGAL_TARGET');
+    }
+    out.push(interact);
+    if (!this.corridor) out.push(mk('shoot_guard', 'unavailable', 'E_NOT_APPLICABLE'));
+    else if (stopped) out.push(mk('shoot_guard', 'permission_denied', stopReason));
+    else {
+      const availability = this.corridor.canShoot(this.tickIndex);
+      out.push(availability === 'ok' ? mk('shoot_guard', 'available')
+        : availability === 'cooldown' ? mk('shoot_guard', 'cooldown', 'E_COOLDOWN')
+        : mk('shoot_guard', 'unavailable', 'E_ILLEGAL_TARGET'));
+    }
+    for (const type of ['aim', 'fire', 'decoy'] as const) {
+      out.push(mk(type, 'unavailable', 'E_NOT_APPLICABLE'));
+    }
+    return out;
+  }
+
   markPassed(): void {
     this.passedFlag = true;
   }
@@ -346,7 +450,7 @@ export class SliceModel {
   }
 
   serialize(): PersistedSliceState {
-    const corridor = this.corridor?.capture(this.jamRemainingTicks, this.scanRevealTicks, this.corridorReveal);
+    const corridor = this.corridor?.capture(this.jamRemainingTicks, this.scanRevealTicks, this.corridorReveal, this.evidence);
     if (this.corridor && !corridor) throw new Error('Unsafe corridor checkpoint');
     return {
       schema: 'last_signal_station_zero_vs00_v1',
@@ -360,6 +464,9 @@ export class SliceModel {
       passed: this.passedFlag,
       position: { x: this.playerX, y: this.playerY },
       ...(corridor ? { corridor } : {}),
+      ...(!corridor && this.scanRevealTicks > 0 && this.evidence.length > 0
+        ? { evidence: this.evidence.map((e) => ({ ...e, position: { ...e.position } })) }
+        : {}),
       remaining: {
         jam: corridor ? 0 : this.jamRemainingTicks,
         jamCooldown: this.jamCooldownTicks,
@@ -391,6 +498,8 @@ export class SliceModel {
     this.safeClearTicks = SLICE.SAFE_CLEAR_DELAY_TICKS;
     this.regenAcc = 0;
     this.accumulatorMs = 0;
+    this.evidence = [];
+    this.evidenceRescanRequired = false;
     this.playerX = ROOM.spawn.x;
     this.playerY = ROOM.spawn.y;
     this.occupancy = false;
@@ -419,13 +528,20 @@ export class SliceModel {
     }
 
     if (this.scanCooldownTicks > 0) this.scanCooldownTicks--;
-    if (this.scanRevealTicks > 0) {
-      this.scanRevealTicks--;
-      if (this.scanRevealTicks === 0) {
-        this.revealDoorReceiver = false;
-        this.revealSealSource = false;
-        this.corridorReveal = null;
+    if (this.scanRevealTicks > 0) this.scanRevealTicks--;
+    // R9 evidence expires by its absolute TTL even if scanRevealTicks was stale.
+    if (this.evidence.length > 0) {
+      const alive = this.evidence.filter((e) => this.tickIndex < e.expiresAtTick);
+      if (alive.length !== this.evidence.length) {
+        this.evidence = alive;
+        if (alive.length === 0) this.scanRevealTicks = 0;
       }
+    }
+    if (this.scanRevealTicks === 0) {
+      this.revealDoorReceiver = false;
+      this.revealSealSource = false;
+      this.corridorReveal = null;
+      this.evidence = [];
     }
     if (this.jamCooldownTicks > 0) this.jamCooldownTicks--;
 
@@ -538,20 +654,168 @@ export class SliceModel {
     // not jump straight to SEALED. Occupancy still re-arms the delay below.
     this.pendingSafeClose = this.jamRemainingTicks === 0 && this.door === 'SAFE_PENDING_CLOSE';
     this.pausedFlag = false;
-    this.revealDoorReceiver = this.scanRevealTicks > 0 &&
-      distanceToReceiver(this.playerX, this.playerY) < SLICE.SCAN_RADIUS &&
-      hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y);
-    this.revealSealSource = this.scanRevealTicks > 0 &&
-      distanceToSource(this.playerX, this.playerY) < SLICE.SCAN_RADIUS &&
-      hasLineOfSight(this.playerX, this.playerY, ROOM.source.x, ROOM.source.y, ROOM.sourceCell);
+    // R9: restore NEVER re-runs Scan/LOS to invent reveal evidence. Evidence is
+    // accepted only when it is shape/enum valid AND inside its absolute TTL
+    // window (`observedAtTick <= savedTick < expiresAtTick`). Expired/future or
+    // room-mismatched evidence is safely discarded with a rescan hint; it can
+    // never become a free Scan.
+    const hasEvidenceField = p.evidence !== undefined;
+    const hadActiveReveal = this.scanRevealTicks > 0;
+    const candidates = isSliceEvidenceArray(p.evidence) ? p.evidence : [];
+    const valid = hadActiveReveal
+      ? candidates.filter((e) => e.observedAtTick <= this.tickIndex &&
+        this.tickIndex < e.expiresAtTick && e.roomId === 'station-zero-r1')
+      : [];
+    this.evidence = valid.map((e) => ({ ...e, position: { ...e.position } }));
+    if (this.evidence.length === 0) {
+      this.scanRevealTicks = 0;
+      this.evidenceRescanRequired = hasEvidenceField || hadActiveReveal;
+    } else {
+      this.scanRevealTicks = Math.max(0, Math.min(
+        this.scanRevealTicks,
+        Math.max(...this.evidence.map((e) => e.expiresAtTick)) - this.tickIndex,
+      ));
+      this.evidenceRescanRequired = candidates.length !== this.evidence.length;
+    }
+    this.revealDoorReceiver = this.evidence.some((e) => e.targetId === 'tgt_lab_door_receiver');
+    this.revealSealSource = this.evidence.some((e) => e.targetId === 'tgt_lab_seal_source');
     this.lastResult = { code: 'OK', message: '已从本原型存档恢复。', cost: 0 };
     this.solveDoor();
     if (p.corridor) {
       this.corridor = new Corridor(p.corridor);
       this.jamRemainingTicks = p.corridor.jamRemaining;
       this.scanRevealTicks = p.corridor.scanRemaining;
-      this.corridorReveal = p.corridor.reveal ? { ...p.corridor.reveal } : null;
+      // R9 R2 evidence is persisted under the corridor checkpoint (real room
+      // ownership). Restore verbatim inside its TTL window; never re-scan.
+      const r2Candidates = isSliceEvidenceArray(p.corridor.evidence) ? p.corridor.evidence : [];
+      const r2Valid = this.scanRevealTicks > 0
+        ? r2Candidates.filter((e) => e.roomId === 'station-zero-r2' &&
+          e.observedAtTick <= this.tickIndex && this.tickIndex < e.expiresAtTick)
+        : [];
+      this.evidence = r2Valid.map((e) => ({ ...e, position: { ...e.position } }));
+      this.revealDoorReceiver = false;
+      this.revealSealSource = false;
+      if (this.evidence.length > 0) {
+        this.corridorReveal = {
+          relay: this.evidence.some((e) => e.targetId === 'tgt_corridor_relay'),
+          bridge: this.evidence.some((e) => e.targetId === 'tgt_corridor_bridge'),
+          perceptionPort: this.evidence.some((e) => e.targetId === 'tgt_corridor_guard'),
+        };
+        this.evidenceRescanRequired = r2Candidates.length !== this.evidence.length;
+      } else {
+        this.corridorReveal = p.corridor.reveal ? { ...p.corridor.reveal } : null;
+        this.evidenceRescanRequired = this.scanRevealTicks > 0;
+      }
     }
+  }
+
+  /** Full private state (P1 internal snapshot). Not the browser checkpoint. */
+  captureFull(): FullSliceState {
+    return {
+      energy: this.energyValue,
+      tick: this.tickIndex,
+      door: this.door,
+      manualOpenIntent: this.manualOpenIntent,
+      sealSourcePresent: this.sealSourcePresent,
+      jamRemainingTicks: this.jamRemainingTicks,
+      jamCooldownTicks: this.jamCooldownTicks,
+      scanCooldownTicks: this.scanCooldownTicks,
+      scanRevealTicks: this.scanRevealTicks,
+      revealDoorReceiver: this.revealDoorReceiver,
+      revealSealSource: this.revealSealSource,
+      pendingSafeClose: this.pendingSafeClose,
+      safeClearTicks: this.safeClearTicks,
+      regenAcc: this.regenAcc,
+      accumulatorMs: this.accumulatorMs,
+      playerX: this.playerX,
+      playerY: this.playerY,
+      occupancy: this.occupancy,
+      passed: this.passedFlag,
+      paused: this.pausedFlag,
+      lastRelayInteractTick: this.lastRelayInteractTick,
+      lastResult: { ...this.lastResult },
+      corridorReveal: this.corridorReveal ? { ...this.corridorReveal } : null,
+      corridor: this.corridor?.captureFull() ?? null,
+      evidence: this.evidence.map((e) => ({ ...e, position: { ...e.position } })),
+      evidenceRescanRequired: this.evidenceRescanRequired,
+    };
+  }
+
+  /** Restore full private state verbatim; no scan, no bridge/relay re-resolve. */
+  restoreFull(state: FullSliceState): void {
+    if (this.corridor) this.corridor.dispose();
+    this.energyValue = state.energy;
+    this.tickIndex = state.tick;
+    this.door = state.door;
+    this.manualOpenIntent = state.manualOpenIntent;
+    this.sealSourcePresent = state.sealSourcePresent;
+    this.jamRemainingTicks = state.jamRemainingTicks;
+    this.jamCooldownTicks = state.jamCooldownTicks;
+    this.scanCooldownTicks = state.scanCooldownTicks;
+    this.scanRevealTicks = state.scanRevealTicks;
+    this.revealDoorReceiver = state.revealDoorReceiver;
+    this.revealSealSource = state.revealSealSource;
+    this.pendingSafeClose = state.pendingSafeClose;
+    this.safeClearTicks = state.safeClearTicks;
+    this.regenAcc = state.regenAcc;
+    this.accumulatorMs = state.accumulatorMs;
+    this.playerX = state.playerX;
+    this.playerY = state.playerY;
+    this.occupancy = state.occupancy;
+    this.passedFlag = state.passed;
+    this.pausedFlag = state.paused;
+    this.lastRelayInteractTick = state.lastRelayInteractTick;
+    this.lastResult = { ...state.lastResult };
+    this.corridorReveal = state.corridorReveal ? { ...state.corridorReveal } : null;
+    this.evidence = state.evidence.map((e) => ({ ...e, position: { ...e.position } }));
+    this.evidenceRescanRequired = state.evidenceRescanRequired;
+    this.corridor = null;
+    if (state.corridor) {
+      const corridor = new Corridor();
+      corridor.restoreFull(state.corridor);
+      this.corridor = corridor;
+    }
+  }
+
+  private buildLabEvidence(): SliceEvidenceV1[] {
+    const found = this.revealDoorReceiver || this.revealSealSource;
+    if (!found) return [];
+    const tick = this.tickIndex;
+    const expiresAtTick = tick + SLICE.SCAN_REVEAL_TICKS;
+    const position = { x: this.playerX, y: this.playerY };
+    const link = this.revealDoorReceiver && this.revealSealSource ? 'rel_lab_seal_link' : null;
+    const out: SliceEvidenceV1[] = [];
+    if (this.revealDoorReceiver) out.push({
+      targetId: 'tgt_lab_door_receiver', relationId: link, position, observedAtTick: tick,
+      expiresAtTick, stateLabel: 'receiver-visible', roomId: 'station-zero-r1',
+    });
+    if (this.revealSealSource) out.push({
+      targetId: 'tgt_lab_seal_source', relationId: link, position, observedAtTick: tick,
+      expiresAtTick, stateLabel: 'carrier-visible', roomId: 'station-zero-r1',
+    });
+    return out;
+  }
+
+  private buildCorridorEvidence(): SliceEvidenceV1[] {
+    const reveal = this.corridorReveal;
+    if (!reveal) return [];
+    const tick = this.tickIndex;
+    const expiresAtTick = tick + SLICE.SCAN_REVEAL_TICKS;
+    const position = { x: this.playerX, y: this.playerY };
+    const out: SliceEvidenceV1[] = [];
+    if (reveal.relay) out.push({
+      targetId: 'tgt_corridor_relay', relationId: null, position, observedAtTick: tick,
+      expiresAtTick, stateLabel: 'relay-visible', roomId: 'station-zero-r2',
+    });
+    if (reveal.bridge) out.push({
+      targetId: 'tgt_corridor_bridge', relationId: reveal.relay ? 'rel_corridor_relay_bridge' : null,
+      position, observedAtTick: tick, expiresAtTick, stateLabel: 'bridge-visible', roomId: 'station-zero-r2',
+    });
+    if (reveal.perceptionPort) out.push({
+      targetId: 'tgt_corridor_guard', relationId: reveal.relay ? 'rel_corridor_relay_perception' : null,
+      position, observedAtTick: tick, expiresAtTick, stateLabel: 'perception-visible', roomId: 'station-zero-r2',
+    });
+    return out;
   }
 
   private jamBlocker(active = this.jamActive): ActionResult | null {

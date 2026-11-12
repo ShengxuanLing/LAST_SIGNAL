@@ -148,3 +148,78 @@ E2E 由 `npx playwright test` 全量执行，**未加 `--grep`、未 skip、未�
 - **隔离**：10 个 session 并行时 10 类状态互不共享；无全局可变单例；跨 session `restore`/`replay`/`actionId`/`actorId` 全拒；`production` 参数不得升级为 Dev / `detail:"debug"` 被拒 / 隐藏字段黑名单逐项断言；Dev `dev` 段导出前剥离并重算 hash；死亡=新局且旧档 key/版本不变；`close`/`reset`/epoch 的资源回收与幂等缓存清理；后台执行不占桌面。
 - **R9**：Scan 事务内原子写证据、空扫证据为空、非法零费无证据；证据字段完整；保存/恢复同一原子快照且 restore **绝不调用 scan/LOS**；同一 snapshot 两次 restore 证据与 TTL 完全一致；旧档无证据→清空并提示重扫、不覆写旧档；旧观察不自动升格当前事实 / Canonical。
 - **每阶段通用 gate**：typecheck / vitest / build / economy build / 全旧 Playwright + 测试 md5 与 `git diff --exit-code`，日志全部落 `D:/Project/AI-NATIVE-01-evidence/`；任一隐藏信息泄漏、跨 session 污染、死亡续局、旧档覆写或重大回归 → 立即上报阻断。
+
+---
+
+## 9. P1 独立验收（PRE-FIX；阻断未关闭，**非最终验收**）
+
+> 本节 supersedes 本文件此前任何「P1 可通过」前提。`p1-tester-*.log`（159/159 单测、23/23 E2E、R9 79 项、CLI 5 场景、性能）与 `p1-fix-tester-*.log` 全部标记为 **pre-fix**，不得作为最终 P1 验收。
+> 依据：独立 Reviewer `D:/Project/AI-NATIVE-01-evidence/p1-review.md`（7 类真实反例）；本 Worker 独立复现报告 `D:/Project/AI-NATIVE-01-evidence/p1-fix-tester-report.md`。
+
+**阶段判定：P1 = BLOCKED（7/7 阻断独立确认）。**
+
+| 阻断 | 独立复现关键行 | 日志 |
+| --- | --- | --- |
+| B1 浏览器帧批 vs Node 逐 tick 转场采样分叉 | `batchEnteredCorridor:false` / `perTickEnteredAtTick:1` / `DIVERGES:true` | `p1-fix-tester-probes.log` |
+| B2 `observe()` 泄漏 `guard.behavior` / 原始 `reveal` / `corridorReveal`，`validateObservationDetailed()` 返回 `E_SCHEMA` | `LEAKS:true` | `p1-fix-tester-probes.log` |
+| B3 过期证据=免费 Scan（过期 4515 tick 仍 `revealDoorReceiver:true`、`energy:100`）+ 进 R2 保留 R1 证据 | `FREE_SCAN:true` / `RETAINED_IN_R2:true` | `p1-fix-tester-probes.log` |
+| B4 跨 seed / 伪造 `restore` 任意写（teleport、fake `passed`、`energy=1e9`、哈希可省略） | `CROSS_SEED_ACCEPTED:true` / `FORGED_WRITE_ACCEPTED:true` | `p1-fix-tester-probes.log`、`p1-fix-tester-cli.log` |
+| B5 0 步 replay canonical state 因 `epoch+1` / `accumulatorMs` 清零必然漂移 | `src=sha256:365c3e… rep=sha256:8e66…` | `p1-fix-tester-probes.log`、`p1-fix-tester-cli.log` |
+| B6 CLI `replay` 无 audience 闸门直出 `seed/rngState/model` | `REPLAY_BYPASSES_AUDIENCE_GATE` | `p1-fix-tester-cli.log` |
+| B7 坏 `actions`/`steps` 静默降级、`quit` 不主动退出 | `BAD_ACTIONS_SILENTLY_ACCEPTED` | `p1-fix-tester-cli.log` |
+
+**假阴性更正**：上一轮 `p1-tester-r9.log` 的 79/79 PASS 只验证「restore 不重扫」正常路径，**漏测** B3 的过期证据与跨房间残留；不得用它抵消 B3。
+
+**绿灯不抵消阻断**：`npm run typecheck` PASS、`npm test` 159/159 PASS、`npm run build` / economy 构建 PASS、双端口全旧 Playwright 23/23 PASS、1000/10000 ticks 与 10 实例性能测量 PASS —— 全部为 pre-fix 快照，且**不能**替代上述真实反例。日志见 `p1-fix-tester-gate-summary.log`。
+
+**证据范围 / 并发变更**：B1–B7 探针全程 md5 UNCHANGED（pre-fix 快照，见 `p1-fix-tester-source-snapshot-after.log`）；Developer 于 21:06:01 改 `src/slice/fullState.ts`、21:07:16 改 `src/slice/rules.ts`（见 `p1-fix-tester-concurrency.log`）。本 Worker 未对修复后源码复测、未等待/轮询；Leader 待 developer 终态另派复测。
+
+**边界**：CLI 是本机显式 Dev/test 验证进程，`audience:"dev"` 为自述字符串，不构成 Player Gateway 权限验收；固定动作序列的合法门桥链路不是真实 AI 通关（P4）。`__testSetPosition` 直接钩子不可达，但 B4 的 `restore` 是等价写面。旧档 key/版本未变；旧 v1 无 evidence 的降级路径正常，但 B3 的过期 evidence 与跨房间残留必须修。
+
+修复后须重新执行 B1–B7 最小反例 + 本文件 §8 清单 + 全套 gate，由 Leader 验收后再推进 P2。
+
+---
+
+## 10. P1 修复版独立复验（FIXED 快照）
+
+> 本轮对 **FIXED snapshot**（HEAD `95e8da35dcaff9000ae0147ef3ec80b0e0a085fc`，md5 见 `p1-final-tester-source-snapshot.log`）独立复验，**不沿用任何 pre-fix 通过结论**。md5 在整个复验期间 **UNCHANGED**，证据可作为该快照的验收依据。完整报告：`D:/Project/AI-NATIVE-01-evidence/p1-tester-final.md`；gate 汇总：`p1-final-tester-gate-summary.log`。
+
+**判定：B1–B7 最小反例全部 CLOSED。** 唯一待裁决项为 B4 的 Dev-only 同 session 仅改位置 restore 仍可写/可跨门（不跨 seed/session、非 Player 通道）。P2 权限系统未实现，按指示不单独判失败。
+
+| 阻断 | 修复版复验关键行 | 结果 |
+| --- | --- | --- |
+| B1 帧批 vs 逐 tick | `B1_production_parity | browserEnteredAtTick=1 == nodeEnteredAtTick=1, same positions, PARITY:true`（新 `onCommit` 生产路径；旧 2 参帧末探针仅对照、非生产） | CLOSED |
+| B2 隐藏 observe | `labValidate:"OK", labHidden:null, role:"PLAYER", omittedFieldCount:19`；无 reveal/corridorReveal/behavior；封闭 schema 拒绝额外 seed/reveal/guard | CLOSED |
+| B3 过期证据 / 跨房间 | `evidenceCount:0, scanRevealTicks:0, evidenceRescanRequired:true, energy:100`；r2 evidence:0；未来证据存档层拒绝 | CLOSED |
+| B4 跨 seed / 伪造 restore | `seed mismatch` / `passed flag without a door-pass event` / 区间拒绝 / CLI 强制 hash；合法 restore 正常 | CLOSED（最小反例） |
+| B5 0 步 replay 哈希 | `canonicalEqualAfterRestore:true, replayCanonicalEqualSource:true`，accumulator 10→10（epoch 不入哈希）；CLI src/rep hash 相同 | CLOSED |
+| B6 私有帧通道 | `--dev` 进程通道；受限通道 snapshot/restore/replay 全 `E_PERMISSION`，`audience:"dev"` 不升级；create 不回显 seed | CLOSED |
+| B7 坏 actions / quit | actions/steps 非数组→`E_SCHEMA`；17th 实例→`E_RESOURCE_LIMIT`；quit 无需 EOF 即 exit 0 | CLOSED |
+
+**残余（供 Leader 判定）**：`B4_forged_position_only` — 同 session、仅改 `playerX/Y`（`passed=false`）的 Dev 帧仍被 restore 接受，下一步可按位置合法 `markPassed` 并进走廊（`DEV_RESTORE_CAN_CROSS_DOOR:true`）。不跨 seed/session、仅在显式 `--dev` 进程内、非 Player/Companion 通道；若要求 restore 为“只读回放”，需再收紧位置来源校验。
+
+**Gate（FIXED）**：`npm run typecheck` PASS、`npm test` **181/181** PASS、`npm run build` PASS、economy 构建 PASS、双端口全旧 Playwright **23/23** PASS、性能 10 项正确性 PASS；均 pre-fix 分离，日志 `p1-final-tester-*`。真实 `npm run game:headless`（`--dev`）与受限 `vite-node --run` 两通道实测；合法门桥链仅用 move/scan/jam/interact/wait（无 `__testSetPosition`），tick 518 完成。
+
+**边界**：CLI 是本机显式 Dev/test 验证进程，`audience` 为历史参数且不再升级权限；固定动作序列不是真实 AI 通关（P4）；旧档 key/版本未变；未改源码/测试/配置、未 commit、未切分支。pre-fix 失败历史保留在 `p1-fix-tester-*` 与本文 §9。
+
+---
+
+## 11. P1 最终残留验收（B3-1 / B4，FINAL residual snapshot）
+
+> 本轮仅复验 B3-1 正常存档与 B4 签发帧完整 payload 绑定 + 正常 restore/replay 正向；B1/B2/B5/B6/B7 上轮已关闭且本轮源码 md5 一致，未见新变化。完整报告：`D:/Project/AI-NATIVE-01-evidence/p1-tester-residual-final.md`；门禁：`p1-residual-tester-gate-summary.log`。
+
+**判定：P1 = PASS（通过）。** 7 个关键文件 md5 与 Lead 提供值逐项 MATCH，且整个复验期间 UNCHANGED。
+
+| 项 | 复验关键行 | 结果 |
+| --- | --- | --- |
+| B3-1 正常走廊存档 | `corridorEvidenceCount:3 all r2, TTL consistent, rescanRequired:false, noFreshScanEnergyEqual:true`；saved→load→restore 证据与 TTL 正确 | CLOSED |
+| B3-1 错房间 / TTL 不一致 | 错房间 `saveSlice=false & loadSlice=rejected`；TTL 与时钟不一致 `saveSlice=false` | CLOSED |
+| B4 同 session 仅改位置 + 重算公开 hash | `E_SNAPSHOT_INVALID "snapshot content does not match the issued frame"` | CLOSED |
+| B4 跨 seed / 同 seed 异实例 / 伪造 passed | `source seed mismatch` / `not issued by this instance or was evicted (max 64)` / `passed flag set but no DOOR_PASSED event` | CLOSED |
+| B4 有界 64 FIFO | 签发 65 帧 → 最旧被驱逐（拒），最新可恢复；同一签发帧可多次恢复 | CLOSED |
+| B4 正常 restore / 0 步 replay | `replayCanonicalEqualsSource:true`，replay 不改变活实例 | CLOSED |
+| 真实 CLI `--dev` | 签发 `snap_…` → 原样 restore/replay 通过；tamper+重算 hash 拒；跨进程导入拒；quit 无需 EOF 即 exit 0 | CLOSED（22/22） |
+
+**Gate（FINAL residual）**：`npm run typecheck` PASS、`npm test` **186/186** PASS、`tests/vs00.spec.ts`+`tests/vs01.spec.ts` **13/13** PASS（双端口，产物项目外）。日志 `p1-residual-tester-*`。
+
+**边界**：公开 hash 只表完整性、不是授权；“Dev 可 fixture”不作为 restore 任意写的理由——该写面已由签发内容绑定关闭。跨进程任意导入明确不支持且实测被拒。未改源码/测试/配置、未 commit、未切分支。P2 权限系统不在本轮，未据此判 P1 失败。原失败历史保留在 §9/§10 与 `p1-fix-tester-*` / `p1-final-tester-*`。

@@ -4,6 +4,7 @@ import { isoToScreen } from '../core/iso';
 import { GAME } from '../config/game';
 import { ROOM, isStaticWallCell } from './room';
 import { SliceModel, SLICE, type DoorState, type SliceSnapshot } from './rules';
+import { resolveTransitions, stepMovement, type MovementIntent, type SliceTransitions } from './sharedCore';
 import type { BridgeState } from './corridor';
 import { CORRIDOR, corridorTile, isBridgeCell } from './corridorRoom';
 import { clearSlice, loadSlice, saveSlice } from './storage';
@@ -103,6 +104,9 @@ export class SliceScene extends Phaser.Scene {
       this.notice = '浏览器存储不可用：本局可玩，但无法保存。';
       this.storageWarning = '未保存：浏览器存储不可用。';
     }
+    if (this.model.evidenceRescanRequiredFlag) {
+      this.notice = '旧版观察证据不可恢复：请重新扫描。';
+    }
     // Use the model's restored position (save position is authoritative). Never
     // overwrite it with spawn; spawn is only the model default when no save exists.
     const restored = this.model.position;
@@ -153,36 +157,52 @@ export class SliceScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (!this.model.paused && !this.model.failed) {
-      const previous = this.model.snapshot();
       const lastResult = this.model.lastResult;
-      this.model.step(delta, () => this.stepMovement());
+      // TRANSITION COMMIT POINT: resolve after EVERY logic tick, using the
+      // pre-tick snapshot. The headless runtime uses the very same onCommit
+      // hook, so a browser frame batch (up to 15 ticks) can never sample a
+      // different transition point than Node's one-tick steps. Storage/UI
+      // side effects stay here, never inside the shared core.
+      const collected: SliceTransitions = {
+        passedDoor: false, enteredCorridor: false, crossedEast: false,
+        failed: false, canCheckpoint: false, guardHp: 0,
+      };
+      const hooks = {
+        beforeEnterCorridor: () => {
+          // Save the safe laboratory exit before introducing the live corridor guard.
+          if (!saveSlice(this.model.serialize())) this.storageWarning = '未保存实验室出口进度。';
+        },
+      };
+      this.model.step(delta, () => this.stepMovement(), (before) => {
+        const t = resolveTransitions(this.model, before, hooks);
+        collected.passedDoor = collected.passedDoor || t.passedDoor;
+        collected.enteredCorridor = collected.enteredCorridor || t.enteredCorridor;
+        collected.failed = t.failed;
+        if (t.crossedEast) {
+          collected.crossedEast = true;
+          collected.canCheckpoint = t.canCheckpoint;
+          collected.guardHp = t.guardHp;
+        }
+      });
       if (this.model.lastResult !== lastResult) this.notice = '';
       this.syncPosition();
-      if (!this.model.inCorridor && !this.model.passed && this.px > ROOM.eastThresholdX) {
-        this.model.markPassed();
+      const transitions = collected;
+      if (transitions.passedDoor && !transitions.enteredCorridor) {
         const saved = saveSlice(this.model.serialize());
         this.notice = saved ? '已通过门：原型完成（已保存）。' : '已通过门：原型完成（未保存）。';
         if (!saved) this.storageWarning = '未保存：本原型存档不可写（坏档/存储不可用）。';
       }
-      if (!this.model.inCorridor && this.model.passed &&
-          Math.hypot(this.px - ROOM.exit.x, this.py - ROOM.exit.y) < 0.45) {
-        // Save the safe laboratory exit before introducing the live corridor guard.
-        if (!saveSlice(this.model.serialize())) this.storageWarning = '未保存实验室出口进度。';
-        if (this.model.enterCorridor()) {
-          this.notice = '';
-          this.syncPosition();
-          this.drawRoom();
-        }
-      } else if (this.model.failed) {
+      if (transitions.enteredCorridor) {
+        this.notice = '';
+        this.syncPosition();
+        this.drawRoom();
+      } else if (transitions.failed) {
         if (!clearSlice(true)) this.storageWarning = '未清除原存档。';
-      } else if (!previous.corridor?.crossed) {
-        const corridor = this.model.snapshot().corridor;
-        if (corridor?.crossed) {
-          if (this.model.canCheckpoint) this.doSave();
-          else this.notice = corridor.guardHp > 0
-            ? '已抵达东岸。守卫仍在场，本次未保存；刷新将回到最近检查点。'
-            : '已抵达东岸。请在安全岸边保存进度。';
-        }
+      } else if (transitions.crossedEast) {
+        if (transitions.canCheckpoint) this.doSave();
+        else this.notice = transitions.guardHp > 0
+          ? '已抵达东岸。守卫仍在场，本次未保存；刷新将回到最近检查点。'
+          : '已抵达东岸。请在安全岸边保存进度。';
       }
     }
     this.renderEntities();
@@ -307,25 +327,16 @@ export class SliceScene extends Phaser.Scene {
   /** Called at the start of each logic tick (fixed dt, current door passability). */
   private stepMovement(): void {
     if (!this.keys) return;
-    this.syncPosition();
-    const dir = { x: 0, y: 0 };
-    if (this.keys.W.isDown) { dir.x -= 1; dir.y -= 1; }
-    if (this.keys.S.isDown) { dir.x += 1; dir.y += 1; }
-    if (this.keys.A.isDown) { dir.x -= 1; dir.y += 1; }
-    if (this.keys.D.isDown) { dir.x += 1; dir.y -= 1; }
-    const len = Math.hypot(dir.x, dir.y);
-    if (len > 0) {
-      const step = SLICE.MOVE_SPEED * (SLICE.TICK_MS / 1000);
-      this.tryMove((dir.x / len) * step, (dir.y / len) * step);
-    }
-    this.model.setPlayerPos(this.px, this.py);
-  }
-
-  private tryMove(dx: number, dy: number): void {
-    const nextX = this.px + dx;
-    if (this.model.canStand(nextX, this.py)) this.px = nextX;
-    const nextY = this.py + dy;
-    if (this.model.canStand(this.px, nextY)) this.py = nextY;
+    const intent: MovementIntent = {
+      up: this.keys.W.isDown,
+      down: this.keys.S.isDown,
+      left: this.keys.A.isDown,
+      right: this.keys.D.isDown,
+    };
+    // Shared pure entry: same speed/anisotropy/footprint/axis collision as Node.
+    stepMovement(this.model, intent);
+    this.px = this.model.position.x;
+    this.py = this.model.position.y;
   }
 
   private syncPosition(): void {
