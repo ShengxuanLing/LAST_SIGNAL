@@ -1,0 +1,150 @@
+# AI-NATIVE-01 P0 — 基线补全测试报告
+
+> 文件归属：Tester Worker（只拥有本文件与项目外证据目录 `D:/Project/AI-NATIVE-01-evidence/`）。
+> 未修改任何源码、测试、测试配置、`package.json`；未切换分支、未 `git add`、未 commit。
+> 依据：7 份指定设计文档（`GAME_DESIGN_BIBLE.md`、`REALITY_ENGINEERING_RULES.md`、`AGENT_BRIDGE_ARCHITECTURE.md`、`DESIGN_DECISION_REGISTER.md`、`ARCHITECTURE_DECISIONS.md`、`VERTICAL_SLICE_IMPLEMENTATION_PLAN.md`、`VS_00_IMPLEMENTATION.md`）与本轮 P0 契约文档 `AI_NATIVE_ARCHITECTURE.md` / `AI_NATIVE_PROTOCOL.md` / `AI_NATIVE_PERMISSION_MODEL.md`（后三份由其他 Worker 产出，本报告只引用、不修改）。ALIGN-01 六份报告本 Worker 未在仓库内找到，不编造其内容。
+
+| 项 | 值 |
+| --- | --- |
+| 执行时间 | 2026-11-12 18:11–18:18 (+0100) |
+| 分支 / HEAD | `feat/ai-native-runtime` / `c656f788227f44efec993315bfb65a323e398377`（= `origin/main`，0 提交 ahead） |
+| 共享目录 | `D:/Project/LAST_SIGNAL` |
+| 证据目录 | `D:/Project/AI-NATIVE-01-evidence/`（项目外） |
+| 执行模式 | headless（无可见浏览器、无全局键鼠、无焦点抢占） |
+
+---
+
+## 1. 结论
+
+**P0 基线全绿，无回归失败，无需上报阻断项。**
+
+- 全旧 Playwright 回归 **23/23 PASS**（9 个 spec 文件，0 skipped / 0 failed），`CONSOLE ERRORS: 0`。
+- Vitest **63/63 PASS**（Leader 日志，引用），本 Worker 独立 `npx tsc --noEmit` **PASS**。
+- 默认生产构建（Leader 日志，引用）与 **economy 独立构建 PASS**（`--outDir` 指向项目外，仓库 `dist/` 未被写入）。
+- 测试完整性：所有测试/配置/`package.json` 的 md5 在会话前后完全一致，`git diff --exit-code HEAD` = 0；**没有删除、跳过或放宽任何旧测试**。
+- 旧档边界未被触碰：`last_signal_station_zero_vs00_v1` / `last_signal_save_v1` / `SAVE_VERSION=2` 均未被本轮测试写入或改写；E5/E6/E7/E8 与 checkpoint 用例全部通过，死亡→Game Over 清 run 与"死亡即新局"契约一致。
+
+本轮唯一的 FAIL 是**有意设计的负向对照**（见 §5），用于文档化"必须先启动 5173/5199 双 dev server"这一环境前置条件，不是旧回归失败。
+
+---
+
+## 2. Gate 汇总（命令 | PASS/FAIL | 日志绝对路径）
+
+完整机读版：`D:/Project/AI-NATIVE-01-evidence/p0-tester-gate-summary.log`
+
+### 2.1 Leader 提供的既有日志（本 Worker **未执行**，仅记录/核验结果，不冒充自己执行）
+
+| 命令 | 结果 | 日志绝对路径 |
+| --- | --- | --- |
+| `npm run typecheck` | PASS（引用：仅 npm banner，无 tsc 错误） | `D:/Project/AI-NATIVE-01-evidence/p0-typecheck.log` |
+| `npm test` | PASS（引用：5 files / **63 tests passed**） | `D:/Project/AI-NATIVE-01-evidence/p0-test.log` |
+| `npm run build` | PASS（引用：`✓ built in 7.63s`） | `D:/Project/AI-NATIVE-01-evidence/p0-build.log` |
+| 三份日志溯源 / 编码核验 | PASS（记录） | `D:/Project/AI-NATIVE-01-evidence/p0-tester-leader-logs.log` |
+
+### 2.2 本 Worker 实际执行的 gates
+
+| 命令 | 结果 | 日志绝对路径 |
+| --- | --- | --- |
+| `npm run` + `package.json` scripts/deps 读取 | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-package-scripts.log` |
+| `npx playwright --version` / `npm ls ...` / 浏览器清单 / headless 标志检查 | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-playwright-deps.log` |
+| `git rev-parse` / `status` / `log` / `diff`（基线） | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-git-baseline.log` |
+| `netstat` 5173/5199 + `curl` + PID/命令行（运行前） | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-ports-before.log` |
+| 服务复用决策 + 进程/清理记录 | PASS（记录） | `D:/Project/AI-NATIVE-01-evidence/p0-tester-services.log` |
+| `md5sum` 全部测试/配置/`package.json`（会话前） | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-md5-before.log` |
+| `npx tsc --noEmit`（本 Worker 独立 LSP 复跑，exit 0） | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-lsp-typecheck.log` |
+| `LS_SHOT_DIR=D:/Project/AI-NATIVE-01-evidence/shots npx playwright test --output D:/Project/AI-NATIVE-01-evidence/playwright-results` | **PASS 23/23** | `D:/Project/AI-NATIVE-01-evidence/p0-tester-playwright.log` |
+| `npx vite build --config vite.economy.config.ts --outDir D:/Project/AI-NATIVE-01-evidence/economy-dist` | **PASS**（exit 0） | `D:/Project/AI-NATIVE-01-evidence/p0-tester-economy-build.log` |
+| smoke：双端口 200 / 外部产物 / `CONSOLE ERRORS: 0` | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-smoke.log` |
+| `md5sum` 会话后 + 前后 diff + `git diff --exit-code HEAD` | PASS（MATCH / 0） | `D:/Project/AI-NATIVE-01-evidence/p0-tester-md5-after.log` |
+| `git status` / `diff` / HEAD / untracked（终态） | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-git-final.log` |
+| 服务终态存活 + 清理记录 | PASS | `D:/Project/AI-NATIVE-01-evidence/p0-tester-services-final.log` |
+| `PORT=5999 npx playwright test tests/gameplay.spec.ts --reporter=line`（负向对照，预期失败） | **FAIL(expected)** | `D:/Project/AI-NATIVE-01-evidence/p0-tester-playwright-no-server-repro.log` |
+
+失败项最相关单行错误（负向对照）：`Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5999/`
+
+---
+
+## 3. 原有回归覆盖（10 类，全部实测 PASS）
+
+E2E 由 `npx playwright test` 全量执行，**未加 `--grep`、未 skip、未改断言**；单测数量取自 Leader 的 `p0-test.log`（63/63）。
+
+| 回归域 | 覆盖用例 | 数量 | 结果 |
+| --- | --- | --- | --- |
+| 默认游戏（菜单→移动→射击→击杀→掉落→升级→暂停→传送；P2 回归） | `tests/audit.spec.ts`（`fixed-seed playability regression` / `P2 regression`）、`tests/gameplay.spec.ts`（`menu + gameplay render`） | 3 | PASS |
+| Station Zero（独立 `/station-zero.html` 入口、Scan→Jam→Door、存档隔离） | `tests/vs00.spec.ts`、`tests/vs01.spec.ts`（均 goto `/station-zero.html`） | 13 | PASS |
+| Economy（`/economy.html` 信用点获取/消费/checkpoint 恢复） | `tests/economy.spec.ts` | 1 | PASS |
+| VS-00 | `tests/vs00.spec.ts`（E1–E9，含 E5/E6/E7/E8 存档隔离与坏档锁写）、`src/slice/vs00.rules.test.ts`(28)、`src/slice/vs00.room.test.ts`(3) | 9 + 31 | PASS |
+| VS-01（走廊 relay/桥/致命失稳） | `tests/vs01.spec.ts`（4）、`src/slice/vs01.corridor.test.ts`(14) | 4 + 14 | PASS |
+| R2（Guard 感知 / `station-zero-r2-v1`） | `src/slice/corridorGuard.test.ts`（`describe('R2 guard perception')`, 3）、`tests/vs01.spec.ts` 的 `route B ... guard Jam`（1，含 `template:'station-zero-r2-v1'` fixture） | 3 + 1 | PASS |
+| checkpoint / 死亡 | `tests/checkpoint.spec.ts`（`resume reuses the checkpoint id...` / `death routes to Game Over and clears the run checkpoint`）、`tests/vs01.spec.ts`（`a lethal collapse clears the run and permits a fresh start`） | 2 + 1 | PASS |
+| Boss | `tests/boss-room.spec.ts`（`camera bounds and shake ... addShake(18)`）、`tests/audit.spec.ts` P2 回归（boss bullets / 屏震有界） | 1 + 1 | PASS |
+| Canvas / HUD（硬编码 `5199`） | `tests/canvas.spec.ts`（`full HUD renders and stays locked during camera movement`） | 1 | PASS |
+| runtime bugs（视口缩放/文本/墙对齐/弹丸清理/清房出口） | `tests/runtime-bugs.spec.ts`（2） | 2 | PASS |
+| 纯逻辑单测（iso 投影 / `applyUpgrade` / `validate`） | `src/core/runtime.test.ts` | 15 | PASS |
+
+合计：Playwright **23 passed (1.1m)** / Vitest **63 passed**（引用 Leader 日志）。`tests/gameplay.spec.ts` 报 `CONSOLE ERRORS: 0`；`audit`/`gameplay` 对 `console.error` / `pageerror` 零容忍用例均通过。
+
+---
+
+## 4. 服务、进程与后台执行记录
+
+- **先检查端口**：`netstat` 显示 `5173` → PID **1804**、`5199` → PID **23492**，两者均为 `node.exe ... vite.js --port <N> --strictPort`（父进程 24828 / 6200），返回 200 且 `<title>LAST SIGNAL</title>`，`/station-zero.html`、`/economy.html` 也均 200。
+- **不杀他人进程**：两个服务均属其他 Worker/进程，本 Worker **启动 0 个进程、终止 0 个进程**，直接复用；`--strictPort` 下启动重复实例必然失败，复用是唯一安全选择。
+- **清理记录**：N/A（本 Worker 无自有子进程）。终态复核见 `p0-tester-services-final.log`：两端口仍 LISTENING、PID 不变、仍返回 200；仅有测试产生的 `TIME_WAIT` 连接（属正常 TCP 回收）。
+- **headless / 不占桌面**：`playwright.config.ts` 无 `headless:false` / `--headed` / `--ui`，使用 `chromium_headless_shell-1254`；全部输入为 CDP 页内 `page.keyboard` / `page.mouse`，全库 grep 未发现任何 OS 级输入 API（`p0-tester-playwright-deps.log`）。无可见浏览器窗口、无全局键鼠注入、无前台焦点改变。
+- **产物全部项目外**：
+  - `LS_SHOT_DIR = D:/Project/AI-NATIVE-01-evidence/shots`（15 个截图文件）
+  - `--output = D:/Project/AI-NATIVE-01-evidence/playwright-results`（0 条目：23/23 全通过，无失败产物）
+  - `--outDir = D:/Project/AI-NATIVE-01-evidence/economy-dist`（`economy.html` / `index.html` / `assets/`）
+  - 仓库内 `tests/screens/`、`test-results/`、`dist/` 均未被本 Worker 写入（`git status --porcelain` 为空；economy 构建前后 `dist/` 全部文件 md5 一致）。
+
+---
+
+## 5. 真实失败 / 非阻断发现
+
+1. **旧回归失败：0**。无 `pageerror`、无 `console.error`、无 skipped。
+2. **负向对照（预期失败，非回归）**：`PORT=5999 npx playwright test tests/gameplay.spec.ts --reporter=line` → `ERR_CONNECTION_REFUSED`。最小复现：不启动 5173/5199 时直接跑 `npx playwright test`（`playwright.config.ts` 无 `webServer`，`tests/canvas.spec.ts` 硬编码 5199）。这是 `CONTRIBUTING.md §2` 与 `AGENT_BRIDGE_ARCHITECTURE.md §10.3` 已文档化的前置条件，本轮通过复用既有服务满足，不构成阻断。
+3. **构建告警（非失败）**：默认构建与 economy 构建均出现 `Some chunks are larger than 500 kB`（`enemies-*.js` 1,487 kB / 1,565 kB）；economy 构建另有 `outDir is not inside project root and will not be emptied`（`--outDir` 在项目外的预期提示）。两者 exit 0，产出完整。
+4. **证据日志质量风险（建议 Leader 修正，不影响结论）**：Leader 的三份 `p0-*.log` 为 **UTF-16LE** 编码（PowerShell `>` 默认），不便机器解析；日志内没有记录 `exit code`。`p0-build.log` 中还有一段 PowerShell `NativeCommandError` 记录（npm 把 vite 的 chunk 警告写 stderr，被 Windows PowerShell 包装成 `RemoteException`），其后仍有 `✓ built in 7.63s`，故不是构建失败，但容易被误读。建议后续统一 `2>&1 | Tee-Object -FilePath ... -Encoding utf8` 并附 `$LASTEXITCODE`。完整解码视图见 `p0-tester-leader-logs.log`。
+
+---
+
+## 6. 测试完整性（未删 / 未放宽）
+
+| 检查 | 结果 |
+| --- | --- |
+| 9 个 spec 文件 / 23 个 `test()` 块，5 个 vitest 文件 / 63 用例 | 与运行前一致 |
+| 会话前 vs 会话后全部测试/配置/`package.json` md5 | **MATCH**（见 `p0-tester-md5-before.log` / `p0-tester-md5-after.log`） |
+| `git diff --exit-code HEAD -- tests/ src/ package.json ...configs` | **0**（无改动） |
+| `git diff --cached` | 空（本 Worker 未 `git add`） |
+| 终态 `git status --short` | 仅 3 份**其他 Worker** 的未跟踪契约文档 + 本文件；无源码/测试改动 |
+
+---
+
+## 7. 本 Worker 实际交付的文件 / 接口 / 未完成与风险
+
+**交付文件**
+- 仓库内：`docs/AI_NATIVE_TEST_REPORT.md`（本文件，唯一拥有）。
+- 项目外：`D:/Project/AI-NATIVE-01-evidence/` 下 16 份 `p0-tester-*.log`（含 `p0-tester-gate-summary.log`）、`shots/`（15 个截图）、`playwright-results/`（0 条目，无失败产物）、`economy-dist/`、`p1-acceptance-checklist.md`。该证据目录为多 Worker 共享，另有 `p0-architecture-*` / `p0-review-*` 等他人日志，均不属于本 Worker。
+- 未修改 `src/`、`tests/`、`package.json`、`vite*.ts`、`vitest.config.ts`、`playwright.config.ts`；未 commit、未切分支。
+
+**接口**：本 Worker 作为 Tester **不新增运行时接口**。P1 验收依据已核对 P0 契约声明的接口/类型：`last_signal.ai-native.{envelope,dto,observation,event,snapshot,replay,debug}.v1`、`SessionDescriptorV1` / `ActorV1`、`ActionRequestV1` / `SessionCommandV1` / `StepResultV1` / `ErrorV1`、`ObservationV1` / `ObservationEvidenceV1` / `DebugInspectionV1`、`AI_NATIVE_LIMITS_V1`、PLAYER/COMPANION/DEVELOPER 权限矩阵、§6 错误码枚举、§7 固定 tick 全序与 §8 事件全序。**这些目前都是文档契约，尚无实现代码**（`src/ai-native/protocol.ts` 不存在），本报告不把它们当作已实现功能。
+
+**未完成 / 风险（不冒充已完成）**
+- P0 三份契约文档由其他 Worker 产出且仍为**未跟踪文件**，未纳入 commit；`src/ai-native/protocol.ts` 与最小 schema 校验测试尚未出现 —— 按 §14 汇报制度，P0 阶段提交由 Leader 整合，本 Worker 未 commit。
+- **口径差异需 Leader 确认**：任务书要求"ALIGN-01 六份报告目前未找到，不能编造"，而 `docs/AI_NATIVE_ARCHITECTURE.md` §A-N1 / §4.1 声明"六份已逐份阅读 / 在仓库外找到"。本 Worker 在仓库内确实未找到，无法核实仓库外证据，故不引用其具体结论，仅按已存在的 P0 契约文档条款编写 P1 清单。
+- **确定性范围**：`src/` 仍存在 7 处 `Math.random()`（`GameScene.ts:85`、`LevelUpScene.ts:117`、`World.ts:433,644`、`Boss.ts:142`、`GraphicsFactory.ts:57`、`AudioSystem.ts:66`），主 World 为变长 dt、非完全确定性。P0 只把 `station-zero-r1-r2` 纯规则核心纳入确定性承诺，不得宣称全游戏确定性（对齐 `ARCHITECTURE_DECISIONS.md` ADR-08、`AI_NATIVE_ARCHITECTURE.md` §6 / A-N3）。
+- **R9 / 死亡语义 / 旧档**：`src/slice/rules.ts` 的 `reveal` 目前仍是 `scanRevealTicks` 计时器门控的布尔集合，`storage.ts` 只存 `scanRemaining`/`scanReveal` 计数器；尚无 `ObservationEvidenceV1`（位置/观察 tick/目标 ID/过期语义）。P2 前不得让证据参与 AI/ECHO 决策，restore 时绝不重扫。"死亡=新局（`finished(died)`→`reset`→新 R0）"与"退出/刷新恢复最近 checkpoint"必须在 P1 分开测试，不得混淆（对齐 `AI_NATIVE_PERMISSION_MODEL.md` §3.1）。
+- **headless CLI / MCP / 新测试**属 P1+ 范围，本轮未测（P0 只做基线补全）。
+- **环境前置**：`playwright.config.ts` 无 `webServer`，双 dev server 缺一即全量 E2E 失败；建议 P1 起在 CI/脚本中显式启动与回收，或由 Leader 决定是否加入 `webServer`（属配置改动，本 Worker 未动）。
+
+---
+
+## 8. P1 验收清单（确定性 / 隔离 / R9）
+
+完整可执行版另存于 `D:/Project/AI-NATIVE-01-evidence/p1-acceptance-checklist.md`。要点：
+
+- **确定性**：固定 tick / pause 不推进 / resume 不补时；同 `initialSnapshot + actions + kernelVersion` → 相同 `finalStateHash` 与 `eventsHash`；`issuedAtMs`/`transportSeq`/墙钟/`Math.random()` 不得影响权威结果；`protocol.ts` 纯 TS 静态检查；事件 `(tick,phase,ordinal,actorId,eventId)` 全序；1000/10000 ticks + 10 sessions 基准；明确只覆盖 `station-zero-r1-r2`。
+- **隔离**：10 个 session 并行时 10 类状态互不共享；无全局可变单例；跨 session `restore`/`replay`/`actionId`/`actorId` 全拒；`production` 参数不得升级为 Dev / `detail:"debug"` 被拒 / 隐藏字段黑名单逐项断言；Dev `dev` 段导出前剥离并重算 hash；死亡=新局且旧档 key/版本不变；`close`/`reset`/epoch 的资源回收与幂等缓存清理；后台执行不占桌面。
+- **R9**：Scan 事务内原子写证据、空扫证据为空、非法零费无证据；证据字段完整；保存/恢复同一原子快照且 restore **绝不调用 scan/LOS**；同一 snapshot 两次 restore 证据与 TTL 完全一致；旧档无证据→清空并提示重扫、不覆写旧档；旧观察不自动升格当前事实 / Canonical。
+- **每阶段通用 gate**：typecheck / vitest / build / economy build / 全旧 Playwright + 测试 md5 与 `git diff --exit-code`，日志全部落 `D:/Project/AI-NATIVE-01-evidence/`；任一隐藏信息泄漏、跨 session 污染、死亡续局、旧档覆写或重大回归 → 立即上报阻断。
