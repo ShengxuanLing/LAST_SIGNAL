@@ -57,7 +57,12 @@ function sanitizeEvent(event: EventV1, session: string): EventV1 {
   return { ...event, sessionId: session as EventV1['sessionId'] };
 }
 function sanitizeObservation(obs: ObservationV1, session: string): ObservationV1 {
-  return { ...obs, sessionId: session as ObservationV1['sessionId'] };
+  return {
+    ...obs,
+    sessionId: session as ObservationV1['sessionId'],
+    // Nested event objects must carry the opaque MCP session too.
+    events: obs.events.map((e) => sanitizeEvent(e, session)),
+  };
 }
 function sanitizeActionResult(result: ActionResultV1, session: string): ActionResultV1 {
   return { ...result, sessionId: session as ActionResultV1['sessionId'] };

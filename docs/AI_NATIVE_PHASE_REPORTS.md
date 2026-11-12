@@ -75,3 +75,19 @@
 - 下一阶段：P4 由真实外部 Agent 仅经 Player MCP 逐步观察、决定动作并完成合法路线，保存可回放轨迹；再实施隔离最小 ECHO 双 Actor 场景。
 
 最终证据位于 `D:/Project/AI-NATIVE-01-evidence/p3-review-epoch-final.md`、`p3-tester-epoch-final.md`、`p3-epoch-final-{reviewer,tester}-*.log`、`p3-epoch-developer-*.log`。最终 MD5：harness `1db664997f3548df53968138801d93db`，server `83f600c92399b7b052acdf91418861b2`，client `475b77c7a42f4a1bc8e6572a3bfc3364`，sessions `b87fe02fa24e4f7d76c7102b7af3a16a`。所有完整日志仍在本机仓库外，尚未发布为远端附件；PR 保持 draft，禁止自动合并。
+
+## P4 — 当前 Codex 经 Player MCP 真实交互游玩
+
+- 阶段：PASS，原始执行真实性、独立重放和反馈修复均经 Tester/Reviewer 验收。
+- Git 分支：`feat/ai-native-runtime`；父提交 `ddcd7e9580346a2411e3b10c369dd3bfc1ef4edd`；P4 hash 见本节所在提交。
+- 已完成：当前 Codex Lead 通过中立官方 MCP 客户端逐次读取 Player 观察并决定动作，未调用 Dev/fixture/seed/私有快照或预写策略，真实完成门、Guard、Relay、Bridge 路线；提供中立客户端、不可变原始归档和可移植公开动作回放样例。
+- 实际修改文件：新增 `agentClient.mts`、`replayPlayerTrace.mts`、`p4.test.ts`、`examples/ai-native/p4-*`、`docs/AI_NATIVE_PLAYER.md`；修改 runtime/sessions/MCP server 与 slice rules/fullState 的采样归因接缝、相关测试及 package scripts；更新报告。
+- 新增接口：中立 list/call 交互客户端和 Player trace 重放入口；扫描证据采样时绑定真实位置/actor/action/epoch，嵌套事件使用一致的外部 session 句柄，合法扫描关系投影。
+- 运行命令：typecheck、266全单测、build、MCP build、真实Agent逐次MCP调用、两套独立官方Player重放、provenance探针、中立客户端smoke、完整23项Playwright。
+- 测试结果：266/266 单测、23/23 E2E PASS；原始 Agent 终态 tick501、HP100、Energy96、passed/crossed/completed=true、29条有序公开事件。修复前后公开动作轨迹一致；opaque身份与seed hash不比较，不声称新seed全内部stateHash相同。
+- 失败项：一次载荷缺type导致E_SCHEMA，模型按公开协议修正；普通开门因封锁返回E_LINK_UNAVAILABLE零扣费，随后Jam合法通过。游玩发现旧房间扫描位置/合成来源身份/嵌套session错位/关系投影缺失，均修复并回归；原始记录未改。
+- 独立复核：Orca Worker reviewer “P4可接受，无阻断”；Orca Worker tester “PASS”。原始运行由当前Lead Codex完成，客户端与修复由Orca Worker developer实施。
+- 剩余风险：本次为非盲测，Lead已有项目知识；不是独立provider API盲测，也不是完整主World/Boss通关。模型Token/内部推理次数不可获取，保持null。工具往返93.0398ms不等于推理延迟；墙钟约257.9s。重放不是第二次真实Agent游玩。
+- 下一阶段：隔离ECHO最小双Actor协作场景，独立观察/记忆/目标/受限行动及人类确认；不冻结未批准世界观或正式角色权限。
+
+原记录：47行，23 requests /22 results（22 MCP工具+quit），600142B；SHA256 `0ba5cdb4f305527bd9de12e01a987c1dc5d7a2d3bed4c86eb940d418a09aea52`。仓库示例目录保存完整gzip归档与校验文件；外部原件 `D:/Project/AI-NATIVE-01-evidence/p4-codex-live.jsonl`。独立报告：`p4-review-original.md`、`p4-review-final.md`、`p4-tester-original.md`、`p4-tester-final.md`；证据目录内 `p4-final-{tester,reviewer}-*`。

@@ -1,0 +1,2332 @@
+{
+  "$schema": "last_signal.ai-native.p4-player-trace.v1",
+  "provenance": {
+    "sourceFile": "D:/Project/AI-NATIVE-01-evidence/p4-codex-live.jsonl",
+    "sourceSha256": "0ba5cdb4f305527bd9de12e01a987c1dc5d7a2d3bed4c86eb940d418a09aea52",
+    "startedAt": "2026-11-12T23:06:59.607Z",
+    "endedAt": "2026-11-12T23:11:17.534Z",
+    "agent": "current Codex lead",
+    "channel": "PLAYER MCP",
+    "strategy": "interactive decisions by model; transport has no policy",
+    "modelTokenUsage": null,
+    "baselineCommit": "ddcd7e9580346a2411e3b10c369dd3bfc1ef4edd",
+    "toolCallCount": 22,
+    "note": "Recorded once by a real Codex model through the neutral Player MCP bridge (no Dev tools/fixtures/seed). decisionNote is provenance only and is NOT executed by the replayer."
+  },
+  "expected": {
+    "finalTick": 501,
+    "completed": true,
+    "hp": 100,
+    "energy": 96,
+    "crossed": true,
+    "failed": false,
+    "roomId": "station-zero-r2",
+    "events": [
+      {
+        "type": "SESSION_CREATED",
+        "tick": 0
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 0
+      },
+      {
+        "type": "ACTION_REJECTED",
+        "tick": 1
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 2
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 3
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 63
+      },
+      {
+        "type": "DOOR_PASSED",
+        "tick": 82
+      },
+      {
+        "type": "ROOM_ENTERED",
+        "tick": 153
+      },
+      {
+        "type": "JAM_EXPIRED",
+        "tick": 153
+      },
+      {
+        "type": "DOOR_STATE_CHANGED",
+        "tick": 153
+      },
+      {
+        "type": "RELAY_STATE_CHANGED",
+        "tick": 153
+      },
+      {
+        "type": "BRIDGE_STATE_CHANGED",
+        "tick": 153
+      },
+      {
+        "type": "GUARD_LINK_CHANGED",
+        "tick": 153
+      },
+      {
+        "type": "SCAN_EVIDENCE_EXPIRED",
+        "tick": 153
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 153
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 154
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 155
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 185
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 185
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 215
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 235
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 236
+      },
+      {
+        "type": "BRIDGE_STATE_CHANGED",
+        "tick": 325
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 325
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 385
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 445
+      },
+      {
+        "type": "ACTION_ACCEPTED",
+        "tick": 490
+      },
+      {
+        "type": "EAST_CROSSED",
+        "tick": 501
+      },
+      {
+        "type": "RUN_COMPLETED",
+        "tick": 501
+      }
+    ]
+  },
+  "requests": [
+    {
+      "seq": 1,
+      "at": "2026-11-12T23:07:17.332Z",
+      "name": "game_create_session",
+      "arguments": {},
+      "decisionNote": "Create a production Player session; no seed, fixture or dev option.",
+      "elapsedMs": 6.849,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 0,
+        "epoch": 0
+      }
+    },
+    {
+      "seq": 2,
+      "at": "2026-11-12T23:07:22.345Z",
+      "name": "game_observe",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd"
+      },
+      "decisionNote": "Read only legal current observation before selecting any action.",
+      "elapsedMs": 3.786,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 0,
+        "epoch": 0
+      },
+      "observationSummary": {
+        "tick": 0,
+        "roomId": "station-zero-r1",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 3.5,
+            "y": 5.5
+          },
+          "energy": 100,
+          "alive": true,
+          "paused": false,
+          "passed": false,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        }
+      ]
+    },
+    {
+      "seq": 3,
+      "at": "2026-11-12T23:07:31.064Z",
+      "name": "game_execute_action",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "action": {
+          "type": "scan",
+          "payload": {}
+        }
+      },
+      "decisionNote": "The visible door is sealed. Scan is available and costs energy; discover lawful target/connection evidence.",
+      "elapsedMs": 3.303,
+      "result": {
+        "ok": false,
+        "code": "E_SCHEMA",
+        "messageKey": "step request rejected",
+        "session": "ses_f09b11ac0567951eadd6dccd"
+      }
+    },
+    {
+      "seq": 4,
+      "at": "2026-11-12T23:07:46.171Z",
+      "name": "game_execute_action",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "action": {
+          "type": "scan",
+          "payload": {
+            "type": "scan"
+          }
+        }
+      },
+      "decisionNote": "Correct the rejected request using the public ActionPayloadV1 wire schema; retry scan. No world state was read.",
+      "elapsedMs": 5.097,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 1,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        }
+      ]
+    },
+    {
+      "seq": 5,
+      "at": "2026-11-12T23:07:56.365Z",
+      "name": "game_observe",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd"
+      },
+      "decisionNote": "Inspect the actual Scan evidence before identifying a jam target.",
+      "elapsedMs": 2.398,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 1,
+        "epoch": 0
+      },
+      "observationSummary": {
+        "tick": 1,
+        "roomId": "station-zero-r1",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 3.5,
+            "y": 5.5
+          },
+          "energy": 90,
+          "alive": true,
+          "paused": false,
+          "passed": false,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_lab_door_receiver",
+          "tgt_lab_seal_source"
+        ],
+        "knownConnections": [
+          "rel_lab_seal_link"
+        ]
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        }
+      ]
+    },
+    {
+      "seq": 6,
+      "at": "2026-11-12T23:08:05.786Z",
+      "name": "game_execute_action",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "action": {
+          "type": "interact",
+          "payload": {
+            "type": "interact",
+            "targetId": "tgt_lab_door_receiver"
+          }
+        }
+      },
+      "decisionNote": "Scan revealed a source-to-door seal link. Test ordinary interaction to confirm whether the receiver is currently blocked.",
+      "elapsedMs": 3.261,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 2,
+        "epoch": 0,
+        "status": "rejected"
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        }
+      ]
+    },
+    {
+      "seq": 7,
+      "at": "2026-11-12T23:08:12.518Z",
+      "name": "game_execute_action",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "action": {
+          "type": "jam",
+          "payload": {
+            "type": "jam",
+            "targetId": "tgt_lab_door_receiver"
+          }
+        }
+      },
+      "decisionNote": "Ordinary interaction was rejected by the active seal link with zero cost. Jam the discovered receiver, then test a short eastward movement.",
+      "elapsedMs": 2.789,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 3,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        }
+      ]
+    },
+    {
+      "seq": 8,
+      "at": "2026-11-12T23:08:21.437Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 60,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 1,
+                "y": 0
+              },
+              "durationTicks": 60
+            }
+          }
+        ]
+      },
+      "decisionNote": "Probe east for one second using legal movement after successful Jam; observe the resulting position instead of assuming a map route.",
+      "elapsedMs": 5.531,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 63,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 63,
+        "roomId": "station-zero-r1",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 6.937500000000014,
+            "y": 5.5
+          },
+          "energy": 70,
+          "alive": true,
+          "paused": false,
+          "passed": false,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_lab_door_receiver",
+          "tgt_lab_seal_source"
+        ],
+        "knownConnections": [
+          "rel_lab_seal_link"
+        ]
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        }
+      ]
+    },
+    {
+      "seq": 9,
+      "at": "2026-11-12T23:08:41.250Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 90,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 1,
+                "y": 0
+              },
+              "durationTicks": 90
+            }
+          }
+        ]
+      },
+      "decisionNote": "The eastward probe moved without collision and the door is passable with 299 Jam ticks left. Continue east for a bounded 90 ticks, then reassess the room and completion state.",
+      "elapsedMs": 7.663,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 153,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 153,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 2.5,
+            "y": 10.5
+          },
+          "energy": 77,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        }
+      ]
+    },
+    {
+      "seq": 10,
+      "at": "2026-11-12T23:08:53.669Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 1,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "scan",
+            "payload": {
+              "type": "scan"
+            }
+          }
+        ]
+      },
+      "decisionNote": "The new room has an inactive relay, unavailable bridge and a live Guard. Scan before choosing between suppression, combat, or environmental control.",
+      "elapsedMs": 4.895,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 154,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 154,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 2.5,
+            "y": 10.5
+          },
+          "energy": 67,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        }
+      ]
+    },
+    {
+      "seq": 11,
+      "at": "2026-11-12T23:09:11.466Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 1,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "shoot_guard",
+            "payload": {
+              "type": "shoot_guard",
+              "targetId": "tgt_corridor_guard"
+            }
+          }
+        ]
+      },
+      "decisionNote": "The Guard is discovered, its link is disconnected, and shoot_guard is available. Choose the implemented direct-clearing option while Jam is cooling down, without claiming generic fire combat exists.",
+      "elapsedMs": 3.283,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 155,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 155,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 2.5,
+            "y": 10.5
+          },
+          "energy": 67,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        }
+      ]
+    },
+    {
+      "seq": 12,
+      "at": "2026-11-12T23:09:21.063Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 30,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 1,
+                "y": 0
+              },
+              "durationTicks": 30
+            }
+          }
+        ]
+      },
+      "decisionNote": "The first legal shot reduced Guard HP to 12 and is now cooling down. Probe a short eastward movement while its disconnected link keeps pressure low; reassess relay reachability.",
+      "elapsedMs": 4.904,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 185,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 185,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 4.218749999999997,
+            "y": 10.5
+          },
+          "energy": 70,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        }
+      ]
+    },
+    {
+      "seq": 13,
+      "at": "2026-11-12T23:09:34.872Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 30,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "shoot_guard",
+            "payload": {
+              "type": "shoot_guard",
+              "targetId": "tgt_corridor_guard"
+            }
+          },
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 1,
+                "y": 0
+              },
+              "durationTicks": 30
+            }
+          }
+        ]
+      },
+      "decisionNote": "shoot_guard is available again and Guard HP is 12. Clear it with one legal shot while advancing another short eastward probe toward the discovered relay.",
+      "elapsedMs": 5.15,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 215,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 215,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 5.937500000000006,
+            "y": 10.5
+          },
+          "energy": 72,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        }
+      ]
+    },
+    {
+      "seq": 14,
+      "at": "2026-11-12T23:09:45.735Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 20,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 1,
+                "y": 0
+              },
+              "durationTicks": 20
+            }
+          }
+        ]
+      },
+      "decisionNote": "Guard HP is now zero. Relay interaction is still out of reach, so continue a shorter eastward probe without enabling an unknown hazard.",
+      "elapsedMs": 4.604,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 235,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 235,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 7.0833333333333455,
+            "y": 10.5
+          },
+          "energy": 74,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 215
+        }
+      ]
+    },
+    {
+      "seq": 15,
+      "at": "2026-11-12T23:09:55.013Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 1,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "interact",
+            "payload": {
+              "type": "interact",
+              "targetId": "tgt_corridor_relay"
+            }
+          }
+        ]
+      },
+      "decisionNote": "The relay is now legally reachable, Guard is cleared, and Scan evidence names the relay-to-bridge relation. Enable the relay and inspect the actual bridge response before crossing.",
+      "elapsedMs": 4.398,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 236,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 236,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 7.0833333333333455,
+            "y": 10.5
+          },
+          "energy": 74,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 215
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 235
+        }
+      ]
+    },
+    {
+      "seq": 16,
+      "at": "2026-11-12T23:10:04.328Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 89,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "wait",
+            "payload": {
+              "type": "wait",
+              "durationTicks": 89
+            }
+          }
+        ]
+      },
+      "decisionNote": "Relay became ACTIVE and bridge is TRANSITIONING, not yet passable. The public bridge timer is 89 ticks, so wait exactly that budget rather than entering an unavailable bridge.",
+      "elapsedMs": 4.087,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 325,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 325,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 7.0833333333333455,
+            "y": 10.5
+          },
+          "energy": 82,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 215
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 235
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 236
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 325
+        }
+      ]
+    },
+    {
+      "seq": 17,
+      "at": "2026-11-12T23:10:15.983Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 60,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 1,
+                "y": 0
+              },
+              "durationTicks": 60
+            }
+          }
+        ]
+      },
+      "decisionNote": "The observed bridge is now STABLE and passable, with the Guard cleared. Continue the established eastward path for a bounded second and inspect for collision or crossing.",
+      "elapsedMs": 4.722,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 385,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 385,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 10.520833333333323,
+            "y": 10.5
+          },
+          "energy": 87,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 215
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 235
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 236
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 325
+        }
+      ]
+    },
+    {
+      "seq": 18,
+      "at": "2026-11-12T23:10:26.760Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 60,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 1,
+                "y": 0
+              },
+              "durationTicks": 60
+            }
+          }
+        ]
+      },
+      "decisionNote": "Position advanced across the stable span without damage, but crossed/completed remain false. Continue east another bounded 60 ticks while preserving the active relay.",
+      "elapsedMs": 4.133,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 445,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 445,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 13.958333333333288,
+            "y": 10.5
+          },
+          "energy": 92,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 215
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 235
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 236
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 385
+        }
+      ]
+    },
+    {
+      "seq": 19,
+      "at": "2026-11-12T23:10:37.251Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 45,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 1,
+                "y": 0
+              },
+              "durationTicks": 45
+            }
+          }
+        ]
+      },
+      "decisionNote": "Still alive at the farther east position with a stable bridge, but no completion event yet. Use a shorter 45-tick eastward probe to find the safe crossing endpoint.",
+      "elapsedMs": 5.094,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 490,
+        "epoch": 0,
+        "status": "completed"
+      },
+      "observationSummary": {
+        "tick": 490,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 16.53645833333328,
+            "y": 10.5
+          },
+          "energy": 95,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": false,
+          "failed": false,
+          "completed": false
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 215
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 235
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 236
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 385
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 445
+        }
+      ]
+    },
+    {
+      "seq": 20,
+      "at": "2026-11-12T23:10:54.105Z",
+      "name": "game_step",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "epoch": 0,
+        "ticks": 18,
+        "includeObservation": true,
+        "actions": [
+          {
+            "type": "move",
+            "payload": {
+              "type": "move",
+              "direction": {
+                "x": 0,
+                "y": -1
+              },
+              "durationTicks": 18
+            }
+          }
+        ]
+      },
+      "decisionNote": "Far-east ground is reachable and another control is in range, but completion is still false. Do not toggle the relay and risk the bridge; explore a short perpendicular northward segment for the safe endpoint.",
+      "elapsedMs": 3.872,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 501,
+        "epoch": 0,
+        "status": "finished"
+      },
+      "observationSummary": {
+        "tick": 501,
+        "roomId": "station-zero-r2",
+        "epoch": 0,
+        "self": {
+          "position": {
+            "x": 16.53645833333328,
+            "y": 9.869791666666673
+          },
+          "energy": 96,
+          "hp": 100,
+          "maxHp": 100,
+          "alive": true,
+          "paused": false,
+          "passed": true,
+          "crossed": true,
+          "failed": false,
+          "completed": true
+        },
+        "evidenceTargets": [
+          "tgt_corridor_relay",
+          "tgt_corridor_bridge",
+          "tgt_corridor_guard"
+        ],
+        "knownConnections": []
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 215
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 235
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 236
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 385
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 445
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 490
+        },
+        {
+          "type": "EAST_CROSSED",
+          "tick": 501
+        },
+        {
+          "type": "RUN_COMPLETED",
+          "tick": 501
+        }
+      ]
+    },
+    {
+      "seq": 21,
+      "at": "2026-11-12T23:11:10.206Z",
+      "name": "game_get_events",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "cursor": 0,
+        "limit": 100
+      },
+      "decisionNote": "The public observation reports completed and crossed at tick 501. Collect the legal ordered event trace for replay evidence before closing the production session.",
+      "elapsedMs": 1.808,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd",
+        "tick": 501
+      },
+      "events": [
+        {
+          "type": "SESSION_CREATED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 0
+        },
+        {
+          "type": "ACTION_REJECTED",
+          "tick": 1
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 2
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 3
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 63
+        },
+        {
+          "type": "DOOR_PASSED",
+          "tick": 82
+        },
+        {
+          "type": "ROOM_ENTERED",
+          "tick": 153
+        },
+        {
+          "type": "JAM_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "DOOR_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "RELAY_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "GUARD_LINK_CHANGED",
+          "tick": 153
+        },
+        {
+          "type": "SCAN_EVIDENCE_EXPIRED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 153
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 154
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 155
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 185
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 215
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 235
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 236
+        },
+        {
+          "type": "BRIDGE_STATE_CHANGED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 325
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 385
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 445
+        },
+        {
+          "type": "ACTION_ACCEPTED",
+          "tick": 490
+        },
+        {
+          "type": "EAST_CROSSED",
+          "tick": 501
+        },
+        {
+          "type": "RUN_COMPLETED",
+          "tick": 501
+        }
+      ]
+    },
+    {
+      "seq": 22,
+      "at": "2026-11-12T23:11:16.401Z",
+      "name": "game_close_session",
+      "arguments": {
+        "session": "ses_f09b11ac0567951eadd6dccd"
+      },
+      "decisionNote": "Completion and all 29 ordered public events have been recorded; close the Player session and release resources.",
+      "elapsedMs": 1.414,
+      "result": {
+        "ok": true,
+        "session": "ses_f09b11ac0567951eadd6dccd"
+      }
+    }
+  ]
+}

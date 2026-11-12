@@ -103,6 +103,22 @@ export interface PersistedSliceState {
 
 const START_HINT = 'WASD 移动 · Z 扫描 · X 压制 · F 开门尝试 · Esc 暂停';
 
+/** Optional headless scan provenance recorded with R9 evidence (never resampled on restore). */
+export interface ScanProvenance {
+  readonly sourceActionId?: string;
+  readonly observerActorId?: string;
+  readonly sceneEpoch?: number;
+}
+
+function evidenceProvenance(p?: ScanProvenance): Pick<SliceEvidenceV1, 'sourceActionId' | 'observerActorId' | 'sceneEpoch'> {
+  if (!p) return {};
+  return {
+    ...(p.sourceActionId !== undefined ? { sourceActionId: p.sourceActionId } : {}),
+    ...(p.observerActorId !== undefined ? { observerActorId: p.observerActorId } : {}),
+    ...(p.sceneEpoch !== undefined ? { sceneEpoch: p.sceneEpoch } : {}),
+  };
+}
+
 export class SliceModel {
   private energyValue: number = SLICE.ENERGY_MAX;
   private tickIndex = 0;
@@ -246,7 +262,7 @@ export class SliceModel {
     return advanced;
   }
 
-  scan(): ActionResult {
+  scan(provenance?: ScanProvenance): ActionResult {
     if (this.pausedFlag) return this.fail('E_PAUSED', '已暂停，操作不可用。');
     if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
     if (this.scanCooldownTicks > 0) {
@@ -259,7 +275,7 @@ export class SliceModel {
     if (this.corridor) {
       this.corridorReveal = this.corridor.scan();
       const found = Object.values(this.corridorReveal).some(Boolean);
-      this.evidence = this.buildCorridorEvidence();
+      this.evidence = this.buildCorridorEvidence(provenance);
       return this.ok(found ? '扫描完成：发现当前可见的设备和连接。' : '扫描完成：范围内未发现可操作目标。', SLICE.SCAN_COST);
     }
     // A scan is a single pulse: an empty scan is legal and still costs 10.
@@ -274,7 +290,7 @@ export class SliceModel {
       ROOM.sourceCell
     );
     const found = this.revealDoorReceiver || this.revealSealSource;
-    this.evidence = this.buildLabEvidence();
+    this.evidence = this.buildLabEvidence(provenance);
     return this.ok(
       found
         ? '扫描完成：已发现范围内的门接收器/封锁载波（只揭示，不开门）。'
@@ -777,43 +793,46 @@ export class SliceModel {
     }
   }
 
-  private buildLabEvidence(): SliceEvidenceV1[] {
+  private buildLabEvidence(provenance?: ScanProvenance): SliceEvidenceV1[] {
     const found = this.revealDoorReceiver || this.revealSealSource;
     if (!found) return [];
     const tick = this.tickIndex;
     const expiresAtTick = tick + SLICE.SCAN_REVEAL_TICKS;
-    const position = { x: this.playerX, y: this.playerY };
+    const position = { x: this.position.x, y: this.position.y };
     const link = this.revealDoorReceiver && this.revealSealSource ? 'rel_lab_seal_link' : null;
+    const prov = evidenceProvenance(provenance);
     const out: SliceEvidenceV1[] = [];
     if (this.revealDoorReceiver) out.push({
       targetId: 'tgt_lab_door_receiver', relationId: link, position, observedAtTick: tick,
-      expiresAtTick, stateLabel: 'receiver-visible', roomId: 'station-zero-r1',
+      expiresAtTick, stateLabel: 'receiver-visible', roomId: 'station-zero-r1', ...prov,
     });
     if (this.revealSealSource) out.push({
       targetId: 'tgt_lab_seal_source', relationId: link, position, observedAtTick: tick,
-      expiresAtTick, stateLabel: 'carrier-visible', roomId: 'station-zero-r1',
+      expiresAtTick, stateLabel: 'carrier-visible', roomId: 'station-zero-r1', ...prov,
     });
     return out;
   }
 
-  private buildCorridorEvidence(): SliceEvidenceV1[] {
+  private buildCorridorEvidence(provenance?: ScanProvenance): SliceEvidenceV1[] {
     const reveal = this.corridorReveal;
     if (!reveal) return [];
     const tick = this.tickIndex;
     const expiresAtTick = tick + SLICE.SCAN_REVEAL_TICKS;
-    const position = { x: this.playerX, y: this.playerY };
+    // The observer is the corridor avatar, NOT the stale laboratory playerX/Y.
+    const position = { x: this.position.x, y: this.position.y };
+    const prov = evidenceProvenance(provenance);
     const out: SliceEvidenceV1[] = [];
     if (reveal.relay) out.push({
       targetId: 'tgt_corridor_relay', relationId: null, position, observedAtTick: tick,
-      expiresAtTick, stateLabel: 'relay-visible', roomId: 'station-zero-r2',
+      expiresAtTick, stateLabel: 'relay-visible', roomId: 'station-zero-r2', ...prov,
     });
     if (reveal.bridge) out.push({
       targetId: 'tgt_corridor_bridge', relationId: reveal.relay ? 'rel_corridor_relay_bridge' : null,
-      position, observedAtTick: tick, expiresAtTick, stateLabel: 'bridge-visible', roomId: 'station-zero-r2',
+      position, observedAtTick: tick, expiresAtTick, stateLabel: 'bridge-visible', roomId: 'station-zero-r2', ...prov,
     });
     if (reveal.perceptionPort) out.push({
       targetId: 'tgt_corridor_guard', relationId: reveal.relay ? 'rel_corridor_relay_perception' : null,
-      position, observedAtTick: tick, expiresAtTick, stateLabel: 'perception-visible', roomId: 'station-zero-r2',
+      position, observedAtTick: tick, expiresAtTick, stateLabel: 'perception-visible', roomId: 'station-zero-r2', ...prov,
     });
     return out;
   }

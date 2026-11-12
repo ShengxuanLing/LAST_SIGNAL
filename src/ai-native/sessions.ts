@@ -783,7 +783,11 @@ export class Session {
       executable.push({ runtime: adapted.value, index: i, actionId: action.actionId, fingerprint });
     }
 
-    const runResult = this.game!.step({ actions: executable.map((e) => e.runtime), ticks: v.ticks });
+    const runResult = this.game!.step({
+      actions: executable.map((e) => e.runtime),
+      ticks: v.ticks,
+      identity: { actorId: this.actorId, epoch: v.epoch },
+    });
     if (!runResult.ok) {
       return this.fail('E_INTERNAL_TRANSACTION', 'step failed', { sessionId: this.id, epoch: this.epoch, requestId: v.requestId });
     }
@@ -1290,7 +1294,7 @@ export class Session {
   }
 
   private buildObservation(detail: 'summary' | 'standard', events: readonly EventV1[]): ObservationV1 {
-    const base = this.game!.observe() as ObservationV1;
+    const base = this.game!.observe({ actorId: this.actorId, epoch: this.epoch }) as ObservationV1;
     return {
       ...base,
       sessionId: this.id,

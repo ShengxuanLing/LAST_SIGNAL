@@ -25,11 +25,16 @@ export interface PositionEvidenceState {
 export interface SliceEvidenceV1 {
   readonly targetId: string;
   readonly relationId: string | null;
+  /** The OBSERVER position at scan time (not the target position). */
   readonly position: { readonly x: number; readonly y: number };
   readonly observedAtTick: number;
   readonly expiresAtTick: number;
   readonly stateLabel: string;
   readonly roomId: FullRoomId;
+  /** Optional scan provenance, present on evidence created by the headless core. */
+  readonly sourceActionId?: string;
+  readonly observerActorId?: string;
+  readonly sceneEpoch?: number;
 }
 
 export interface GuardFullState {
@@ -131,6 +136,12 @@ const exactKeys = (v: Record<string, unknown>, keys: readonly string[]): boolean
   const own = Object.keys(v);
   return own.length === keys.length && own.every((k) => keys.includes(k));
 };
+/** Required keys must all be present; optional keys may be omitted. No extras. */
+const keysIn = (v: Record<string, unknown>, required: readonly string[], optional: readonly string[] = []): boolean => {
+  const allowed = new Set([...required, ...optional]);
+  const own = Object.keys(v);
+  return required.every((k) => Object.prototype.hasOwnProperty.call(v, k)) && own.every((k) => allowed.has(k));
+};
 
 export function isPositionEvidenceState(v: unknown): v is PositionEvidenceState {
   return obj(v) && exactKeys(v, ['x', 'y', 'observedAtTick', 'expiresAtTick']) &&
@@ -141,9 +152,9 @@ export function isPositionEvidenceState(v: unknown): v is PositionEvidenceState 
 export function isSliceEvidenceArray(v: unknown): v is SliceEvidenceV1[] {
   if (!Array.isArray(v)) return false;
   for (const item of v) {
-    if (!obj(item) || !exactKeys(item, [
+    if (!obj(item) || !keysIn(item, [
       'targetId', 'relationId', 'position', 'observedAtTick', 'expiresAtTick', 'stateLabel', 'roomId',
-    ])) return false;
+    ], ['sourceActionId', 'observerActorId', 'sceneEpoch'])) return false;
     if (typeof item.targetId !== 'string' || !item.targetId.startsWith('tgt_')) return false;
     const rule = EVIDENCE_TARGET_RULES[item.targetId];
     if (!rule) return false;
@@ -156,6 +167,12 @@ export function isSliceEvidenceArray(v: unknown): v is SliceEvidenceV1[] {
     if (item.roomId !== 'station-zero-r1' && item.roomId !== 'station-zero-r2') return false;
     if (item.roomId !== rule.roomId) return false;
     if (!rule.relationIds.includes(item.relationId as string | null)) return false;
+    if (item.sourceActionId !== undefined &&
+        (typeof item.sourceActionId !== 'string' || !/^aid_[0-9a-f]{24}$/.test(item.sourceActionId))) return false;
+    if (item.observerActorId !== undefined &&
+        (typeof item.observerActorId !== 'string' || !/^act_[0-9a-f]{16}$/.test(item.observerActorId))) return false;
+    if (item.sceneEpoch !== undefined &&
+        (!finite(item.sceneEpoch) || !Number.isInteger(item.sceneEpoch) || item.sceneEpoch < 0)) return false;
     if (Object.values(item).some((x) => x === undefined)) return false;
   }
   return true;

@@ -303,6 +303,8 @@ export interface InternalRuntimeState {
 export interface StepOptions {
   readonly actions?: readonly unknown[];
   readonly ticks: number;
+  /** Trusted gateway identity recorded into R9 scan evidence (never resampled on restore). */
+  readonly identity?: { readonly actorId?: string; readonly epoch?: number };
 }
 
 export class HeadlessGame {
@@ -454,8 +456,9 @@ export class HeadlessGame {
 
     const firstEventIndex = this.events.length;
     const actionResults: RuntimeActionResult[] = [];
+    const identity = options.identity;
     for (const { action } of validated) {
-      const result = this.applyAction(action);
+      const result = this.applyAction(action, identity);
       actionResults.push(result);
       this.emit(this.model.tick, 2, result.code === 'OK' ? 'ACTION_ACCEPTED' : 'ACTION_REJECTED', {
         actionId: action.id,
@@ -516,7 +519,9 @@ export class HeadlessGame {
    * `availableActions` comes from the model's current-state capability query,
    * not a fixed "always legal" list; `completed` excludes failed runs.
    */
-  observe(): RuntimeObservation {
+  observe(identity?: { readonly actorId?: string; readonly epoch?: number }): RuntimeObservation {
+    const actorId = identity?.actorId ?? this.actorId;
+    const sceneEpoch = identity?.epoch ?? this.epoch;
     const snapshot = this.model.snapshot();
     const corridor = snapshot.corridor;
     const roomId = corridor ? 'station-zero-r2' : 'station-zero-r1';
@@ -536,11 +541,11 @@ export class HeadlessGame {
       schema: AI_NATIVE_OBSERVATION_SCHEMA_V1,
       protocolVersion: AI_NATIVE_PROTOCOL_VERSION,
       evidenceId: evidenceIdOf(item.targetId, item.observedAtTick),
-      sceneEpoch: this.epoch,
+      sceneEpoch: item.sceneEpoch ?? sceneEpoch,
       roomId: item.roomId,
-      sourceActionId: sourceActionIdOf(item.targetId, item.observedAtTick),
+      sourceActionId: item.sourceActionId ?? sourceActionIdOf(item.targetId, item.observedAtTick),
       source: 'player-scan' as const,
-      observerActorId: this.actorId,
+      observerActorId: item.observerActorId ?? actorId,
       observerPosition: { x: item.position.x, y: item.position.y },
       targetId: item.targetId,
       ...(item.relationId ? { relationId: item.relationId } : {}),
@@ -554,16 +559,35 @@ export class HeadlessGame {
       publicState: item.stateLabel,
       visibility: 'scan-revealed' as const,
     }));
+    const knownConnections: Array<{
+      relationId: string; fromTargetId: string; toTargetId: string; stateLabel: string; evidenceId: string;
+    }> = [];
     const labLink = observed.find((e) => e.relationId === 'rel_lab_seal_link');
-    const knownConnections = labLink
-      ? [{
-        relationId: 'rel_lab_seal_link',
-        fromTargetId: 'tgt_lab_seal_source',
-        toTargetId: 'tgt_lab_door_receiver',
+    if (labLink) knownConnections.push({
+      relationId: 'rel_lab_seal_link',
+      fromTargetId: 'tgt_lab_seal_source',
+      toTargetId: 'tgt_lab_door_receiver',
+      stateLabel: 'link-visible',
+      evidenceId: evidenceIdOf(labLink.targetId, labLink.observedAtTick),
+    });
+    // Minimal projection of already-revealed legal relations (no speculation).
+    const relationTargets: Readonly<Record<string, { readonly from: string }>> = {
+      rel_corridor_relay_bridge: { from: 'tgt_corridor_relay' },
+      rel_corridor_relay_perception: { from: 'tgt_corridor_relay' },
+    };
+    for (const item of observed) {
+      if (!item.relationId) continue;
+      const mapping = relationTargets[item.relationId];
+      if (!mapping) continue;
+      if (knownConnections.some((c) => c.relationId === item.relationId)) continue;
+      knownConnections.push({
+        relationId: item.relationId,
+        fromTargetId: mapping.from,
+        toTargetId: item.targetId,
         stateLabel: 'link-visible',
-        evidenceId: evidenceIdOf(labLink.targetId, labLink.observedAtTick),
-      }]
-      : [];
+        evidenceId: evidenceIdOf(item.targetId, item.observedAtTick),
+      });
+    }
     const availableActions = this.model.actionAvailability().map((a) => ({
       type: a.type,
       status: a.status,
@@ -608,9 +632,9 @@ export class HeadlessGame {
       schema: AI_NATIVE_OBSERVATION_SCHEMA_V1,
       protocolVersion: AI_NATIVE_PROTOCOL_VERSION,
       sessionId: this.sessionId,
-      epoch: this.epoch,
+      epoch: sceneEpoch,
       tick: snapshot.tick,
-      actorId: this.actorId,
+      actorId,
       role: 'PLAYER' as const,
       detail: 'standard' as const,
       roomId,
@@ -786,7 +810,7 @@ export class HeadlessGame {
     this.model.setPlayerPos(x, y);
   }
 
-  private applyAction(action: ValidatedAction): RuntimeActionResult {
+  private applyAction(action: ValidatedAction, identity?: { readonly actorId?: string; readonly epoch?: number }): RuntimeActionResult {
     let result: ActionResult;
     if (action.type === 'move') {
       this.movement = moveIntent(action);
@@ -798,7 +822,14 @@ export class HeadlessGame {
       this.movementRemainingTicks = 0;
       result = { code: 'OK', message: 'wait', cost: 0 };
     } else if (action.type === 'scan') {
-      result = this.model.scan();
+      const bare = action.id.startsWith('player-') ? action.id.slice('player-'.length) : action.id;
+      const sourceActionId = /^aid_[0-9a-f]{24}$/.test(bare) ? bare : undefined;
+      const provenance = {
+        ...(sourceActionId ? { sourceActionId } : {}),
+        ...(identity?.actorId !== undefined ? { observerActorId: identity.actorId } : {}),
+        ...(identity?.epoch !== undefined ? { sceneEpoch: identity.epoch } : {}),
+      };
+      result = this.model.scan(Object.keys(provenance).length > 0 ? provenance : undefined);
     } else if (action.type === 'jam') {
       // 'door' and 'relay' both use the model's default relay/door-receiver path.
       result = action.target === 'guard' ? this.model.jam('guard') : this.model.jam('relay');

@@ -384,3 +384,61 @@ E2E 由 `npx playwright test` 全量执行，**未加 `--grep`、未 skip、未�
 **实现核对**：epoch 在缓存/补默认前校验；MCP schema 强制 epoch；create/observe 返回 epoch；fixture/restore 递增 epoch；原有原始参数缓存与 P2 指纹/事务校验未放宽。
 
 **边界**：未扩 P4/P5、未改主 World/旧档/全局 MCP 配置、未 commit/切分支、未删/放宽测试；`dist-mcp` 未跟踪生成物未提交；未跑浏览器 E2E（slice 未改）。pre-fix 失败历史保留（§16–§17、`p3-review.md`、`p3-fix-tester-*`）。
+
+---
+
+## 19. AI-NATIVE-01 · P4 — 真实外部 Codex Player 执行验收（Tester 只读核实）
+
+**任务**：独立核实 P4 真实执行，不冒充脚本；可审计；开发者修源码期间先交原始执行证据。
+
+**不可变记录**
+- `D:/Project/AI-NATIVE-01-evidence/p4-codex-live.jsonl`：600142 B，SHA256 `0ba5cdb4f305527bd9de12e01a987c1dc5d7a2d3bed4c86eb940d418a09aea52`（校验匹配）。
+- start `2026-11-12T23:06:59.607Z` → closed `2026-11-12T23:11:17.534Z`（墙钟约 257.9 s）；request 23 / result 22（22 次工具调用 + quit）。
+- 桥 `p4-agent-bridge.mjs` 只 import 官方 MCP SDK + `node:readline`/`fs`/`perf_hooks`；无 game/scenario/route/strategy/map import（已读源确认中立）。
+
+**Player-only / 无作弊**
+- 工具名仅 Player 6：`game_create_session`×1、`game_observe`×2、`game_execute_action`×4、`game_step`×13、`game_get_events`×1、`game_close_session`×1；无 `run_scenario`/`run_batch`/`inject_fixture`/`snapshot`/`restore`/`inspect_state` 等 Dev 调用。
+- 参数无 `seed`/`fixture`/`dev`/`devTicket`/`role`/`kind`；`game_create_session` 参数为 `{}`。
+- 17 次 mutation 为模型逐次决策（含 `decision` 自然语言理由，见 `p4-tester-original.md` §4）；非固定脚本、非 `run_scenario`。
+
+**逐条结果（22 调用）要点**
+- 决策序列：`scan(E_SCHEMA)→scan(OK)→interact(拒绝)→jam(OK)→move→move→scan→shoot_guard→move→shoot_guard+move→move→interact(relay)→wait(89)→move→move→move→move`。
+- 终态：tick **501**、energy **96**、hp **100**、room `station-zero-r2`、passed/crossed/completed = true/true/true。
+- 有序公开事件 **29** 条（types：SESSION_CREATED, ACTION_ACCEPTED, ACTION_REJECTED, DOOR_PASSED, ROOM_ENTERED, JAM_EXPIRED, DOOR_STATE_CHANGED, RELAY_STATE_CHANGED, BRIDGE_STATE_CHANGED, GUARD_LINK_CHANGED, SCAN_EVIDENCE_EXPIRED, EAST_CROSSED, RUN_COMPLETED）。
+
+**两处错误 origin（逐字，不掩盖）**
+- `E_SCHEMA`：模型请求 `action.payload={}` 缺 `type`（公开 `ActionPayloadV1` 形状错误）→ `step request rejected`；模型用 `payload:{type:'scan'}` 重试成功（tick 1，扣 10 Energy），**无状态写入**。
+- `E_LINK_UNAVAILABLE`：普通 `interact targetId=tgt_lab_door_receiver` 被激活的 source→receiver 封条链路按域拒绝（actionResult/rejected，cost 0，actorId `act_508db05fc88ab1a2`，actionId `aid_86de469ae29552d8b62125a6`）；随后 `jam` 合法解封。corridor（R2）阶段无被拒绝动作。
+- **嵌套 session 引用（真实边界缺陷，需报告）**：公开 opaque 句柄 `ses_f09b11ac0567951eadd6dccd` 用于 top-level `session`/`sessionId`、`game_get_events` 的 `events[*].sessionId`、`result.sessionId`/`result.actionResults[*].sessionId`；但 **内部 Session.id `ses_8249e0cbadeb5177e10dc4a8`** 泄漏在 `observation.events[*].sessionId` 与 `result.observation.events[*].sessionId`（observation 内嵌事件窗口未走 opaque 句柄）。应修复 observation 事件窗口的 sessionId 归一化，不掩盖。
+
+**独立重放（官方 Player MCP，当前 P3 稳定版 HEAD `ddcd7e9`）**
+- `npx vite-node p4-tester-replay.mts`：从原始记录读取决策（type/payload/ticks），在**新建 production session** 上按序执行；不用 developer client、不 `run_scenario`。
+- 结果 6/6 PASS：R0 新建 production session；R1/R2 终态一致（tick 501 / energy 96 / HP 100 / crossed+completed / room r2）；R3 有序事件 29 条逐条一致（忽略 opaque 身份 / seedHash）；R4 每条决策 tick 与 action-result code 序列一致（0 diff）；R5 决策序列 Player-only、无 Dev。
+
+**透明度**
+- 模型 Token / 内部推理用量：**null（不可获取，不杜撰）**；**未把 22 次工具调用写成 22 次模型调用**。
+
+**Gate 汇总（命令 | PASS/FAIL | 日志绝对路径）**
+| 命令 | 结果 | 日志 |
+|---|---|---|
+| `sha256sum p4-codex-live.jsonl` | PASS（匹配） | `D:/Project/AI-NATIVE-01-evidence/p4-tester-original.md` |
+| `node p4-tester-parse.mjs` | PASS | `D:/Project/AI-NATIVE-01-evidence/p4-tester-trace-analysis.json` |
+| `npx vite-node p4-tester-replay.mts` | PASS（6/6） | `D:/Project/AI-NATIVE-01-evidence/p4-tester-replay.log` |
+| `npm run game:mcp:build`（HEAD ddcd7e9） | PASS | `D:/Project/AI-NATIVE-01-evidence/p4-tester-mcp-build.log` |
+| 源码 md5 前后 | PASS | `D:/Project/AI-NATIVE-01-evidence/p4-tester-stability.log` |
+
+**判定**：**P4 原始执行证据 = PASS**（记录不可变、Bridge 中立、Player-only、模型逐次决策、22 调用可逐条对上、终态与 29 事件正确、当前 P3 稳定版可独立重放复现）。发现 1 个需修网关缺陷（observation 事件窗口泄漏内部 `sessionId`），影响 P4 关闭但不影响执行证据真实性；待开发者修复后再做 diff 复验。
+
+**边界**：未 commit/切分支、未改主 World/旧档/全局 MCP 配置、未扩 P4/P5；测试者只读、开发者独写源码；证据全部在 `D:/Project/AI-NATIVE-01-evidence/`（`p4-*`），`dist-mcp` 未提交。
+
+### 19.1 P4 反馈修复 / 交付 — 最终独立验收（修前/修后差异复验）
+
+**判定：PASS**（全部 gate 通过，无 BLOCKED）。
+
+- **源码稳定 MD5**：HEAD `ddcd7e9`（工作区含未提交修复）；Lead 指定 6 文件 MD5 逐一 MATCH（runtime `ca541510…`、sessions `b55541f7…`、server `0f7e5876…`、p4.test `6a92c0e5…`、rules `5f527b78…`、fullState `be780b90…`）；全量快照 `p4-final-source-md5.txt`。
+- **原记录不变**：`p4-codex-live.jsonl` SHA256 `0ba5cdb4…` 未改；`p4-codex-live.jsonl.gz` 解压流 SHA256 = `0ba5cdb4…`（一致）。
+- **构建/测试矩阵**：typecheck PASS、`npm run build` PASS、`game:mcp:build` PASS；`npx vitest run src/ai-native`（P4 目标）PASS = 5 files / 192 tests；`npm test` 全量 PASS = 11 files / 266 tests；`npx playwright test`（slice/evidence 变更已复跑）PASS = 23 passed（含 `runtime-bugs.spec.ts`）。
+- **官方 Player MCP 重放原 trace（修复版）**：`p4-final-tester-replay.mts` 用原不可变 `p4-codex-live.jsonl` 决策，在全新 production session（非 `--dev`、不 restore/run_scenario）重放 → F1 终态 501/HP100/E96/crossed+completed/room r2、F2 29 事件无差异、F3 每条决策 tick/code 序列一致、F4 嵌套 sessionId 统一 opaque（无 `ses_8249…`、无外来 `ses_`）、F5 两处拒绝（E_SCHEMA + E_LINK_UNAVAILABLE）原样复现。
+- **5 个真实运行缺陷修复确认**（独立）：`P1` 走廊 `observerPosition` == 当时 `self.position`；`P2`/`P3` evidence `sourceActionId`/`observerActorId` == 实际 scan actionId/公开 actorId；`P4` 走廊 `knownConnections` 投影 `rel_corridor_relay_bridge`/`rel_corridor_relay_perception`。
+- **中性客户端/样例/restore 原样**：`agentClient.mts` 仅 6 Player 工具、Dev `game_snapshot` 合法 session 下被拒、stdout 纯 JSONL、退出 0（C1–C6 PASS）；样例 `p4-player-trace.json` 保留 E_SCHEMA 重试（开发者重放 `expectedSchemaFailures:1`）；interact 拒绝样例记作 `status:"rejected"`（与线上 `ok:false/E_LINK_UNAVAILABLE` 口径略异，属采样简化，原 JSONL 未改）；Dev 仅质量验证（p4.test.ts restore 用例在 266 全量内通过），未混入原 Agent。
+- **边界**：仅读源码/仓库测试；未 commit/切分支、未改主 World、未扩 P5、未改原 trace；tester 仅追加 `p4-tester-final.md` 与本节。重放仅验证原真实执行，不当作第二次 AI；模型 Token/内部推理仍 null，不杜撰。
