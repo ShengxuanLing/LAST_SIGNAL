@@ -1,8 +1,9 @@
-// AI-NATIVE-02 C1 — static rewiring gate.
+// AI-NATIVE-02 C2 — static ownership / rewiring gate.
 //
-// Proves the Phaser-facing adapters call the single pure rule module and that
-// the old inline rule bodies are gone, without pretending this is a complete
-// centralised SimulationCore (that is C2).
+// Proves the first-slice Phaser adapters read/write World.sim instead of
+// keeping shadow player/drone/projectile rules, and that the pure core has no
+// Phaser/DOM/Math.random. Node-only deterministic behaviour is tested in
+// core.test.ts; rendered parity is tests/c2-parity.spec.ts.
 
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -10,47 +11,64 @@ import path from 'node:path';
 
 const read = (relative: string): string => readFileSync(path.resolve(relative), 'utf8');
 
-describe('C1 rewiring: Phaser adapters call sim/rules', () => {
-  it('Player delegates movement, aim, weapon spec and damage', () => {
+describe('C2 pure core contract', () => {
+  it('core.ts and rules.ts have no Phaser / DOM / wall clock / unseeded randomness', () => {
+    for (const file of ['src/world/sim/core.ts', 'src/world/sim/rules.ts']) {
+      const src = read(file);
+      expect(src, file).not.toMatch(/from ['\"]phaser['\"]/);
+      expect(src, file).not.toMatch(/\bdocument\b|\bwindow\b/);
+      expect(src, file).not.toMatch(/Math\.random|Date\.now|performance\.now/);
+    }
+    const core = read('src/world/sim/core.ts');
+    expect(core).toContain('stepSimulationTicks(');
+    expect(core).toContain('canonicalSimulationState(');
+    expect(core).toContain('SimEvent');
+    expect(core).toContain('TICK_HZ: 60');
+  });
+});
+
+describe('C2 single-authority adapters', () => {
+  it('Player delegates all mutable state to World.sim and only samples intents', () => {
     const src = read('src/entities/Player.ts');
-    expect(src).toContain("from '../world/sim/rules'");
-    expect(src).toContain('stepPlayerMovement(');
-    expect(src).toContain('aimYawFromGrid(');
-    expect(src).toContain('buildWeaponSpec(');
-    expect(src).toContain('damageAfterArmor(');
-    // No duplicated inline anisotropic / weapon-spec / armour bodies.
-    expect(src).not.toContain('const tx = sx / (IsoMath.TILE_W / 2)');
-    expect(src).not.toContain('const reduction = 1 - Math.min(0.75');
-    expect(src).not.toContain("w.kind === 'scatter' ? 5 : 1");
+    expect(src).toContain('this.world.sim');
+    expect(src).toContain('sampleIntent()');
+    expect(src).toContain('syncVisual(');
+    expect(src).toContain('resolvePlayerHit(');
+    expect(src).not.toContain('this.applyIntent(');
+    expect(src).not.toContain('stepPlayerMovement(');
+    expect(src).not.toContain('private tryFire(');
+    for (const debug of ['lastMoveStep', 'lastWeaponSpec', 'lastProjectileData', 'lastDroneStep', 'lastHitResult']) {
+      expect(src, debug).not.toContain(debug);
+    }
   });
 
-  it('Enemy delegates drone FSM, enemy hit and shared movement/attack helpers', () => {
+  it('Enemy drone state is attached to the core, other kinds keep legacy FSM', () => {
     const src = read('src/entities/Enemy.ts');
-    expect(src).toContain("from '../world/sim/rules'");
-    expect(src).toContain('stepDroneAi(');
-    expect(src).toContain('resolveEnemyHit(');
-    expect(src).toContain('axisSlideToward(');
-    expect(src).toContain('rangedAttackDescriptor(');
+    expect(src).toContain('attachSimDrone(');
+    expect(src).toContain('SimDroneState');
+    expect(src).toContain("if (this.data.kind === 'drone') return;");
     expect(src).toContain('legacyStateMachine');
-    expect(src).not.toContain('const reduction = 1 - Math.min(0.75');
-    expect(src).not.toContain('this.stateMachine(dt, player)');
+    expect(src).not.toContain('stepDroneAi(');
   });
 
-  it('World delegates projectile creation, advance and swept hit', () => {
+  it('World owns SimulationState, fixed accumulator, typed events and legacy-only update', () => {
     const src = read('src/world/World.ts');
-    expect(src).toContain("from './sim/rules'");
-    expect(src).toContain('createProjectileData(');
-    expect(src).toContain('advanceProjectile(');
-    expect(src).toContain('projectileHitsTarget(');
-    expect(src).not.toContain('private segmentPointDistance(');
-    expect(src).not.toContain('const crit = this.rng.float() < spec.critChance');
+    expect(src).toContain('createSimulationState(');
+    expect(src).toContain('stepSimulationTicks(');
+    expect(src).toContain('stepFrame(');
+    expect(src).toContain('applySimEvents(');
+    expect(src).toContain('syncCoreEntities(');
+    expect(src).toContain('resetSimulationAccumulator(');
+    expect(src).toContain('MAX_TICKS_PER_FRAME');
+    expect(src).not.toContain('this.player.update(dt)');
+    expect(src).not.toContain('spawnProjectile(ownerId');
   });
 
-  it('control.ts uses IsoMath via the shared movement budget (F-09)', () => {
-    const src = read('src/ai-native/control.ts');
-    expect(src).toContain('IsoMath.TILE_W');
-    expect(src).toContain('screenVelocityToGridVelocity(');
-    expect(src).toContain('gridDirectionToScreenDirection(');
-    expect(src).not.toContain('tileW = 64, tileH = 32');
+  it('GameScene samples one intent and resets accumulator on pause-like overlays', () => {
+    const src = read('src/scenes/GameScene.ts');
+    expect(src).toContain('sampleIntent()');
+    expect(src).toContain('world.stepFrame(delta, intent)');
+    expect(src).toContain('resetSimulationAccumulator()');
+    expect(src).not.toContain('world.update(dt)');
   });
 });

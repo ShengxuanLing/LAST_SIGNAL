@@ -163,10 +163,23 @@ P5提交后Lead发现普通Session与coop各10槽位可合计20，已由Orca Wor
 
 ## C1 — 共享纯规则抽取与即时接线（提交见本节所在提交）
 
-- **状态**：Developer 自测完成，未合并 main；父提交 `1aadd2e04...`。范围仅 C1，**没有**实施 C2 固定 tick / RNG 归一 / 集中状态，也没有 C3 外部 Agent 或 Signal 玩法。
-- **实现**：唯一纯模块 `src/world/sim/rules.ts`（无 Phaser / DOM / `Math.random`）承载移动/轴分离碰撞/瞄准、武器 spec、弹丸创建（复用真实 `World.rng`）、弹丸推进与扫掠命中、护甲伤害/击退、drone FSM、非 drone 共用移动/远程攻击助手；`Player` / `Enemy` / `World` 立即调用这些唯一实现，旧内联规则体删除；渲染、音效、回调、精灵生命周期仍在适配层。`src/ai-native/control.ts` 改用 `IsoMath.TILE_W/H`（F-09），`drone/pulse` 为首片，scatter/plasma 等其他武器与敌人共用通用纯函数未回归。
+- **状态**：C1 已获 Reviewer `reports/ai-native-02/reviewer/c1/REVIEW_C1.md` **PASS（有限制，无阻断）** 与 Tester PASS；但 **C1 不等于 P2 整体完成**。未合并 main；父提交 `1aadd2e04...`。范围仅 C1，**没有**实施 C2 固定 tick / RNG 归一 / 集中状态，也没有 C3 外部 Agent 或 Signal 玩法。
+- **实现**：唯一纯模块 `src/world/sim/rules.ts`（无 Phaser / DOM / `Math.random`）承载移动/轴分离碰撞/瞄准、武器 spec、弹丸创建（复用真实 RNG 参数）、弹丸推进与扫掠命中、护甲伤害/击退、drone FSM、非 drone 共用移动/远程攻击助手；`Player` / `Enemy` / `World` 的**已抽取规则**立即调用唯一实现，C1 提交时旧内联体删除；`Enemy.legacyStateMachine`（非 drone）、`Boss.hit`、`World.spawnEnemyProjectile` 仍 legacy，明确列 C2 合并清单。`src/ai-native/control.ts` 改用 `IsoMath.TILE_W/H`（F-09），`drone/pulse` 为首片，scatter/plasma 等其他武器与敌人共用通用纯函数未回归。渲染、音效、回调、精灵生命周期仍在适配层。
 - **不是权威核完成**：可变状态仍分散在 `Player` / `Enemy` / `World`；`GameScene.update()` 仍是变长 `dt`，`World.rng` 仍由 World 持有，存档契约（SAVE_VERSION=2 / `finishRun` / checkpoint）未改。集中 `SimulationState`、固定 60Hz tick、事件队列、全部玩法 RNG 归一是 **C2**；C1 不以一组几何 helper 冒充完成。
 - **Signal**：正式 World 当前不支持任何 Signal 玩法（Scan/Jam/Decoy/Relay/Bridge/Guard/Signal Energy 只在 Station Zero `src/slice/`；`SIGNAL_SYSTEM_DESIGN.md` 是设计提案）。C1 没有发明 Signal；正式接入仍是 AI-NATIVE-02 总任务义务。
 - **阶段口径**：C3 真实外部 Agent 经正式通道战斗**仍是 P2 完成条件**，排在 C1/C2 依赖之后，不重定义为 P3；HUD/菜单/报告持续 `EXTERNAL NOT CONNECTED`，不得用本地 demo / 浏览器自动化 / 假 Headless 冒充。
-- **验证**：Node 单测用真实 `MapGenerator(424242)` + `WEAPONS.pulse` + `ENEMY_STATS.drone` 覆盖受阻移动、瞄准、射击、扫掠命中/墙、伤害/死亡、drone FSM；静态 rewiring 单测证明 Phaser 三个适配器调用 `sim/rules` 且旧规则体已删除；Rendered Playwright 用真实键鼠断言 `Player.lastMoveStep` / `lastWeaponSpec`、`World.lastProjectileData`、`Enemy.lastDroneStep` / `lastHitResult`，并覆盖 P1 五视口与旧全量回归。完整日志与证据在 `reports/ai-native-02/c1/`。
+- **验证**：Node 单测用真实 `MapGenerator(424242)` + `WEAPONS.pulse` + `ENEMY_STATS.drone` 覆盖受阻移动、瞄准、射击、扫掠命中/墙、伤害/死亡、drone FSM；C1 时另用临时 debug 镜像取证（C2 已删除，生产无消费者，不当作权威事件）；Rendered Playwright 用真实键鼠覆盖 P1 五视口与 C1 单 drone 路径，C1 报告记录 9/9、未重跑全量 35（当时 Tester 定向复核只跑 8+7）。完整日志与证据在 `reports/ai-native-02/c1/`。
 - **C2 下一步**：集中 `SimulationState`、固定 tick 累加器、玩法/视觉 RNG 拆分、`SimEvent[]` 呈现事件隔离、Node/Rendered canonical parity；仍不宣称全游戏 Replay/确定性。
+
+## C2 — 首片 SimulationState / 固定 tick / Node-Rendered parity（提交见本节所在提交）
+
+- **状态**：Developer 自测完成，未合并 main；父提交 `ff13ce3b...`（P1 收尾小补丁）。仅 C2 首片，不把其他 enemy/Boss/loot/portal/Signal 纳入确定性承诺。
+- **唯一写源**：`src/world/sim/core.ts` 的 `SimulationState` 拥有 player、drone、player/drone 弹丸、`tick`、显式 `seed`、`rngState`、静态地图与 `nextProjectileId`；`Player`/`Enemy` 的位置/HP/data/timers 改为 getter/setter 指向 `World.sim`；World 的 `projectiles` 仅保留 legacy（Boss/其他 enemy）弹丸。`Player.applyIntent/tryFire` 与 `World.spawnProjectile` 删除，`GameScene` 只采样一次意图并调用 `World.stepFrame(delta,intent)`。
+- **固定 tick**：60Hz、`MAX_FRAME_DELTA_MS=250`、`MAX_TICKS_PER_FRAME=15`，core 只吃整数 ticks；暂停/升级/背包/AI 开关/死亡/新局调用 `resetSimulationAccumulator()`，暂停不推进、恢复不追赶；250ms 用 epsilon+clamp 归为恰好 15 ticks 并丢弃余量。`tests/c2-parity.spec.ts` 覆盖 subframe/15 tick cap/pause freeze/no catch-up。
+- **RNG 边界**：core 用显式 `seed+tick` 派生 tick RNG；`World.rng` 仍服务 legacy 掉落/传送门/敌人选择；`Math.random()` 仍在视觉（bob/星空/音频噪声）、Boss 召唤/掉落、新局 seed 等未迁移路径。**不宣称全玩法 seeded RNG / 全 run Replay / stateHash**。
+- **事件与调试**：core 先提交状态再返回有序 `SimEvent[]`；适配器只消费事件。C1 的 `lastMoveStep/lastWeaponSpec/lastProjectileData/lastDroneStep/lastHitResult` 生产 debug 镜像已删除，不充当权威事件。
+- **H1 parity harness**：`src/world/sim/parity.test.ts` 用独立 legacy 公式对照纯规则；`tests/c2-parity.spec.ts` 通过 `stepSimulationTicksForTest(ticks,intent)` 受控队列生成 Rendered canonical/events；`scripts/c2-node-parity.ts` / `npm run game:sim:parity` 在 Node 无 Phaser 重放同一初始 state/sequence/ticks 并逐字比较；同 state 重放两次也逐字一致。**F-08** 已在 `restoreCheckpoint` 深拷贝 + 负向 E2E 修复。
+- **H1/H3/H2/H4/F-08 采纳**：`src/world/sim/parity.test.ts` 用独立 legacy 公式做永久 parity；`tests/c2-parity.spec.ts` + `scripts/c2-node-parity.ts` 做真实 Node/Rendered 同 state/seed/ticks 对照；C1 debug 镜像已删除；C1 文档的 legacy 范围与「未重跑全量 35」口径已修正；RNG 只承诺 core 首片，`World.rng`/视觉 `Math.random` 保留为 legacy；`restoreCheckpoint` 深拷贝 + 负向 E2E。
+- **Gate**：`npm run typecheck`、`npm test`（353 项）、`npm run build`、`npm run game:mcp:build`、全量 Playwright **39/39**（含 c2-parity 3、五视口、旧 27 项）、Node/Rendered parity 8/8、纯模块静态门。完整日志 `reports/ai-native-02/c2/logs/`，parity 数据 `reports/ai-native-02/c2/parity/`。
+- **限制**：只承诺真实 start room + drone + pulse + 已迁移 player/drone 弹丸；Boss、其他 enemy kind、`legacyStateMachine`、`Boss.hit`、`World.spawnEnemyProjectile`、loot/portal/升级/存档内容仍 legacy；canonical 只含已迁移范围。正式 World 仍无 Signal；C3 真实外部 Agent 经正式通道战斗仍是 **P2 完成条件**（不是 P3），HUD/菜单持续 `EXTERNAL NOT CONNECTED`；不得用本地 demo / 浏览器自动化 / 假 Headless 冒充。
+- **C3 下一步**：真实外部 Agent Gateway/MCP（epoch/requestId/actionId、权限、YIELDED、正常断线）、F-03 `window.__game` 收敛、Signal 正式接入（总任务义务）；均未在本提交实现。

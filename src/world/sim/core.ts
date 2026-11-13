@@ -1,0 +1,558 @@
+// AI-NATIVE-02 C2 — first-slice authoritative SimulationState.
+//
+// One state owns the player, drone enemies and all player/drone projectiles for
+// the first slice (`drone + pulse`). The Phaser adapters read/write this state
+// through getters and present it; they do not keep independently mutable HP /
+// position / projectile rule copies.
+//
+// Explicit 60Hz integer ticks, no wall clock in the core. A controlled intent
+// sequence plus the same initial state/seed/ticks produces the same canonical
+// state/events in Node and in the rendered World.
+//
+// Not a full-game core: boss, other enemy kinds, loot, rooms, Signal and
+// checkpoint policy remain adapter/legacy. Visual RNG never enters this state.
+
+import { GAME } from '../../config/game';
+import { WEAPONS } from '../../config/weapons';
+import { RNG } from '../../core/random';
+import type { EnemyData, MapData, PlayerData, ProjectileData, Tile, Vec2 } from '../../types';
+import type { GridPoint } from './rules';
+import {
+  advanceProjectile, aimYawFromGrid, buildWeaponSpec, createEnemyProjectileData,
+  createProjectileData, damageAfterArmor, projectileHitsTarget, resolveEnemyHit,
+  resolvePlayerHit, stepDroneAi, stepPlayerMovement, weaponCooldown,
+  type DroneAiResult, type EnemyHitResult, type PlayerHitResult, type WeaponFireSpec
+} from './rules';
+
+export const SIM_TUNING = {
+  TICK_HZ: 60,
+  TICK_MS: 1000 / 60,
+  MAX_FRAME_DELTA_MS: 250,
+  MAX_TICKS_PER_FRAME: 15
+} as const;
+
+const PLAYER_RADIUS = 0.5;
+
+export interface SimPlayerState {
+  x: number;
+  y: number;
+  data: PlayerData;
+  dashTimer: number;
+  invuln: number;
+  hurtTimer: number;
+  fireTimer: number;
+  aimYaw: number;
+}
+
+export interface SimDroneState {
+  id: number;
+  x: number;
+  y: number;
+  hp: number;
+  data: EnemyData;
+  attackTimer: number;
+  wanderTimer: number;
+}
+
+export interface SimProjectile {
+  id: number;
+  ownerId: number;
+  side: 'player' | 'enemy';
+  source: 'player' | 'drone';
+  kind: string;
+  pos: Vec2;
+  vel: Vec2;
+  damage: number;
+  lifetime: number;
+  radius: number;
+  crit: boolean;
+  pierce: number;
+  hitIds: number[];
+}
+
+export interface SimulationState {
+  seed: number;
+  tick: number;
+  rngState: number;
+  map: MapData;
+  mapMinX: number;
+  mapMinY: number;
+  player: SimPlayerState;
+  drones: SimDroneState[];
+  projectiles: SimProjectile[];
+  nextProjectileId: number;
+}
+
+export interface SimulationIntent {
+  move: Vec2;
+  dash: boolean;
+  fire: boolean;
+  aim: Vec2 | null;
+  interact: boolean;
+}
+
+export type SimEvent =
+  | { type: 'player-moved'; position: Vec2; velocity: Vec2; dashTimer: number; dashStarted: boolean }
+  | { type: 'player-fired'; spec: WeaponFireSpec }
+  | { type: 'projectile-spawned'; projectile: SimProjectile }
+  | { type: 'drone-step'; droneId: number; step: DroneAiResult }
+  | { type: 'enemy-hit'; enemyId: number; damage: number; crit: boolean; hit: EnemyHitResult }
+  | { type: 'enemy-died'; enemyId: number; x: number; y: number }
+  | { type: 'player-hurt'; damage: number; hit: PlayerHitResult }
+  | { type: 'player-death' }
+  | { type: 'projectile-wall'; x: number; y: number };
+
+export interface CreateSimulationInput {
+  seed: number;
+  map: MapData;
+  playerData: PlayerData;
+  playerX: number;
+  playerY: number;
+  nextProjectileId?: number;
+}
+
+export function createSimulationState(input: CreateSimulationInput): SimulationState {
+  let minX = Infinity;
+  let minY = Infinity;
+  for (const row of input.map.tiles) {
+    for (const tile of row) {
+      minX = Math.min(minX, tile.x);
+      minY = Math.min(minY, tile.y);
+    }
+  }
+  const rng = new RNG(input.seed);
+  return {
+    seed: input.seed,
+    tick: 0,
+    rngState: rng.snapshot(),
+    map: input.map,
+    mapMinX: minX,
+    mapMinY: minY,
+    player: {
+      x: input.playerX,
+      y: input.playerY,
+      data: input.playerData,
+      dashTimer: 0,
+      invuln: 0,
+      hurtTimer: 0,
+      fireTimer: 0,
+      aimYaw: 0
+    },
+    drones: [],
+    projectiles: [],
+    nextProjectileId: input.nextProjectileId ?? 1
+  };
+}
+
+/** Add the core-owned drone state used by Enemy for the first slice. */
+export function registerDrone(
+  state: SimulationState,
+  input: { id: number; x: number; y: number; hp: number; data: EnemyData; attackTimer: number; wanderTimer: number }
+): SimDroneState {
+  const drone: SimDroneState = { ...input, data: input.data };
+  state.drones.push(drone);
+  return drone;
+}
+
+export function tileAtFromState(state: SimulationState, x: number, y: number): Tile {
+  const gx = Math.floor(x) - state.mapMinX;
+  const gy = Math.floor(y) - state.mapMinY;
+  if (gy < 0 || gy >= state.map.tiles.length) return { x: gx, y: gy, type: 'wall', height: 0 };
+  const row = state.map.tiles[gy];
+  if (!row || gx < 0 || gx >= row.length) return { x: gx, y: gy, type: 'wall', height: 0 };
+  return row[gx];
+}
+
+export function ensureWalkableFromState(
+  state: SimulationState,
+  position: GridPoint = { x: state.player.x, y: state.player.y },
+  radius = PLAYER_RADIUS,
+  maxRadius = 6
+): GridPoint {
+  if (isWalkableFromState(state, position.x, position.y, radius)) return { ...position };
+  for (let r = 1; r <= maxRadius; r++) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        const nx = position.x + dx, ny = position.y + dy;
+        if (isWalkableFromState(state, nx, ny, radius)) return { x: nx, y: ny };
+      }
+    }
+  }
+  return { ...position };
+}
+
+export function isWalkableFromState(
+  state: SimulationState,
+  x: number,
+  y: number,
+  radius = PLAYER_RADIUS
+): boolean {
+  const blocked = (sx: number, sy: number): boolean => {
+    const t = tileAtFromState(state, sx, sy);
+    return t.type === 'wall' || t.type === 'lava' || t.type === 'water';
+  };
+  return !(
+    blocked(x - radius, y - radius) || blocked(x + radius, y - radius) ||
+    blocked(x - radius, y + radius) || blocked(x + radius, y + radius)
+  );
+}
+
+function deriveTickRngSeed(seed: number, tick: number): number {
+  // Explicit, serializable per-tick seed. No cross-run hidden RNG state.
+  return (seed ^ ((tick + 1) * 0x9e3779b1)) >>> 0;
+}
+
+function toSimProjectile(data: ProjectileData, source: 'player' | 'drone', kind: string): SimProjectile {
+  return {
+    id: data.id,
+    ownerId: data.ownerId,
+    side: data.side,
+    source,
+    kind,
+    pos: { ...data.pos },
+    vel: { ...data.vel },
+    damage: data.damage,
+    lifetime: data.lifetime,
+    radius: data.radius,
+    crit: data.crit,
+    pierce: data.pierce,
+    hitIds: [...data.hitSet]
+  };
+}
+
+function tickPlayerTimers(state: SimulationState, dt: number): void {
+  const p = state.player;
+  p.fireTimer = Math.max(0, p.fireTimer - dt);
+  p.invuln = Math.max(0, p.invuln - dt);
+  p.hurtTimer = Math.max(0, p.hurtTimer - dt);
+  for (const ws of p.data.weapons) {
+    if (!ws.reloading) continue;
+    ws.reloadTimer -= dt;
+    if (ws.reloadTimer <= 0) {
+      ws.reloading = false;
+      ws.reloadTimer = 0;
+      ws.ammo = ws.magazine;
+    }
+  }
+  if (p.data.hpRegen > 0 && p.data.hp < p.data.maxHp) {
+    p.data.hp = Math.min(p.data.maxHp, p.data.hp + p.data.hpRegen * dt);
+  }
+}
+
+function stepPlayerFire(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
+  const p = state.player;
+  if (!intent.fire || p.data.hp <= 0 || p.fireTimer > 0) return;
+  const weapon = WEAPONS[p.data.weaponKey] ?? WEAPONS.pulse;
+  let ws = p.data.weapons.find((w) => w.key === p.data.weaponKey);
+  if (!ws) {
+    ws = {
+      key: p.data.weaponKey, level: 1, ammo: weapon.magazine ?? -1,
+      magazine: weapon.magazine ?? -1, reloading: false, reloadTimer: 0
+    };
+    p.data.weapons.push(ws);
+  }
+  if (ws.magazine > 0) {
+    if (ws.reloading) return;
+    if (ws.ammo <= 0) {
+      ws.reloading = true;
+      ws.reloadTimer = weapon.reloadTime ?? 1;
+      return;
+    }
+  }
+  p.fireTimer = weaponCooldown(weapon.baseRate, p.data.cooldownReduced);
+  if (ws.magazine > 0) ws.ammo--;
+  const spec = buildWeaponSpec({
+    weapon,
+    damageMultiplier: p.data.damage,
+    critChance: p.data.critChance,
+    critDamage: p.data.critDamage,
+    pierceCount: p.data.pierceCount,
+    magazine: ws.magazine,
+    pixelToTile: GAME.PIXEL_TO_TILE
+  });
+  const data = createProjectileData({
+    id: state.nextProjectileId++,
+    ownerId: 0,
+    side: 'player',
+    origin: { x: p.x, y: p.y },
+    angle: p.aimYaw,
+    spec,
+    rng,
+    shotIndex: 0,
+    shotCount: spec.shots,
+    pixelToTile: GAME.PIXEL_TO_TILE
+  });
+  const projectile = toSimProjectile(data, 'player', spec.kind);
+  state.projectiles.push(projectile);
+  events.push({ type: 'player-fired', spec });
+  events.push({ type: 'projectile-spawned', projectile });
+}
+
+function stepPlayer(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
+  const p = state.player;
+  const tickDt = SIM_TUNING.TICK_MS / 1000;
+  // Preserve the existing recovery from a stuck/knockback position.
+  const recovered = ensureWalkableFromState(state, { x: p.x, y: p.y });
+  if (recovered.x !== p.x || recovered.y !== p.y) {
+    p.x = recovered.x;
+    p.y = recovered.y;
+    events.push({ type: 'player-moved', position: recovered, velocity: { x: 0, y: 0 }, dashTimer: p.dashTimer, dashStarted: false });
+  }
+  tickPlayerTimers(state, tickDt);
+  if (intent.aim) {
+    const yaw = aimYawFromGrid({ x: p.x, y: p.y }, intent.aim);
+    if (yaw !== null) p.aimYaw = yaw;
+  }
+  if (p.data.hp > 0) {
+    const step = stepPlayerMovement({
+      position: { x: p.x, y: p.y },
+      move: intent.move,
+      dash: intent.dash,
+      speed: p.data.speed,
+      dt: tickDt,
+      dashTimer: p.dashTimer,
+      dashDuration: p.data.dashDuration,
+      isWalkable: (x, y) => isWalkableFromState(state, x, y, PLAYER_RADIUS)
+    });
+    p.x = step.position.x;
+    p.y = step.position.y;
+    p.dashTimer = step.dashTimer;
+    if (step.dashStarted) p.invuln = Math.max(p.invuln, p.data.dashDuration + 0.05);
+    events.push({
+      type: 'player-moved', position: step.position, velocity: step.velocity,
+      dashTimer: step.dashTimer, dashStarted: step.dashStarted
+    });
+    stepPlayerFire(state, intent, rng, events);
+  }
+}
+
+function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): void {
+  for (const drone of state.drones) {
+    if (drone.hp <= 0) continue;
+    // Exact pre-step timer decrements from Enemy.update(), now on the core.
+    drone.data.hitFlash = Math.max(0, drone.data.hitFlash - dt);
+    drone.attackTimer = Math.max(0, drone.attackTimer - dt);
+    drone.wanderTimer -= dt;
+    drone.data.stateTimer -= dt;
+    const step = stepDroneAi({
+      dt,
+      position: { x: drone.x, y: drone.y },
+      player: { x: state.player.x, y: state.player.y },
+      stats: {
+        speed: drone.data.stats.speed,
+        aggroRange: drone.data.stats.aggroRange,
+        attackRange: drone.data.stats.attackRange,
+        attackCooldown: drone.data.stats.attackCooldown,
+        damage: drone.data.stats.damage,
+        ranged: drone.data.stats.ranged,
+        reachEnemy: drone.data.stats.reachEnemy
+      },
+      state: drone.data.state,
+      stateTimer: drone.data.stateTimer,
+      wanderTimer: drone.wanderTimer,
+      attackTimer: drone.attackTimer,
+      patrolPoints: drone.data.patrolPoints,
+      patrolIndex: drone.data.patrolIndex,
+      targetId: drone.data.targetId,
+      isWalkable: (x, y) => isWalkableFromState(state, x, y, PLAYER_RADIUS),
+      pixelToTile: GAME.PIXEL_TO_TILE
+    });
+    drone.x = step.position.x;
+    drone.y = step.position.y;
+    drone.data.state = step.state;
+    drone.data.stateTimer = step.stateTimer;
+    drone.wanderTimer = step.wanderTimer;
+    drone.data.patrolIndex = step.patrolIndex;
+    drone.data.targetId = step.targetId;
+    drone.attackTimer = step.attackTimer;
+    events.push({ type: 'drone-step', droneId: drone.id, step });
+    if (step.attack) {
+      if (step.attack.kind === 'ranged' && step.attack.velocity) {
+        const data = createEnemyProjectileData({
+          id: state.nextProjectileId++, ownerId: drone.id,
+          pos: { x: drone.x, y: drone.y }, damage: step.attack.damage,
+          vel: step.attack.velocity, pixelToTile: GAME.PIXEL_TO_TILE
+        });
+        const projectile = toSimProjectile(data, 'drone', 'plasma');
+        state.projectiles.push(projectile);
+        events.push({ type: 'projectile-spawned', projectile });
+      } else if (step.attack.kind === 'melee') {
+        applyCorePlayerHit(state, drone.x, drone.y, step.attack.damage, events);
+      }
+    }
+  }
+}
+
+function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number, damage: number, events: SimEvent[]): void {
+  const p = state.player;
+  const hit = resolvePlayerHit({
+    hp: p.data.hp,
+    position: { x: p.x, y: p.y },
+    armor: p.data.armor,
+    invuln: p.invuln,
+    damage,
+    source: { x: fromX, y: fromY },
+    isWalkable: (x, y) => isWalkableFromState(state, x, y, PLAYER_RADIUS),
+    pixelToTile: GAME.PIXEL_TO_TILE
+  });
+  events.push({ type: 'player-hurt', damage, hit });
+  if (!hit.blocked) {
+    p.data.hp = hit.hp;
+    p.x = hit.position.x;
+    p.y = hit.position.y;
+    p.invuln = hit.invuln;
+    p.hurtTimer = hit.hurtTimer;
+  }
+  if (p.data.hp <= 0) events.push({ type: 'player-death' });
+}
+
+function stepProjectiles(state: SimulationState, dt: number, events: SimEvent[]): void {
+  const tickDt = dt;
+  const remaining: SimProjectile[] = [];
+  for (const projectile of state.projectiles) {
+    const previous = { ...projectile.pos };
+    const advance = advanceProjectile({
+      pos: projectile.pos,
+      vel: projectile.vel,
+      lifetime: projectile.lifetime,
+      dt: tickDt,
+      tileAt: (x, y) => tileAtFromState(state, x, y),
+      mapWidth: state.map.width,
+      mapHeight: state.map.height
+    });
+    projectile.pos = advance.pos;
+    projectile.lifetime = advance.lifetime;
+    if (advance.expired) {
+      if (advance.hitWall) events.push({ type: 'projectile-wall', x: projectile.pos.x, y: projectile.pos.y });
+      continue;
+    }
+    let alive = true;
+    if (projectile.side === 'player') {
+      for (const drone of state.drones) {
+        if (drone.hp <= 0 || projectile.hitIds.includes(drone.id)) continue;
+        if (!projectileHitsTarget(previous, projectile.pos, { x: drone.x, y: drone.y }, PLAYER_RADIUS, projectile.radius)) continue;
+        const hit = resolveEnemyHit({
+          hp: drone.hp,
+          position: { x: drone.x, y: drone.y },
+          armor: drone.data.stats.armor,
+          stunTimer: drone.data.stunTimer,
+          damage: projectile.damage,
+          source: projectile.pos,
+          isWalkable: (x, y, radius) => isWalkableFromState(state, x, y, radius),
+          pixelToTile: GAME.PIXEL_TO_TILE
+        });
+        events.push({ type: 'enemy-hit', enemyId: drone.id, damage: projectile.damage, crit: projectile.crit, hit });
+        drone.hp = hit.hp;
+        drone.x = hit.position.x;
+        drone.y = hit.position.y;
+        drone.data.hitFlash = hit.hitFlash;
+        if (drone.hp <= 0) events.push({ type: 'enemy-died', enemyId: drone.id, x: drone.x, y: drone.y });
+        if (projectile.pierce > 0) {
+          projectile.pierce--;
+          projectile.hitIds.push(drone.id);
+        } else {
+          alive = false;
+          break;
+        }
+      }
+    } else {
+      const p = state.player;
+      if (p.data.hp > 0 && projectileHitsTarget(previous, projectile.pos, { x: p.x, y: p.y }, PLAYER_RADIUS, projectile.radius)) {
+        applyCorePlayerHit(state, projectile.pos.x, projectile.pos.y, projectile.damage, events);
+        alive = false;
+      }
+    }
+    if (alive) remaining.push(projectile);
+  }
+  state.projectiles = remaining;
+  state.drones = state.drones.filter((drone) => drone.hp > 0);
+}
+
+export function stepSimulationTicks(
+  state: SimulationState,
+  ticks: number,
+  intent: SimulationIntent
+): SimEvent[] {
+  const events: SimEvent[] = [];
+  const dt = SIM_TUNING.TICK_MS / 1000;
+  for (let i = 0; i < ticks; i++) {
+    const rng = new RNG(0);
+    rng.restore(deriveTickRngSeed(state.seed, state.tick));
+    state.rngState = rng.snapshot();
+    stepPlayer(state, intent, rng, events);
+    stepDrones(state, dt, events);
+    stepProjectiles(state, dt, events);
+    state.tick++;
+    state.rngState = rng.snapshot();
+  }
+  return events;
+}
+
+/** Deep serializable copy (no live object references). */
+export function cloneSimulationState(state: SimulationState): SimulationState {
+  return JSON.parse(JSON.stringify(state)) as SimulationState;
+}
+
+/** Canonical first-slice projection for parity. Legacy loot/XP/currency/upgrades
+ *  stay out: they are adapter-side and must not affect the deterministic slice. */
+export interface CanonicalSimulationState {
+  seed: number;
+  tick: number;
+  rngState: number;
+  mapSeed: number;
+  mapMinX: number;
+  mapMinY: number;
+  player: {
+    x: number; y: number;
+    hp: number; maxHp: number; speed: number; damage: number;
+    critChance: number; critDamage: number; pierceCount: number; armor: number;
+    dashDuration: number; cooldownReduced: number; hpRegen: number;
+    dashTimer: number; invuln: number; hurtTimer: number; fireTimer: number; aimYaw: number;
+    weaponKey: string;
+    weapons: Array<{ key: string; level: number; ammo: number; magazine: number; reloading: boolean; reloadTimer: number }>;
+  };
+  drones: SimDroneState[];
+  projectiles: SimProjectile[];
+}
+
+export function canonicalSimulationState(state: SimulationState): string {
+  const d = state.player.data;
+  return JSON.stringify({
+    seed: state.seed,
+    tick: state.tick,
+    rngState: state.rngState,
+    mapSeed: state.map.seed,
+    mapMinX: state.mapMinX,
+    mapMinY: state.mapMinY,
+    player: {
+      x: state.player.x, y: state.player.y,
+      hp: d.hp, maxHp: d.maxHp, speed: d.speed, damage: d.damage,
+      critChance: d.critChance, critDamage: d.critDamage,
+      pierceCount: d.pierceCount, armor: d.armor,
+      dashDuration: d.dashDuration, cooldownReduced: d.cooldownReduced, hpRegen: d.hpRegen,
+      dashTimer: state.player.dashTimer, invuln: state.player.invuln,
+      hurtTimer: state.player.hurtTimer, fireTimer: state.player.fireTimer, aimYaw: state.player.aimYaw,
+      weaponKey: d.weaponKey,
+      weapons: d.weapons.map((w) => ({ ...w }))
+    },
+    drones: state.drones,
+    projectiles: state.projectiles
+  } as CanonicalSimulationState);
+}
+
+function canonicalEventValue(value: unknown): unknown {
+  if (typeof value === 'number') return Number(value.toFixed(9));
+  if (Array.isArray(value)) return value.map(canonicalEventValue);
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) out[k] = canonicalEventValue(v);
+    return out;
+  }
+  return value;
+}
+
+/** Ordered, float-stable event projection (cosmetic 1e-9 rounding only). */
+export function canonicalSimulationEvents(events: SimEvent[]): string {
+  return JSON.stringify(events.map(canonicalEventValue));
+}

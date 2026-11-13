@@ -16,10 +16,11 @@ import type { ControllerActorView, LocalControllerView } from '../ai-native/loca
 import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
 import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
+import { advanceProjectile, projectileHitsTarget } from './sim/rules';
 import {
-  advanceProjectile, createProjectileData, projectileHitsTarget,
-  type WeaponFireSpec
-} from './sim/rules';
+  createSimulationState, registerDrone, stepSimulationTicks, SIM_TUNING,
+  type SimulationIntent, type SimulationState, type SimEvent, type SimProjectile
+} from './sim/core';
 
 export interface WorldCallbacks {
   onLevelUp: (level: number) => void;
@@ -40,9 +41,26 @@ export class World {
   map: MapData;
   player: Player;
   enemies: Enemy[] = [];
-  projectiles: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
-  /** C1 evidence: first projectile produced by the single pure builder. */
-  lastProjectileData: ProjectileData | null = null;
+  /** Legacy-only projectile entries (Boss/other enemy). Public getter combines core views. */
+  private legacyProjectiles: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
+  /** C2: first-slice authority for player/drone/core projectiles. */
+  sim!: SimulationState;
+  private simAccumulatorMs = 0;
+  private coreProjectileViews = new Map<number, { spr: Phaser.GameObjects.Sprite; data: SimProjectile }>();
+
+  /**
+   * Read-compatible combined view for existing regressions: legacy bullets plus
+   * core player/drone bullets. Writing replaces legacy and clears core bullets.
+   */
+  get projectiles(): Array<{ spr: Phaser.GameObjects.Sprite; data: any }> {
+    return [...this.legacyProjectiles, ...this.coreProjectileViews.values()];
+  }
+  set projectiles(value: Array<{ spr: Phaser.GameObjects.Sprite; data: any }>) {
+    this.legacyProjectiles = value;
+    for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
+    this.coreProjectileViews.clear();
+    if (this.sim) this.sim.projectiles = [];
+  }
   loot: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> = [];
   fx: HitFx[] = [];
   private damageTexts: Phaser.GameObjects.Text[] = [];
@@ -78,6 +96,15 @@ export class World {
     const spawn = this.findSpawn();
     this.player = new Player(this, spawn.x, spawn.y, save);
     this.player.id = 0;
+    // C2: create the single first-slice authority. Player.data is the same
+    // object reference; Player getters/setters read and write this state.
+    this.sim = createSimulationState({
+      seed: map.seed,
+      map,
+      playerData: this.player.data,
+      playerX: this.player.wx,
+      playerY: this.player.wy
+    });
     const kb = scene.input.keyboard;
     if (kb) {
       // Register keys by their code name (e.g. 'D') so the KeyboardPlugin stores them
@@ -480,6 +507,13 @@ export class World {
     e._id = this.enemyIdCounter++;
     e.initHp();
     this.enemies.push(e);
+    if (kind === 'drone') {
+      const drone = registerDrone(this.sim, {
+        id: e._id, x: e.x, y: e.y, hp: e._hp, data: e.data,
+        attackTimer: e.attackTimer, wanderTimer: e.wanderTimer
+      });
+      e.attachSimDrone(drone);
+    }
     return e;
   }
 
@@ -492,34 +526,6 @@ export class World {
   }
 
   boss: Boss | null = null;
-
-  spawnProjectile(ownerId: number, x: number, y: number, angle: number, spec: any, side: 'player' | 'enemy'): ProjectileData {
-    // C1: crit / damage / velocity / lifetime / radius come from one pure rule.
-    const weaponSpec = spec as WeaponFireSpec;
-    const shots = weaponSpec.shots ?? 1;
-    const results: ProjectileData[] = [];
-    for (let i = 0; i < shots; i++) {
-      const data = createProjectileData({
-        id: this.projIdCounter++,
-        ownerId,
-        side,
-        origin: { x, y },
-        angle,
-        spec: weaponSpec,
-        rng: this.rng,
-        shotIndex: i,
-        shotCount: shots,
-        pixelToTile: GAME.PIXEL_TO_TILE
-      });
-      this.addProjectileSprite(data, weaponSpec.kind, side === 'enemy');
-      results.push(data);
-    }
-    // Snapshot (not a live reference): C1 evidence of the pure builder output.
-    this.lastProjectileData = results[0]
-      ? { ...results[0], pos: { ...results[0].pos }, vel: { ...results[0].vel }, hitSet: new Set(results[0].hitSet) }
-      : null;
-    return results[0];
-  }
 
   spawnEnemyProjectile(ownerId: number, x: number, y: number, damage: number, vel: Vec2 = { x: 0, y: 0 }): ProjectileData {
     const data: ProjectileData = {
@@ -544,7 +550,7 @@ export class World {
     spr.setDepth(80);
     spr.setScale(enemy ? 1.4 : 1.1);
     if (enemy) spr.setTint(0xff5533);
-    this.projectiles.push({ spr, data });
+    this.legacyProjectiles.push({ spr, data });
   }
 
   spawnLoot(x: number, y: number, kind: ItemKind, key: string, amount: number, bob = Math.random() * Math.PI * 2): void {
@@ -582,17 +588,117 @@ export class World {
 
   // ---------- Update ----------
 
-  update(dt: number): void {
+  /** C2: fixed 60Hz core ticks; render frame delta is only an accumulator input. */
+  stepFrame(frameDeltaMs: number, intent: SimulationIntent): void {
+    const delta = Math.max(0, Math.min(frameDeltaMs, SIM_TUNING.MAX_FRAME_DELTA_MS));
+    this.simAccumulatorMs += delta;
+    // Epsilon: 250ms must yield exactly 15 ticks despite binary rounding.
+    let ticks = Math.floor((this.simAccumulatorMs + 1e-9) / SIM_TUNING.TICK_MS);
+    if (ticks > SIM_TUNING.MAX_TICKS_PER_FRAME) {
+      ticks = SIM_TUNING.MAX_TICKS_PER_FRAME;
+      // Drop the excess instead of catching up on later frames.
+      this.simAccumulatorMs = Math.max(0, this.simAccumulatorMs % SIM_TUNING.TICK_MS);
+    } else {
+      this.simAccumulatorMs = Math.max(0, this.simAccumulatorMs - ticks * SIM_TUNING.TICK_MS);
+    }
+    if (ticks > 0) {
+      const events = stepSimulationTicks(this.sim, ticks, intent);
+      this.applySimEvents(events);
+    }
+    this.syncCoreEntities(delta / 1000);
+    this.updateLegacy(delta / 1000);
+  }
+
+  resetSimulationAccumulator(): void { this.simAccumulatorMs = 0; }
+
+  /** Run exactly N core ticks from a controlled intent (no wall clock). */
+  stepSimulationTicksForTest(ticks: number, intent: SimulationIntent): SimEvent[] {
+    const events = stepSimulationTicks(this.sim, Math.max(0, Math.floor(ticks)), intent);
+    this.applySimEvents(events);
+    this.syncCoreEntities(0);
+    return events;
+  }
+
+  private applySimEvents(events: SimEvent[]): void {
+    for (const event of events) {
+      switch (event.type) {
+        case 'player-moved':
+          if (event.dashStarted) { this.addShake(4); audio.ui(); }
+          break;
+        case 'player-fired':
+          this.player.playFireFeedback(event.spec.kind);
+          break;
+        case 'drone-step': {
+          const enemy = this.enemies.find((e) => e._id === event.droneId);
+          if (enemy && event.step.faceAngle !== null) enemy.sprite.setRotation(event.step.faceAngle);
+          break;
+        }
+        case 'enemy-hit': {
+          const enemy = this.enemies.find((e) => e._id === event.enemyId);
+          if (enemy) {
+            this.addDamageNumber(enemy.x, enemy.y, event.damage, event.crit);
+            this.callbacks.onStats({ enemies: 0, items: 0, dmg: event.damage });
+          }
+          break;
+        }
+        case 'enemy-died': {
+          const enemy = this.enemies.find((e) => e._id === event.enemyId);
+          if (enemy) this.killEnemy(enemy);
+          break;
+        }
+        case 'player-hurt':
+          this.player.syncVisual();
+          audio.hurt();
+          this.addShake(6);
+          break;
+        case 'player-death':
+          this.onPlayerDeath();
+          break;
+        case 'projectile-wall':
+          this.addHitFx(event.x, event.y, 0x88aacc);
+          break;
+      }
+    }
+  }
+
+  private syncCoreEntities(dt: number): void {
+    this.player.syncVisual(dt);
+    for (const drone of this.sim.drones) {
+      const enemy = this.enemies.find((e) => e._id === drone.id);
+      if (enemy) enemy.applyVisual();
+    }
+    const alive = new Set<number>();
+    for (const projectile of this.sim.projectiles) {
+      alive.add(projectile.id);
+      let view = this.coreProjectileViews.get(projectile.id);
+      if (!view) {
+        const screen = this.worldToScreen(projectile.pos.x, projectile.pos.y);
+        const spr = this.scene.add.sprite(screen.x, screen.y, this.projSprite(projectile.kind, projectile.side === 'enemy'));
+        spr.setDepth(80);
+        spr.setScale(projectile.side === 'enemy' ? 1.4 : 1.1);
+        if (projectile.side === 'enemy') spr.setTint(0xff5533);
+        view = { spr, data: projectile };
+        this.coreProjectileViews.set(projectile.id, view);
+      }
+      view.data = projectile;
+      const screen = this.worldToScreen(projectile.pos.x, projectile.pos.y);
+      view.spr.setPosition(screen.x, screen.y);
+    }
+    for (const [id, view] of this.coreProjectileViews) {
+      if (alive.has(id)) continue;
+      if (view.spr.scene) view.spr.destroy();
+      this.coreProjectileViews.delete(id);
+    }
+  }
+
+  private updateLegacy(dt: number): void {
     this.clock += dt;
-    this.player.update(dt);
-    // enemies
     for (const e of this.enemies) {
+      if (e.data.kind === 'drone') continue; // core owns drone FSM and timers
       e.update(dt, this.player);
       e.applyVisual();
     }
-    if (this.boss) {
-      this.boss.update(dt, this.player);
-    }
+    if (this.boss) this.boss.update(dt, this.player);
     this.updateProjectiles(dt);
     this.updateLoot(dt);
     this.updateFx(dt);
@@ -609,7 +715,7 @@ export class World {
 
   private updateProjectiles(dt: number): void {
     const remaining: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
-    for (const p of this.projectiles) {
+    for (const p of this.legacyProjectiles) {
       const prevX = p.data.pos.x;
       const prevY = p.data.pos.y;
       const advance = advanceProjectile({
@@ -672,7 +778,7 @@ export class World {
       if (alive) remaining.push(p);
       else this.destroyProjectileSprite(p);
     }
-    this.projectiles = remaining;
+    this.legacyProjectiles = remaining;
   }
 
   private updateLoot(dt: number): void {
@@ -808,7 +914,9 @@ export class World {
       this.map.rooms[id].cleared = this.map.rooms[id].spawned = true;
       this.enteredRooms.add(id);
     }
-    this.player.data = run.player;
+    // F-08: deep copy the incoming frame before assigning it to the live state.
+    const frame = cloneCheckpoint(run);
+    this.player.data = frame.player;
     // Capture the checkpoint's HP *before* reset(): reset() heals to full, but a
     // resumed run must keep exactly the HP it had when the checkpoint was saved.
     const restoredHp = this.player.data.hp;
@@ -820,6 +928,11 @@ export class World {
     this.currentRoomId = room.id;
     this.placePortal(room, run.portalTarget);
     this.rng.restore(run.rngState);
+    this.sim.tick = 0;
+    this.sim.drones = [];
+    this.sim.projectiles = [];
+    for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
+    this.coreProjectileViews.clear();
     for (const drop of run.loot) this.spawnLoot(drop.x, drop.y, drop.kind, drop.key, drop.amount, drop.bob);
     return true;
   }
@@ -827,8 +940,12 @@ export class World {
   reset(): void {
     for (const e of this.enemies) e.sprite.destroy();
     this.enemies = [];
-    for (const p of this.projectiles) p.spr.destroy();
-    this.projectiles = [];
+    for (const p of this.legacyProjectiles) p.spr.destroy();
+    this.legacyProjectiles = [];
+    for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
+    this.coreProjectileViews.clear();
+    this.sim.drones = [];
+    this.sim.projectiles = [];
     for (const l of this.loot) l.spr.destroy();
     this.loot = [];
     this.boss = null;

@@ -13,10 +13,7 @@ import {
   type ControlOwner, type PlayerIntent
 } from '../ai-native/control';
 import { LocalDeterministicController } from '../ai-native/localController';
-import {
-  aimYawFromGrid, buildWeaponSpec, damageAfterArmor, stepPlayerMovement,
-  type PlayerMoveResult, type WeaponFireSpec
-} from '../world/sim/rules';
+import { aimYawFromGrid, resolvePlayerHit } from '../world/sim/rules';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -26,7 +23,7 @@ export interface WeaponFire {
 
 export class Player {
   sprite: Phaser.GameObjects.Sprite;
-  data: PlayerData;
+  private _data: PlayerData;
   input: { up: boolean; down: boolean; left: boolean; right: boolean };
   id = 0;
   respawn = false;
@@ -36,24 +33,41 @@ export class Player {
   /** Last intent actually executed this frame (read-only HUD / evidence truth). */
   lastIntent: PlayerIntent = neutralIntent();
   lastIntentOwner: ControlOwner = 'human';
-  /** C1 evidence: last pure-rule results actually applied by this Phaser player. */
-  lastMoveStep: PlayerMoveResult | null = null;
-  lastWeaponSpec: WeaponFireSpec | null = null;
   private aiController = new LocalDeterministicController();
   private lastIntentOwnerSeen: ControlOwner = 'human';
   private _interactQueued = false;
 
-  wx: number;
-  wy: number;
+  private _wx: number;
+  private _wy: number;
 
-  private fireTimer = 0;
-  private dashTimer = 0;
-  private invuln = 0;
-  private hurtTimer = 0;
+  private _fireTimer = 0;
+  private _dashTimer = 0;
+  private _invuln = 0;
+  private _hurtTimer = 0;
   private keys: any = null;
   private cursors: any = null;
-  private aimYaw = 0;
+  private _aimYaw = 0;
   private whaleEffects?: WhaleCharacterEffects;
+
+  /** C2: player state is owned by World.sim.player after construction. */
+  get data(): PlayerData { return this.world.sim ? this.world.sim.player.data : this._data; }
+  set data(value: PlayerData) {
+    if (this.world.sim) this.world.sim.player.data = value; else this._data = value;
+  }
+  get wx(): number { return this.world.sim ? this.world.sim.player.x : this._wx; }
+  set wx(value: number) { if (this.world.sim) this.world.sim.player.x = value; else this._wx = value; }
+  get wy(): number { return this.world.sim ? this.world.sim.player.y : this._wy; }
+  set wy(value: number) { if (this.world.sim) this.world.sim.player.y = value; else this._wy = value; }
+  get fireTimer(): number { return this.world.sim ? this.world.sim.player.fireTimer : this._fireTimer; }
+  set fireTimer(v: number) { if (this.world.sim) this.world.sim.player.fireTimer = v; else this._fireTimer = v; }
+  get dashTimer(): number { return this.world.sim ? this.world.sim.player.dashTimer : this._dashTimer; }
+  set dashTimer(v: number) { if (this.world.sim) this.world.sim.player.dashTimer = v; else this._dashTimer = v; }
+  get invuln(): number { return this.world.sim ? this.world.sim.player.invuln : this._invuln; }
+  set invuln(v: number) { if (this.world.sim) this.world.sim.player.invuln = v; else this._invuln = v; }
+  get hurtTimer(): number { return this.world.sim ? this.world.sim.player.hurtTimer : this._hurtTimer; }
+  set hurtTimer(v: number) { if (this.world.sim) this.world.sim.player.hurtTimer = v; else this._hurtTimer = v; }
+  get aimYaw(): number { return this.world.sim ? this.world.sim.player.aimYaw : this._aimYaw; }
+  set aimYaw(v: number) { if (this.world.sim) this.world.sim.player.aimYaw = v; else this._aimYaw = v; }
 
   constructor(public world: World, x: number, y: number, private save: ReturnType<SaveSystem['load']>) {
     const stats = basePlayerData();
@@ -83,7 +97,7 @@ export class Player {
       return { key, level: 1, ammo: magazine, magazine, reloading: false, reloadTimer: 0 };
     });
     const weaponKey = weaponKeys.includes('pulse') ? 'pulse' : weaponKeys[0];
-    this.data = {
+    this._data = {
       ...stats, level: 1, xp: 0, xpToNext: 30, currency: 0,
       weaponKey,
       weapons,
@@ -96,9 +110,9 @@ export class Player {
       this.sprite.setScale(0.61).setOrigin(0.46, 0.91);
       this.whaleEffects = new WhaleCharacterEffects(this.sprite);
     }
-    this.aimYaw = 0;
-    this.wx = x;
-    this.wy = y;
+    this._aimYaw = 0;
+    this._wx = x;
+    this._wy = y;
     this.input = { up: false, down: false, left: false, right: false };
     // Place the sprite at its projected display position on the very first frame.
     this.project();
@@ -111,6 +125,15 @@ export class Player {
     const s = this.world.worldToScreen(this.wx, this.wy);
     this.sprite.setPosition(s.x, s.y);
     this.whaleEffects?.project();
+  }
+  /** C2: visual-only sync after a core tick; no rule state is written here. */
+  syncVisual(dt = 0): void {
+    const previousX = this.sprite.x;
+    const previousY = this.sprite.y;
+    this.project();
+    this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
+    if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
+    else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }
   }
   get alive(): boolean { return this.data.hp > 0; }
   getRadius(): number { return 0.5; }
@@ -182,78 +205,14 @@ export class Player {
     return this.world.isWalkable(nx, ny, this.getRadius());
   }
 
-  update(dt: number): void {
-    if (this.respawn) return;
-    // Recover from an old or rare knockback that left the player outside walkable tiles.
-    this.ensureWalkable();
-    this.fireTimer = Math.max(0, this.fireTimer - dt);
-    // Tick each weapon's reload timer here: tryFire starts a reload when a
-    // magazine weapon runs dry, but nothing else ever counts it down, which
-    // otherwise leaves that weapon permanently unable to fire. Weapons with
-    // magazine <= 0 (e.g. pulse) never enter reloading, so they are untouched.
-    for (const ws of this.data.weapons) {
-      if (!ws.reloading) continue;
-      ws.reloadTimer -= dt;
-      if (ws.reloadTimer <= 0) {
-        ws.reloading = false;
-        ws.reloadTimer = 0;
-        ws.ammo = ws.magazine;
-      }
-    }
-    this.invuln = Math.max(0, this.invuln - dt);
-    this.hurtTimer = Math.max(0, this.hurtTimer - dt);
-    if (this.data.hpRegen > 0 && this.data.hp < this.data.maxHp) {
-      this.data.hp = Math.min(this.data.maxHp, this.data.hp + this.data.hpRegen * dt);
-    }
-
+  /** C2: sample exactly one intent per rendered frame; core steps it at 60Hz. */
+  sampleIntent(): PlayerIntent {
     this.updateKeys();
     this.detectHumanTakeover();
     const intent = this.resolveIntent();
     this.lastIntent = intent;
     this.lastIntentOwner = this.control.owner;
-    this.applyIntent(dt, intent);
-  }
-
-  /**
-   * Single legal execution path. Human keyboard input and the local
-   * deterministic controller both produce a PlayerIntent and land here; the
-   * controller never writes coordinates or HP directly.
-   */
-  private applyIntent(dt: number, intent: PlayerIntent): void {
-    const previousX = this.sprite.x;
-    const previousY = this.sprite.y;
-    // C1: movement / axis-separated collision / dash budget is one pure rule.
-    const step = stepPlayerMovement({
-      position: { x: this.wx, y: this.wy },
-      move: intent.move,
-      dash: intent.dash,
-      speed: this.data.speed,
-      dt,
-      dashTimer: this.dashTimer,
-      dashDuration: this.data.dashDuration,
-      isWalkable: (x, y) => this.isWalkable(x, y)
-    });
-    this.lastMoveStep = step;
-    this.wx = step.position.x;
-    this.wy = step.position.y;
-    this.dashTimer = step.dashTimer;
-    if (step.dashStarted) {
-      this.invuln = Math.max(this.invuln, this.data.dashDuration + 0.05);
-      this.world.addShake(4);
-      audio.ui();
-    }
-
-    this.project();
-    this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
-    // visuals
-    if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
-    else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }
-
-    // Aim: the human pointer adapter and the controller both call setAimGrid,
-    // so their shots use the same aimYaw and the same tryFire path.
-    if (intent.aim) this.setAimGrid(intent.aim.x, intent.aim.y);
-    if (intent.interact) this.world.tryInteract(this);
-    this.tryFire(intent.fire);
+    return intent;
   }
 
   /** Resolve this frame's intent from whoever currently owns control. */
@@ -290,7 +249,7 @@ export class Player {
     }
   }
 
-  /** Dev/interaction adapter used by the F key: queued and executed in applyIntent. */
+  /** Dev/interaction adapter used by the F key: queued and executed after a core frame. */
   requestInteract(): void { this._interactQueued = true; }
 
   /** Drop residual held input on pause / resume / death / scene exit. */
@@ -309,45 +268,13 @@ export class Player {
     this.input.right = down(k.D);
   }
 
-  private fireCooldown(): number {
-    const w = this.weapon;
-    const red = Math.min(0.9, this.data.cooldownReduced);
-    return (1 / w.baseRate) / (1 - red);
-  }
-
-  private tryFire(fireHeld: boolean): void {
-    if (!fireHeld || !this.alive) return;
-    if (this.fireTimer > 0) return;
-    const w = this.weapon;
-    let ws = this.data.weapons.find((w2) => w2.key === this.data.weaponKey);
-    if (!ws) {
-      const def = w;
-      ws = { key: this.data.weaponKey, level: 1, ammo: def.magazine ?? -1, magazine: def.magazine ?? -1, reloading: false, reloadTimer: 0 };
-      this.data.weapons.push(ws);
-    }
-    if (ws.magazine > 0) {
-      if (ws.reloading) return;
-      if (ws.ammo <= 0) { ws.reloading = true; ws.reloadTimer = w.reloadTime ?? 1; return; }
-    }
-    this.fireTimer = this.fireCooldown();
-    if (ws.magazine > 0) ws.ammo--;
-    // C1: weapon spec comes from the single pure builder (real WEAPONS config).
-    const spec = buildWeaponSpec({
-      weapon: w,
-      damageMultiplier: this.data.damage,
-      critChance: this.data.critChance,
-      critDamage: this.data.critDamage,
-      pierceCount: this.data.pierceCount,
-      magazine: ws.magazine,
-      pixelToTile: GAME.PIXEL_TO_TILE
-    });
-    this.lastWeaponSpec = spec;
-    this.world.spawnProjectile(0, this.x, this.y, this.aimYaw, spec, 'player');
+  /** Adapter feedback for a core `player-fired` event (no rule execution here). */
+  playFireFeedback(kind: string): void {
     if (this.whaleEffects) {
       const aim = this.world.worldToScreen(this.x + Math.cos(this.aimYaw), this.y + Math.sin(this.aimYaw));
       this.whaleEffects.fire(aim.x - this.sprite.x, aim.y - this.sprite.y);
     }
-    audio.shoot(w.kind);
+    audio.shoot(kind as any);
   }
 
   // external fire flag, set by scene on mousedown
@@ -356,20 +283,22 @@ export class Player {
   setFireHeld(v: boolean): void { this._fireHeld = v; }
 
   hurt(amount: number, fromX: number, fromY: number): boolean {
-    if (this.invuln > 0 || !this.alive) return false;
-    const dmg = damageAfterArmor(amount, this.data.armor);
-    this.data.hp = Math.max(0, this.data.hp - dmg);
-    this.hurtTimer = 0.2;
-    this.invuln = Math.max(this.invuln, 0.3);
-    // Knockback is a small collision-checked nudge. The old 6-tile jump could
-    // teleport the player through a wall and leave them permanently stuck.
-    const dx = this.wx - fromX, dy = this.wy - fromY;
-    const d = Math.hypot(dx, dy) || 1;
-    const knockback = 24 / GAME.PIXEL_TO_TILE;
-    const nx = this.wx + (dx / d) * knockback;
-    const ny = this.wy + (dy / d) * knockback;
-    if (this.isWalkable(nx, this.wy)) this.wx = nx;
-    if (this.isWalkable(this.wx, ny)) this.wy = ny;
+    const hit = resolvePlayerHit({
+      hp: this.data.hp,
+      position: { x: this.wx, y: this.wy },
+      armor: this.data.armor,
+      invuln: this.invuln,
+      damage: amount,
+      source: { x: fromX, y: fromY },
+      isWalkable: (x, y) => this.isWalkable(x, y),
+      pixelToTile: GAME.PIXEL_TO_TILE
+    });
+    if (hit.blocked) return false;
+    this.data.hp = hit.hp;
+    this.wx = hit.position.x;
+    this.wy = hit.position.y;
+    this.invuln = hit.invuln;
+    this.hurtTimer = hit.hurtTimer;
     this.ensureWalkable();
     this.project();
     audio.hurt();

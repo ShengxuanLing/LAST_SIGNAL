@@ -6,10 +6,8 @@ import { clamp, unit, angleDiff } from '../core/random';
 import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { Player } from './Player';
-import {
-  axisSlideToward, distanceWithin, rangedAttackDescriptor, resolveEnemyHit, stepDroneAi,
-  type DroneAiResult, type EnemyHitResult
-} from '../world/sim/rules';
+import { axisSlideToward, distanceWithin, rangedAttackDescriptor, resolveEnemyHit } from '../world/sim/rules';
+import type { SimDroneState } from '../world/sim/core';
 
 export interface EnemySpec {
   kind: EnemyKind; x: number; y: number; room: number; depth: number;
@@ -18,13 +16,38 @@ export interface EnemySpec {
 // General enemy FSM. Boss is handled in a subclass for phased attacks.
 export class Enemy {
   sprite: Phaser.GameObjects.Sprite;
-  data: EnemyData;
-  wx: number;
-  wy: number;
-  // per-enemy attack timer
-  private attackTimer = 0;
-  private wanderTimer = 0;
+  private _data!: EnemyData;
+  private _wx: number;
+  private _wy: number;
+  private __hp = 0;
+  private _attackTimer = 0;
+  private _wanderTimer = 0;
   private hitDir = { x: 0, y: 0 };
+  /** C2: drone state is owned by World.sim.drones; other kinds stay legacy. */
+  private simDrone: SimDroneState | null = null;
+
+  get data(): EnemyData { return this.simDrone ? this.simDrone.data : this._data; }
+  set data(value: EnemyData) { if (this.simDrone) this.simDrone.data = value; else this._data = value; }
+  get wx(): number { return this.simDrone ? this.simDrone.x : this._wx; }
+  set wx(value: number) { if (this.simDrone) this.simDrone.x = value; else this._wx = value; }
+  get wy(): number { return this.simDrone ? this.simDrone.y : this._wy; }
+  set wy(value: number) { if (this.simDrone) this.simDrone.y = value; else this._wy = value; }
+  get _hp(): number { return this.simDrone ? this.simDrone.hp : this.__hp; }
+  set _hp(value: number) { if (this.simDrone) this.simDrone.hp = value; else this.__hp = value; }
+  get attackTimer(): number { return this.simDrone ? this.simDrone.attackTimer : this._attackTimer; }
+  set attackTimer(value: number) { if (this.simDrone) this.simDrone.attackTimer = value; else this._attackTimer = value; }
+  get wanderTimer(): number { return this.simDrone ? this.simDrone.wanderTimer : this._wanderTimer; }
+  set wanderTimer(value: number) { if (this.simDrone) this.simDrone.wanderTimer = value; else this._wanderTimer = value; }
+
+  attachSimDrone(state: SimDroneState): void {
+    state.data = this._data;
+    state.x = this._wx;
+    state.y = this._wy;
+    state.hp = this.__hp;
+    state.attackTimer = this._attackTimer;
+    state.wanderTimer = this._wanderTimer;
+    this.simDrone = state;
+  }
 
   constructor(public world: World, kind: EnemyKind, x: number, y: number, room: number, depth: number) {
     const base = ENEMY_STATS[kind];
@@ -41,8 +64,8 @@ export class Enemy {
     stats.attackRange /= TILE;
     this.sprite = world.scene.add.sprite(x, y, this.texture(kind));
     this.sprite.setDepth(90);
-    this.wx = x;
-    this.wy = y;
+    this._wx = x;
+    this._wy = y;
     this.data = {
       kind, stats, state: 'idle', stateTimer: 0, targetId: null,
       patrolPoints: [], patrolIndex: 0, hitFlash: 0, stunTimer: 0, spawnRoom: room
@@ -82,78 +105,25 @@ export class Enemy {
 
   // HP stored on sprite? We'll keep hp in a parallel field.
   get hp(): number { return this._hp; }
-  _hp = 0;
-  /** C1 evidence: last pure drone FSM / hit results applied by this Phaser enemy. */
-  lastDroneStep: DroneAiResult | null = null;
-  lastHitResult: EnemyHitResult | null = null;
 
   initHp(): void { this._hp = this.data.stats.maxHp; }
 
   update(dt: number, player: Player): void {
-    if (this._hp <= 0) return;
+    // C2: drone timers/FSM/projectiles are owned by World.sim (fixed ticks).
+    if (this.data.kind === 'drone') return;
+    if (this.__hp <= 0) return;
     this.data.hitFlash = Math.max(0, this.data.hitFlash - dt);
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     this.wanderTimer -= dt;
     this.data.stateTimer -= dt;
-    // C1: drone rules come from the single pure FSM; every other enemy kind
-    // still uses the legacy generic FSM below (no duplicate drone authority).
-    if (this.data.kind === 'drone') {
-      const step = stepDroneAi({
-        dt,
-        position: { x: this.wx, y: this.wy },
-        player: { x: player.x, y: player.y },
-        stats: {
-          speed: this.data.stats.speed,
-          aggroRange: this.data.stats.aggroRange,
-          attackRange: this.data.stats.attackRange,
-          attackCooldown: this.data.stats.attackCooldown,
-          damage: this.data.stats.damage,
-          ranged: this.data.stats.ranged,
-          reachEnemy: this.data.stats.reachEnemy
-        },
-        state: this.data.state,
-        stateTimer: this.data.stateTimer,
-        wanderTimer: this.wanderTimer,
-        attackTimer: this.attackTimer,
-        patrolPoints: this.data.patrolPoints,
-        patrolIndex: this.data.patrolIndex,
-        targetId: this.data.targetId,
-        isWalkable: (x, y) => this.world.isWalkable(x, y),
-        pixelToTile: GAME.PIXEL_TO_TILE
-      });
-      this.lastDroneStep = step;
-      this.applyDroneStep(step, player);
-    } else {
-      this.legacyStateMachine(dt, player);
-    }
-  }
-
-  /** Adapter side of the pure drone step: sprites, projectiles, hurt calls. */
-  private applyDroneStep(step: DroneAiResult, player: Player): void {
-    this.wx = step.position.x;
-    this.wy = step.position.y;
-    this.data.state = step.state;
-    this.data.stateTimer = step.stateTimer;
-    this.wanderTimer = step.wanderTimer;
-    this.data.patrolIndex = step.patrolIndex;
-    this.data.targetId = step.targetId;
-    this.attackTimer = step.attackTimer;
-    if (step.faceAngle !== null) this.sprite.setRotation(step.faceAngle);
-    if (step.attack) {
-      if (step.attack.kind === 'ranged' && step.attack.velocity) {
-        this.world.spawnEnemyProjectile(this.id, this.x, this.y, step.attack.damage, step.attack.velocity);
-      } else if (step.attack.kind === 'melee') {
-        player.hurt(step.attack.damage, this.x, this.y);
-      }
-    }
-    this.project();
+    this.legacyStateMachine(dt, player);
   }
 
   private inRange(player: Player, range: number): boolean {
     return distanceWithin({ x: this.x, y: this.y }, { x: player.x, y: player.y }, range);
   }
 
-  /** Non-drone kinds only; drone is dispatched to stepDroneAi() above. */
+  /** Non-drone kinds only; drone FSM is owned by World.sim/core. */
   private legacyStateMachine(dt: number, player: Player): void {
     switch (this.data.state) {
       case 'idle':
@@ -278,7 +248,6 @@ export class Enemy {
       isWalkable: (x, y, radius) => this.world.isWalkable(x, y, radius),
       pixelToTile: GAME.PIXEL_TO_TILE
     });
-    this.lastHitResult = result;
     if (result.blocked) return false;
     this._hp = result.hp;
     this.data.hitFlash = result.hitFlash;

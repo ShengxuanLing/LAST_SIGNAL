@@ -358,14 +358,15 @@ export class GameScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (this.paused) return;
-    const dt = Math.max(0, delta) / 1000;
-    this.world.update(dt);
-    if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
-
-    // aim from last pointer
+    // C2: sample one intent per rendered frame, then step the single core at
+    // fixed 60Hz ticks. Paused/level-up/inventory frames do not accumulate.
     const ptr = this.input.activePointer;
     this.world.player.aimFromPointer(ptr);
     this.world.player.setFireHeld(this.fireHeld);
+    const intent = this.world.player.sampleIntent();
+    this.world.stepFrame(delta, intent);
+    if (intent.interact) this.world.tryInteract(this.world.player);
+    if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
 
     // camera follows player (Phaser 3.90: Camera.follow removed -> manual scroll lerp)
     const px = this.world.player.sprite.x, py = this.world.player.sprite.y;
@@ -506,6 +507,7 @@ export class GameScene extends Phaser.Scene {
     this.world.player.control.pause();
     this.world.player.clearHeldInput();
     this.refreshHud();
+    this.world.resetSimulationAccumulator();
     this.cameras.main.setAlpha(0.5);
     this.scene.launch('LevelUpScene', { level, onClose: () => this.onLevelUpClosed() });
   }
@@ -522,6 +524,7 @@ export class GameScene extends Phaser.Scene {
       this.world.player.control.resume();
       this.world.player.clearHeldInput();
       this.refreshHud();
+      this.world.resetSimulationAccumulator();
       this.cameras.main.setAlpha(1);
     }
   }
@@ -558,6 +561,7 @@ export class GameScene extends Phaser.Scene {
     this.levelUpActive = false;
     // Death ends the run: hand ownership back to the human and drop AI state.
     this.world.player.control.onDeath();
+    this.world.resetSimulationAccumulator();
     this.world.player.clearHeldInput();
     this.fireHeld = false;
     audio.death();
@@ -571,6 +575,7 @@ export class GameScene extends Phaser.Scene {
     if (this.runFinished) return;
     this.runFinished = true;
     this.world.player.control.onRunEnd();
+    this.world.resetSimulationAccumulator();
     this.world.player.clearHeldInput();
     this.fireHeld = false;
     const stats = this.runStats();
@@ -603,10 +608,12 @@ export class GameScene extends Phaser.Scene {
     this.world.player.clearHeldInput();
     this.fireHeld = false;
     this.refreshHud();
+    this.world.resetSimulationAccumulator();
     this.scene.launch('PauseScene', { mode: 'pause' });
   }
 
   onResume(): void {
+    this.world.resetSimulationAccumulator();
     this.paused = false;
     this.world.player.control.resume();
     this.world.player.clearHeldInput();
@@ -647,6 +654,7 @@ export class GameScene extends Phaser.Scene {
     this.world.player.clearHeldInput();
     this.fireHeld = false;
     this.refreshHud();
+    this.world.resetSimulationAccumulator();
     this.scene.launch('PauseScene', { mode: 'inventory' });
   }
 }

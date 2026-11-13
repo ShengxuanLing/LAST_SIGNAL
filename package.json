@@ -19,7 +19,8 @@
     "game:agent-client": "vite-node src/ai-native/agentClient.mts",
     "game:replay-p4": "vite-node src/ai-native/replayPlayerTrace.mts",
     "game:coop-demo": "vite-node src/ai-native/coopDemo.mts",
-    "game:budget-client": "vite-node src/ai-native/budgetClient.mts"
+    "game:budget-client": "vite-node src/ai-native/budgetClient.mts",
+    "game:sim:parity": "vite-node scripts/c2-node-parity.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",

@@ -127,10 +127,8 @@ async function state(page: Page) {
       playerFireHeld: gs.world.player.fireHeld(),
       inputFlags: { ...gs.world.player.input },
       weaponKey: gs.world.player.data.weaponKey,
-      lastMoveStep: gs.world.player.lastMoveStep,
-      lastWeaponSpec: gs.world.player.lastWeaponSpec,
-      lastProjectileData: gs.world.lastProjectileData,
       visibilityBasis: gs.world.observationView().visibilityBasis,
+      aiPathStats: (window as any).__aiPathStats ?? null,
       room: gs.world.currentRoom()?.kind ?? null,
       hpBarText: gs.txtHp.text,
       txtControl: gs.txtControl.text,
@@ -295,6 +293,26 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
 
     await clickLogical(page, 640, 540);
     await page.waitForTimeout(550);
+    // Passive in-page sampler: records real core positions every 50ms so a fast
+    // travel burst is not lost to Node<->browser round-trip latency.
+    await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const stats: any = { samples: 0, pathLength: 0, transitions: 0, maxStep: 0, legalSamples: 0, prev: null };
+      (window as any).__aiPathStats = stats;
+      (window as any).__aiPathTimer = setInterval(() => {
+        const w = gs.world;
+        const p = { x: w.sim.player.x, y: w.sim.player.y, room: w.currentRoom()?.kind ?? null };
+        if (stats.prev) {
+          const d = Math.hypot(p.x - stats.prev.x, p.y - stats.prev.y);
+          if (p.room !== stats.prev.room) stats.transitions++;
+          else { stats.pathLength += d; stats.maxStep = Math.max(stats.maxStep, d); }
+        }
+        stats.prev = p;
+        stats.samples++;
+        if (w.isWalkable(p.x, p.y, 0.5)) stats.legalSamples++;
+      }, 50);
+    });
     st = await state(page);
     expect(st!.aiEnabled, 'AI enabled while paused').toBe(true);
     expect(st!.owner, 'owner flips to AI').toBe('ai');
@@ -302,7 +320,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     record('ai-enabled-paused', { owner: st!.owner, paused: st!.paused, aiEnabled: st!.aiEnabled });
 
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(320);
     st = await state(page);
     expect(st!.paused, 'game resumed').toBe(false);
     expect(st!.owner, 'AI owns the live run').toBe('ai');
@@ -315,8 +333,8 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     // interact (World.tryInteract), but wait up to a bounded window for those
     // conditions instead of assuming a fixed 14-frame window always contains them.
     const samples: Array<Record<string, unknown>> = [];
-    const MAX_SAMPLES = 40;
-    const MIN_SAMPLES = 10;
+    const MAX_SAMPLES = 80;
+    const MIN_SAMPLES = 20;
     let pathLength = 0;
     let previous: { x: number; y: number; room: string | null } | null = null;
     let maxStep = 0;
@@ -336,7 +354,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
         await page.keyboard.press('1');
         await page.waitForTimeout(400);
       }
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(100);
       const s = await state(page);
       if (s!.owner !== 'ai') break;
       if (previous) {
@@ -364,28 +382,37 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
         hp: s!.hp, damage: s!.damage, active: s!.active
       });
       if (i % 3 === 0) await page.screenshot({ path: path.join(OUT, `ai-run-${String(i).padStart(2, '0')}.png`) });
-      const motionValid = movingSamples >= 3 && pathLength > 1.5 && maxStep < 3.2;
-      const interactionValid = portalTransitions > 0 || interactSamples > 0;
+      const stats = s!.aiPathStats;
+      const motionValid = !!stats && stats.pathLength > 1.5 && stats.maxStep > 0.1 && stats.maxStep < 3.2;
+      const interactionValid = (!!stats && stats.transitions > 0) || interactSamples > 0;
       if (i >= MIN_SAMPLES - 1 && motionValid && interactionValid) {
         boundedWaitExhausted = false;
         break;
       }
     }
+    const aiPathStats = await page.evaluate(() => {
+      clearInterval((window as any).__aiPathTimer);
+      const stats = (window as any).__aiPathStats;
+      return stats ? { ...stats, prev: undefined } : null;
+    });
     record('ai-samples', {
       samples, pathLength, maxStep, movingSamples, interactSamples, legalSamples,
-      portalTransitions, portalJumps, rooms: [...seenRooms], levelUpChoices,
+      portalTransitions, portalJumps, rooms: [...seenRooms], levelUpChoices, aiPathStats,
       boundedWindow: { min: MIN_SAMPLES, max: MAX_SAMPLES, exhausted: boundedWaitExhausted }
     });
     st = await state(page);
 
     // Observable movement: thresholds unchanged, now supported by a bounded wait.
     const actions = new Set(samples.map((s) => String(s.action)).filter((a) => a !== 'null'));
-    expect(movingSamples, 'AI produced multiple intents with non-zero movement').toBeGreaterThan(2);
-    expect(pathLength, 'AI actually walked through the World').toBeGreaterThan(1.5);
-    expect(maxStep, 'no collision-skipping jump between same-room samples').toBeLessThan(3.2);
-    expect(legalSamples, 'every sampled position stayed walkable').toBe(samples.length);
+    // Movement is asserted from actual sampled displacement, not intent count:
+    // a fast travel burst can teleport before many samples report move != 0.
+    expect(aiPathStats, 'in-page 50ms sampler exists').not.toBeNull();
+    expect(aiPathStats!.pathLength, 'AI actually walked through the World (50ms sampler)').toBeGreaterThan(1.5);
+    expect(aiPathStats!.maxStep, 'AI produced a real movement step (50ms sampler)').toBeGreaterThan(0.1);
+    expect(aiPathStats!.maxStep, 'no collision-skipping jump between in-page samples').toBeLessThan(3.2);
+    expect(aiPathStats!.legalSamples, 'every in-page sampled position stayed walkable').toBe(aiPathStats!.samples);
     expect(boundedWaitExhausted, 'bounded wait found valid continuous motion + real interaction').toBe(false);
-    expect(portalTransitions > 0 || interactSamples > 0,
+    expect(aiPathStats!.transitions > 0 || interactSamples > 0,
       'real portal interaction (World.tryInteract) observed, not simulated').toBe(true);
     if (portalTransitions > 0) {
       // Portal transitions are legal World.tryInteract room changes, so they
@@ -404,7 +431,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     record('ai-summary', {
       aiActionCount: st!.aiActionCount, lastAiAction: st!.lastAiAction, lastAiTarget: st!.lastAiTarget,
       movedTo: st!.grid, room: st!.room, enemies: st!.enemies, pathLength, maxStep, movingSamples,
-      interactSamples, portalTransitions, samples: samples.length,
+      interactSamples, portalTransitions, samples: samples.length, aiPathStats,
       boundedWaitExhausted, seenRooms: [...seenRooms]
     });
     await page.screenshot({ path: path.join(OUT, 'ai-active-hud-1280x720.png') });
@@ -1095,49 +1122,71 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       (window as any).__c1EnemyId = enemy._id;
       return {
         enemyId: enemy._id, enemyHp: enemy._hp, target,
-        player: { x: pl.wx, y: pl.wy }, speed: pl.data.speed
+        player: { x: pl.wx, y: pl.wy }, speed: pl.data.speed, tick: w.sim.tick
       };
     });
     expect(setup.enemyId, 'real drone spawned').toBeGreaterThan(0);
     expect(setup.enemyHp).toBeGreaterThan(0);
-    record('c1-fixture', { reason: 'one spawned drone + real keyboard/mouse; no i-frames/HP fixture', setup });
+    record('c1-fixture', { reason: 'one spawned drone + real keyboard/mouse; no i-frames/HP fixture; C2 core state is authoritative', setup });
 
-    // Movement: the Phaser player stores the pure stepPlayerMovement result.
+    // Movement is owned by the fixed-tick core; real KeyD must move that state.
     await page.keyboard.down('KeyD');
-    await page.waitForTimeout(180);
-    const moved = await state(page);
+    await page.waitForTimeout(200);
+    const moved = await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const w = gs.world;
+      return {
+        x: w.sim.player.x, y: w.sim.player.y, tick: w.sim.tick,
+        walkable: w.isWalkable(w.sim.player.x, w.sim.player.y, 0.5)
+      };
+    });
     await page.keyboard.up('KeyD');
-    expect(moved!.lastMoveStep, 'Player called stepPlayerMovement').not.toBeNull();
-    const v = moved!.lastMoveStep!.velocity;
-    expect(Math.hypot(v.x, v.y), 'pure velocity non-zero').toBeGreaterThan(0);
-    expect(v.x, 'anisotropic screen-right budget').toBeCloseTo(-v.y, 6);
-    expect(Math.hypot(v.x, v.y)).toBeCloseTo(setup.speed * Math.SQRT2 / 64, 3);
+    expect(moved.tick, 'core advanced under real input').toBeGreaterThan(setup.tick);
+    expect(Math.hypot(moved.x - setup.player.x, moved.y - setup.player.y), 'core player moved').toBeGreaterThan(0.1);
+    expect(moved.walkable, 'core player stayed walkable').toBe(true);
 
-    // Drone FSM: the Phaser enemy stores the pure stepDroneAi result.
+    // Drone FSM/state is the same live core state, not an adapter mirror.
     await page.waitForTimeout(500);
     const droneStep = await page.evaluate(() => {
-      const e: any = (window as any).__c1Enemy;
-      return e ? e.lastDroneStep : null;
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const w = gs.world;
+      const d = w.sim.drones.find((x: any) => x.id === (window as any).__c1EnemyId);
+      return d ? { id: d.id, x: d.x, y: d.y, hp: d.hp, state: d.data.state, tick: w.sim.tick } : null;
     });
-    expect(droneStep, 'Enemy called stepDroneAi').not.toBeNull();
+    expect(droneStep, 'Enemy is backed by World.sim.drones').not.toBeNull();
     expect(droneStep.state).toBeTruthy();
 
-    // Aim + real mouse fire: pure weapon spec / projectile builder / swept hit.
+    // Aim + real mouse fire: core projectile + swept hit + core drone HP.
     const aim = await gridToCss(page, setup.target.x, setup.target.y);
     await page.mouse.move(Math.round(aim.x), Math.round(aim.y));
     await page.mouse.down();
+    let seenProjectile: any = null;
+    for (let i = 0; i < 12 && !seenProjectile; i++) {
+      await page.waitForTimeout(60);
+      seenProjectile = await page.evaluate(() => {
+        const g: any = (window as any).__game;
+        const gs: any = g.scene.getScene('GameScene');
+        const p = gs.world.sim.projectiles.find((x: any) => x.source === 'player');
+        return p ? {
+          damage: p.damage, crit: p.crit, vel: p.vel, lifetime: p.lifetime,
+          radius: p.radius, pos: p.pos, source: p.source
+        } : null;
+      });
+    }
     await page.waitForTimeout(1200);
     await page.mouse.up();
     await page.waitForTimeout(250);
     const fired = await page.evaluate(() => {
       const g: any = (window as any).__game;
       const gs: any = g.scene.getScene('GameScene');
-      const w = gs.world, pl = w.player, e: any = (window as any).__c1Enemy;
+      const w = gs.world, pl = w.player;
       const def = pl.weapon;
       const data = pl.data;
       const ws = data.weapons.find((x: any) => x.key === data.weaponKey);
-      const spec = pl.lastWeaponSpec;
-      const bullet = w.lastProjectileData;
+      const drone = w.sim.drones.find((x: any) => x.id === (window as any).__c1EnemyId);
+      const enemy = (window as any).__c1Enemy;
       return {
         weaponKey: data.weaponKey,
         expected: {
@@ -1151,37 +1200,27 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
           shots: def.kind === 'scatter' ? 5 : 1,
           spread: def.baseSpread
         },
-        spec,
-        bullet: bullet ? {
-          damage: bullet.damage, crit: bullet.crit, vel: bullet.vel,
-          lifetime: bullet.lifetime, radius: bullet.radius, pos: bullet.pos
-        } : null,
-        enemy: e ? { id: e._id, hp: e._hp, lastHit: e.lastHitResult } : null,
+        drone: drone ? { id: drone.id, hp: drone.hp } : null,
+        enemyHp: enemy ? enemy._hp : null,
         stillInWorld: w.enemies.some((x: any) => x._id === (window as any).__c1EnemyId),
-        projectiles: w.projectiles.length
+        coreProjectiles: w.sim.projectiles.length,
+        aimYaw: w.sim.player.aimYaw
       };
     });
     expect(fired.weaponKey, 'pulse is the C1 first slice').toBe('pulse');
-    expect(fired.spec, 'Player called buildWeaponSpec').not.toBeNull();
-    expect(fired.spec.damage).toBeCloseTo(fired.expected.damage, 6);
-    expect(fired.spec.speed).toBeCloseTo(fired.expected.speed, 6);
-    expect(fired.spec.lifetime).toBeCloseTo(fired.expected.lifetime, 6);
-    expect(fired.spec.shots).toBe(fired.expected.shots);
-    expect(fired.spec.pierce).toBe(fired.expected.pierce);
-    expect(fired.bullet, 'World called createProjectileData').not.toBeNull();
-    expect(fired.bullet!.damage).toBeCloseTo(
-      (fired.bullet!.crit ? fired.spec.critDamage : 1) * fired.spec.damage, 6);
-    expect(Math.hypot(fired.bullet!.vel.x, fired.bullet!.vel.y)).toBeCloseTo(fired.spec.speed, 6);
-    expect(fired.bullet!.lifetime).toBeCloseTo(fired.spec.lifetime, 6);
-    expect(fired.bullet!.radius).toBe(0.2);
-    expect(fired.enemy, 'drone object retained for evidence').not.toBeNull();
-    expect(fired.enemy!.lastHit, 'Enemy.hit called resolveEnemyHit').not.toBeNull();
-    expect(fired.enemy!.lastHit.blocked).toBe(false);
-    expect(fired.enemy!.hp).toBeLessThan(setup.enemyHp); // swept hit reduced HP / killed
+    expect(seenProjectile, 'core produced a player projectile from real mouse fire').not.toBeNull();
+    expect(seenProjectile.damage).toBeCloseTo(
+      (seenProjectile.crit ? fired.expected.critDamage : 1) * fired.expected.damage, 6);
+    expect(Math.hypot(seenProjectile.vel.x, seenProjectile.vel.y)).toBeCloseTo(fired.expected.speed, 6);
+    expect(seenProjectile.lifetime).toBeGreaterThan(0);
+    expect(seenProjectile.lifetime).toBeLessThanOrEqual(fired.expected.lifetime + 1e-9);
+    expect(seenProjectile.radius).toBe(0.2);
+    expect(fired.enemyHp, 'core drone HP dropped or drone died').toBeLessThan(setup.enemyHp);
+    expect(fired.aimYaw, 'core aim follows the real pointer').toBeTruthy();
     record('c1-rendered', {
-      weaponKey: fired.weaponKey, spec: fired.spec, bullet: fired.bullet,
-      enemyHp: fired.enemy!.hp, lastHit: fired.enemy!.lastHit,
-      stillInWorld: fired.stillInWorld, moveVelocity: v, droneStep
+      weaponKey: fired.weaponKey, expected: fired.expected, projectile: seenProjectile,
+      enemyHp: fired.enemyHp, stillInWorld: fired.stillInWorld,
+      coreProjectiles: fired.coreProjectiles, moved, droneStep
     });
     await page.screenshot({ path: path.join(OUT, 'c1-rendered-rules-1280x720.png') });
     expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);

@@ -303,6 +303,79 @@ export function resolveEnemyHit(input: EnemyHitInput): EnemyHitResult {
   };
 }
 
+export function weaponCooldown(baseRate: number, cooldownReduced: number): number {
+  const red = Math.min(0.9, Math.max(0, cooldownReduced));
+  return (1 / baseRate) / (1 - red);
+}
+
+export interface EnemyProjectileInput {
+  id: number;
+  ownerId: number;
+  pos: GridPoint;
+  damage: number;
+  vel: Vec2;
+  pixelToTile?: number;
+}
+
+/** Exact World.spawnEnemyProjectile() data (no 16px muzzle offset, no crit). */
+export function createEnemyProjectileData(input: EnemyProjectileInput): ProjectileData {
+  const pixelToTile = input.pixelToTile ?? GAME.PIXEL_TO_TILE;
+  return {
+    id: input.id,
+    ownerId: input.ownerId,
+    side: 'enemy',
+    pos: { x: input.pos.x, y: input.pos.y },
+    vel: { x: input.vel.x, y: input.vel.y },
+    damage: input.damage,
+    lifetime: 2.5,
+    radius: Math.max(6 / pixelToTile, 0.2),
+    crit: false,
+    pierce: 0,
+    hitSet: new Set<number>()
+  };
+}
+
+export interface PlayerHitInput {
+  hp: number;
+  position: GridPoint;
+  armor: number;
+  invuln: number;
+  damage: number;
+  source: GridPoint;
+  isWalkable: (x: number, y: number) => boolean;
+  pixelToTile?: number;
+}
+
+export interface PlayerHitResult {
+  blocked: boolean;
+  hp: number;
+  position: GridPoint;
+  hurtTimer: number;
+  invuln: number;
+}
+
+/** Player.hurt() damage / knockback rule; shared by core and legacy enemies. */
+export function resolvePlayerHit(input: PlayerHitInput): PlayerHitResult {
+  if (input.invuln > 0 || input.hp <= 0) {
+    return { blocked: true, hp: input.hp, position: { ...input.position }, hurtTimer: 0, invuln: input.invuln };
+  }
+  const dmg = damageAfterArmor(input.damage, input.armor);
+  const hp = Math.max(0, input.hp - dmg);
+  const hurtTimer = 0.2;
+  const invuln = Math.max(input.invuln, 0.3);
+  const dx = input.position.x - input.source.x;
+  const dy = input.position.y - input.source.y;
+  const d = Math.hypot(dx, dy) || 1;
+  const kb = 24 / (input.pixelToTile ?? GAME.PIXEL_TO_TILE);
+  let x = input.position.x;
+  let y = input.position.y;
+  const nx = x + (dx / d) * kb;
+  if (input.isWalkable(nx, y)) x = nx;
+  const ny = y + (dy / d) * kb;
+  if (input.isWalkable(x, ny)) y = ny;
+  return { blocked: false, hp, position: { x, y }, hurtTimer, invuln };
+}
+
 export function rangedAttackDescriptor(
   from: GridPoint,
   to: GridPoint,
