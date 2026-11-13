@@ -12,12 +12,17 @@
 // Headless World or an MCP-in-Scene integration.
 //
 // Evidence scope (F-07): this spec injects fixed seed, i-frames refresh,
-// addXp level-ups, a hidden enemy, a second weapon and synthetic lethal damage.
-// It therefore proves control ownership / pause / takeover / UI-click ownership /
-// geometry / perception bounds, NOT real combat survival or AI skill. Independent
-// no-fixture probes with natural injury, natural level-up and natural death live
-// in reports/ai-native-02/tester/p1-final/ and are a separate evidence class.
-// Neither class is a real external Agent or a human playtest.
+// addXp level-ups, hidden enemies, a second weapon, synthetic lethal damage,
+// enteredRooms mutation, temporary tile.type='wall', plus synthetic Boss/portal
+// coordinates for the perception-bounds case. It therefore proves control
+// ownership / pause / takeover / UI-click ownership / geometry / perception
+// bounds, NOT real combat survival or AI skill. Independent no-fixture probes
+// for the parent commit 2d78e80 live in
+// reports/ai-native-02/tester/p1-final/; independent no-fixture probes for the
+// fix commit 1aadd2e live in
+// reports/ai-native-02/tester/p1-fixes-final/. Neither class is a real external
+// Agent or a human playtest; commit attribution is in
+// docs/AI_NATIVE_PHASE_REPORTS.md.
 //
 // Recommended run (frozen built snapshot, no HMR):
 //   npm run build
@@ -304,17 +309,26 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     expect(st!.mode).toBe('AI');
     expect(st!.txtControl).toContain('LOCAL DETERMINISTIC');
 
-    // Sample the running AI: real movement, legal actions, collision stays valid.
+    // Sample the running AI with a bounded wait for *valid continuous motion*.
+    // Do not relax the movement threshold: keep requiring >=3 moving intents,
+    // >=1.5 tiles of real path, legal same-room steps, and a real portal
+    // interact (World.tryInteract), but wait up to a bounded window for those
+    // conditions instead of assuming a fixed 14-frame window always contains them.
     const samples: Array<Record<string, unknown>> = [];
+    const MAX_SAMPLES = 40;
+    const MIN_SAMPLES = 10;
     let pathLength = 0;
     let previous: { x: number; y: number; room: string | null } | null = null;
     let maxStep = 0;
     let movingSamples = 0;
+    let interactSamples = 0;
     let portalTransitions = 0;
+    let legalSamples = 0;
+    let boundedWaitExhausted = true;
     const portalJumps: Array<Record<string, unknown>> = [];
     let levelUpChoices = 0;
     const seenRooms = new Set<string>();
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < MAX_SAMPLES; i++) {
       const active = await page.evaluate(() =>
         (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key));
       if (active.includes('LevelUpScene')) {
@@ -340,6 +354,8 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       }
       previous = { x: s!.grid.x, y: s!.grid.y, room: s!.room };
       if (s!.intent.move.x !== 0 || s!.intent.move.y !== 0) movingSamples++;
+      if (s!.intent.interact) interactSamples++;
+      if (s!.walkable) legalSamples++;
       if (s!.room) seenRooms.add(s!.room);
       samples.push({
         i, grid: s!.grid, action: s!.lastAiAction, target: s!.lastAiTarget,
@@ -348,20 +364,35 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
         hp: s!.hp, damage: s!.damage, active: s!.active
       });
       if (i % 3 === 0) await page.screenshot({ path: path.join(OUT, `ai-run-${String(i).padStart(2, '0')}.png`) });
+      const motionValid = movingSamples >= 3 && pathLength > 1.5 && maxStep < 3.2;
+      const interactionValid = portalTransitions > 0 || interactSamples > 0;
+      if (i >= MIN_SAMPLES - 1 && motionValid && interactionValid) {
+        boundedWaitExhausted = false;
+        break;
+      }
     }
-    record('ai-samples', { samples, pathLength, maxStep, movingSamples, portalTransitions, portalJumps, rooms: [...seenRooms], levelUpChoices });
+    record('ai-samples', {
+      samples, pathLength, maxStep, movingSamples, interactSamples, legalSamples,
+      portalTransitions, portalJumps, rooms: [...seenRooms], levelUpChoices,
+      boundedWindow: { min: MIN_SAMPLES, max: MAX_SAMPLES, exhausted: boundedWaitExhausted }
+    });
     st = await state(page);
 
-    // Observable movement: multiple moving samples, real path, collision-legal.
+    // Observable movement: thresholds unchanged, now supported by a bounded wait.
     const actions = new Set(samples.map((s) => String(s.action)).filter((a) => a !== 'null'));
     expect(movingSamples, 'AI produced multiple intents with non-zero movement').toBeGreaterThan(2);
     expect(pathLength, 'AI actually walked through the World').toBeGreaterThan(1.5);
     expect(maxStep, 'no collision-skipping jump between same-room samples').toBeLessThan(3.2);
+    expect(legalSamples, 'every sampled position stayed walkable').toBe(samples.length);
+    expect(boundedWaitExhausted, 'bounded wait found valid continuous motion + real interaction').toBe(false);
+    expect(portalTransitions > 0 || interactSamples > 0,
+      'real portal interaction (World.tryInteract) observed, not simulated').toBe(true);
     if (portalTransitions > 0) {
       // Portal transitions are legal World.tryInteract room changes, so they
       // are logged separately and excluded from collision-legality steps.
       expect(portalJumps.every((j) => Number(j.distance) > 3.2),
         'room transitions are recorded as distinct interact jumps').toBe(true);
+      expect(seenRooms.size, 'portal interaction changed rooms').toBeGreaterThan(1);
     }
     walkableOnly(samples);
     expect(actions.size, 'AI reported real action changes').toBeGreaterThan(1);
@@ -373,7 +404,8 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     record('ai-summary', {
       aiActionCount: st!.aiActionCount, lastAiAction: st!.lastAiAction, lastAiTarget: st!.lastAiTarget,
       movedTo: st!.grid, room: st!.room, enemies: st!.enemies, pathLength, maxStep, movingSamples,
-      portalTransitions, seenRooms: [...seenRooms]
+      interactSamples, portalTransitions, samples: samples.length,
+      boundedWaitExhausted, seenRooms: [...seenRooms]
     });
     await page.screenshot({ path: path.join(OUT, 'ai-active-hud-1280x720.png') });
 
@@ -887,6 +919,24 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     mkdirSync(OUT, { recursive: true });
     await bootRun(page);
+    // F-07: explicit fixture register for the perception-bounds E2E. The wall,
+    // enemy, explored-room flag and Boss/portal coordinates below are injected;
+    // they are NOT natural map generation or a real battle.
+    record('evidence-fixture', {
+      case: 'F-01/F-02 perception bounds',
+      reason: 'synthetic perception probes; not independent no-fixture evidence',
+      fixtures: [
+        "bootRun: rewrite MainMenuScene.scene.start to inject fixed seed 424242",
+        "spawnEnemy('drone', other.gx+2, other.gy+2, other.id, 1): hidden enemy in an unentered room",
+        "w.enteredRooms.add(other.id): mark that room explored-but-far",
+        "temporary mid.type='wall' on a real map tile, restored after the LOS check",
+        "w.spawnBoss(...) + boss.wx/wy rewritten near/far, boss.sprite.destroy() and w.boss=null cleanup",
+        "w.portal.wx/wy rewritten near/far, restored to original values",
+        "intentView().canWalk(NaN|Infinity|-Infinity, ...) non-finite probes",
+        "spawnEnemy('drone', candidate.x, candidate.y, room.id, 1): near unobstructed target"
+      ],
+      notFixtures: ['no i-frames refresh', 'no HP/坐标 direct edits', 'no addXp', 'no hurt(999999)']
+    });
 
     const probe = await page.evaluate(() => {
       const g: any = (window as any).__game;

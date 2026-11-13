@@ -144,15 +144,19 @@ P5提交后Lead发现普通Session与coop各10槽位可合计20，已由Orca Wor
 - 提交：见本节所在提交（父 `2d78e805...`），未合并 main。
 - 实现：新增 `src/ai-native/worldPerception.ts`（有界网格半径 12 tiles / 已探索房间 / 墙遮挡 LOS / ±1.5 tiles 局部 `canWalk` 探针）；`WorldObservationV1` 改名为 `perceivedActors` 并增加 `visibilityBasis`，`observationView()/intentView()` 按 `isPerceivable` 过滤敌人/Boss/portal，远距、墙后、未进入房间全部不可感知，从他房追入感知范围的敌人可见；`GameScene` 把背包纳入 `control.pause()` + 清输入 + HUD 刷新，覆盖层内 W/A/S/D/SPACE、非 UI 鼠标、F 均可夺回，UI 点击用 `hitTestPointer` 归覆盖层所有，关闭后不自抢；紧凑视口（scale<0.85）放大右列与操作提示并拉开行距，提示文字改高对比色，测试改名为几何断言（最小 ≥10 CSS px）。
 - 新增回归：`src/ai-native/worldPerception.test.ts`（8）、重写 `worldObservation.test.ts`（6）、`tests/ai-native-world.spec.ts` 新增 2 个正式 World 用例（覆盖层所有权 + 有界感知），并把五视口断言从「readable」改为几何 + 截图供人工判读。
-- 证据范围表（F-07）：
+- 证据范围表（F-07，逐项标注真实 commit；C2 WIP 与后续提交不得混入）：
 
-| 证据类别 | 具体来源 | 夹具 | 能证明 | 不能证明 |
-| --- | --- | --- | --- | --- |
-| 开发者 P1 主控制流 / 五视口截图 | `reports/ai-native-02/evidence-frozen/`、`p1-fixes/evidence-frozen/` | 固定 seed 注入 `scene.start`、每 100ms 刷新 `invuln`、`addXp` 触发升级、`spawnEnemy` 注入隐藏敌人、`hurt(999999)` 合成伤害、第二武器 fixture | 控制所有权、暂停冻结、夺回、升级/死亡**清理流程**、HUD 几何、checkpoint 不变性、感知投影边界 | 真实战斗难度 / 生存击杀 / 真实 XP 升级 / 真实战斗死亡 / 外部 Agent 接入 |
-| 开发者新增覆盖层回归 | `p1-fixes/evidence-frozen/operation-log-overlay-ownership-1280x720.json` | i-frames、第二武器、addXp 升级、隐藏敌人 | 背包/暂停/升级 UI 点击归属、移动/开火/F 夺回、关闭不自抢 | 真人游玩、外部 Agent |
-| 独立 Tester 无夹具短演示 | `reports/ai-native-02/tester/p1-final/04-normal-run-probe.log`、`normal-run-log.json`、`evidence-normal/` | **无** i-frames / HP / 坐标 / addXp / spawnEnemy / seed 注入 | 自然受伤（100 → 6.53 → 25.36）、真实升级弹层、墙碰撞合法性、KeyD/鼠标/F 真实夺回、暂停 OFF 不自抢 | 真人、外部 Agent、战斗胜利 |
-| 独立 Tester 无夹具自然死亡 | `reports/ai-native-02/tester/p1-final/05-natural-death-wall-probe.log`、`natural-death-wall-log.json`、`evidence-natural/` | **无**夹具 | HP 100 → 0 自然死亡、GameOver 清档、新 R0 控制复位、墙邻域合法性 | 真人、外部 Agent、战斗胜利 |
-| 外部 Agent / Headless World / Replay | 无 | — | — | **全部未实现**；HUD/菜单/报告始终 `EXTERNAL NOT CONNECTED`；`game:headless`/MCP 只服务 Station Zero |
+| 证据类别 | 真实 commit | 具体来源 | 夹具 / 注入 | 能证明 | 不能证明 |
+| --- | --- | --- | --- | --- | --- |
+| 开发者 P1 主控制流 / 五视口截图 | `2d78e80` | `reports/ai-native-02/evidence-frozen/` | 固定 seed 注入 `scene.start`、每 100ms 刷新 `invuln`、`addXp` 升级、`spawnEnemy` 隐藏敌人、`hurt(999999)` 合成伤害 | 初始控制所有权、暂停冻结、夺回、升级/死亡**清理流程**、HUD 几何、checkpoint 不变性 | 真实战斗难度 / 生存击杀 / 真实 XP 升级 / 真实战斗死亡 / 外部 Agent |
+| 开发者 P1 修复回归 / 覆盖层 / 可读性 | `1aadd2e` | `reports/ai-native-02/p1-fixes/evidence-frozen/` | i-frames、第二武器 fixture、`addXp` 升级、隐藏敌人、合成伤害 | 覆盖层 UI 点击归属、移动/开火/F 夺回、关闭不自抢、800×600 几何 | 真人游玩、外部 Agent、真实战斗胜利 |
+| 开发者感知边界 E2E | `1aadd2e`（夹具声明由本节所在小补丁补充） | `p1-fixes/evidence-frozen/operation-log-perception-bounds-1280x720.json` | `bootRun` 固定 seed 注入 `scene.start`；`spawnEnemy` 隐藏敌人；`enteredRooms.add(other.id)` 标记已探索；**临时 `mid.type='wall'` 改地形**并恢复；`spawnBoss` + 改写 `boss.wx/wy` 近/远；改写 `portal.wx/wy` 近/远并恢复；`boss.sprite.destroy()` / `w.boss=null` 清理；非有限 `canWalk(NaN/±Infinity)` 探针 | 12 tiles 半径、已探索过滤、墙遮挡 LOS、Boss/portal 位置受限、远距/非有限/未探索 `canWalk` 统一拒绝、近距合法探针可用 | 真实地图自然墙后战斗（墙为测试临时改地形）、真人 / 外部 Agent / 真实战斗死亡 |
+| 独立 Tester 无夹具短演示（父提交） | `2d78e80`，**非 `1aadd2e`** | `reports/ai-native-02/tester/p1-final/04-normal-run-probe.log`、`normal-run-log.json`、`evidence-normal/` | **无** i-frames / HP / 坐标 / addXp / spawnEnemy / seed 注入 | 自然受伤、真实升级弹层、墙碰撞合法性、KeyD/鼠标/F 真实夺回、暂停 OFF 不自抢 | 真人、外部 Agent、战斗胜利、不可用于 `1aadd2e` 签字 |
+| 独立 Tester 无夹具自然死亡（父提交） | `2d78e80`，**非 `1aadd2e`** | `reports/ai-native-02/tester/p1-final/05-natural-death-wall-probe.log`、`natural-death-wall-log.json`、`evidence-natural/` | **无**夹具 | HP 100 → 0 自然死亡、GameOver 清档、新 R0 控制复位、墙邻域合法性 | 真人、外部 Agent、战斗胜利、不可用于 `1aadd2e` 签字 |
+| 独立 Tester 修复提交无夹具探针 | `1aadd2e`，**非 C2 WIP** | `reports/ai-native-02/tester/p1-fixes-final/P1-FIXES-FINAL-ACCEPTANCE.md`、`04-normal-run-probe.log`、`05-pointer-overlay-probe.log`、`07-inventory-probe.log`、`08-resume-after-inventory-probe.log`、`09-no-reclaim-probe.log` | **无** i-frames / HP / 坐标 / addXp / spawnEnemy / seed 注入（`03-playwright-final.log` 的 8 项 spec 仍有夹具） | 修复后自然受伤（100 → 最低 17）、背包 PAUSED/清输入、指针覆盖层夺回、关闭背包后恢复、夺回后不自抢 | 真人、外部 Agent、战斗胜利；本提交**没有**独立自然死亡探针（自然死亡仅父提交） |
+| 外部 Agent / Headless World / Replay | 无（全部 `2d78e80`/`1aadd2e`/C1/C2 均未实现） | 无 | — | — | HUD/菜单/报告始终 `EXTERNAL NOT CONNECTED`；`game:headless`/MCP 只服务 Station Zero；不得用本地 demo / 浏览器自动化 / 假 Headless 冒充 |
+
+- 本小节所在提交仅修文档/测试可靠性，不新增产品功能证据；C2 WIP 的源码改动在后续 C2 提交单独验收，不得把上表任何一行算作 C2 证据。
 
 - 人工可读性判读（F-06）：开发者已查看 `p1-fixes/evidence-dev/hud-ai-800x600.png`（修复后）：右列 7 行与左下提示在 800x600 下完整、无裁切/重叠、字号明显放大且提示高对比；结论记为「可辨，不需要放大」，但这是开发者看图结论，不冒充独立人工验收；数字阈值只作几何下限。
 - 仍未处理：F-03（`window.__game` 生产暴露）、F-08（`restoreCheckpoint` 入参别名）、R-01/R-02/R-05/R-06/R-09、固定 tick、集中状态、外部 Agent 接入；F-09 已在 C1 修复，其余带入 P2/P4。

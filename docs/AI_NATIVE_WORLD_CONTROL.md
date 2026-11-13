@@ -11,7 +11,7 @@
 在**正式浏览器 World**（`index.html` → `GameScene` / `World` / `Player`）里，人类与一个本地确定性控制器现在通过**同一个合法 `PlayerIntent` 执行路径**操作同一个玩家：
 
 - 人类键盘/鼠标/指针 → `intentFromHumanInput()` → `PlayerIntent`；
-- 本地控制器 → `World.intentView()`（白名单观察）→ `LocalDeterministicController.decide()` → `PlayerIntent`；
+- 本地控制器 → `World.intentView()`（有界感知投影 / `perceivedActors`）→ `LocalDeterministicController.decide()` → `PlayerIntent`；
 - 两者都进入 `Player.applyIntent(dt, intent)`，使用同一套各向异性移动、轴分离碰撞、瞄准、开火、交互、冲刺、视觉与音效代码。控制器**不写坐标、不写 HP、不碰 Phaser 对象、不伪造 pointer**。
 - 暂停菜单可开启/关闭 AI；任意移动/开火输入、暂停、死亡、升级弹层、新开局、场景退出都有明确控制所有权行为。
 - HUD 明示 `CONTROL AI · LOCAL DETERMINISTIC`、最近实际动作/目标、`LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED`。
@@ -32,7 +32,7 @@ flowchart LR
     HI["intentFromHumanInput()"]
     CA["ControlAuthority<br/>owner / pause / takeover"]
     LC["LocalDeterministicController.decide()"]
-    OB["World.observationView()<br/>合法可见观察白名单"]
+    OB["World.observationView()<br/>有界感知投影<br/>12 tiles + 已探索 + LOS"]
   end
   subgraph Exec["唯一执行路径（正式 World 规则）"]
     PI["PlayerIntent<br/>move/dash/fire/aim/interact"]
@@ -65,7 +65,7 @@ flowchart LR
 | World / 房间 / 敌人 / Boss / 弹丸 / 掉落 / FX / RNG | `src/world/World.ts`（Phaser + 玩法状态合一、变长 dt、含视觉随机） | 不改规则，只新增两个只读投影 |
 | Player 移动/碰撞/开火/换弹/冲刺/受伤 | `src/entities/Player.ts` | 抽出 `applyIntent()` 单一执行入口；其余逻辑不动 |
 | Enemy / Boss / Weapon / Projectile / Collision | `src/entities/*`, `src/config/weapons.ts`, `World.updateProjectiles()` | 未复制；AI 只发意图，由既有 `tryFire()` 生成弹丸 |
-| Signal / 房间 / 传送门 | `World.currentRoom()` / `placePortal()` / `tryInteract()` | AI 只能看到当前房间与传送门**位置**，看不到目标房间号 |
+| Signal / 房间 / 传送门 | `World.currentRoom()` / `placePortal()` / `tryInteract()` | AI 只能感知 12 tiles 内、已探索且墙遮挡 LOS 通过的敌人/Boss/传送门**位置**；当前房间成员身份不充分，看不到目标房间号 |
 | Input / Camera | `World` 注册 W/A/S/D/SPACE；`GameScene` 指针/ESC/I/F/Q/E | 人类指针转网格后走 `setAimGrid()`；AI 不触碰 camera/pointer |
 | HUD | `GameScene` 屏幕锁定 HUD（`lockHud()`） | 右列新增 4 行 + 左下操作提示；五分辨率验证 |
 | Save / Checkpoint / RNG / Tick | `SaveSystem` SAVE_VERSION=2、`World.captureCheckpoint()`、`RNG`、变长 delta | 死亡 `finishRun` 清 run、新局 R0；退出/刷新恢复最近 checkpoint；本轮不引入固定 tick |
@@ -96,7 +96,7 @@ export class ControlAuthority {
 // src/ai-native/localController.ts —— 本地确定性演示，只返回意图
 export interface LocalControllerView {
   ready: boolean; player; roomId; enemies; boss; portal: { x; y } | null;
-  canWalk(x, y): boolean;  // 由 World.isWalkable(x,y,0.5) 提供
+  canWalk(x, y): boolean;  // createLocalProbe(): ±1.5 tiles、有限、已探索的局部探针；不是全图 isWalkable oracle
   timeSeconds: number;     // 用于本地防卡死记忆
 }
 export class LocalDeterministicController { decide(view): AiDecision; reset(); }
@@ -159,8 +159,8 @@ HUD 左下常驻：`ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL`。800x
 | Reviewer 项 | 本轮处置 |
 | --- | --- |
 | R-03 checkpoint 活引用 | 已修：`cloneCheckpoint()` + 单测 + 浏览器捕获后变异验证 |
-| R-04 观察白名单 | 已建 `WorldObservationV1`：过滤隐藏敌人/Boss phase/portal targetRoom；保留自身 HP、当前房间敌人、Boss 公开 HP |
-| R-07 碰撞谓词 | AI 只经 `World.isWalkable(x,y,0.5)` 与 Player 同一路径；`ensureWalkable()` 仍为既有玩家的脱困逻辑，不由 AI 直接触发 |
+| R-04 感知投影 | 已建 `WorldObservationV1.perceivedActors`：按 12 tiles + 已探索 + LOS 过滤；隐藏敌人/Boss phase/portal targetRoom 不外泄；保留自身 HP、被感知的当前/邻房敌人、Boss 公开 HP |
+| R-07 碰撞谓词 | 移动/轴分离碰撞仍经同一 `World.isWalkable(...,0.5)` 谓词（C1 纯 `stepPlayerMovement`）；控制器可见的 `canWalk` 是 `createLocalProbe()` 的 ±1.5 tiles 有界局部探针，不是全图 oracle |
 | R-08 瞄准入口 | 新增共用 `setAimGrid()`；不伪造 pointer、不读 camera |
 | R-10 三类冒充 | HUD/暂停菜单/本报告/测试报告均明示本地确定性演示与外部未连接 |
 | R-01 纯权威核 / R-02 确定性 | **留 P2/P4 架构风险**：主 World 仍是 Phaser+规则耦合、变长 dt、玩法/视觉随机混合；本轮按 Lead 裁定只做意图适配，不重构、不宣称 Headless/Replay |
@@ -218,4 +218,4 @@ PORT=5173 LS_SHOT_DIR=reports/ai-native-02/screens npx playwright test --reporte
 完整输出位于 `reports/ai-native-02/*.log`；截图/连续取样/操作日志位于 `reports/ai-native-02/evidence-frozen/`。
 P1 条件项修复的完整日志与证据在 `reports/ai-native-02/p1-fixes/logs/`、`reports/ai-native-02/p1-fixes/evidence-frozen/`；冻结快照端口 5283，命令见 `reports/ai-native-02/p1-fixes/REPORT.md`。
 
-> 证据分两类：①开发者 spec 注入固定 seed / i-frames / addXp / spawnEnemy / 合成伤害的**夹具证据**，只证明控制流、几何、清理与投影，不证明真实战斗或外部 Agent；②独立 Tester 的 `reports/ai-native-02/tester/p1-final/` 无夹具探针（`probe-normal-run.mjs`、`probe-natural-death-wall.mjs`）记录自然受伤、自然升级、自然死亡与真实键鼠夺回，仍是自动化浏览器证据而非真人/外部 Agent。两类均不得宣称 Headless、LLM、Codex 或战斗胜利。
+> 证据分三类：①开发者 spec 注入固定 seed / i-frames / addXp / spawnEnemy / `enteredRooms.add` / 临时 `tile.type='wall'` / `spawnBoss`+坐标 / `portal.wx/wy` / 合成伤害 / 第二武器等**夹具证据**，只证明控制流、几何、清理与感知投影；②独立 Tester 对父提交 `2d78e80` 的无夹具探针在 `reports/ai-native-02/tester/p1-final/`，对修复提交 `1aadd2e` 的无夹具探针在 `reports/ai-native-02/tester/p1-fixes-final/`（自然受伤、背包/恢复/不自抢、指针覆盖层等），均不是本提交之后的 C2 WIP 证据；③外部 Agent / Headless World / Replay 全部未实现。各类证据的真实 commit 归属见 `docs/AI_NATIVE_PHASE_REPORTS.md` 证据范围表。三类均不得宣称 Headless、LLM、Codex 或战斗胜利。
