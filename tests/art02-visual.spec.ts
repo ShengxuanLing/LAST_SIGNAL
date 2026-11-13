@@ -58,6 +58,13 @@ test('ART-02 high: objects and textures stay bounded across corridor entry and r
   await page.waitForTimeout(500);
   const corridor = await stats(page);
   expect(corridor.room).toBe('corridor');
+  // The corridor was pre-baked in slices while in the lab (prediction matched the live layout).
+  const bakes = await page.evaluate(() => {
+    const s = (window as unknown as { __art02: { envReused: number; envSyncBakes: number } }).__art02;
+    return { reused: s.envReused, sync: s.envSyncBakes };
+  });
+  expect(bakes.sync).toBe(1);
+  expect(bakes.reused).toBeGreaterThanOrEqual(1);
   for (let i = 0; i < 6; i++) {
     await page.getByTestId('vs00-btn-restart').click();
     await page.waitForTimeout(120);

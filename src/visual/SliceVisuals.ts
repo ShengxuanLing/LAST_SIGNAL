@@ -29,6 +29,15 @@ export interface SliceVisualHost {
   readonly legacy: readonly { setVisible(v: boolean): unknown }[];
   /** Geometry of the active room (read-only; same tables the rules use). */
   geometry(room: RoomId): RoomGeometry;
+  /** Optional layout prediction for a room not yet on screen (enables background pre-bake). */
+  predict?(room: RoomId): { project(x: number, y: number): Pt; scale: number };
+}
+
+interface EnvBake {
+  key: string;
+  sig: string;
+  tex: Phaser.Textures.CanvasTexture;
+  gen: Generator<void, void, void> | null;
 }
 
 type Effect =
@@ -66,6 +75,9 @@ export interface Art02Stats {
   fps: number;
   events: number;
   degradations: number;
+  /** Room entries served from a (pre-)baked environment vs. baked synchronously. */
+  envReused: number;
+  envSyncBakes: number;
 }
 
 declare global {
@@ -87,14 +99,13 @@ export class SliceVisuals {
   private frame = 0;
   private hurt = 0;
   private hitFlash = 0;
+  private attackFlash = 0;
   private eventCount = 0;
   private degradations = 0;
   private fpsAvg = 60;
   private readonly governor = new FrameGovernor();
 
-  private backdrop: Phaser.GameObjects.Image | null = null;
   private env: Phaser.GameObjects.Image | null = null;
-  private vignette: Phaser.GameObjects.Image | null = null;
   private hurtImg: Phaser.GameObjects.Image | null = null;
   private fxFloor: Phaser.GameObjects.Graphics | null = null;
   private fxTop: Phaser.GameObjects.Graphics | null = null;
@@ -106,6 +117,12 @@ export class SliceVisuals {
   private P: Projector = (x, y) => ({ x, y });
   private scale = 1;
   private destroyed = false;
+  private readonly envCache = new Map<RoomId, EnvBake>();
+  private prebaking: RoomId | null = null;
+  private envReused = 0;
+  private envSyncBakes = 0;
+  /** Per-frame time budget for background pre-bake slices (ms). */
+  private static readonly PREBAKE_BUDGET_MS = 3;
 
   constructor(private readonly host: SliceVisualHost) {
     const search = typeof location !== 'undefined' ? location.search : '';
@@ -123,6 +140,7 @@ export class SliceVisuals {
     this.q = QUALITY[q];
     this.forced = true;
     this.applyQuality();
+    this.dropAllEnv();
     if (this.room) this.onRoomLayout(this.room);
   }
 
@@ -138,13 +156,23 @@ export class SliceVisuals {
     if (this.q.id === 'off') { this.publishStats(); return; }
     this.ensureShared();
     const scene = this.host.scene;
-    const key = TEX.env(room, this.q.id);
-    const tex = scene.textures.createCanvas(key, W, H);
-    if (tex) {
-      const ctx = tex.getContext();
-      new EnvironmentBaker(ctx, this.P, this.scale, this.host.geometry(room), THEMES[room], this.q).bake();
-      tex.refresh();
-      this.env = scene.add.image(0, 0, key).setOrigin(0, 0).setDepth(5);
+    // Reuse a (pre-)baked environment if it was baked for exactly this projection.
+    const sig = this.signature(room, (x, y) => this.host.project(x, y), this.scale);
+    let bake = this.envCache.get(room);
+    if (bake && bake.sig !== sig) { this.dropEnv(room); bake = undefined; }
+    if (bake) this.envReused++;
+    if (!bake) { bake = this.startBake(room, this.P, this.scale, sig) ?? undefined; this.envSyncBakes++; }
+    if (bake) {
+      if (bake.gen && this.prebaking === room) this.prebaking = null;
+      this.runBake(room, bake, Infinity);
+      this.env = scene.add.image(0, 0, bake.key).setOrigin(0, 0).setDepth(5);
+    }
+    // Spread the other room's bake over the next frames so entering it never hitches.
+    const other: RoomId = room === 'lab' ? 'corridor' : 'lab';
+    if (this.host.predict && !this.envCache.has(other)) {
+      const pr = this.host.predict(other);
+      const started = this.startBake(other, makeProjector(pr.project, pr.scale), pr.scale, this.signature(other, pr.project, pr.scale));
+      if (started) this.prebaking = other;
     }
     this.fxFloor = scene.add.graphics().setDepth(30);
     this.fxTop = scene.add.graphics().setDepth(1500);
@@ -161,7 +189,11 @@ export class SliceVisuals {
     if (this.q.id === 'off' || !this.fxFloor || !this.fxTop) { this.publishStats(); return; }
     const dt = s.paused ? 0 : Math.min(0.1, Math.max(0, deltaMs / 1000));
     this.clock += dt;
-    this.frame++;
+    if (dt > 0) this.frame++; // jitter seeds freeze with pause
+    if (this.prebaking) {
+      const pending = this.envCache.get(this.prebaking);
+      if (!pending || this.runBake(this.prebaking, pending, SliceVisuals.PREBAKE_BUDGET_MS)) this.prebaking = null;
+    }
     if (deltaMs > 0) this.fpsAvg = this.fpsAvg * 0.95 + (1000 / deltaMs) * 0.05;
     if (!this.forced && !s.paused && this.governor.push(deltaMs)) this.degrade();
     for (const e of events) this.onEvent(e, s);
@@ -170,6 +202,7 @@ export class SliceVisuals {
     this.effects.step(dt);
     this.hurt = Math.max(0, this.hurt - dt * 1.8);
     this.hitFlash = Math.max(0, this.hitFlash - dt * 4);
+    this.attackFlash = Math.max(0, this.attackFlash - dt * 2.5);
 
     this.fxFloor.clear();
     this.fxTop.clear();
@@ -182,17 +215,17 @@ export class SliceVisuals {
     this.drawParticles();
     for (let i = this.lightCursor; i < this.lights.length; i++) this.lights[i].setVisible(false);
     if (this.hurtImg) this.hurtImg.setAlpha(this.hurt * 0.85).setVisible(this.hurt > 0.01);
-    this.publishStats();
+    if (this.frame % 15 === 0 || events.length > 0) this.publishStats();
   }
 
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
     this.releaseRoom();
-    this.backdrop?.destroy();
-    this.vignette?.destroy();
+    this.dropAllEnv();
     this.hurtImg?.destroy();
-    this.backdrop = this.vignette = this.hurtImg = null;
+    this.hurtImg = null;
+    this.setHostBackgroundVisible(true);
     const tm = this.host.scene.textures;
     for (const key of tm.getTextureKeys()) if (key.startsWith('art02:')) tm.remove(key);
     this.particles.clear();
@@ -210,8 +243,9 @@ export class SliceVisuals {
     this.effects.setCap(this.q.maxEffects);
     if (typeof document !== 'undefined') document.body.dataset.art02Quality = this.q.id;
     if (this.q.id === 'off') {
-      this.backdrop?.setVisible(false);
-      this.vignette?.setVisible(false);
+      this.hurt = 0;
+      this.hurtImg?.setVisible(false);
+      this.setHostBackgroundVisible(true);
     }
   }
 
@@ -221,7 +255,71 @@ export class SliceVisuals {
     this.degradations++;
     this.q = QUALITY[next];
     this.applyQuality();
+    this.dropAllEnv();
     if (this.room) this.onRoomLayout(this.room);
+  }
+
+  private signature(room: RoomId, project: (x: number, y: number) => Pt, scale: number): string {
+    const g = this.host.geometry(room);
+    const a = project(0, 0);
+    const b = project(g.width, g.height);
+    return [this.q.id, scale.toFixed(3), a.x.toFixed(1), a.y.toFixed(1), b.x.toFixed(1), b.y.toFixed(1)].join('|');
+  }
+
+  private startBake(room: RoomId, P: Projector, scale: number, sig: string): EnvBake | null {
+    const tm = this.host.scene.textures;
+    const key = TEX.env(room, this.q.id);
+    if (tm.exists(key)) tm.remove(key);
+    const tex = tm.createCanvas(key, W, H);
+    if (!tex) return null;
+    const ctx = tex.getContext();
+    const baker = new EnvironmentBaker(ctx, P, scale, this.host.geometry(room), THEMES[room], this.q);
+    const detailed = this.q.id !== 'low';
+    const fog = 0.55 + THEMES[room].config.fogDensity;
+    // Backdrop, room and edge fog share ONE full-screen texture: one blit per frame on the Canvas renderer.
+    const gen = (function* () {
+      bakeBackdrop(ctx, W, H, 0x5e_0001, detailed);
+      yield;
+      yield* baker.steps();
+      bakeVignette(ctx, W, H, MATERIAL.void, 0.62 * fog);
+    })();
+    const bake: EnvBake = { key, sig, tex, gen };
+    this.envCache.set(room, bake);
+    return bake;
+  }
+
+  /** Advance a bake within `budgetMs`; returns true once the texture is complete. */
+  private runBake(room: RoomId, bake: EnvBake, budgetMs: number): boolean {
+    if (!bake.gen) return true;
+    const start = performance.now();
+    for (;;) {
+      if (bake.gen.next().done) {
+        bake.gen = null;
+        bake.tex.refresh();
+        return true;
+      }
+      if (performance.now() - start >= budgetMs) {
+        if (budgetMs === Infinity) continue;
+        return false;
+      }
+    }
+  }
+
+  private dropEnv(room: RoomId): void {
+    const bake = this.envCache.get(room);
+    if (!bake) return;
+    this.envCache.delete(room);
+    if (this.prebaking === room) this.prebaking = null;
+    const tm = this.host.scene.textures;
+    if (tm.exists(bake.key)) tm.remove(bake.key);
+  }
+
+  private dropAllEnv(): void {
+    this.env?.destroy();
+    this.env = null;
+    for (const room of [...this.envCache.keys()]) this.dropEnv(room);
+    const tm = this.host.scene.textures;
+    for (const key of tm.getTextureKeys()) if (key.startsWith('art02:env:')) tm.remove(key);
   }
 
   private ensureShared(): void {
@@ -234,14 +332,16 @@ export class SliceVisuals {
       draw(t.getContext());
       t.refresh();
     };
-    canvas(TEX.backdrop, W, H, (ctx) => bakeBackdrop(ctx, W, H, 0x5e_0001, this.q.id !== 'low'));
-    canvas(TEX.vignette, W, H, (ctx) => bakeVignette(ctx, W, H, MATERIAL.void, 0.62));
     canvas(TEX.hurt, W, H, (ctx) => bakeVignette(ctx, W, H, SIGNAL.hostile, 0.55));
-    if (!this.backdrop) this.backdrop = scene.add.image(0, 0, TEX.backdrop).setOrigin(0, 0).setDepth(-99);
-    if (!this.vignette) this.vignette = scene.add.image(0, 0, TEX.vignette).setOrigin(0, 0).setDepth(3000);
     if (!this.hurtImg) this.hurtImg = scene.add.image(0, 0, TEX.hurt).setOrigin(0, 0).setDepth(3001).setVisible(false);
-    this.backdrop.setVisible(true);
-    this.vignette.setVisible(true).setAlpha(0.55 + (this.room ? THEMES[this.room].config.fogDensity : 0.2));
+    // The host's full-screen 'bg' is fully covered by the baked environment: skip drawing it.
+    this.setHostBackgroundVisible(false);
+  }
+
+  private setHostBackgroundVisible(v: boolean): void {
+    for (const obj of this.host.scene.children.list) {
+      if (obj instanceof Phaser.GameObjects.Image && obj.texture.key === 'bg') obj.setVisible(v);
+    }
   }
 
   private releaseRoom(): void {
@@ -252,8 +352,6 @@ export class SliceVisuals {
     this.fxFloor = this.fxTop = null;
     for (const l of this.lights) l.destroy();
     this.lights = [];
-    const tm = this.host.scene.textures;
-    for (const key of tm.getTextureKeys()) if (key.startsWith('art02:env:')) tm.remove(key);
   }
 
   private publishStats(): void {
@@ -267,10 +365,12 @@ export class SliceVisuals {
       particles: this.particles.live + this.dust.live,
       effects: this.effects.items.length,
       lights: this.lights.length,
-      objects: [this.backdrop, this.env, this.vignette, this.hurtImg, this.fxFloor, this.fxTop].filter(Boolean).length + this.lights.length,
+      objects: [this.env, this.hurtImg, this.fxFloor, this.fxTop].filter(Boolean).length + this.lights.length,
       fps: Math.round(this.fpsAvg),
       events: this.eventCount,
       degradations: this.degradations,
+      envReused: this.envReused,
+      envSyncBakes: this.envSyncBakes,
     };
     window.__art02 = Object.assign(stats, { setQuality: (q: VisualQuality) => this.setQuality(q) });
   }
@@ -284,6 +384,9 @@ export class SliceVisuals {
       case 'roomChanged':
         this.effects.clear();
         this.particles.clear();
+        this.hurt = 0;
+        this.hitFlash = 0;
+        this.attackFlash = 0;
         break;
       case 'scan': {
         fx.push({ kind: 'scan', origin: e.origin, age: 0, duration: 1.2 });
@@ -317,10 +420,12 @@ export class SliceVisuals {
         this.hitFlash = 1;
         this.burst(e.at, GUARD_Z - 6, e.cleared ? SIGNAL.unstableHi : SIGNAL.observe, e.cleared ? 34 : 12, e.cleared ? 140 : 90);
         if (e.cleared) fx.push({ kind: 'flash', at: e.at, z: GUARD_Z - 6, color: SIGNAL.unstable, radius: 1.2, age: 0, duration: 0.7 });
-        if (this.q.cameraFeedback) this.host.scene.cameras.main.shake(90, e.cleared ? 0.006 : 0.003);
+        // No camera shake here: the guard sprite is click-targetable while alive.
         break;
       case 'playerHurt':
         this.hurt = Math.min(1, this.hurt + (e.rescued ? 1 : 0.6));
+        // A landed shot is public information: the guard's lamp flares red afterwards.
+        if (!e.rescued) this.attackFlash = 1;
         if (this.q.cameraFeedback) this.host.scene.cameras.main.shake(140, e.rescued ? 0.008 : 0.004);
         break;
       default:
@@ -822,9 +927,11 @@ export class SliceVisuals {
     const head = this.P(gp.x, gp.y, GUARD_Z + 4);
     const jammed = c.guard.link === 'JAMMED';
     const behavior = c.guard.behavior;
-    // Ground contact ring.
-    const watching = behavior === 'WATCHING' && !jammed;
-    this.isoRing(g, gp, 0, 0.45, watching ? 2 : 1.2, watching ? SIGNAL.hostile : MATERIAL.steelLit, watching ? 0.7 : 0.4);
+    // Ground contact ring. WATCHING is deliberately NOT drawn: it would reveal the
+    // guard's exact vision range / LOS edge (hidden per RER). Red appears only
+    // after an attack has visibly landed (public information).
+    const struck = this.attackFlash > 0 && !jammed;
+    this.isoRing(g, gp, 0, 0.45, struck ? 2 : 1.2, struck ? SIGNAL.hostile : MATERIAL.steelLit, struck ? 0.4 + 0.4 * this.attackFlash : 0.4);
     let lamp: number = SIGNAL.unstable;
     let lampAlpha = 0.55;
     if (jammed) {
@@ -838,14 +945,9 @@ export class SliceVisuals {
         const d = 10 + r() * 12;
         top.lineBetween(head.x + Math.cos(a) * d, head.y + Math.sin(a) * d * 0.6, head.x + Math.cos(a + 0.4) * (d + 6), head.y + Math.sin(a + 0.4) * (d + 6) * 0.6);
       }
-    } else if (watching) {
+    } else if (struck) {
       lamp = SIGNAL.hostile;
-      lampAlpha = 1;
-      // It is visibly pointed at you (ordinary sight, not hidden state).
-      const pp = playerPos(s);
-      const tgt = this.P(pp.x, pp.y, 16);
-      top.lineStyle(1, SIGNAL.hostile, 0.35);
-      top.lineBetween(head.x, head.y, tgt.x, tgt.y);
+      lampAlpha = 0.5 + 0.5 * this.attackFlash;
     } else if (behavior === 'INVESTIGATING') {
       lampAlpha = Math.sin(this.clock * 10) > 0 ? 1 : 0.3;
       const a = this.clock * 3;

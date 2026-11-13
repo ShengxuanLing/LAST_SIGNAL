@@ -126,6 +126,41 @@ test('Demo B guard watching', async ({ page }) => {
   await expect(health).toHaveAttribute('data-guard', /\d+/);
 });
 
+/** Frame-time sampling per tier (headless Chromium; a relative comparison, not a hardware claim). */
+test('perf sampling', async ({ page }) => {
+  test.setTimeout(180000);
+  const sample = () => page.evaluate(() => new Promise<{ mean: number; p95: number; frames: number }>((resolve) => {
+    const d: number[] = [];
+    let last = performance.now();
+    const end = last + 3000;
+    const tick = (t: number) => {
+      d.push(t - last);
+      last = t;
+      if (t < end) requestAnimationFrame(tick);
+      else {
+        d.sort((a, b) => a - b);
+        resolve({ mean: d.reduce((a, b) => a + b, 0) / d.length, p95: d[Math.floor(d.length * 0.95)], frames: d.length });
+      }
+    };
+    requestAnimationFrame(tick);
+  }));
+  const out: Record<string, unknown> = {};
+  for (const vq of ['off', 'low', 'medium', 'high']) {
+    await ready(page, vq, { width: 1920, height: 1080 });
+    await page.keyboard.press('z');
+    out[`lab-${vq}`] = await sample();
+    await page.keyboard.press('x');
+    await walk(page, east, async () => (await page.locator('body').getAttribute('data-slice-room')) === 'corridor');
+    await page.keyboard.press('z');
+    out[`corridor-${vq}`] = await sample();
+    out[`stats-${vq}`] = await page.evaluate(() => {
+      const s = (window as unknown as { __art02: Record<string, unknown> }).__art02;
+      return { textures: s.textures, objects: s.objects, particles: s.particles, lights: s.lights, degradations: s.degradations };
+    });
+  }
+  writeFileSync(`${OUT}/perf.json`, JSON.stringify({ viewport: '1920x1080', browser: 'Chromium (Playwright, headless)', ...out }, null, 2));
+});
+
 /** Resolution and tier matrix for the lab after a scan. */
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720], [1024, 768], [800, 600]] as const;
 for (const [w, h] of SIZES) {

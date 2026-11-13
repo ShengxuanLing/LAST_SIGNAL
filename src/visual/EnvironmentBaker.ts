@@ -57,19 +57,35 @@ export class EnvironmentBaker {
     this.rnd = visualRng(theme.seed);
   }
 
+  /** Bake everything now (first room on load). */
   bake(): void {
+    for (const _ of this.steps()) { /* run to completion */ }
+  }
+
+  /**
+   * Incremental bake: yields between rows/phases so a host can spread the
+   * work over several frames under a time budget (no hitch on room entry).
+   */
+  *steps(): Generator<void, void, void> {
     const { ctx } = this;
     ctx.save();
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    this.drawChasm();
-    this.drawFloors();
-    this.drawFloorProps();
-    this.drawAmbientOcclusion();
-    this.drawWalls();
-    this.drawWallProps();
-    this.drawStandingProps();
-    ctx.restore();
+    try {
+      this.drawChasm();
+      yield;
+      for (let y = 0; y < this.geo.height; y++) { this.drawFloorRow(y); yield; }
+      this.drawFloorProps();
+      yield;
+      this.drawAmbientOcclusion();
+      yield;
+      yield* this.drawWalls();
+      this.drawWallProps();
+      yield;
+      this.drawStandingProps();
+    } finally {
+      ctx.restore();
+    }
   }
 
   // ---------------------------------------------------------------- floors
@@ -81,10 +97,10 @@ export class EnvironmentBaker {
     return 'interior';
   }
 
-  private drawFloors(): void {
+  private drawFloorRow(y: number): void {
     const { ctx, P, geo, theme, q } = this;
     const variants = Math.max(1, q.floorVariants);
-    for (let y = 0; y < geo.height; y++) {
+    {
       for (let x = 0; x < geo.width; x++) {
         const t = geo.tileAt(x, y);
         if (t !== 'floor' && t !== 'door') continue;
@@ -238,17 +254,19 @@ export class EnvironmentBaker {
 
   // ---------------------------------------------------------------- walls
 
-  private drawWalls(): void {
+  private *drawWalls(): Generator<void, void, void> {
     const { geo, theme } = this;
     const cells: { x: number; y: number }[] = [];
     for (let y = 0; y < geo.height; y++) for (let x = 0; x < geo.width; x++) if (geo.tileAt(x, y) === 'wall') cells.push({ x, y });
     cells.sort((a, b) => a.x + a.y - (b.x + b.y) || a.x - b.x);
+    let n = 0;
     for (const { x, y } of cells) {
       const cls = this.wallClass(x, y);
       const h = theme.wallHeight[cls];
       // Walls bordering the chasm become thin railings so the void stays legible.
       const overChasm = cls === 'front' && (geo.tileAt(x, y - 1) === 'chasm');
       this.wallBlock(x, y, overChasm ? 4 : h, cls);
+      if (++n % 12 === 0) yield;
     }
   }
 
