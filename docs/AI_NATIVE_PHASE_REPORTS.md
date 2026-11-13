@@ -91,3 +91,19 @@
 - 下一阶段：隔离ECHO最小双Actor协作场景，独立观察/记忆/目标/受限行动及人类确认；不冻结未批准世界观或正式角色权限。
 
 原记录：47行，23 requests /22 results（22 MCP工具+quit），600142B；SHA256 `0ba5cdb4f305527bd9de12e01a987c1dc5d7a2d3bed4c86eb940d418a09aea52`。仓库示例目录保存完整gzip归档与校验文件；外部原件 `D:/Project/AI-NATIVE-01-evidence/p4-codex-live.jsonl`。独立报告：`p4-review-original.md`、`p4-review-final.md`、`p4-tester-original.md`、`p4-tester-final.md`；证据目录内 `p4-final-{tester,reviewer}-*`。
+
+## P5 — 隔离 ECHO 最小双 Actor 协作
+
+- 阶段：PASS，仅 `echo-coop-test` 隔离测试场景；不代表正式 ECHO 完整玩法或世界观已定稿。
+- Git 分支：`feat/ai-native-runtime`；父提交 `56e4902044a3dae94c6b7cca1d7eceb46b29a947`；P5 hash 见本节所在提交。
+- 已完成：单一 SliceModel/共同 tick，Human 与 ECHO 独立位置、观察、记忆、目标、预算；真正逐字段双向共享、带不确定性假设、人类确认/拒绝、合法 ECHO Jam 与人类过门、离线策略、暂停/接管/取消/断链降级、实例隔离与签发快照。
+- 实际修改文件：新增 `src/ai-native/{coop.ts,coop.test.ts,coopDemo.mts}`、`docs/AI_NATIVE_ECHO.md`；抽取 `rules.ts` 的 actor 位置能力入口与 `sharedCore.ts` 通用移动；Dev-only MCP coop 工具及 scripts；更新报告。
+- 新增接口：CoopSession/CoopManager、Human/Companion closure handles、Dev-only `game_coop_*`；production Player 仍6工具，production Companion仍不授予实体行动权限。
+- 运行命令：typecheck、21项coop测试、287全单测、build、MCP build、真实官方Dev MCP双actor探针/demo、P4 Player回放、完整23项Playwright。
+- 测试结果：287/287、21/21；独立Tester直接帧23/23、官方Dev MCP27/27；完整23E2E首次及复跑PASS；P4仍tick501/HP100/E96/29events。fixture仅测试初态，协作动作来自合法Actor能力。
+- 失败项：share字段未真正裁剪、EchoStatus泄Human隐私、快照浅引用、恢复可篡改确认、计划浅冻结，以及同seed跨实例快照/32bit-only对比，均修并经独立反例关闭。开发者一次计时失败历史保留；Tester两次完整回归未复现，未延长wait。
+- 独立复核：Orca Worker reviewer “P5现在可接受，无残留阻断”；Orca Worker tester “PASS，全部gate通过”。Orca Worker architecture提供只读边界复核；Orca Worker developer实施。
+- 剩余风险：ECHO为隔离Headless测试实体，无正式浏览器呈现/剧情/长期跨局记忆/外部LLM人格。快照只接受本实例原样签发帧（64条FIFO）；公有hash非授权，完整canonical逐字比较；正式存档key/version不变。
+- 下一阶段：提交最终范围/验收矩阵与PR供Owner审核；不自动合并。
+
+证据：`D:/Project/AI-NATIVE-01-evidence/p5-review-residual-final.md`、`p5-tester-final.md`、`p5-final-tester-*`、`p5-residual-final-reviewer-*`、`p5-residual-developer-*`。最终MD5 coop `f2dfe8b1b6b521916fdf25038e33a504`、test `40de8152c8e248eadc058c7f0fab7829`。P0–P5 的实际执行渠道均为 Orca Worker 与 Lead；未使用原生子代理替代 Worker。

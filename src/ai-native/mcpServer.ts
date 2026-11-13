@@ -20,6 +20,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { createSessionManager, type DevFixture } from './sessions';
 import { Harness, toolMatrix, type HarnessResult, type RunSummary } from './harness';
+import { CoopManager, type CoopSession } from './coop';
 import type { ActionResultV1, EventV1, ObservationV1, StepResultV1 } from './protocol';
 
 const RESULT_SCHEMA = 'last_signal.mcp.tool-result.v1';
@@ -407,6 +408,119 @@ function registerDevTools(server: McpServer, harness: Harness): void {
 }
 
 // ---------------------------------------------------------------------------
+// DEV-only isolated ECHO co-op tools (never registered on the Player surface)
+// ---------------------------------------------------------------------------
+const coopHandle = z.string().regex(/^coop_[0-9a-f]{24}$/);
+const coopFixture = z.strictObject({
+  test: z.literal(true),
+  human: z.strictObject({ x: z.number().finite(), y: z.number().finite() }),
+  echo: z.strictObject({ x: z.number().finite(), y: z.number().finite() }),
+});
+
+function registerCoopTools(server: McpServer, coop: CoopManager): void {
+  const session = (handle: string): CoopSession | undefined => coop.get(handle);
+  register(server, 'game_coop_create',
+    'DEV: create the isolated echo-coop-test world (one authoritative model, two actors).',
+    z.strictObject({ seed: z.number().int().min(0).max(0xffffffff), fixture: coopFixture.optional(), echoBudget: z.number().int().min(0).max(1000).optional() }),
+    (args) => {
+      const created = coop.create({
+        seed: args.seed as number,
+        ...(args.fixture ? { fixture: args.fixture as never } : {}),
+        ...(args.echoBudget !== undefined ? { echoBudget: args.echoBudget as number } : {}),
+      });
+      if (!created.ok) return errPayload(created.code, created.messageKey);
+      return okPayload({ coop: created.value.handle, testFixture: created.value.session.testFixture, status: created.value.session.status(), dev: true });
+    });
+  register(server, 'game_coop_status', 'DEV: both actor positions/memory/goal/hypotheses.', z.strictObject({ coop: coopHandle }),
+    (args) => { const c = session(args.coop as string); return c ? okPayload({ coop: args.coop, status: c.status(), events: c.events(), dev: true }) : errPayload('E_SESSION_NOT_FOUND', 'unknown coop handle'); });
+  register(server, 'game_coop_observe', 'DEV: legal per-actor observation (P0 ObservationV1).', z.strictObject({ coop: coopHandle, actor: z.enum(['human', 'echo']), detail: z.enum(['summary', 'standard']).optional() }),
+    (args) => {
+      const c = session(args.coop as string);
+      if (!c) return errPayload('E_SESSION_NOT_FOUND', 'unknown coop handle');
+      const res = c.observe(args.actor as 'human' | 'echo', (args.detail as 'summary' | 'standard' | undefined) ?? 'standard');
+      return res.ok ? okPayload({ coop: args.coop, actor: args.actor, observation: res.value, dev: true }) : errPayload(res.code, res.messageKey);
+    });
+  register(server, 'game_coop_human',
+    'DEV: human-owner action (scan/move/jam/share/confirm/reject/pause/resume/takeover/release/cancel_echo).',
+    z.strictObject({
+      coop: coopHandle,
+      op: z.enum(['scan', 'move', 'jam', 'share', 'confirm', 'reject', 'pause', 'resume', 'takeover', 'release', 'cancel_echo']),
+      direction: z.enum(['up', 'down', 'left', 'right', 'north', 'south', 'east', 'west']).optional(),
+      ticks: z.number().int().min(1).max(1000).optional(),
+      id: z.string().optional(),
+      targetIds: z.array(z.string()).optional(),
+      fields: z.array(z.string()).optional(),
+    }),
+    (args) => {
+      const c = session(args.coop as string);
+      if (!c) return errPayload('E_SESSION_NOT_FOUND', 'unknown coop handle');
+      const h = c.humanHandle();
+      const op = args.op as string;
+      const res = op === 'scan' ? h.scan()
+        : op === 'move' ? h.move((args.direction as never) ?? 'east', (args.ticks as number) ?? 1)
+        : op === 'jam' ? h.jam()
+        : op === 'share' ? h.share((args.targetIds as string[]) ?? [], (args.fields as string[]) ?? ['stateLabel'])
+        : op === 'confirm' ? h.confirm(args.id as string)
+        : op === 'reject' ? h.reject(args.id as string)
+        : op === 'pause' ? h.pause()
+        : op === 'resume' ? h.resume()
+        : op === 'takeover' ? h.takeover()
+        : op === 'release' ? h.release()
+        : h.cancelEcho();
+      return res.ok ? okPayload({ coop: args.coop, op, value: res.value, status: c.status(), dev: true }) : errPayload(res.code, res.messageKey);
+    });
+  register(server, 'game_coop_echo',
+    'DEV: ECHO action (scan/move/share/propose/execute/offline/management). ECHO can never call owner management.',
+    z.strictObject({
+      coop: coopHandle,
+      op: z.enum(['scan', 'move', 'share', 'propose', 'execute', 'offline', 'management']),
+      direction: z.enum(['up', 'down', 'left', 'right', 'north', 'south', 'east', 'west']).optional(),
+      ticks: z.number().int().min(1).max(1000).optional(),
+      id: z.string().optional(),
+      targetIds: z.array(z.string()).optional(),
+      fields: z.array(z.string()).optional(),
+      plan: z.strictObject({ kind: z.enum(['scan', 'move', 'jam', 'share']), direction: z.enum(['up', 'down', 'left', 'right', 'north', 'south', 'east', 'west']).optional(), ticks: z.number().int().min(1).max(1000).optional(), targetIds: z.array(z.string()).optional() }).optional(),
+      statement: z.string().optional(),
+      confidence: z.number().min(0).max(1).optional(),
+      uncertainty: z.number().min(0).max(1).optional(),
+      management: z.enum(['pause', 'resume', 'takeover', 'release']).optional(),
+    }),
+    (args) => {
+      const c = session(args.coop as string);
+      if (!c) return errPayload('E_SESSION_NOT_FOUND', 'unknown coop handle');
+      const e = c.companionHandle();
+      const op = args.op as string;
+      const res = op === 'scan' ? e.scan()
+        : op === 'move' ? e.move((args.direction as never) ?? 'east', (args.ticks as number) ?? 1)
+        : op === 'share' ? e.share((args.targetIds as string[]) ?? [], (args.fields as string[]) ?? ['stateLabel'])
+        : op === 'execute' ? e.execute(args.id as string)
+        : op === 'offline' ? e.offlineStep()
+        : op === 'management' ? e.management((args.management as never) ?? 'takeover')
+        : e.propose(args.plan as never, (args.statement as string) ?? 'proposal', (args.confidence as number) ?? 0.5, (args.uncertainty as number) ?? 0.5);
+      return res.ok ? okPayload({ coop: args.coop, op, value: res.value, status: c.status(), dev: true }) : errPayload(res.code, res.messageKey);
+    });
+  register(server, 'game_coop_advance', 'DEV: advance shared ticks without an actor action (e.g. clear a cooldown).',
+    z.strictObject({ coop: coopHandle, ticks: z.number().int().min(1).max(10000) }),
+    (args) => {
+      const c = session(args.coop as string);
+      if (!c) return errPayload('E_SESSION_NOT_FOUND', 'unknown coop handle');
+      const res = c.advanceTicks(args.ticks as number);
+      return res.ok ? okPayload({ coop: args.coop, advanced: res.value.advanced, dev: true }) : errPayload(res.code, res.messageKey);
+    });
+  register(server, 'game_coop_snapshot', 'DEV: isolated coop snapshot (not the Player save schema).', z.strictObject({ coop: coopHandle }),
+    (args) => { const c = session(args.coop as string); return c ? okPayload({ coop: args.coop, snapshot: c.snapshot(), dev: true }) : errPayload('E_SESSION_NOT_FOUND', 'unknown coop handle'); });
+  register(server, 'game_coop_restore', 'DEV: restore an isolated coop snapshot.', z.strictObject({ coop: coopHandle, frame: z.record(z.string(), z.unknown()) }),
+    (args) => {
+      const c = session(args.coop as string);
+      if (!c) return errPayload('E_SESSION_NOT_FOUND', 'unknown coop handle');
+      const res = c.restore(args.frame);
+      return res.ok ? okPayload({ coop: args.coop, tick: res.value.tick, dev: true }) : errPayload(res.code, res.messageKey);
+    });
+  register(server, 'game_coop_close', 'DEV: close and release a coop world.', z.strictObject({ coop: coopHandle }),
+    (args) => (coop.close(args.coop as string) ? okPayload({ coop: args.coop, closed: true, dev: true }) : errPayload('E_SESSION_NOT_FOUND', 'unknown coop handle')));
+}
+
+// ---------------------------------------------------------------------------
 // Process entry
 // ---------------------------------------------------------------------------
 async function main(): Promise<void> {
@@ -416,12 +530,13 @@ async function main(): Promise<void> {
     idleTimeoutMs: 300_000, maxSessionWallMs: 3_600_000,
   });
   const harness = new Harness(manager, dev ? 'dev' : 'player');
+  const coopManager = new CoopManager();
   const server = new McpServer({
     name: dev ? 'last-signal-dev-harness' : 'last-signal-player',
     version: '0.3.0',
   });
   registerPlayerTools(server, harness, dev);
-  if (dev) registerDevTools(server, harness);
+  if (dev) { registerDevTools(server, harness); registerCoopTools(server, coopManager); }
 
   let cleaned = false;
   const cleanup = async (): Promise<void> => {
@@ -429,6 +544,7 @@ async function main(): Promise<void> {
     cleaned = true;
     try { await server.close(); } catch { /* ignore */ }
     try { harness.dispose(); } catch { /* ignore */ }
+    try { coopManager.dispose(); } catch { /* ignore */ }
   };
   const transport = new StdioServerTransport();
   transport.onclose = () => { void cleanup(); };

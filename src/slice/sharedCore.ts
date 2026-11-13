@@ -54,7 +54,16 @@ export function directionToIntent(direction: MovementDirection): MovementIntent 
  * original SliceScene.stepMovement; position stays authoritative in the model.
  */
 export function stepMovement(model: SliceModel, intent: MovementIntent): void {
-  const { x, y } = model.position;
+  const p = stepMovementAt(model, intent, model.position.x, model.position.y);
+  model.setPlayerPos(p.x, p.y);
+}
+
+/**
+ * One logic tick of movement for an EXPLICIT actor position (human or ECHO).
+ * Same iso mapping / anisotropic step / axis-separated collision as the human
+ * path; the caller owns where the resulting position is stored.
+ */
+export function stepMovementAt(model: SliceModel, intent: MovementIntent, x: number, y: number): { x: number; y: number } {
   const dir = { x: 0, y: 0 };
   if (intent.up) { dir.x -= 1; dir.y -= 1; }
   if (intent.down) { dir.x += 1; dir.y += 1; }
@@ -67,10 +76,10 @@ export function stepMovement(model: SliceModel, intent: MovementIntent): void {
     const step = SLICE.MOVE_SPEED * (SLICE.TICK_MS / 1000);
     const dx = (dir.x / len) * step;
     const dy = (dir.y / len) * step;
-    if (model.canStand(px + dx, py)) px += dx;
-    if (model.canStand(px, py + dy)) py += dy;
+    if (model.canStandAt(px + dx, py)) px += dx;
+    if (model.canStandAt(px, py + dy)) py += dy;
   }
-  model.setPlayerPos(px, py);
+  return { x: px, y: py };
 }
 
 export interface SliceTransitions {

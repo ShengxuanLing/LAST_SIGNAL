@@ -184,9 +184,14 @@ export class SliceModel {
     this.occupancy = isOccupyingDoor(x, y);
   }
 
-  canStand(x: number, y: number): boolean {
+  /** Shared collision query for any actor position (human or ECHO). */
+  canStandAt(x: number, y: number): boolean {
     return this.corridor?.canStand(x, y) ??
       canFit(x, y, (cx, cy) => isWalkableCell(cx, cy, this.doorPassable));
+  }
+
+  canStand(x: number, y: number): boolean {
+    return this.canStandAt(x, y);
   }
 
   enterCorridor(): boolean {
@@ -262,7 +267,8 @@ export class SliceModel {
     return advanced;
   }
 
-  scan(provenance?: ScanProvenance): ActionResult {
+  /** Shared scan cost/cooldown gate (human and ECHO use the same resource rules). */
+  private scanCost(): ActionResult | null {
     if (this.pausedFlag) return this.fail('E_PAUSED', '已暂停，操作不可用。');
     if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
     if (this.scanCooldownTicks > 0) {
@@ -272,6 +278,12 @@ export class SliceModel {
     this.energyValue -= SLICE.SCAN_COST;
     this.scanCooldownTicks = SLICE.SCAN_CD_TICKS;
     this.scanRevealTicks = SLICE.SCAN_REVEAL_TICKS;
+    return null;
+  }
+
+  scan(provenance?: ScanProvenance): ActionResult {
+    const blocked = this.scanCost();
+    if (blocked) return blocked;
     if (this.corridor) {
       this.corridorReveal = this.corridor.scan();
       const found = Object.values(this.corridorReveal).some(Boolean);
@@ -279,24 +291,57 @@ export class SliceModel {
       return this.ok(found ? '扫描完成：发现当前可见的设备和连接。' : '扫描完成：范围内未发现可操作目标。', SLICE.SCAN_COST);
     }
     // A scan is a single pulse: an empty scan is legal and still costs 10.
-    const receiverInRange = distanceToReceiver(this.playerX, this.playerY) < SLICE.SCAN_RADIUS;
-    const sourceInRange = distanceToSource(this.playerX, this.playerY) < SLICE.SCAN_RADIUS;
-    this.revealDoorReceiver = receiverInRange && hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y);
-    this.revealSealSource = sourceInRange && hasLineOfSight(
-      this.playerX,
-      this.playerY,
-      ROOM.source.x,
-      ROOM.source.y,
-      ROOM.sourceCell
-    );
-    const found = this.revealDoorReceiver || this.revealSealSource;
-    this.evidence = this.buildLabEvidence(provenance);
+    const r = this.labScanFrom(this.playerX, this.playerY, provenance);
+    this.revealDoorReceiver = r.revealDoorReceiver;
+    this.revealSealSource = r.revealSealSource;
+    this.evidence = r.evidence;
     return this.ok(
-      found
+      r.found
         ? '扫描完成：已发现范围内的门接收器/封锁载波（只揭示，不开门）。'
         : '扫描完成：范围内未发现可操作目标（空扫仍消耗 10）。',
       SLICE.SCAN_COST
     );
+  }
+
+  /**
+   * Shared scan capability entry at an EXPLICIT actor position. ECHO uses this
+   * with its own position; it consumes the SAME energy/cooldown and uses the
+   * lab range/LOS formulas. The returned evidence is actor-local and is NOT
+   * written into the human's evidence fields.
+   */
+  scanFrom(x: number, y: number, provenance?: ScanProvenance, range: number = SLICE.SCAN_RADIUS): {
+    readonly result: ActionResult;
+    readonly revealDoorReceiver: boolean;
+    readonly revealSealSource: boolean;
+    readonly evidence: SliceEvidenceV1[];
+  } {
+    const blocked = this.scanCost();
+    if (blocked) return { result: blocked, revealDoorReceiver: false, revealSealSource: false, evidence: [] };
+    if (this.corridor) {
+      return { result: this.fail('E_PERMISSION', '该隔离协作场景仅支持实验室内的 ECHO 扫描。'), revealDoorReceiver: false, revealSealSource: false, evidence: [] };
+    }
+    const r = this.labScanFrom(x, y, provenance, range);
+    return {
+      result: this.ok(r.found ? '扫描完成：已发现范围内的设备。' : '扫描完成：范围内未发现可操作目标。', SLICE.SCAN_COST),
+      revealDoorReceiver: r.revealDoorReceiver,
+      revealSealSource: r.revealSealSource,
+      evidence: r.evidence,
+    };
+  }
+
+  private labScanFrom(x: number, y: number, provenance?: ScanProvenance, range: number = SLICE.SCAN_RADIUS): {
+    readonly found: boolean;
+    readonly revealDoorReceiver: boolean;
+    readonly revealSealSource: boolean;
+    readonly evidence: SliceEvidenceV1[];
+  } {
+    const receiverInRange = distanceToReceiver(x, y) < range;
+    const sourceInRange = distanceToSource(x, y) < range;
+    const revealDoorReceiver = receiverInRange && hasLineOfSight(x, y, ROOM.receiver.x, ROOM.receiver.y);
+    const revealSealSource = sourceInRange && hasLineOfSight(x, y, ROOM.source.x, ROOM.source.y, ROOM.sourceCell);
+    const found = revealDoorReceiver || revealSealSource;
+    const evidence = this.buildLabEvidence(revealDoorReceiver, revealSealSource, { x, y }, provenance);
+    return { found, revealDoorReceiver, revealSealSource, evidence };
   }
 
   jam(target: 'relay' | 'guard' = 'relay'): ActionResult {
@@ -323,7 +368,27 @@ export class SliceModel {
     if (!(distanceToReceiver(this.playerX, this.playerY) < SLICE.JAM_RANGE)) {
       return this.fail('E_ILLEGAL_TARGET', '距离门接收器太远（需严格小于 6 格）。');
     }
-    if (!hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y)) {
+    return this.labJamFrom(this.playerX, this.playerY);
+  }
+
+  /**
+   * Shared lab-jam capability entry at an EXPLICIT actor position. ECHO uses
+   * this with its own position and the SAME energy/cooldown/range/LOS rules.
+   */
+  jamFrom(x: number, y: number, target: 'relay' | 'guard' = 'relay'): ActionResult {
+    if (this.pausedFlag) return this.fail('E_PAUSED', '已暂停，操作不可用。');
+    if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
+    if (target !== 'relay' || this.corridor) {
+      return this.fail('E_ILLEGAL_TARGET', '该隔离协作场景仅支持实验室内对门接收器的 ECHO 压制。');
+    }
+    return this.labJamFrom(x, y);
+  }
+
+  private labJamFrom(x: number, y: number): ActionResult {
+    if (!(distanceToReceiver(x, y) < SLICE.JAM_RANGE)) {
+      return this.fail('E_ILLEGAL_TARGET', '距离门接收器太远（需严格小于 6 格）。');
+    }
+    if (!hasLineOfSight(x, y, ROOM.receiver.x, ROOM.receiver.y)) {
       return this.fail('E_ILLEGAL_TARGET', '门接收器被遮挡，无法压制。');
     }
     const blocked = this.jamBlocker();
@@ -793,20 +858,24 @@ export class SliceModel {
     }
   }
 
-  private buildLabEvidence(provenance?: ScanProvenance): SliceEvidenceV1[] {
-    const found = this.revealDoorReceiver || this.revealSealSource;
-    if (!found) return [];
+  private buildLabEvidence(
+    revealDoorReceiver: boolean,
+    revealSealSource: boolean,
+    at?: { readonly x: number; readonly y: number },
+    provenance?: ScanProvenance,
+  ): SliceEvidenceV1[] {
+    if (!revealDoorReceiver && !revealSealSource) return [];
     const tick = this.tickIndex;
     const expiresAtTick = tick + SLICE.SCAN_REVEAL_TICKS;
-    const position = { x: this.position.x, y: this.position.y };
-    const link = this.revealDoorReceiver && this.revealSealSource ? 'rel_lab_seal_link' : null;
+    const position = at ? { x: at.x, y: at.y } : { x: this.position.x, y: this.position.y };
+    const link = revealDoorReceiver && revealSealSource ? 'rel_lab_seal_link' : null;
     const prov = evidenceProvenance(provenance);
     const out: SliceEvidenceV1[] = [];
-    if (this.revealDoorReceiver) out.push({
+    if (revealDoorReceiver) out.push({
       targetId: 'tgt_lab_door_receiver', relationId: link, position, observedAtTick: tick,
       expiresAtTick, stateLabel: 'receiver-visible', roomId: 'station-zero-r1', ...prov,
     });
-    if (this.revealSealSource) out.push({
+    if (revealSealSource) out.push({
       targetId: 'tgt_lab_seal_source', relationId: link, position, observedAtTick: tick,
       expiresAtTick, stateLabel: 'carrier-visible', roomId: 'station-zero-r1', ...prov,
     });

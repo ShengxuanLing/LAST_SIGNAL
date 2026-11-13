@@ -442,3 +442,25 @@ E2E 由 `npx playwright test` 全量执行，**未加 `--grep`、未 skip、未�
 - **5 个真实运行缺陷修复确认**（独立）：`P1` 走廊 `observerPosition` == 当时 `self.position`；`P2`/`P3` evidence `sourceActionId`/`observerActorId` == 实际 scan actionId/公开 actorId；`P4` 走廊 `knownConnections` 投影 `rel_corridor_relay_bridge`/`rel_corridor_relay_perception`。
 - **中性客户端/样例/restore 原样**：`agentClient.mts` 仅 6 Player 工具、Dev `game_snapshot` 合法 session 下被拒、stdout 纯 JSONL、退出 0（C1–C6 PASS）；样例 `p4-player-trace.json` 保留 E_SCHEMA 重试（开发者重放 `expectedSchemaFailures:1`）；interact 拒绝样例记作 `status:"rejected"`（与线上 `ok:false/E_LINK_UNAVAILABLE` 口径略异，属采样简化，原 JSONL 未改）；Dev 仅质量验证（p4.test.ts restore 用例在 266 全量内通过），未混入原 Agent。
 - **边界**：仅读源码/仓库测试；未 commit/切分支、未改主 World、未扩 P5、未改原 trace；tester 仅追加 `p4-tester-final.md` 与本节。重放仅验证原真实执行，不当作第二次 AI；模型 Token/内部推理仍 null，不杜撰。
+
+---
+
+## 20. AI-NATIVE-01 · P5 — 隔离双 Actor（ECHO co-op）固定版最终验收（Tester 只读）
+
+**任务**：对固定版（HEAD `56e4902`，P5 未 commit）独立完成 P5 最终验收，纳入此前 V1–V5 复核、R1/R2/R3 修复，不等待/轮询。
+
+**判定：PASS**（全部 gate 通过，无 BLOCKED）。报告：`D:/Project/AI-NATIVE-01-evidence/p5-tester-final.md`。
+
+**固定版稳定 MD5（Lead 指定 = 实测，before/after STABLE）**：coop `f2dfe8b1b6b521916fdf25038e33a504`、test `40de8152c8e248eadc058c7f0fab7829`、demo `03cfa101958fc95d348827b8055019cd`、server `5a6f369d2edbd7286aa7f3ab3a667f0c`、rules `96947c32b5879b7c4eeeb327efa38761`、sharedCore `f8ee3a302a6ebc4abb492ba9c428fa32`。
+
+**Gate（命令 | PASS/FAIL | 日志）**：typecheck PASS、`npm run build` PASS、`game:mcp:build` PASS、`npx vitest run src/ai-native/coop.test.ts` 目标 21 PASS、`npm test` 全量 287 PASS、`coopDemo.mts` PASS、P4 replay PASS(5/5)、完整 23 E2E 两次均 PASS(23)；独立直连帧/快照探针 23/23 PASS、官方 Dev MCP 真实双 Actor 探针 27/27 PASS。日志见 `p5-final-tester-*`。
+
+**R1/R2/R3 修复核实**：同 seed 两实例 `instanceId`/`sessionId` 随机且互不相同；A 帧在 B 恢复 → `E_SNAPSHOT_INVALID` 原子拒绝；伪造 `snapshotId`/`instanceId`/`sessionId` 拒绝；篡改 payload 并**重算公有 hash 仍拒绝**（授权用 issued 完整 canonical 串）；共享可选字段仅 `relationId`/`stateLabel`/`position`，空/未知 `E_SCHEMA`、非自有 `E_ILLEGAL_TARGET`、双向裁剪。
+
+**快照语义**：64 淘汰、同一 issued 帧可重复恢复、epoch 单调递增、恢复旧帧后新 confirm 不复活（完整替换）；双 Actor 完整恢复无 alias（恢复后改帧不影响 live）。
+
+**V1–V5**：V1 共享投影裁剪（未选字段脱敏，doc 与实现一致）；V2 `EchoStatus` 仅 `humanActorId`、无 human position/goal/evidence/memory；V3 snapshot 深拷贝；V5 `proposeHypothesis` 深冻结 `deepClone(plan)`；全部经独立反例验证关闭（更早的 pre-fix 初检记录保留于 `p5-fix-tester-lead-findings.log`，不抹除）。
+
+**真实合作链（官方 Dev MCP）**：HumanA 扫 receiver / EchoB 独立扫 seal source（A/B 不同、互不可见）→ echo share 自有子集 → hypothesis 不 canonical → 未确认/拒绝执行 `E_PERMISSION` 零副作用 → human confirm → echo 合法 Jam → door `JAMMED_OPEN` → human 过门 `passed=true`；pause/takeover/cancel 停 ECHO 且 human 可继续、预算耗尽 `E_RESOURCE_LIMIT`、offline 确定性；Player 面仍 6 工具无 coop、P4 replay 不变。
+
+**边界**：只读源码/仓库测试；未 commit/切分支、未扩正式 ECHO/World/旧档/key/version；只写项目外 `p5-final-tester-*` 与本节；fixture 明确 `test:true` 仅初态、不计合作行动。
