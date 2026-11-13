@@ -3,12 +3,16 @@ import { PlayerData, ProjectileData, Vec2 } from '../types';
 import { basePlayerData, GAME } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import { clamp } from '../core/random';
-import { IsoMath } from '../core/iso';
 import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
 import { WhaleCharacterEffects, WHALE_TEXTURE } from '../core/WhaleCharacter';
+import {
+  ControlAuthority, intentFromHumanInput, intentToWorldVelocity, neutralIntent,
+  type ControlOwner, type PlayerIntent
+} from '../ai-native/control';
+import { LocalDeterministicController } from '../ai-native/localController';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -22,6 +26,15 @@ export class Player {
   input: { up: boolean; down: boolean; left: boolean; right: boolean };
   id = 0;
   respawn = false;
+
+  /** Control ownership / pause / takeover state (AI-NATIVE-02 P1). */
+  readonly control = new ControlAuthority();
+  /** Last intent actually executed this frame (read-only HUD / evidence truth). */
+  lastIntent: PlayerIntent = neutralIntent();
+  lastIntentOwner: ControlOwner = 'human';
+  private aiController = new LocalDeterministicController();
+  private lastIntentOwnerSeen: ControlOwner = 'human';
+  private _interactQueued = false;
 
   wx: number;
   wy: number;
@@ -144,7 +157,17 @@ export class Player {
     // Bullets live in grid space, so invert the display -> iso -> grid chain before
     // computing the aim angle; only then does the shot follow the mouse direction.
     const g = this.world.screenToWorld(wp.x, wp.y);
-    const dx = g.x - this.wx, dy = g.y - this.wy;
+    this.setAimGrid(g.x, g.y);
+  }
+
+  /**
+   * Single aim entry: the human pointer adapter converts its screen point to
+   * grid space and calls this; the AI intent carries a grid aim point and calls
+   * the same method. No pointer/camera object is fabricated for the controller
+   * (review R-08).
+   */
+  setAimGrid(x: number, y: number): void {
+    const dx = x - this.wx, dy = y - this.wy;
     if (Math.hypot(dx, dy) > 1e-4) this.aimYaw = Math.atan2(dy, dx);
   }
 
@@ -177,19 +200,27 @@ export class Player {
     }
 
     this.updateKeys();
-    let sx = ((this.input.right ? 1 : 0) - (this.input.left ? 1 : 0));
-    let sy = ((this.input.down ? 1 : 0) - (this.input.up ? 1 : 0));
-    const mag = Math.hypot(sx, sy);
+    this.detectHumanTakeover();
+    const intent = this.resolveIntent();
+    this.lastIntent = intent;
+    this.lastIntentOwner = this.control.owner;
+    this.applyIntent(dt, intent);
+  }
+
+  /**
+   * Single legal execution path. Human keyboard input and the local
+   * deterministic controller both produce a PlayerIntent and land here; the
+   * controller never writes coordinates or HP directly.
+   */
+  private applyIntent(dt: number, intent: PlayerIntent): void {
+    const mag = Math.hypot(intent.move.x, intent.move.y);
     let speed = this.data.speed;
-    let vx = 0, vy = 0;
     if (this.dashTimer > 0) { speed = this.data.speed * 2.6; this.dashTimer -= dt; }
+    let vx = 0, vy = 0;
     if (mag > 0) {
-      sx /= mag; sy /= mag;
-      // screen vector -> world vector via inverse of our iso projection
-      const tx = sx / (IsoMath.TILE_W / 2);
-      const ty = sy / (IsoMath.TILE_H / 2);
-      vx = (tx + ty) / 2 * speed;
-      vy = (ty - tx) / 2 * speed;
+      // Shared anisotropic screen -> grid budget (see ai-native/control.ts).
+      const v = intentToWorldVelocity(intent.move, speed);
+      vx = v.x; vy = v.y;
     }
 
     const previousX = this.sprite.x;
@@ -201,8 +232,7 @@ export class Player {
     if (this.isWalkable(this.wx, ny)) this.wy = ny;
 
     // dash
-    if (this.cursors && this.cursors.space.isDown
-      && this.dashTimer <= 0 && mag > 0) {
+    if (intent.dash && this.dashTimer <= 0 && mag > 0) {
       this.dashTimer = this.data.dashDuration;
       this.invuln = Math.max(this.invuln, this.data.dashDuration + 0.05);
       this.world.addShake(4);
@@ -215,7 +245,55 @@ export class Player {
     if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
     else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }
 
-    this.tryFire();
+    // Aim: the human pointer adapter and the controller both call setAimGrid,
+    // so their shots use the same aimYaw and the same tryFire path.
+    if (intent.aim) this.setAimGrid(intent.aim.x, intent.aim.y);
+    if (intent.interact) this.world.tryInteract(this);
+    this.tryFire(intent.fire);
+  }
+
+  /** Resolve this frame's intent from whoever currently owns control. */
+  private resolveIntent(): PlayerIntent {
+    if (this.control.paused) return neutralIntent();
+    const owner = this.control.owner;
+    if (owner === 'human' && this.lastIntentOwnerSeen === 'ai') this.aiController.reset();
+    this.lastIntentOwnerSeen = owner;
+    if (owner === 'ai') {
+      const decision = this.aiController.decide(this.world.intentView());
+      this.control.noteAiDecision(decision, this.world.clock);
+      return decision.intent;
+    }
+    const interact = this._interactQueued;
+    this._interactQueued = false;
+    return intentFromHumanInput({
+      up: this.input.up, down: this.input.down, left: this.input.left, right: this.input.right,
+      dash: !!(this.cursors && this.cursors.space && this.cursors.space.isDown),
+      fire: this._fireHeld,
+      interact,
+      aim: null
+    });
+  }
+
+  /** Human input wins immediately and disables the local demo (safe takeover). */
+  private detectHumanTakeover(): void {
+    if (this.control.owner !== 'ai') return;
+    const active = this.input.up || this.input.down || this.input.left || this.input.right ||
+      this._fireHeld || this._interactQueued ||
+      !!(this.cursors && this.cursors.space && this.cursors.space.isDown);
+    if (active) {
+      this.control.humanTakeover('human-input');
+      this.aiController.reset();
+    }
+  }
+
+  /** Dev/interaction adapter used by the F key: queued and executed in applyIntent. */
+  requestInteract(): void { this._interactQueued = true; }
+
+  /** Drop residual held input on pause / resume / death / scene exit. */
+  clearHeldInput(): void {
+    this.input.up = this.input.down = this.input.left = this.input.right = false;
+    this._fireHeld = false;
+    this._interactQueued = false;
   }
 
   private updateKeys(): void {
@@ -233,8 +311,8 @@ export class Player {
     return (1 / w.baseRate) / (1 - red);
   }
 
-  private tryFire(): void {
-    if (!this.fireHeld() || !this.alive) return;
+  private tryFire(fireHeld: boolean): void {
+    if (!fireHeld || !this.alive) return;
     if (this.fireTimer > 0) return;
     const w = this.weapon;
     let ws = this.data.weapons.find((w2) => w2.key === this.data.weaponKey);

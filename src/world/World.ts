@@ -12,6 +12,9 @@ import { RoomDepth } from '../world/roomdepth';
 import { WorldRenderer } from '../world/WorldRenderer';
 import type { RunCheckpoint, SaveData } from '../types';
 import { audio } from '../systems/AudioSystem';
+import type { ControllerActorView, LocalControllerView } from '../ai-native/localController';
+import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
+import { cloneCheckpoint } from '../systems/RunCheckpoint';
 
 export interface WorldCallbacks {
   onLevelUp: (level: number) => void;
@@ -158,6 +161,61 @@ export class World {
   }
 
   // ---------- Room tracking ----------
+
+  /**
+   * Read-only adapter for the local deterministic controller (AI-NATIVE-02 P1).
+   * It exposes only publicly observable state (positions / HP / portal /
+   * walkability). It has no setters: a controller can never write coordinates
+   * or HP, it can only return a PlayerIntent for Player.applyIntent().
+   */
+  intentView(): LocalControllerView {
+    const observation = this.observationView();
+    const enemies: ControllerActorView[] = observation.visibleActors.map((actor) => ({
+      id: actor.id, kind: actor.kind, x: actor.x, y: actor.y, alive: actor.alive
+    }));
+    const boss: ControllerActorView | null = observation.boss
+      ? { id: observation.boss.id, kind: 'boss_warden', x: observation.boss.x, y: observation.boss.y, alive: true }
+      : null;
+    return {
+      ready: observation.player.alive,
+      player: { x: observation.player.x, y: observation.player.y, alive: observation.player.alive },
+      roomId: observation.roomId,
+      enemies,
+      boss,
+      portal: observation.portal ? { x: observation.portal.x, y: observation.portal.y } : null,
+      canWalk: (x, y) => this.isWalkable(x, y, 0.5),
+      timeSeconds: this.clock
+    };
+  }
+
+  /**
+   * Legal read-only projection for AI adapters (see ai-native/worldObservation).
+   * Only the current room, own player state, visible actors, boss HP (already
+   * rendered by the HUD) and the portal position leave the World here.
+   */
+  observationView(): WorldObservationV1 {
+    const room = this.currentRoom();
+    return buildWorldObservation({
+      player: {
+        x: this.player.x, y: this.player.y, alive: this.player.alive,
+        hp: this.player.data.hp, maxHp: this.player.data.maxHp
+      },
+      roomId: room?.id ?? null,
+      enemies: this.enemies.map((enemy) => ({
+        id: enemy._id, kind: enemy.data.kind, x: enemy.x, y: enemy.y,
+        alive: enemy.alive, roomId: enemy.data.spawnRoom
+      })),
+      boss: this.boss
+        ? {
+            id: this.boss._id, x: this.boss.x, y: this.boss.y, alive: this.boss.alive,
+            hp: this.boss._hp, maxHp: this.boss.maxHp(), roomId: this.boss.spawnRoom
+          }
+        : null,
+      portal: this.portal
+        ? { x: this.portal.wx, y: this.portal.wy, targetRoom: this.portal.targetRoom }
+        : null
+    });
+  }
 
   currentRoom(): RoomInfo | null {
     const px = this.player.x, py = this.player.y;
@@ -676,7 +734,10 @@ export class World {
     if (!room || !this.map.rooms[room.id].cleared || !this.player.alive ||
         this.won || this.boss || this.enemies.some((enemy) => enemy.alive) ||
         this.map.rooms.some((entry) => entry.spawned && !entry.cleared)) return null;
-    return {
+    // Deep copy: the returned frame must not keep references to the live
+    // player / loot. Any in-memory holder (AI harness, checkpoint UI, test)
+    // would otherwise observe silently mutating "snapshots" (review R-03).
+    return cloneCheckpoint({
       id, seed, stats, roomId: room.id,
       position: { x: this.player.x, y: this.player.y },
       clearedRooms: this.map.rooms.filter((entry) => entry.cleared).map((entry) => entry.id),
@@ -684,7 +745,7 @@ export class World {
       rngState: this.rng.snapshot(),
       player: this.player.data,
       loot: this.loot.map(({ data }) => data)
-    };
+    });
   }
 
   restoreCheckpoint(run: RunCheckpoint): boolean {

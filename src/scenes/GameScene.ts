@@ -43,6 +43,12 @@ export class GameScene extends Phaser.Scene {
   private minimap!: Phaser.GameObjects.Graphics;
   private txtStats!: Phaser.GameObjects.Text;
   private timer!: Phaser.GameObjects.Text;
+  // AI-NATIVE-02 P1 control HUD (honest local-demo labelling).
+  private txtControl!: Phaser.GameObjects.Text;
+  private txtAiAction!: Phaser.GameObjects.Text;
+  private txtAiTarget!: Phaser.GameObjects.Text;
+  private txtAgentLink!: Phaser.GameObjects.Text;
+  private txtHelp!: Phaser.GameObjects.Text;
 
   private runStart = 0;
   private enemiesKilled = 0;
@@ -142,15 +148,40 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard!.on('keydown-F', () => {
       if (this.paused) return;
       this.saveCheckpoint();
-      this.world.tryInteract(this.world.player);
+      // Queue the interaction so it executes in Player.applyIntent, the same
+      // path the local controller uses (legal action, not a direct teleport).
+      this.world.player.requestInteract();
     });
     this.input.keyboard!.on('keydown-Q', () => this.switchWeapon(-1));
     this.input.keyboard!.on('keydown-E', () => this.switchWeapon(1));
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (p.button === 0) this.fireHeld = true; });
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => { if (p.button === 0) this.fireHeld = false; });
+    // Real product takeover: movement keys must work even while a pause-like
+    // overlay (LevelUpScene / PauseScene) is on top, where Player.update() is
+    // not running. This gives the human one-key control reclaim instead of
+    // requiring the test to close the overlay first.
+    const takeoverOnMove = (event: KeyboardEvent) => {
+      if (event.repeat) return;
+      if (this.world.player.control.owner !== 'ai') return;
+      this.world.player.control.humanTakeover('human-input');
+      this.world.player.clearHeldInput();
+      this.fireHeld = false;
+    };
+    for (const code of ['W', 'A', 'S', 'D', 'SPACE']) {
+      this.input.keyboard!.on(`keydown-${code}`, takeoverOnMove);
+    }
 
     this.setupHud();
     this.setupMinimap();
+    // P1: fresh run starts with human control; no AI state is carried over from
+    // a previous run / scene instance. Explicit rather than relying on defaults.
+    this.world.player.control.onRunStart();
+    // Scene exit must not leave an AI owner or held input behind.
+    this.events.once('shutdown', () => {
+      this.world.player.control.onSceneExit();
+      this.world.player.clearHeldInput();
+      this.fireHeld = false;
+    });
     // Snap the camera once. In Phaser 3.90 zoom is about the viewport center, so
     // getScroll() (which also clamps to setBounds) is the scroll that centers the
     // player; scrollX/Y must not be set to the player's world position directly.
@@ -207,6 +238,11 @@ export class GameScene extends Phaser.Scene {
     this.txtWeapon = add.text(GAME.WINDOW_W - 20, 20, '', { fontFamily: 'monospace', fontSize: '16px', color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtRoom = add.text(GAME.WINDOW_W - 20, 44, '', { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtEnemies = add.text(GAME.WINDOW_W - 20, 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtControl = add.text(GAME.WINDOW_W - 20, 90, '', { fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAiAction = add.text(GAME.WINDOW_W - 20, 110, '', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAiTarget = add.text(GAME.WINDOW_W - 20, 128, '', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAgentLink = add.text(GAME.WINDOW_W - 20, 146, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: 'monospace', fontSize: '12px', color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtHelp = add.text(20, GAME.WINDOW_H - 44, 'ESC PAUSE · ANY MOVE / FIRE TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: '12px', color: '#3d535d' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtBossHp = add.text(GAME.WINDOW_W / 2, 30, '', { fontFamily: 'monospace', fontSize: '20px', color: '#ff3355', fontStyle: 'bold' }).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     this.bossBarFill = add.rectangle(GAME.WINDOW_W / 2, 52, 0, 8, 0xff3355, 1).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     this.timer = add.text(20, 104, '', { fontFamily: 'monospace', fontSize: '12px', color: '#5a7480' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
@@ -240,6 +276,11 @@ export class GameScene extends Phaser.Scene {
     place(this.txtWeapon, GAME.WINDOW_W - 20, 20);
     place(this.txtRoom, GAME.WINDOW_W - 20, 44);
     place(this.txtEnemies, GAME.WINDOW_W - 20, 64);
+    place(this.txtControl, GAME.WINDOW_W - 20, 90);
+    place(this.txtAiAction, GAME.WINDOW_W - 20, 110);
+    place(this.txtAiTarget, GAME.WINDOW_W - 20, 128);
+    place(this.txtAgentLink, GAME.WINDOW_W - 20, 146);
+    place(this.txtHelp, 20, GAME.WINDOW_H - 44);
     place(this.txtBossHp, GAME.WINDOW_W / 2, 30);
     place(this.bossBarFill, GAME.WINDOW_W / 2, 52);
     place(this.timer, 20, 104);
@@ -320,6 +361,14 @@ export class GameScene extends Phaser.Scene {
     if (room) this.txtRoom.setText(`${room.kind.toUpperCase()} ROOM`);
     const aliveEnemies = this.world.enemies.length + (this.world.boss ? 1 : 0);
     this.txtEnemies.setText(`HOSTILES ${aliveEnemies}`);
+    // AI-NATIVE-02 P1: control ownership, last executed AI action/target, and
+    // the truthful link state (no external agent is attached in this phase).
+    const control = p.control.snapshot();
+    this.txtControl.setText(`CONTROL  ${control.modeLabel}`);
+    this.txtControl.setColor(control.owner === 'ai' ? '#7ff0ff' : control.paused ? '#ffd233' : '#8fb8c8');
+    this.txtAiAction.setText(`AI ACTION  ${control.lastAiAction ?? '—'}${control.aiActionCount > 0 ? ` ×${control.aiActionCount}` : ''}`);
+    this.txtAiTarget.setText(`AI TARGET  ${control.lastAiTarget ?? '—'}`);
+    this.txtAgentLink.setText(`${control.controllerLabel} DEMO · EXTERNAL NOT CONNECTED`);
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.timer.setText(formatDuration(Math.max(0, secs)));
     const settings = saveSystem.getSettings();
@@ -392,6 +441,8 @@ export class GameScene extends Phaser.Scene {
     this.levelUpActive = true;
     audio.levelup();
     this.paused = true;
+    this.world.player.control.pause();
+    this.world.player.clearHeldInput();
     this.cameras.main.setAlpha(0.5);
     this.scene.launch('LevelUpScene', { level, onClose: () => this.onLevelUpClosed() });
   }
@@ -405,6 +456,8 @@ export class GameScene extends Phaser.Scene {
       this.openNextLevelUp();
     } else {
       this.paused = false;
+      this.world.player.control.resume();
+      this.world.player.clearHeldInput();
       this.cameras.main.setAlpha(1);
     }
   }
@@ -439,6 +492,10 @@ export class GameScene extends Phaser.Scene {
     this.runFinished = true;
     this.pendingLevels = [];
     this.levelUpActive = false;
+    // Death ends the run: hand ownership back to the human and drop AI state.
+    this.world.player.control.onDeath();
+    this.world.player.clearHeldInput();
+    this.fireHeld = false;
     audio.death();
     const stats = this.runStats();
     saveSystem.finishRun(this.runId, false, this.seed, stats);
@@ -449,6 +506,9 @@ export class GameScene extends Phaser.Scene {
   private onBossWin(): void {
     if (this.runFinished) return;
     this.runFinished = true;
+    this.world.player.control.onRunEnd();
+    this.world.player.clearHeldInput();
+    this.fireHeld = false;
     const stats = this.runStats();
     const coreAwarded = saveSystem.finishRun(this.runId, true, this.seed, stats);
     this.pendingLevels = [];
@@ -475,10 +535,30 @@ export class GameScene extends Phaser.Scene {
     if (this.paused) return;
     this.saveCheckpoint();
     this.paused = true;
+    this.world.player.control.pause();
+    this.world.player.clearHeldInput();
+    this.fireHeld = false;
     this.scene.launch('PauseScene', { mode: 'pause' });
   }
 
-  onResume(): void { this.paused = false; }
+  onResume(): void {
+    this.paused = false;
+    this.world.player.control.resume();
+    this.world.player.clearHeldInput();
+    this.fireHeld = false;
+  }
+
+  /** Dev entry for the real World, used by the Pause menu button. */
+  toggleAiControl(): boolean {
+    const control = this.world.player.control;
+    if (control.aiEnabled) {
+      control.disableAi('pause-menu');
+      this.world.player.clearHeldInput();
+      return false;
+    }
+    control.enableAi(this.world.clock);
+    return true;
+  }
 
   private switchWeapon(dir: number): void {
     if (this.paused) return;

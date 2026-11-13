@@ -130,7 +130,23 @@ export class PauseScene extends Phaser.Scene {
         this.scene.stop('GameScene');
         this.scene.start('MainMenuScene', {});
       }, 0x5a2a3a);
-      this.add.text(GAME.WINDOW_W / 2, 530, 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
+      // AI-NATIVE-02 P1 development entry in the real World. It is honestly
+      // labelled as a local deterministic demo; no external agent is attached.
+      const control = parent.world.player.control;
+      this._button(GAME.WINDOW_W / 2, 540, `AI CONTROL: ${control.aiEnabled ? 'ON · LOCAL DEMO' : 'OFF'}`, () => {
+        parent.toggleAiControl();
+        this.scene.restart({ mode: 'pause' });
+      }, 0x274a55);
+      this.add.text(GAME.WINDOW_W / 2, 585, `CONTROL  ${control.owner.toUpperCase()} · ${control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`, {
+        fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8'
+      }).setOrigin(0.5);
+      this.add.text(GAME.WINDOW_W / 2, 605, 'EXTERNAL AGENT  NOT CONNECTED', {
+        fontFamily: 'monospace', fontSize: '12px', color: '#ff8a3c'
+      }).setOrigin(0.5);
+      this.add.text(GAME.WINDOW_W / 2, 625, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL', {
+        fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
+      }).setOrigin(0.5);
+      this.add.text(GAME.WINDOW_W / 2, 655, 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
         fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8'
       }).setOrigin(0.5);
     }

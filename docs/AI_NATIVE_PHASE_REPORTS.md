@@ -113,3 +113,28 @@
 P5提交后Lead发现普通Session与coop各10槽位可合计20，已由Orca Worker developer最小修正为调用方持有的单个ProcessSessionBudget(10)，不使用全局单例；两类实例、run_scenario/batch同池，构造失败/close/idle/dispose归还槽。Orca Worker tester独立官方MCP13/13与直连12/12通过，Orca Worker reviewer结论代码可接受、无阻断。新增budget.test.ts五例，最终全量292/292；typecheck/build/MCPbuild/P4replay/coopDemo通过，slice与browser逐字未变，沿用P5两次完整23E2E。
 
 实际文件为sessions/coop/harness/MCP server的预算注入、budget.test.ts/budgetClient.mts、scripts和最终文档/取证样例。完整gate在仓库外`final-budget-{developer,reviewer,tester}-*`；最终审查和Tester结论归档进`docs/ai-native-evidence/`。未合并main，GitHub P5节点两项CI已通过；最终新提交的CI需以PR实时状态为准。最终提交hash见本节所在提交。
+
+---
+
+# AI-NATIVE-02 阶段报告（正式 World / 意图适配）
+
+阶段编号与 AI-NATIVE-01 的 P0–P5 无关。基线 `860a0dd78fb741896c2f1433742603dd91e37fc8`，分支 `feat/ai-native-world-integration`，P0/P1 提交 hash 见本节所在提交；未 push、未合并 main。
+
+## P0 — 接缝核查与最小接口
+
+- **PASS**（基线真实失败：无）。`npm run typecheck` exit 0；`npm test` 292/292；`npm run build` exit 0（仅既有 500kB chunk 警告）。日志 `reports/ai-native-02/p0-baseline-*.log`、`reports/ai-native-02/reviewer/`、`reports/ai-native-02/tester/`。
+- 核查范围：World/Player/Enemy/Boss/Weapon/Projectile/Collision/Signal(房间与传送门)/Input/Camera/HUD/Save/RNG/Tick/EventBus/既有 ai-native。
+- 接缝图、最小接口、操作说明与风险映射：`docs/AI_NATIVE_WORLD_CONTROL.md`。
+- 结论：主 World 是 Phaser+规则耦合、变长 dt、含视觉/玩法随机；Lead 裁定 R-01/R-02 留 P2/P4，P1 只做**共用合法意图适配层**，不宣称 Headless/Replay/确定性。
+
+## P1 — 可见本地确定性接管
+
+- **PASS（开发者自测，非独立验收）**：人类与本地 controller 共用 `PlayerIntent → Player.applyIntent`，同一各向异性移动/碰撞、`setAimGrid` 瞄准、`tryFire`、`tryInteract`；AI 只返回意图，不写坐标/HP/Phaser 对象。
+- 实现：`ControlAuthority`（owner/pause/takeover/disable/死亡/重启/场景退出）、`LocalDeterministicController`（MOVE/TRAVEL/ENGAGE/STOP/INTERACT/BLOCKED，目标最近可见敌人或传送门位置）、`WorldObservationV1` 白名单、`World.observationView()/intentView()`、HUD 模式/最近动作/目标/真实连接状态、Pause 菜单 `AI CONTROL` 开发入口、升级弹层内一键夺回、`cloneCheckpoint()` 深拷贝。
+- 真实标签：HUD/暂停菜单/文档一致显示 `LOCAL DETERMINISTIC` 与 `EXTERNAL NOT CONNECTED`；没有外部 LLM/Codex/MCP Agent 接入，没有 MCP 直接改 Scene，没有系统键鼠模拟。
+- 命令与结果：`npm run typecheck` PASS；`npm test` 321/321（新增 29 项）；`npm run build` / `npm run game:mcp:build` PASS；冻结快照 5281 专属端口 `npx playwright test tests/ai-native-world.spec.ts --workers=1` 6/6 PASS；双端口全量 `PORT=5173 npx playwright test --workers=1` 33/33 PASS。日志 `reports/ai-native-02/final-*.log`、`p1-full-playwright.log`、`final-playwright-frozen.log`。
+- 证据：`reports/ai-native-02/evidence-frozen/`（5 张分辨率 HUD 截图、AI 连续截图、暂停/升级/死亡截图、`operation-log-*.json`）；五分辨率物理最小字号 19.5/13.87/13/10.4/8.125 CSS px；AI 14 帧采样 pathLength 9.478 tiles、5 个移动意图、1 次合法传送门房间转场、所有采样点 walkable；白名单把其他房间敌人排除，portal targetRoom 不外泄；暂停菜单 AI 运行时确认为 ON、手动 OFF 后不自抢；升级弹层内按 W 真实夺回；死亡清 run、新局 human 且无残留；checkpoint 捕获帧不随活状态变异。
+- 失败历史：早期 WIP 采样的「位移点数>2」失败不是放宽阈值掩盖，而是发现 LevelUpScene 暂停与合法传送门房间跳变；最终用连续细采样、同房间步长/碰撞合法性与单独记录 interact 转场修复。另有生产构建 class 名被压缩导致按 `constructor.name` 找 Scene 失败，已全部改为 Phaser scene key。
+- 独立复核：**Reviewer 与 Tester 只做了基线核查，尚未对本 P1 实现做独立最终验收**；两者报告见 `reports/ai-native-02/reviewer/REVIEW_P0P1_WORLD_MIGRATION_RISK.md`、`reports/ai-native-02/tester/`。开发者自测不得冒充独立验收。
+- 剩余风险/未完成：World 纯权威核与固定 tick（P2）、全玩法 seeded RNG 与 Replay/确定性（P4）、外部 Agent 经正式通道接入、Human+ECHO 正式双 Actor、Station Zero runtime 的 actor/reset 硬化、`onLoot`/`statsSnapshot()` 空实现；P1 不重构这些。
+- 下一阶段：由 Lead 派 Tester / Reviewer 对本提交做独立最终验收；再决定 P2–P5 范围。

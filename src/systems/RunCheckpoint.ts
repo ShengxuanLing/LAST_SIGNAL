@@ -19,6 +19,23 @@ function isUint32(value: number): boolean {
   return isCount(value) && value <= 0xffffffff;
 }
 
+/**
+ * Deep copy of a checkpoint frame (review R-03). `captureCheckpoint` used to
+ * return live references to `player.data` and loot entries, so any in-memory
+ * holder (AI adapter, checkpoint UI, test) would see silently mutating data.
+ * The on-disk write serialises immediately, which hid the bug for saves only.
+ */
+export function cloneCheckpoint(run: RunCheckpoint): RunCheckpoint {
+  return {
+    ...run,
+    position: { ...run.position },
+    clearedRooms: run.clearedRooms.slice(),
+    player: JSON.parse(JSON.stringify(run.player)) as RunCheckpoint['player'],
+    loot: run.loot.map((drop) => ({ ...drop })),
+    stats: { ...run.stats }
+  };
+}
+
 export function validateCheckpoint(run: RunCheckpoint | undefined): run is RunCheckpoint {
   if (!run || typeof run.id !== 'string' || !run.id || !isUint32(run.seed) || !isUint32(run.rngState)) return false;
   if (!isRoomId(run.roomId) || !Number.isFinite(run.position?.x) || !Number.isFinite(run.position?.y)) return false;
