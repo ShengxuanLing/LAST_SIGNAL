@@ -196,3 +196,13 @@ C3-a 连接层（worldProtocol / worldGateway / worldBridgeServer）在 `c9ccce8
 验证：`npm run typecheck`、`npm test`（381 项，含新增 5 项回归）、`npm run build`、`npm run game:mcp:build` 均通过。复用 Tester 两探针（`reports/ai-native-02/tester/c3a-final/probe-http-bridge.ts`、`probe-gateway.ts`）重跑：原 Tester 记录的两项 finding（`observation-old-tick-accepted`、`allowed-origin-can-drive-other-session`）现已**消失**，原先编码 buggy 行为的少数探针断言（`gateway-queue-ok` 依赖 cross-origin 被接受、`stale-observation-rejected` 期望 `E_STALE_EPOCH`、`cache-eviction-retry-still-idempotent` 期望淘汰后重放）相应翻转——这正是三项缺陷已关闭的证据，已由上述永久回归覆盖。完整日志 `reports/ai-native-02/c3a-fixes/logs/`。
 
 C3 下一步（仍未被本提交实现）：真实外部 Agent 经正式 Player/MCP 通道接入 World、端到端 ACK、Signal 正式接入。C3-b 预研 WIP 以 stash 保留（`stash@{0}`），未丢、未并入。
+
+## C3-a 有界性修复（会话配额 / close Origin / 同 tick 冲突）
+
+Tester 对 `0ac1814` 的复验确认 F1/F2/F3 功能契约通过，但指出 F2 修复引入无界 `evictedRequestIds/evictedActionIds`，且 `/world-link/close` 未绑定 handshake Origin；同时同 tick 观察仍是 last-write-wins。修复提交（**单独提交，不混入 C2 或 C3-b**）处理如下：
+
+- **会话生命周期硬配额**：新增 `WORLD_LIMITS.MAX_DEDUP_RECORDS = 512` 与 `WorldGatewayOptions.maxDedupRecords`。每个 session 以 `dedupRecords` 计数所有 requestId/actionId 去重记录（`requestCache + actionCache + evictedRequestIds + evictedActionIds` 的总和严格等于该计数且 ≤ 上限）。配额在批解析后、任何指纹校验/入队前检查；超限整批返回 `E_RESOURCE_LIMIT / world.session_quota`，不部分计费、不部分入队、不自动换 epoch、不丢去重记录。已接受 request 的重试仍先走缓存 replay / `E_RETRY_AFTER_EVICTION`，不会重新执行。
+- **淘汰与生命周期**：`trimCache` 淘汰时把 id 移入 evicted 集合并计入同一配额；`yieldSession`/`reapExpired` 把 cache 记录归档进 evicted 集合（总数不变），保留去重拒绝能力但不允许绕过配额继续扩张；`closeSession`/`dispose` 才释放整个会话；显式 `authorize` 重新授权由人类调用，不自动恢复控制。缓存淘汰的 pending receipt 若被重新写回，会先从 evicted 集合移除再入 cache，避免同一 id 双计。
+- **close Origin 绑定**：`/world-link/close` 与其他受权操作一样校验 `session.handshakeOrigin === Origin`；不同允许 Origin 用同一 token 不能强制关闭别人的 session（403 `world.origin_mismatch`）。
+- **同 tick 观察**：同 epoch 同 tick 且 payload 相同 → 幂等返回；payload 不同 → `E_TICK_CONFLICT`（HTTP 409），不覆盖最新权威观察；要更新内容必须使用新的 commit tick。`yield`/`LOST` 递增 epoch 并清空 `lastObservation`，显式 `authorize` 后允许新 epoch 的 tick 重置；去重记录仍保留。
+- **验证**：`npm run typecheck`、`npm test`（391 项）、`npm run build`、`npm run game:mcp:build`、默认 StationZero MCP smoke（6 Player 工具）均通过。Tester 旧探针的长流量段显示 evicted/cache 在 1000/2000/3000 次操作时稳定为 `254/254/2/2 = 512`，不再线性增长；旧探针中编码 last-write-wins / 无界增长的断言按新契约翻转，属于预期。完整日志 `reports/ai-native-02/c3a-bounds-fix/logs/`。

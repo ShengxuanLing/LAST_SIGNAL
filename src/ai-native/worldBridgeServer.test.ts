@@ -196,6 +196,12 @@ describe('C3-a bridge F3: per-operation origin binding', () => {
       const { session, epoch } = linked.body;
       const pushed = await request(server, '/world-link/observation', { origin: ORIGIN, body: { session, epoch, observation: observation(epoch, 10) } });
       expect(pushed.status).toBe(200);
+      // Same tick with different content is a conflict, not a silent overwrite.
+      const changed = observation(epoch, 10);
+      changed.player.hp = 99;
+      const conflict = await request(server, '/world-link/observation', { origin: ORIGIN, body: { session, epoch, observation: changed } });
+      expect(conflict.status).toBe(409);
+      expect(conflict.body.code).toBe('E_TICK_CONFLICT');
       // An allowed but non-handshake origin cannot update this session.
       const cross = await request(server, '/world-link/observation', { origin: OTHER, body: { session, epoch, observation: observation(epoch, 11) } });
       expect(cross.status).toBe(403);
@@ -214,6 +220,15 @@ describe('C3-a bridge F3: per-operation origin binding', () => {
       const yieldOk = await request(server, '/world-link/yield', { origin: ORIGIN, body: { session, epoch, reason: 'test' } });
       expect(yieldOk.status).toBe(200);
       expect(gateway.sessionOrigin(session)).toBe(ORIGIN);
+      // Close is an authorized op too: a different allowed origin cannot
+      // force-close this session; the handshake origin can.
+      const closeCross = await request(server, '/world-link/close', { origin: OTHER, body: { session } });
+      expect(closeCross.status).toBe(403);
+      expect(closeCross.body.code).toBe('E_PERMISSION');
+      expect(gateway.listSessions()).toHaveLength(1);
+      const closeOk = await request(server, '/world-link/close', { origin: ORIGIN, body: { session } });
+      expect(closeOk.status).toBe(200);
+      expect(gateway.listSessions()).toHaveLength(0);
     } finally {
       await server.close();
     }

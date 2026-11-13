@@ -247,3 +247,234 @@ describe('C3-a gateway hard gates (F1/F2/F3) from independent tester findings', 
     expect((ok as any).status).toBe('applied');
   });
 });
+
+describe('C3-a bounded session quota and same-tick observation conflict', () => {
+  const usage = (g: WorldGateway, session: string) => {
+    const s = (g as any).sessions.get(session);
+    return {
+      total: s.requestCache.size + s.actionCache.size + s.evictedRequestIds.size + s.evictedActionIds.size,
+      records: s.dedupRecords,
+      pending: s.pending.length
+    };
+  };
+  const isErr = (x: any): boolean => !!x && x.ok === false;
+
+  it('hard quota bounds cache+evicted records and rejects new work atomically', () => {
+    const g = gateway({ maxDedupRecords: 6, maxCacheEntries: 2, maxPendingActions: 64 });
+    const { session, epoch } = linked(g);
+    let accepted = 0;
+    let rejected = 0;
+    let quotaError: any = null;
+    for (let i = 1; i <= 20; i++) {
+      const r = g.submitActions({
+        sessionId: session, epoch, requestId: rid(i),
+        actions: { actions: [{ type: 'stop', actionId: aid(i) }], ttlTicks: 60 }, nowMs: 1000 + i
+      });
+      if (isErr(r)) {
+        rejected++;
+        if ((r as any).code === 'E_RESOURCE_LIMIT') quotaError = r;
+      } else {
+        accepted++;
+        const ack = g.ackAction({
+          sessionId: session, epoch, requestId: rid(i), actionId: aid(i),
+          result: 'applied', appliedTick: 6, nowMs: 1001 + i
+        });
+        expect((ack as any).status).toBe('applied');
+      }
+      const u = usage(g, session);
+      expect(u.total, 'cache + evicted never exceeds the hard quota').toBeLessThanOrEqual(6);
+      expect(u.records).toBe(u.total);
+      expect(u.pending).toBe(0);
+    }
+    expect(accepted).toBe(3);
+    expect(rejected).toBe(17);
+    expect(quotaError?.code).toBe('E_RESOURCE_LIMIT');
+    // A retry of an already-accepted request cannot bypass the quota and cannot re-queue.
+    const retry = g.submitActions({
+      sessionId: session, epoch, requestId: rid(1),
+      actions: { actions: [{ type: 'stop', actionId: aid(1) }], ttlTicks: 60 }, nowMs: 2000
+    });
+    if (isErr(retry)) expect((retry as any).code).toBe('E_RETRY_AFTER_EVICTION');
+    else expect((retry as any).replayed).toBe(true);
+    expect(g.nextAction({ sessionId: session, epoch, nowMs: 2000 })).toBeNull();
+    expect(usage(g, session).total).toBeLessThanOrEqual(6);
+  });
+
+  it('quota rejection happens before enqueue and leaves no partial batch', () => {
+    const g = gateway({ maxDedupRecords: 4, maxCacheEntries: 8, maxPendingActions: 64 });
+    const { session, epoch } = linked(g);
+    const first = g.submitActions({
+      sessionId: session, epoch, requestId: rid(1),
+      actions: { actions: [{ type: 'stop', actionId: aid(1) }], ttlTicks: 60 }, nowMs: 1000
+    });
+    expect(isErr(first)).toBe(false);
+    expect(usage(g, session)).toEqual({ total: 2, records: 2, pending: 1 });
+    const tooBig = g.submitActions({
+      sessionId: session, epoch, requestId: rid(2),
+      actions: { actions: [{ type: 'stop', actionId: aid(2) }, { type: 'stop', actionId: aid(3) }], ttlTicks: 60 },
+      nowMs: 1001
+    });
+    expect(isErr(tooBig)).toBe(true);
+    expect((tooBig as any).code).toBe('E_RESOURCE_LIMIT');
+    expect(usage(g, session)).toEqual({ total: 2, records: 2, pending: 1 });
+    expect((g.nextAction({ sessionId: session, epoch, nowMs: 1001 }) as any)?.actionId).toBe(aid(1));
+    expect(g.nextAction({ sessionId: session, epoch, nowMs: 1001, afterActionId: aid(1) })).toBeNull();
+  });
+
+  it('tiny cache eviction stays bounded; retry after eviction is rejected', () => {
+    const g = gateway({ maxDedupRecords: 6, maxCacheEntries: 1, maxPendingActions: 64 });
+    const { session, epoch } = linked(g);
+    const first = g.submitActions({
+      sessionId: session, epoch, requestId: rid(1),
+      actions: { actions: [{ type: 'stop', actionId: aid(1) }], ttlTicks: 60 }, nowMs: 1000
+    });
+    expect(isErr(first)).toBe(false);
+    expect((g.ackAction({ sessionId: session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: 6, nowMs: 1001 }) as any).status).toBe('applied');
+    // Fill the remaining quota with one more accepted request, then force eviction.
+    const second = g.submitActions({
+      sessionId: session, epoch, requestId: rid(2),
+      actions: { actions: [{ type: 'stop', actionId: aid(2) }], ttlTicks: 60 }, nowMs: 1002
+    });
+    expect(isErr(second)).toBe(false);
+    const third = g.submitActions({
+      sessionId: session, epoch, requestId: rid(3),
+      actions: { actions: [{ type: 'stop', actionId: aid(3) }], ttlTicks: 60 }, nowMs: 1003
+    });
+    expect(isErr(third)).toBe(false);
+    expect(usage(g, session).total).toBeLessThanOrEqual(6);
+    const retry = g.submitActions({
+      sessionId: session, epoch, requestId: rid(1),
+      actions: { actions: [{ type: 'stop', actionId: aid(1) }], ttlTicks: 60 }, nowMs: 1004
+    });
+    expect(isErr(retry)).toBe(true);
+    expect((retry as any).code).toBe('E_RETRY_AFTER_EVICTION');
+    expect(usage(g, session).total).toBeLessThanOrEqual(6);
+  });
+
+  it('same request replay is idempotent; different payload is rejected without new records', () => {
+    const g = gateway({ maxDedupRecords: 16 });
+    const { session, epoch } = linked(g);
+    const r1 = g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1)), nowMs: 1000 });
+    expect(isErr(r1)).toBe(false);
+    const before = usage(g, session);
+    const replay = g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1)), nowMs: 1001 });
+    expect(isErr(replay)).toBe(false);
+    expect((replay as any).replayed).toBe(true);
+    expect(usage(g, session)).toEqual(before);
+    const mismatch = g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(2)), nowMs: 1002 });
+    expect(isErr(mismatch)).toBe(true);
+    expect((mismatch as any).code).toBe('E_ID_PAYLOAD_MISMATCH');
+    expect(usage(g, session)).toEqual(before);
+  });
+
+  it('same-tick observation: identical payload is idempotent, conflicting payload is rejected', () => {
+    const g = gateway();
+    const { session, epoch } = linked(g); // tick 5
+    const same = g.pushObservation(session, epoch, observation(epoch, 5), 2000);
+    expect(same.ok).toBe(true);
+    expect((g as any).sessions.get(session).lastObservation.roomId).toBe(0);
+    const changed = observation(epoch, 5);
+    changed.roomId = 1;
+    const conflict = g.pushObservation(session, epoch, changed, 2001);
+    expect(conflict.ok).toBe(false);
+    expect((conflict as any).code).toBe('E_TICK_CONFLICT');
+    expect(g.listSessions()[0].tick).toBe(5);
+    // Latest authoritative content is not overwritten by the conflicting payload.
+    expect((g as any).sessions.get(session).lastObservation.roomId).toBe(0);
+    // A new commit tick is required to change the observation.
+    changed.tick = 6;
+    expect(g.pushObservation(session, epoch, changed, 2002).ok).toBe(true);
+    expect((g as any).sessions.get(session).lastObservation.roomId).toBe(1);
+    expect(g.listSessions()[0].tick).toBe(6);
+  });
+
+  it('cross-epoch old requests stay rejected; re-authorize allows a tick reset', () => {
+    const g = gateway({ maxDedupRecords: 16 });
+    const { session, epoch } = linked(g);
+    expect(isErr(g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1)), nowMs: 1000 }))).toBe(false);
+    expect((g.ackAction({ sessionId: session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: 6, nowMs: 1001 }) as any).status).toBe('applied');
+    const yielded = g.yieldSession(session, epoch, 'human-input', 1002);
+    expect(yielded.ok).toBe(true);
+    const epoch2 = (yielded as any).epoch;
+    expect(epoch2).toBe(epoch + 1);
+    expect(g.authorize(session, epoch2, 1003).ok).toBe(true);
+    expect(g.pushObservation(session, epoch2, observation(epoch2, 1), 1004).ok).toBe(true);
+    const old = g.submitActions({ sessionId: session, epoch: epoch2, requestId: rid(1), actions: batch(aid(1)), nowMs: 1005 });
+    expect(isErr(old)).toBe(true);
+    expect((old as any).code).toBe('E_RETRY_AFTER_EVICTION');
+    expect(g.nextAction({ sessionId: session, epoch: epoch2, nowMs: 1005 })).toBeNull();
+    const fresh = g.submitActions({ sessionId: session, epoch: epoch2, requestId: rid(2), actions: batch(aid(2)), nowMs: 1006 });
+    expect(isErr(fresh)).toBe(false);
+    expect((fresh as any).acceptedTick).toBe(1);
+    expect(usage(g, session).total).toBeLessThanOrEqual(16);
+  });
+
+  it('LOST retains dedup records and rejects old requests after re-authorize', () => {
+    const g = gateway({ maxDedupRecords: 16, lostAfterMs: 50 });
+    const { session, epoch } = linked(g);
+    expect(isErr(g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1)), nowMs: 1000 }))).toBe(false);
+    expect((g.ackAction({ sessionId: session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: 6, nowMs: 1001 }) as any).status).toBe('applied');
+    expect(g.reapExpired(2000)).toContain(session);
+    const lostEpoch = g.listSessions()[0].epoch;
+    expect(lostEpoch).toBe(epoch + 1);
+    expect(g.authorize(session, lostEpoch, 2001).ok).toBe(true);
+    expect(g.pushObservation(session, lostEpoch, observation(lostEpoch, 1), 2001).ok).toBe(true);
+    const old = g.submitActions({ sessionId: session, epoch: lostEpoch, requestId: rid(1), actions: batch(aid(1)), nowMs: 2002 });
+    expect(isErr(old)).toBe(true);
+    expect((old as any).code).toBe('E_RETRY_AFTER_EVICTION');
+    expect(usage(g, session).total).toBeLessThanOrEqual(16);
+  });
+
+  it('pending budget recovers after ACK without exceeding the dedup quota', () => {
+    const g = gateway({ maxPendingActions: 2, maxDedupRecords: 32 });
+    const { session, epoch } = linked(g);
+    expect(isErr(g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1)), nowMs: 1000 }))).toBe(false);
+    expect(isErr(g.submitActions({ sessionId: session, epoch, requestId: rid(2), actions: batch(aid(2)), nowMs: 1001 }))).toBe(false);
+    const over = g.submitActions({ sessionId: session, epoch, requestId: rid(3), actions: batch(aid(3)), nowMs: 1002 });
+    expect(isErr(over)).toBe(true);
+    expect((over as any).code).toBe('E_RESOURCE_LIMIT');
+    expect(usage(g, session).pending).toBe(2);
+    expect((g.ackAction({ sessionId: session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: 6, nowMs: 1003 }) as any).status).toBe('applied');
+    expect(usage(g, session).pending).toBe(1);
+    const recovered = g.submitActions({ sessionId: session, epoch, requestId: rid(3), actions: batch(aid(3)), nowMs: 1004 });
+    expect(isErr(recovered)).toBe(false);
+    expect(usage(g, session).pending).toBe(2);
+    expect(usage(g, session).total).toBeLessThanOrEqual(32);
+  });
+  it('default quota bounds a long session at WORLD_LIMITS.MAX_DEDUP_RECORDS', () => {
+    const g = gateway();
+    const { session, epoch } = linked(g);
+    let rejected = 0;
+    for (let i = 1; i <= 400; i++) {
+      const r = g.submitActions({
+        sessionId: session, epoch, requestId: rid(i),
+        actions: { actions: [{ type: 'stop', actionId: aid(i) }], ttlTicks: 60 }, nowMs: 1000 + i
+      });
+      if (isErr(r)) {
+        rejected++;
+        expect((r as any).code).toBe('E_RESOURCE_LIMIT');
+      } else {
+        expect((g.ackAction({ sessionId: session, epoch, requestId: rid(i), actionId: aid(i), result: 'applied', appliedTick: 6, nowMs: 1001 + i }) as any).status).toBe('applied');
+      }
+      const u = usage(g, session);
+      expect(u.total).toBeLessThanOrEqual(WORLD_LIMITS.MAX_DEDUP_RECORDS);
+      expect(u.records).toBe(u.total);
+    }
+    expect(rejected).toBeGreaterThan(0);
+    expect(g.listSessions()[0].epoch).toBe(epoch); // quota never silently bumps epoch
+  });
+
+  it('re-adding a pending action receipt moves it back without double counting', () => {
+    const g = gateway({ maxCacheEntries: 1, maxPendingActions: 8, maxDedupRecords: 8 });
+    const { session, epoch } = linked(g);
+    expect(isErr(g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1)), nowMs: 1000 }))).toBe(false);
+    // Queueing B evicts A's action-cache entry while A is still pending.
+    expect(isErr(g.submitActions({ sessionId: session, epoch, requestId: rid(2), actions: batch(aid(2)), nowMs: 1001 }))).toBe(false);
+    const before = usage(g, session);
+    expect(before.total).toBe(before.records);
+    expect((g.ackAction({ sessionId: session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: 6, nowMs: 1002 }) as any).status).toBe('applied');
+    const after = usage(g, session);
+    expect(after.total, 'moving an evicted pending receipt back into cache must not duplicate it').toBe(after.records);
+    expect(after.total).toBeLessThanOrEqual(8);
+  });
+});

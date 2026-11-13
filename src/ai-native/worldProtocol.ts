@@ -26,6 +26,8 @@ export const WORLD_LIMITS = Object.freeze({
   MAX_PENDING_ACTIONS: 32,
   MAX_SESSIONS: 4,
   MAX_CACHE_ENTRIES: 128,
+  /** Hard bound on request/action dedup records per session (cache + evicted). */
+  MAX_DEDUP_RECORDS: 512,
   MAX_PAYLOAD_BYTES: 8192,
   MAX_OBSERVATION_DRONES: 32,
   MAX_OBSERVATION_PROJECTILES: 64,

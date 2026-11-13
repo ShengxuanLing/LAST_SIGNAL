@@ -196,6 +196,9 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (!body) return;
     const session = asString(body.session);
     if (!session) return badRequest(res);
+    // F3/close: closing a session is an authorized operation too. A different
+    // allowed origin with the same token must not force-close another session.
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
     const result = options.gateway.closeSession(session, Date.now());
     for (const [origin, id] of linkedByOrigin) if (id === session) linkedByOrigin.delete(origin);
     if (!result.ok) return respond(res, statusFor(result.code), result);
@@ -282,6 +285,7 @@ function statusFor(code: ErrorCodeV1): number {
     case 'E_SESSION_NOT_FOUND': return 404;
     case 'E_STALE_EPOCH': return 409;
     case 'E_STALE_TICK': return 409;
+    case 'E_TICK_CONFLICT': return 409;
     case 'E_PERMISSION': return 403;
     case 'E_RESOURCE_LIMIT': return 429;
     case 'E_TIMEOUT': return 504;
