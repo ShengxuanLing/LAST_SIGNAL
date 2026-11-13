@@ -3,6 +3,7 @@ import { WEAPONS } from '../config/weapons';
 import type { Cell } from './room';
 import { SLICE } from './tuning';
 import { CorridorGuard, type GuardSnapshot } from './corridorGuard';
+import type { CorridorFullState, SliceEvidenceV1 } from './fullState';
 import {
   CORRIDOR, canStandInCorridor, corridorLineOfSight, nearControl,
   occupiesBridge, shoreOf, validateCorridorTemplate, type Shore,
@@ -42,6 +43,8 @@ export interface CorridorCheckpoint {
   jamRemaining: number;
   scanRemaining: number;
   reveal: CorridorReveal | null;
+  /** R9 evidence observed in R2; only present while scanRemaining > 0. */
+  evidence?: SliceEvidenceV1[];
 }
 
 export interface CorridorSnapshot extends CorridorSignal {
@@ -178,10 +181,17 @@ export class Corridor {
     };
   }
 
-  shoot(tick: number): 'hit' | 'cleared' | 'cooldown' | 'unavailable' {
+  /** Pure availability probe (no mutation), used by action descriptions. */
+  canShoot(tick: number): 'ok' | 'cooldown' | 'unavailable' {
     if (this.disposed || this.publishing || !this.alive || this.guard.hp === 0 ||
         !this.inRange(this.guard.position, PULSE.baseRange / GAME.PIXEL_TO_TILE)) return 'unavailable';
     if (tick < this.nextShotTick) return 'cooldown';
+    return 'ok';
+  }
+
+  shoot(tick: number): 'hit' | 'cleared' | 'cooldown' | 'unavailable' {
+    const availability = this.canShoot(tick);
+    if (availability !== 'ok') return availability;
     this.nextShotTick = tick + Math.ceil(SLICE.TICK_HZ / PULSE.baseRate);
     this.guard.takeHit(PULSE.baseDamage);
     return this.guard.hp === 0 ? 'cleared' : 'hit';
@@ -241,13 +251,50 @@ export class Corridor {
     };
   }
 
-  capture(jamRemaining: number, scanRemaining: number, reveal: CorridorReveal | null): CorridorCheckpoint | null {
+  /** Full private corridor state for P1 internal snapshot (not the browser checkpoint). */
+  captureFull(): CorridorFullState {
+    return {
+      manualEnabled: this.signal.manualEnabled,
+      powered: this.signal.powered,
+      relay: this.signal.relay,
+      bridge: this.signal.bridge,
+      deadline: this.signal.deadline,
+      disposed: this.disposed,
+      location: { ...this.location },
+      lastShore: this.lastShore,
+      health: this.health,
+      guard: this.guard.captureFull(),
+      crossed: this.crossedFlag,
+      crossedAtTick: this.crossedAtTick,
+      nextShotTick: this.nextShotTick,
+    };
+  }
+
+  /** Restore verbatim; never re-resolves bridge/relay or re-runs guard perception. */
+  restoreFull(state: CorridorFullState): void {
+    this.disposed = state.disposed;
+    this.publishing = false;
+    this.signal = reading(state.manualEnabled, state.powered, state.relay, state.bridge, state.deadline);
+    this.location = { x: state.location.x, y: state.location.y };
+    this.lastShore = state.lastShore;
+    this.health = state.health;
+    this.guard.restoreFull(state.guard);
+    this.crossedFlag = state.crossed;
+    this.crossedAtTick = state.crossedAtTick;
+    this.nextShotTick = state.nextShotTick;
+    this.listeners.clear();
+  }
+
+  capture(jamRemaining: number, scanRemaining: number, reveal: CorridorReveal | null, evidence: readonly SliceEvidenceV1[] = []): CorridorCheckpoint | null {
     const { manualEnabled, powered, bridge } = this.signal;
     if (!this.canSave || (bridge !== 'UNAVAILABLE' && bridge !== 'STABLE')) return null;
     return {
       template: CORRIDOR.template, position: this.position, hp: this.health, relayEnabled: manualEnabled,
       powered, bridge, crossed: this.crossed, guardCleared: true, jamRemaining, scanRemaining,
       reveal: scanRemaining > 0 && reveal ? { ...reveal } : null,
+      ...(scanRemaining > 0 && evidence.length > 0
+        ? { evidence: evidence.map((e) => ({ ...e, position: { ...e.position } })) }
+        : {}),
     };
   }
 

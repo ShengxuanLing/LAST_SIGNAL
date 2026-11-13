@@ -1,0 +1,175 @@
+{
+  "measuredAt": "2026-11-12T20:48:14.419Z",
+  "cpuAvailable": true,
+  "engine": [
+    {
+      "label": "ENGINE 1000 ticks (seed 1001)",
+      "wallMs": 5.5,
+      "cpuUserUs": 0,
+      "cpuSystemUs": 0,
+      "heapUsedBeforeBytes": 28481840,
+      "heapUsedAfterBytes": 31894864,
+      "heapDeltaBytes": 3413024,
+      "rssBeforeBytes": 118431744,
+      "rssAfterBytes": 119795712,
+      "stateHash": "sha256:ca35189512dae5292936945ecbb5f64465fd487ba33b472c3861fbd24e7ef20b",
+      "eventsHash": "sha256:32a8f4602ab79ffd9efa8a228d8380880b784c614c0636d6c4b78c721bf223cd",
+      "modelHash": "sha256:0e64cc35d16df38fd607055006491f83394e082ae7576bf74d13d8c0f4fc3a95",
+      "tick": 1062,
+      "status": "running",
+      "eventCount": 8,
+      "eventSeq": 8,
+      "droppedEvents": 0
+    },
+    {
+      "label": "ENGINE 1000 ticks (repeat, identical)",
+      "wallMs": 1.5,
+      "cpuUserUs": 0,
+      "cpuSystemUs": 0,
+      "heapUsedBeforeBytes": 32353960,
+      "heapUsedAfterBytes": 35469304,
+      "heapDeltaBytes": 3115344,
+      "rssBeforeBytes": 119881728,
+      "rssAfterBytes": 123072512,
+      "stateHash": "sha256:ca35189512dae5292936945ecbb5f64465fd487ba33b472c3861fbd24e7ef20b",
+      "eventsHash": "sha256:32a8f4602ab79ffd9efa8a228d8380880b784c614c0636d6c4b78c721bf223cd",
+      "modelHash": "sha256:0e64cc35d16df38fd607055006491f83394e082ae7576bf74d13d8c0f4fc3a95",
+      "tick": 1062,
+      "status": "running",
+      "eventCount": 8,
+      "eventSeq": 8,
+      "droppedEvents": 0
+    },
+    {
+      "label": "ENGINE 10000 ticks (seed 2002)",
+      "wallMs": 8.84,
+      "cpuUserUs": 15000,
+      "cpuSystemUs": 16000,
+      "heapUsedBeforeBytes": 35852832,
+      "heapUsedAfterBytes": 25039576,
+      "heapDeltaBytes": -10813256,
+      "rssBeforeBytes": 123494400,
+      "rssAfterBytes": 129622016,
+      "stateHash": "sha256:78a07a879d5a08ad2b43fc337bf99ed71e7d0f893a3f4f42ed363228429d248a",
+      "eventsHash": "sha256:70f84bc71c19fda87f1d8662c8c18b0a559ae7ec587356a2ff4e5f8257b146d8",
+      "modelHash": "sha256:0db74e7e9d05678da5c1848fc13531dc43cb4d6ed814943fea528e905ee82c67",
+      "tick": 10000,
+      "status": "running",
+      "eventCount": 1,
+      "eventSeq": 1,
+      "droppedEvents": 0
+    },
+    {
+      "label": "ENGINE 10 instances (seeds 0..9, 100 ticks each)",
+      "wallMs": 9.91,
+      "cpuUserUs": 0,
+      "cpuSystemUs": 0,
+      "heapUsedBeforeBytes": 25279800,
+      "heapUsedAfterBytes": 38613840,
+      "heapDeltaBytes": 13334040,
+      "rssBeforeBytes": 130002944,
+      "rssAfterBytes": 129572864,
+      "stateHash": "sha256:c1ccd99e9e4d8b93cc7e7457056706738e6d4981c078a231df0ee013d2438d3f",
+      "eventsHash": "sha256:4ed16cb12f6dfae9132f97a75cfc09f24c8f9157ad828ab2971fdf99f2d375cc",
+      "modelHash": "sha256:7a6e20bbf11ca53523c0a50105f011d7ddcea7ae6c7f820397c580ad60979a6d",
+      "tick": 100,
+      "status": "running",
+      "eventCount": 2,
+      "eventSeq": 2,
+      "droppedEvents": 0
+    }
+  ],
+  "chain": [
+    {
+      "label": "LEGAL CHAIN completion (seed 2026, door+bridge, actions only)",
+      "wallMs": 8.17,
+      "cpuUserUs": 31000,
+      "cpuSystemUs": 0,
+      "heapUsedBeforeBytes": 38878120,
+      "heapUsedAfterBytes": 27569992,
+      "heapDeltaBytes": -11308128,
+      "rssBeforeBytes": 129572864,
+      "rssAfterBytes": 130408448,
+      "stateHash": "sha256:f8ae697caeb11d7b0ce1f3cb0460340e9b7ccc6713149349c56fc90a0a925988",
+      "eventsHash": "sha256:3db1af650d8b1f5db789ec72044072c2fa1cbde81d22b0f3bdc454e3a666e9e7",
+      "modelHash": "sha256:693b7cea8d821d50468ab804ff6f9f01cededf6b8fa711a58229fad67cb5ae92",
+      "tick": 518,
+      "status": "finished",
+      "eventCount": 21,
+      "eventSeq": 21,
+      "droppedEvents": 0
+    },
+    {
+      "label": "LEGAL CHAIN completion (repeat, identical)",
+      "wallMs": 2.62,
+      "cpuUserUs": 0,
+      "cpuSystemUs": 0,
+      "heapUsedBeforeBytes": 28325960,
+      "heapUsedAfterBytes": 33314664,
+      "heapDeltaBytes": 4988704,
+      "rssBeforeBytes": 130461696,
+      "rssAfterBytes": 130682880,
+      "stateHash": "sha256:f8ae697caeb11d7b0ce1f3cb0460340e9b7ccc6713149349c56fc90a0a925988",
+      "eventsHash": "sha256:3db1af650d8b1f5db789ec72044072c2fa1cbde81d22b0f3bdc454e3a666e9e7",
+      "modelHash": "sha256:693b7cea8d821d50468ab804ff6f9f01cededf6b8fa711a58229fad67cb5ae92",
+      "tick": 518,
+      "status": "finished",
+      "eventCount": 21,
+      "eventSeq": 21,
+      "droppedEvents": 0
+    }
+  ],
+  "checks": [
+    {
+      "label": "1000-tick determinism stateHash equal",
+      "pass": true,
+      "detail": "sha256:ca35189512dae5292936945ecbb5f64465fd487ba33b472c3861fbd24e7ef20b vs sha256:ca35189512dae5292936945ecbb5f64465fd487ba33b472c3861fbd24e7ef20b"
+    },
+    {
+      "label": "1000-tick determinism eventsHash equal",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "label": "10000-tick reached tick 10000",
+      "pass": true,
+      "detail": "10000"
+    },
+    {
+      "label": "10-instance isolation: only instance 5 changed",
+      "pass": true,
+      "detail": "changed=5"
+    },
+    {
+      "label": "10 instances: identical modelHash before extra step",
+      "pass": true,
+      "detail": "distinct=1"
+    },
+    {
+      "label": "10 instances: 10 distinct stateHashes (seed/session in hash)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "label": "legal chain completes at tick 518",
+      "pass": true,
+      "detail": "518"
+    },
+    {
+      "label": "legal chain determinism stateHash equal",
+      "pass": true,
+      "detail": "sha256:f8ae697caeb11d7b0ce1f3cb0460340e9b7ccc6713149349c56fc90a0a925988 vs sha256:f8ae697caeb11d7b0ce1f3cb0460340e9b7ccc6713149349c56fc90a0a925988"
+    },
+    {
+      "label": "legal chain determinism eventsHash equal",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "label": "legal chain status finished",
+      "pass": true,
+      "detail": "finished"
+    }
+  ],
+  "fails": 0
+}

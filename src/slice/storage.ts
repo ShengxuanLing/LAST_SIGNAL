@@ -4,6 +4,7 @@ import { canFit, isWalkableCell } from './room';
 import { CORRIDOR, canStandInCorridor, occupiesBridge } from './corridorRoom';
 import { SLICE } from './tuning';
 import type { PersistedSliceState } from './rules';
+import { isSliceEvidenceArray } from './fullState';
 
 export const SLICE_STORAGE_KEY = 'last_signal_station_zero_vs00_v1';
 export const SLICE_SCHEMA = 'last_signal_station_zero_vs00_v1';
@@ -35,7 +36,7 @@ function isValidPosition(p: unknown, doorPassable: boolean): boolean {
   return canFit(v.x, v.y, (x, y) => isWalkableCell(x, y, doorPassable));
 }
 
-function isCorridorCheckpoint(value: unknown): boolean {
+function isCorridorCheckpoint(value: unknown, savedTick: number): boolean {
   if (!value || typeof value !== 'object') return false;
   const v = value as Record<string, unknown>;
   if (v.template !== CORRIDOR.template || v.guardCleared !== true ||
@@ -48,10 +49,21 @@ function isCorridorCheckpoint(value: unknown): boolean {
   const { x, y } = v.position as Record<string, unknown>;
   if (typeof x !== 'number' || typeof y !== 'number' ||
       !canStandInCorridor(x, y, false) || occupiesBridge({ x, y })) return false;
-  if (v.scanRemaining === 0) return v.reveal === null;
+  const scanRemaining = v.scanRemaining as number;
+  if (scanRemaining === 0) {
+    return v.reveal === null && (v.evidence === undefined || (Array.isArray(v.evidence) && v.evidence.length === 0));
+  }
   if (!v.reveal || typeof v.reveal !== 'object') return false;
   const { relay, bridge, perceptionPort } = v.reveal as Record<string, unknown>;
-  return [relay, bridge, perceptionPort].every((field) => typeof field === 'boolean');
+  if (![relay, bridge, perceptionPort].every((field) => typeof field === 'boolean')) return false;
+  if (v.evidence === undefined) return true; // legacy corridor save without evidence
+  if (!isSliceEvidenceArray(v.evidence) || v.evidence.length === 0) return false;
+  for (const item of v.evidence) {
+    if (item.roomId !== 'station-zero-r2') return false;
+    if (item.observedAtTick > savedTick || savedTick >= item.expiresAtTick) return false;
+    if (item.expiresAtTick !== savedTick + scanRemaining) return false;
+  }
+  return true;
 }
 
 function isPersistedSliceState(value: unknown): value is PersistedSliceState {
@@ -80,7 +92,18 @@ function isPersistedSliceState(value: unknown): value is PersistedSliceState {
     v.doorState === 'SAFE_PENDING_CLOSE';
   if (!isValidPosition(v.position, doorPassable)) return false;
   if (v.corridor !== undefined &&
-      (v.passed !== true || rem.jam !== 0 || rem.scanReveal !== 0 || !isCorridorCheckpoint(v.corridor))) return false;
+      (v.passed !== true || rem.jam !== 0 || rem.scanReveal !== 0 || !isCorridorCheckpoint(v.corridor, v.tick as number))) return false;
+  // P1 R9 compatible extension: present => target/relationship/stateLabel enum
+  // whitelist + room binding + no FUTURE evidence. Expired evidence is still
+  // shape-valid here but SliceModel.restore() safely discards it and asks for a
+  // fresh Scan; it can never become a free Scan.
+  if (v.evidence !== undefined) {
+    if (!isSliceEvidenceArray(v.evidence)) return false;
+    for (const item of v.evidence) {
+      if (item.roomId !== v.roomId) return false;
+      if (item.observedAtTick > (v.tick as number)) return false;
+    }
+  }
   return true;
 }
 

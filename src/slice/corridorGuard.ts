@@ -3,6 +3,7 @@ import { GAME } from '../config/game';
 import type { Cell } from './room';
 import { CORRIDOR, canStandInCorridor, corridorLineOfSight, shoreOf } from './corridorRoom';
 import { SLICE } from './tuning';
+import type { GuardFullState, PositionEvidenceState } from './fullState';
 
 const DRONE = ENEMY_STATS.drone;
 const VISION_RANGE = DRONE.aggroRange / GAME.PIXEL_TO_TILE;
@@ -81,6 +82,31 @@ export class CorridorGuard {
     if (tick < this.attackAt) return 0;
     this.attackAt = tick + ATTACK_WINDUP;
     return DRONE.damage;
+  }
+
+  /** Full private decision state for P1 internal snapshot (not the browser checkpoint). */
+  captureFull(): GuardFullState {
+    return {
+      location: { ...this.location },
+      evidence: this.evidence
+        ? { x: this.evidence.x, y: this.evidence.y, observedAtTick: this.evidence.observedAtTick, expiresAtTick: this.evidence.expiresAtTick }
+        : null,
+      jamUntil: this.jamUntil,
+      attackAt: this.attackAt,
+      watching: this.watching,
+      health: this.health,
+    };
+  }
+
+  /** Restore private decision state verbatim; never re-runs perception or scan. */
+  restoreFull(state: GuardFullState): void {
+    this.location = { x: state.location.x, y: state.location.y };
+    const e: PositionEvidenceState | null = state.evidence;
+    this.evidence = e ? { x: e.x, y: e.y, observedAtTick: e.observedAtTick, expiresAtTick: e.expiresAtTick } : null;
+    this.jamUntil = state.jamUntil;
+    this.attackAt = state.attackAt;
+    this.watching = state.watching;
+    this.health = state.health;
   }
 
   snapshot(tick: number, shared: boolean): GuardSnapshot {

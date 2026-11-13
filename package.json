@@ -1,7 +1,7 @@
 {
   "name": "last-signal",
   "version": "0.1.0",
-  "description": "LAST SIGNAL — a 2.5D isometric sci-fi roguelite browser game",
+  "description": "LAST SIGNAL \u2014 a 2.5D isometric sci-fi roguelite browser game",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -11,10 +11,20 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "playwright": "playwright test"
+    "playwright": "playwright test",
+    "game:headless": "vite-node src/ai-native/headlessCli.ts --run --dev",
+    "game:mcp:build": "vite build --config vite.mcp.config.ts",
+    "game:mcp": "vite-node src/ai-native/mcpServer.ts --dev",
+    "game:mcp:client": "vite-node src/ai-native/mcpClient.mts",
+    "game:agent-client": "vite-node src/ai-native/agentClient.mts",
+    "game:replay-p4": "vite-node src/ai-native/replayPlayerTrace.mts",
+    "game:coop-demo": "vite-node src/ai-native/coopDemo.mts",
+    "game:budget-client": "vite-node src/ai-native/budgetClient.mts"
   },
   "dependencies": {
-    "phaser": "^3.90.0"
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "phaser": "^3.90.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.47.2",
@@ -22,6 +32,7 @@
     "jsdom": "^25.0.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.8",
+    "vite-node": "^2.1.9",
     "vitest": "^2.1.2"
   }
 }
