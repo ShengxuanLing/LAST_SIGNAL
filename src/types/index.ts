@@ -117,6 +117,7 @@ export interface SaveData {
   settings: {
     masterVolume: number; sfxVolume: number; mouseDpi: number;
     fullscreen: boolean; screenShake: boolean;
+    avatar?: 'operator' | 'whale';
   };
   stats: { enemiesKilled: number; itemsCollected: number; damageDealt: number; playTimeSeconds: number; };
   run?: RunCheckpoint;

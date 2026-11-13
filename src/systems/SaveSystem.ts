@@ -55,6 +55,7 @@ export function validate(data: any): data is SaveData {
     if (typeof (s as any)[k] !== 'number') return false;
   }
   if (typeof s.fullscreen !== 'boolean' || typeof s.screenShake !== 'boolean') return false;
+  if (s.avatar !== undefined && s.avatar !== 'operator' && s.avatar !== 'whale') return false;
 
   const st = data.stats;
   if (!st || typeof st !== 'object') return false;
@@ -128,6 +129,7 @@ export class SaveSystem {
     base.settings.mouseDpi = typeof s.mouseDpi === 'number' ? s.mouseDpi : base.settings.mouseDpi;
     base.settings.fullscreen = typeof s.fullscreen === 'boolean' ? s.fullscreen : base.settings.fullscreen;
     base.settings.screenShake = typeof s.screenShake === 'boolean' ? s.screenShake : base.settings.screenShake;
+    if (s.avatar === 'operator' || s.avatar === 'whale') base.settings.avatar = s.avatar;
     base.stats.enemiesKilled = typeof st.enemiesKilled === 'number' ? st.enemiesKilled : base.stats.enemiesKilled;
     base.stats.itemsCollected = typeof st.itemsCollected === 'number' ? st.itemsCollected : base.stats.itemsCollected;
     base.stats.damageDealt = typeof st.damageDealt === 'number' ? st.damageDealt : base.stats.damageDealt;

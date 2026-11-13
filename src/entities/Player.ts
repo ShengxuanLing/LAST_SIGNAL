@@ -8,6 +8,7 @@ import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
+import { WhaleCharacterEffects, WHALE_TEXTURE } from '../core/WhaleCharacter';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -32,6 +33,7 @@ export class Player {
   private keys: any = null;
   private cursors: any = null;
   private aimYaw = 0;
+  private whaleEffects?: WhaleCharacterEffects;
 
   constructor(public world: World, x: number, y: number, private save: ReturnType<SaveSystem['load']>) {
     const stats = basePlayerData();
@@ -67,8 +69,13 @@ export class Player {
       weapons,
       upgrades: [], abilities: []
     } as PlayerData;
-    this.sprite = world.scene.add.sprite(x, y, 'player');
+    const whale = save.settings.avatar === 'whale';
+    this.sprite = world.scene.add.sprite(x, y, whale ? WHALE_TEXTURE : 'player');
     this.sprite.setDepth(100);
+    if (whale) {
+      this.sprite.setScale(0.61).setOrigin(0.46, 0.91);
+      this.whaleEffects = new WhaleCharacterEffects(this.sprite);
+    }
     this.aimYaw = 0;
     this.wx = x;
     this.wy = y;
@@ -83,6 +90,7 @@ export class Player {
   project(): void {
     const s = this.world.worldToScreen(this.wx, this.wy);
     this.sprite.setPosition(s.x, s.y);
+    this.whaleEffects?.project();
   }
   get alive(): boolean { return this.data.hp > 0; }
   getRadius(): number { return 0.5; }
@@ -184,13 +192,13 @@ export class Player {
       vy = (ty - tx) / 2 * speed;
     }
 
+    const previousX = this.sprite.x;
+    const previousY = this.sprite.y;
     // axis-separate sliding collision
     const nx = this.wx + vx * dt;
     if (this.isWalkable(nx, this.wy)) this.wx = nx;
     const ny = this.wy + vy * dt;
     if (this.isWalkable(this.wx, ny)) this.wy = ny;
-
-    this.project();
 
     // dash
     if (this.cursors && this.cursors.space.isDown
@@ -202,6 +210,7 @@ export class Player {
     }
 
     this.project();
+    this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
     // visuals
     if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
     else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }
@@ -248,6 +257,10 @@ export class Player {
       lifetime: w.baseRange / w.baseProjectileSpeed, kind: w.kind,
       magazine: ws.magazine, shots: w.kind === 'scatter' ? 5 : 1, spread: w.baseSpread
     }, 'player');
+    if (this.whaleEffects) {
+      const aim = this.world.worldToScreen(this.x + Math.cos(this.aimYaw), this.y + Math.sin(this.aimYaw));
+      this.whaleEffects.fire(aim.x - this.sprite.x, aim.y - this.sprite.y);
+    }
     audio.shoot(w.kind);
   }
 

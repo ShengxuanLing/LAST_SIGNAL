@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME, SAVE_VERSION } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import { formatDuration } from '../core/formatDuration';
+import { WHALE_TEXTURE } from '../core/WhaleCharacter';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
@@ -90,6 +91,18 @@ export class MainMenuScene extends Phaser.Scene {
     }, 0x274a55, !save.run);
     this._button(cx, menuY + 180, `PERMANENT TALENTS · ${save.permanent.cores} CORES`, 450, () => {
       this.scene.restart({ view: 'permanent' });
+    }, 0x274a55);
+    const avatarX = 1000;
+    const whale = save.settings.avatar === 'whale';
+    this.add.text(avatarX, 328, 'PLAYER APPEARANCE', {
+      fontFamily: 'monospace', fontSize: '15px', color: '#8fb8c8'
+    }).setOrigin(0.5);
+    this.add.image(avatarX, 406, whale ? WHALE_TEXTURE : 'player').setScale(whale ? 1.12 : 1.55);
+    this._button(avatarX, 490, whale ? 'WHALE-CHAN ↻' : 'OPERATOR ↻', 238, () => {
+      const latest = saveSystem.load();
+      latest.settings.avatar = latest.settings.avatar === 'whale' ? 'operator' : 'whale';
+      if (saveSystem.save(latest)) this.scene.restart({});
+      else this._flash('APPEARANCE NOT SAVED');
     }, 0x274a55);
     if (config.notice) this._flash(config.notice);
 
