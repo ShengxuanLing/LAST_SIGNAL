@@ -1,6 +1,6 @@
 # Claude-chan 角色外观
 
-在主菜单右侧点击角色名称，循环选择 Operator、Whale-chan 和 Claude-chan。选择会保存在当前浏览器中，新开局和继续游戏都会读取。
+在主菜单右侧点击角色名称，循环到 Claude-chan。选择会保存在当前浏览器中，新开局和继续游戏都会读取。
 
 角色直接使用 CrossPet 在 GitHub 发布的三张透明 WebP。正面取自 `idle.webp`，向左和向右分别使用 `busy_left.webp` 和 `busy_right.webp`。游戏中的文件只改名，绘图内容保留原样。上下移动沿用正面。
 

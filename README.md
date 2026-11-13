@@ -36,7 +36,7 @@
 以下特性均来自 `0.1.0` 真实源码（已逐文件复核）：
 
 - **主菜单**：`NEW RUN` 开始新的随机地牢。已有一局时，会先确认是否替换检查点。`LOAD RUN` 查看检查点，`CONTINUE` 直接恢复。
-- **角色外观**：在主菜单右侧循环选择 `OPERATOR`、`WHALE-CHAN` 或 `CLAUDE-CHAN`。两位 Q 版角色使用随游戏打包的 GitHub 社区精灵，选择随浏览器存档保存。[鲸鱼娘素材与署名](docs/WHALE_CHAN.md) · [Claude 娘素材与署名](docs/CLAUDE_CHAN.md)
+- **角色外观**：在主菜单右侧循环选择 Operator、鲸鱼娘、Claude 娘、Grok 娘、Gemini 娘和 GPT 娘。五位 Q 版角色使用随游戏打包的 GitHub 社区精灵，选择随浏览器存档保存。[鲸鱼娘署名](docs/WHALE_CHAN.md) · [Claude 娘署名](docs/CLAUDE_CHAN.md) · [Grok、Gemini 与 GPT 娘署名](public/ai-roster/NOTICE.txt)
 - **等距房间与地图**：`src/world/MapGenerator.ts` 生成房间深度（RoomDepth）结构，`WorldRenderer` 把整张地图烘焙成单张等距纹理；带小地图（minimap）与相机跟随 / 缩放（`CAM_ZOOM_MIN 0.8` ~ `CAM_ZOOM_MAX 1.25`）。
 - **战斗**：鼠标瞄准、按住左键射击；`SPACE` 冲刺（dash）；敌人含 drone / stalker / hunter / sentinel 四型（随房间深度解锁更强类型），掉落资源 / 经验 / 信用点（credits）。
 - **武器系统**：4 把武器（Pulse Rifle / Scatter Gun / Plasma Cannon / Arc Drone），`Q` / `E` 切换，`F` 与场景互动物（传送门 / 拾取）交互；弹匣耗尽自动换弹。

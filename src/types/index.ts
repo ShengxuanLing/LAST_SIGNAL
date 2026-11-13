@@ -106,7 +106,8 @@ export interface RunCheckpoint {
   stats: { kills: number; items: number; damage: number; elapsedSeconds: number; };
 }
 
-export type Avatar = 'operator' | 'whale' | 'claude';
+export const AVATARS = ['operator', 'whale', 'claude', 'grok', 'gemini', 'gpt'] as const;
+export type Avatar = typeof AVATARS[number];
 
 export interface SaveData {
   version: number; createdAt: string; updatedAt: string;

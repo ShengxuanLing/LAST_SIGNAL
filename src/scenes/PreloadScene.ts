@@ -5,10 +5,26 @@ import { WHALE_TEXTURE, WHALE_SIDE_TEXTURE, WHALE_REAR_TEXTURE } from '../core/W
 import whaleFront from '../assets/whale/front.png?url';
 import whaleSide from '../assets/whale/side.png?url';
 import whaleBack from '../assets/whale/back.png?url';
-import { APPEARANCES } from '../core/PlayerAppearance';
+import { APPEARANCES, type DirectionalAvatar } from '../core/PlayerAppearance';
 import claudeFront from '../assets/claude/front.webp?url';
 import claudeLeft from '../assets/claude/left.webp?url';
 import claudeRight from '../assets/claude/right.webp?url';
+import grokFront from '../assets/grok/front.webp?url';
+import grokLeft from '../assets/grok/left.webp?url';
+import grokRight from '../assets/grok/right.webp?url';
+import geminiFront from '../assets/gemini/front.webp?url';
+import geminiLeft from '../assets/gemini/left.webp?url';
+import geminiRight from '../assets/gemini/right.webp?url';
+import gptFront from '../assets/gpt/front.webp?url';
+import gptLeft from '../assets/gpt/left.webp?url';
+import gptRight from '../assets/gpt/right.webp?url';
+
+const avatarImages: Record<DirectionalAvatar, [string, string, string]> = {
+  claude: [claudeFront, claudeLeft, claudeRight],
+  grok: [grokFront, grokLeft, grokRight],
+  gemini: [geminiFront, geminiLeft, geminiRight],
+  gpt: [gptFront, gptLeft, gptRight]
+};
 
 export class PreloadScene extends Phaser.Scene {
   constructor() { super('PreloadScene'); }
@@ -17,10 +33,9 @@ export class PreloadScene extends Phaser.Scene {
     this.load.image(WHALE_TEXTURE, whaleFront);
     this.load.image(WHALE_SIDE_TEXTURE, whaleSide);
     this.load.image(WHALE_REAR_TEXTURE, whaleBack);
-    const [front, left, right] = APPEARANCES.claude.textures;
-    this.load.image(front, claudeFront);
-    this.load.image(left, claudeLeft);
-    this.load.image(right, claudeRight);
+    for (const avatar of Object.keys(avatarImages) as DirectionalAvatar[]) {
+      APPEARANCES[avatar].textures.forEach((key, index) => this.load.image(key, avatarImages[avatar][index]));
+    }
   }
 
   create(): void {

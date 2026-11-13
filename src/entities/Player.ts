@@ -9,7 +9,7 @@ import { World } from '../world/World';
 import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
 import { WhaleCharacterEffects } from '../core/WhaleCharacter';
-import { APPEARANCES, faceClaude, resolveAvatar } from '../core/PlayerAppearance';
+import { APPEARANCES, faceAvatar, resolveAvatar } from '../core/PlayerAppearance';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -76,8 +76,8 @@ export class Player {
     this.sprite.setDepth(100);
     if (this.avatar === 'whale') {
       this.whaleEffects = new WhaleCharacterEffects(this.sprite);
-    } else if (this.avatar === 'claude') {
-      this.sprite.setScale(72 / this.sprite.height).setOrigin(0.5, 0.99);
+    } else if (this.avatar !== 'operator') {
+      this.sprite.setScale(72 / this.sprite.height).setOrigin(APPEARANCES[this.avatar].feet[0], 0.99);
     }
     this.aimYaw = 0;
     this.wx = x;
@@ -214,7 +214,9 @@ export class Player {
 
     this.project();
     this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
-    if (this.avatar === 'claude') faceClaude(this.sprite, this.sprite.x - previousX, this.sprite.y - previousY);
+    if (this.avatar !== 'operator' && this.avatar !== 'whale') {
+      faceAvatar(this.sprite, this.avatar, this.sprite.x - previousX, this.sprite.y - previousY);
+    }
     // visuals
     if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
     else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }

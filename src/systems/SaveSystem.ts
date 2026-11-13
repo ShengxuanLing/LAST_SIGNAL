@@ -2,7 +2,7 @@
 // Never silently destroys existing valid save data; recovers from invalid/outdated saves.
 import { SAVE_KEY, SAVE_VERSION, DEFAULT_SETTINGS } from '../config/game';
 import { WEAPON_LIST } from '../config/weapons';
-import type { Avatar, RunCheckpoint, SaveData } from '../types';
+import { AVATARS, type Avatar, type RunCheckpoint, type SaveData } from '../types';
 import { validateCheckpoint } from './RunCheckpoint';
 
 export const PERMANENT_TALENTS = [
@@ -38,7 +38,7 @@ const SETTINGS_NUMBERS = ['masterVolume', 'sfxVolume', 'mouseDpi'];
 const STATS_NUMBERS = ['enemiesKilled', 'itemsCollected', 'damageDealt', 'playTimeSeconds'];
 
 function isAvatar(value: unknown): value is Avatar {
-  return value === 'operator' || value === 'whale' || value === 'claude';
+  return AVATARS.some((avatar) => avatar === value);
 }
 
 export function validate(data: any): data is SaveData {

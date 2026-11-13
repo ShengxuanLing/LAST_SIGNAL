@@ -12,7 +12,7 @@ test('Claude can be selected, restored and shown in both side-facing views', asy
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await waitForMenu(page);
-  for (const avatar of ['whale', 'claude', 'operator', 'whale', 'claude']) {
+  for (const avatar of ['whale', 'claude', 'grok', 'gemini', 'gpt', 'operator', 'whale', 'claude']) {
     await page.mouse.click(1000, 490);
     await expect.poll(() => savedAvatar(page)).toBe(avatar);
     await waitForMenu(page);
