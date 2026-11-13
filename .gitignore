@@ -6,12 +6,15 @@ dist/
 
 # Test / verification artifacts (screenshots, results, diagnostics)
 test-results/
+# ART-RENAISSANCE keeps its curated test logs / perf JSON under version control.
+!reports/art/test-results/
 playwright-report/
 tests/screens/
 screens/
 coverage/
 inspect_full.txt
 *.log
+!/reports/art/test-results/*.log
 
 # Local environment & secrets (keep example configs tracked)
 .env

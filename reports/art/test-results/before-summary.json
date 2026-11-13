@@ -1,0 +1,56 @@
+{
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "Windows_NT 10.0.26200 x64",
+    "cpu": "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "cores": 8,
+    "memoryGB": 15.8,
+    "startedAt": "2026-11-13T11:19:27.085Z",
+    "phase": "before",
+    "finishedAt": "2026-11-13T11:20:12.117Z"
+  },
+  "results": [
+    {
+      "name": "typecheck",
+      "code": 0,
+      "seconds": 2.3,
+      "log": "reports/art/test-results/before-typecheck.log",
+      "command": "node node_modules/typescript/bin/tsc --noEmit"
+    },
+    {
+      "name": "unit",
+      "code": 0,
+      "seconds": 1.5,
+      "log": "reports/art/test-results/before-unit.log",
+      "command": "node node_modules/vitest/vitest.mjs run --no-cache"
+    },
+    {
+      "name": "build",
+      "code": 0,
+      "seconds": 7.9,
+      "log": "reports/art/test-results/before-build.log",
+      "command": "node node_modules/vite/bin/vite.js build --outDir C:\\Users\\CANCAN\\AppData\\Local\\Temp\\last-signal-art-build-1794567826518 --emptyOutDir"
+    },
+    {
+      "name": "build-economy",
+      "code": 0,
+      "seconds": 6.8,
+      "log": "reports/art/test-results/before-build-economy.log",
+      "command": "node node_modules/vite/bin/vite.js build --config vite.economy.config.ts --outDir C:\\Users\\CANCAN\\AppData\\Local\\Temp\\last-signal-art-build-1794567826518-economy --emptyOutDir"
+    },
+    {
+      "name": "e2e",
+      "code": 0,
+      "seconds": 142.5,
+      "log": "reports/art/test-results/before-e2e.log",
+      "command": "node node_modules/@playwright/test/cli.js test --reporter=line --workers=1 --output C:\\Users\\CANCAN\\AppData\\Local\\Temp\\last-signal-art-shots-1794567845968-out"
+    },
+    {
+      "name": "art-capture",
+      "code": 0,
+      "seconds": 44.1,
+      "log": "reports/art/test-results/before-art-capture.log",
+      "command": "node node_modules/@playwright/test/cli.js test -c playwright.art.config.ts"
+    }
+  ]
+}
