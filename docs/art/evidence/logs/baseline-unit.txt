@@ -1,0 +1,50 @@
+﻿
+ RUN  v2.1.9 D:/LAST_SIGNAL
+
+ ✓ src/ai-native/protocol.test.ts (72 tests) 60ms
+ ✓ src/slice/vs00.rules.test.ts (28 tests) 28ms
+ ✓ src/slice/vs01.corridor.test.ts (14 tests) 58ms
+ ✓ src/ai-native/coop.test.ts (21 tests) 219ms
+ ✓ src/core/runtime.test.ts (15 tests) 16ms
+ ✓ src/slice/evidence.test.ts (11 tests) 20ms
+ ✓ src/ai-native/p4.test.ts (5 tests) 97ms
+ ✓ src/slice/corridorGuard.test.ts (3 tests) 12ms
+ ✓ src/ai-native/sessions.test.ts (43 tests) 888ms
+ ✓ src/ai-native/harness.test.ts (32 tests) 879ms
+   ✓ scenario / batch / compare > same seed reproduces state and gameplay events; a different seed changes only state 483ms
+ ✓ src/slice/vs00.room.test.ts (3 tests) 4ms
+ ✓ src/ai-native/budget.test.ts (5 tests) 16ms
+node.exe : [headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([headless] chan...AI playthrough.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[headless] channel closed; instances released; exit 0.
+[headless] channel=restricted (public commands only); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ ✓ src/ai-native/runtime.test.ts (40 tests) 7286ms
+   ✓ B5 — canonical hash is authoritative-state only > CLI 0-step replay hash equals the source snapshot hash 1426ms
+   ✓ B6 — CLI Dev channel identity (no audience upgrade) > snapshot/replay/restore require the explicit --dev channel 868ms
+   ✓ B6 — CLI Dev channel identity (no audience upgrade) > observe never leaks seed/RNG/full model even on the Dev channel 788ms
+   ✓ B7 — CLI strict schema and resource limits > step/replay reject non-array actions/steps instead of silently using [] 767ms
+   ✓ B7 — CLI strict schema and resource limits > enforces instance count, id length and JSON line size 789ms
+   ✓ B7 — CLI strict schema and resource limits > restore requires hashes and only accepts this instance issued frame 819ms
+   ✓ B7 — CLI strict schema and resource limits > quit exits and cleans up without waiting for stdin EOF 816ms
+   ✓ purity and real Node CLI process > full CLI cycle: create/step/observe/snapshot/replay/pause/resume/close/quit 800ms
+
+ Test Files  13 passed (13)
+      Tests  292 passed (292)
+   Start at  23:15:25
+   Duration  8.46s (transform 1.92s, setup 0ms, collect 4.15s, tests 9.58s, environment 3ms, prepare 3.31s)
+
+exit=0
