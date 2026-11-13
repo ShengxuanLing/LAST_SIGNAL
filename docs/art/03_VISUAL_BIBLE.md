@@ -1,6 +1,6 @@
 # ART-RENAISSANCE · 视觉规范（Visual Bible）— 方向 A · SURVEY INK
 
-> **状态：草案，待确认（PENDING CONFIRMATION）。** 本文按 `02_ART_DIRECTION.md` 推荐的方向 A 拟订。
+> **状态：方向 A 已确认。** AR-02 用种子 1 的战斗房和 Station Zero 验证本规范。面向全游戏的规格随 AR-03 至 AR-07 的实施继续验证。
 > - 若你选择 B 或 C，第 2–6 节的色值与造型需要重写；第 7–10 节（时序、Signal 映射、视觉 RNG、性能与无障碍）大体通用。
 > - 确认后，本文取代 `docs/STYLE_GUIDE.md` 第 2–6 节（决策 D4）；`STYLE_GUIDE.md` 保留为历史版本。
 > - 参考样稿：`art/concepts/A_survey_ink/A1–A4`。

@@ -1,6 +1,7 @@
 // Procedural texture generation. Produces Phaser textures via canvas so the game
 // needs no external image assets while still looking coherent.
 import Phaser from 'phaser';
+import { createSurveyTextures } from '../art/survey/SurveyTextures';
 
 export class GraphicsFactory {
   static GRAY = '#20303a';
@@ -120,6 +121,10 @@ export class GraphicsFactory {
       const g = c.getContext('2d')!;
       g.fillStyle = '#eafaff'; g.fillRect(6, 5, 5, 14); g.fillRect(13, 5, 5, 14);
     });
+
+    // AR-02 Direction A: replaces player / hostile / projectile / pickup textures with
+    // the SURVEY INK set (same keys where gameplay code or tests reference them).
+    createSurveyTextures(scene);
   }
 }
 

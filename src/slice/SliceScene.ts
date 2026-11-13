@@ -7,6 +7,9 @@ import { SliceModel, SLICE, type DoorState, type SliceSnapshot } from './rules';
 import type { BridgeState } from './corridor';
 import { CORRIDOR, corridorTile, isBridgeCell } from './corridorRoom';
 import { clearSlice, loadSlice, saveSlice } from './storage';
+import { INK, TIME } from '../art/survey/tokens';
+
+type Point = { x: number; y: number };
 
 const DOOR_LABEL: Record<DoorState, string> = {
   SEALED: '封锁中（不可通行）',
@@ -17,11 +20,11 @@ const DOOR_LABEL: Record<DoorState, string> = {
 };
 
 const DOOR_COLOR: Record<DoorState, number> = {
-  SEALED: 0xff3355,
-  JAMMED_OPEN: 0x33e0ff,
-  OPEN: 0x33e0ff,
-  CLOSED: 0x5a7480,
-  SAFE_PENDING_CLOSE: 0xff8a3c,
+  SEALED: INK.unknown,
+  JAMMED_OPEN: INK.interact,
+  OPEN: INK.signal,
+  CLOSED: INK.massLift,
+  SAFE_PENDING_CLOSE: INK.unknown,
 };
 
 interface HudEls {
@@ -76,12 +79,14 @@ export class SliceScene extends Phaser.Scene {
   private interactButton!: HTMLElement;
   private jamButton!: HTMLElement;
   private jamGuardButton!: HTMLElement;
+  private scanOrigin: { x: number; y: number; tick: number } | null = null;
 
   constructor() {
     super('SliceScene');
   }
 
   create(): void {
+    this.scanOrigin = null;
     this.listeners = new AbortController();
     this.keyHandlers = [];
     if (!this.textures.exists('player') || !this.textures.exists('bg')) GraphicsFactory.create(this);
@@ -206,7 +211,10 @@ export class SliceScene extends Phaser.Scene {
 
   private doScan(): void {
     this.notice = '';
-    this.model.scan();
+    if (this.model.scan().code === 'OK') {
+      const { position, tick } = this.model.snapshot();
+      this.scanOrigin = { ...position, tick };
+    }
     this.refreshHud();
   }
 
@@ -378,6 +386,7 @@ export class SliceScene extends Phaser.Scene {
   }
 
   private drawRoom(): void {
+    this.scanOrigin = null;
     this.computeOffsets();
     this.playerSprite.setScale(this.roomScale);
     this.guardSprite.setScale(this.roomScale * 1.25);
@@ -390,16 +399,78 @@ export class SliceScene extends Phaser.Scene {
         const tile = this.model.inCorridor ? corridorTile(x, y) : isStaticWallCell(x, y) ? 'wall' : 'floor';
         const s = this.toScreen(x + 0.5, y + 0.5);
         if (tile === 'wall') {
-          this.fillDiamond(walls, s.x, s.y, 0x0a1016, 1);
-          this.fillDiamond(walls, s.x, s.y - 7, 0x16202b, 1);
-          walls.lineStyle(1, 0x33e0ff, 0.14);
+          this.fillDiamond(walls, s.x, s.y, INK.ao, 1);
+          this.fillDiamond(walls, s.x, s.y - 7, INK.massLight, 1);
+          walls.lineStyle(1, INK.known, 0.28);
           this.strokeDiamond(walls, s.x, s.y - 7);
         } else {
-          this.fillDiamond(floors, s.x, s.y, tile === 'chasm' ? 0x05070c : 0x0e1620, 1);
-          floors.lineStyle(1, tile === 'chasm' ? 0xff3355 : 0x33e0ff, 0.08);
+          const floorColor = (x + 2 * y) % 5 === 0 ? INK.massLight : INK.mass;
+          this.fillDiamond(floors, s.x, s.y, tile === 'chasm' ? INK.shadow : floorColor, 1);
+          floors.lineStyle(1, INK.known, tile === 'chasm' ? 0.045 : 0.16);
           this.strokeDiamond(floors, s.x, s.y);
         }
       }
+    }
+  }
+
+  private drawScanSweep(tick: number): void {
+    const origin = this.scanOrigin;
+    if (!origin) return;
+    const progress = (tick - origin.tick) * SLICE.TICK_MS / TIME.scanPulse;
+    if (progress >= 1) {
+      this.scanOrigin = null;
+      return;
+    }
+    const g = this.markerGfx;
+    const radius = SLICE.SCAN_RADIUS * progress;
+    const { width, height } = this.model.inCorridor ? CORRIDOR : ROOM;
+    g.lineStyle(1.5, INK.known, (1 - progress) * 0.85);
+    // Eight surveyed bearings, drawn in projected grid coordinates and clipped to the room.
+    for (let bearing = 0; bearing < 8; bearing++) {
+      const a = bearing * Math.PI / 4;
+      const x = origin.x + Math.cos(a) * radius;
+      const y = origin.y + Math.sin(a) * radius;
+      if (x < 0 || y < 0 || x > width || y > height) continue;
+      const s = this.toScreen(x, y);
+      g.lineBetween(s.x - 8, s.y + 4, s.x + 8, s.y - 4);
+      g.lineBetween(s.x, s.y + 5, s.x, s.y - 5);
+    }
+  }
+
+  private drawSignalNode(p: Point, color: number, alpha: number, jammed = false): void {
+    const g = this.markerGfx;
+    g.lineStyle(2, color, alpha);
+    g.strokeRect(p.x - 7, p.y - 7, 14, 14);
+    g.lineBetween(p.x - 11, p.y, p.x - 4, p.y);
+    g.lineBetween(p.x + 4, p.y, p.x + 11, p.y);
+    if (jammed) {
+      g.lineBetween(p.x - 4, p.y - 4, p.x + 4, p.y + 4);
+      g.lineBetween(p.x - 4, p.y + 4, p.x + 4, p.y - 4);
+    } else {
+      g.fillStyle(color, alpha);
+      g.fillRect(p.x - 2, p.y - 2, 4, 4);
+    }
+  }
+
+  private drawSignalLink(from: Point, to: Point, color: number, alpha: number, interrupted: boolean): void {
+    const g = this.markerGfx;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance < 1) return;
+    const x = (length: number) => from.x + dx * length / distance;
+    const y = (length: number) => from.y + dy * length / distance;
+    g.lineStyle(interrupted ? 2 : 1.5, color, alpha);
+    for (let at = 0; at < distance; at += 17) {
+      const end = Math.min(at + (interrupted ? 5 : 12), distance);
+      g.lineBetween(x(at), y(at), x(end), y(end));
+    }
+    if (!interrupted) {
+      const at = distance * 0.65;
+      const sideX = -dy / distance * 4;
+      const sideY = dx / distance * 4;
+      g.lineBetween(x(at - 7) + sideX, y(at - 7) + sideY, x(at), y(at));
+      g.lineBetween(x(at - 7) - sideX, y(at - 7) - sideY, x(at), y(at));
     }
   }
 
@@ -411,6 +482,7 @@ export class SliceScene extends Phaser.Scene {
     this.doorGfx.clear();
     this.markerGfx.clear();
     const snapshot = this.model.snapshot();
+    this.drawScanSweep(snapshot.tick);
     this.guardSprite.setVisible((snapshot.corridor?.guardHp ?? 0) > 0);
     if (snapshot.corridor) {
       this.renderCorridor(snapshot);
@@ -425,35 +497,31 @@ export class SliceScene extends Phaser.Scene {
     }
 
     const exit = this.toScreen(ROOM.exit.x, ROOM.exit.y);
-    this.markerGfx.lineStyle(2, 0x33e0ff, 0.75);
+    this.markerGfx.lineStyle(2, INK.interact, 0.75);
     this.strokeDiamond(this.markerGfx, exit.x, exit.y);
     const reveal = snapshot.reveal;
-    if (reveal) {
-      const src = this.toScreen(ROOM.source.x, ROOM.source.y);
-      const rec = this.toScreen(ROOM.receiver.x, ROOM.receiver.y);
-      if (reveal.link) {
-        this.markerGfx.lineStyle(2, 0xffd233, 0.55);
-        this.markerGfx.lineBetween(src.x, src.y, rec.x, rec.y);
-      }
-      if (reveal.sealSource) {
-        this.markerGfx.fillStyle(0xff8a3c, 0.9);
-        this.markerGfx.fillCircle(src.x, src.y, 5);
-      }
-      if (reveal.doorReceiver) {
-        this.markerGfx.lineStyle(2, 0x33e0ff, 0.9);
-        this.markerGfx.strokeCircle(rec.x, rec.y, 7);
-      }
+    const src = this.toScreen(ROOM.source.x, ROOM.source.y);
+    const rec = this.toScreen(ROOM.receiver.x, ROOM.receiver.y);
+    const alpha = this.revealAlpha(snapshot);
+    if (reveal?.link) this.drawSignalLink(src, rec, snapshot.jamActive ? INK.unknown : INK.signal, alpha, snapshot.jamActive);
+    if (reveal?.sealSource) this.drawSignalNode(src, INK.unknown, alpha);
+    if (reveal?.doorReceiver || snapshot.jamActive) {
+      this.drawSignalNode(rec, snapshot.jamActive ? INK.unknown : INK.interact, snapshot.jamActive ? 1 : alpha, snapshot.jamActive);
     }
+  }
+
+  private revealAlpha(snapshot: SliceSnapshot): number {
+    return Math.min(1, snapshot.scanRevealTicks * SLICE.TICK_MS / TIME.scanInkReveal);
   }
 
   private renderCorridor(snapshot: SliceSnapshot): void {
     const c = snapshot.corridor!;
     const guard = this.toScreen(c.guard.position.x, c.guard.position.y);
-    this.guardSprite.setPosition(guard.x, guard.y).setTint(c.guard.link === 'JAMMED' ? 0xa398ff : 0xff8a3c);
+    this.guardSprite.setPosition(guard.x, guard.y).setTint(c.guard.link === 'JAMMED' ? INK.unknown : INK.hostile);
     const g = this.markerGfx;
     const { left, right, top, bottom } = CORRIDOR.bridge;
     if (c.bridgePassable || c.bridge === 'TRANSITIONING') {
-      const color = c.bridge === 'STABLE' ? 0x33e0ff : 0xff8a3c;
+      const color = c.bridge === 'STABLE' ? INK.signal : INK.unknown;
       for (let y = top; y < bottom; y++) {
         for (let x = left; x < right; x++) {
           if (!isBridgeCell(x, y)) continue;
@@ -467,31 +535,35 @@ export class SliceScene extends Phaser.Scene {
     }
     for (const shore of Object.values(CORRIDOR.shores)) {
       const p = this.toScreen(shore.x, shore.y);
-      g.lineStyle(2, 0x33e0ff, 0.65);
+      g.lineStyle(2, INK.interact, 0.65);
       this.strokeDiamond(g, p.x, p.y);
     }
     const relay = this.toScreen(CORRIDOR.relay.x, CORRIDOR.relay.y);
     const far = this.toScreen(CORRIDOR.farControl.x, CORRIDOR.farControl.y);
-    const outputColor = c.effectiveOutput ? 0x33e0ff : 0xff8a3c;
-    g.fillStyle(0x10232c, 1);
+    const outputColor = c.effectiveOutput ? INK.signal : INK.unknown;
+    g.fillStyle(INK.mass, 1);
     g.fillRect(relay.x - 9, relay.y - 19, 18, 19);
     g.fillRect(far.x - 7, far.y - 15, 14, 15);
     g.lineStyle(2, outputColor, 1);
     g.strokeRect(relay.x - 9, relay.y - 19, 18, 19);
     g.strokeRect(far.x - 7, far.y - 15, 14, 15);
+    const emitter = { x: relay.x, y: relay.y - 12 };
+    if (c.relay === 'JAMMED') this.drawSignalNode(emitter, INK.unknown, 1, true);
+    const guardJammed = c.guard.link === 'JAMMED';
+    if (guardJammed && c.guardHp > 0) this.drawSignalNode(guard, INK.unknown, 1, true);
 
     const reveal = snapshot.corridorReveal;
     if (!reveal?.relay) return;
+    const alpha = this.revealAlpha(snapshot);
     if (reveal.bridge) {
       const p = this.toScreen(CORRIDOR.bridgePort.x, CORRIDOR.bridgePort.y);
-      g.lineStyle(2, outputColor, 0.9);
-      g.lineBetween(relay.x, relay.y - 12, p.x, p.y);
-      g.strokeCircle(p.x, p.y, 6);
+      this.drawSignalLink(emitter, p, outputColor, alpha, !c.effectiveOutput);
+      this.drawSignalNode(p, outputColor, alpha);
     }
     if (reveal.perceptionPort && c.guardHp > 0) {
-      g.lineStyle(2, c.guard.link === 'JAMMED' ? 0xa398ff : outputColor, 0.9);
-      g.lineBetween(relay.x, relay.y - 12, guard.x, guard.y);
-      g.strokeCircle(guard.x, guard.y, 6);
+      const color = guardJammed ? INK.unknown : outputColor;
+      this.drawSignalLink(emitter, guard, color, alpha, guardJammed || !c.effectiveOutput);
+      if (!guardJammed) this.drawSignalNode(guard, color, alpha);
     }
   }
 

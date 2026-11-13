@@ -1,0 +1,16 @@
+$ ..\..\..\..\..\..\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\node\bin\node.exe node_modules\@playwright\test\cli.js test -c playwright.art.config.ts
+# cwd C:\Users\CANCAN\Documents\ChatGPT\小游戏制作\LAST_SIGNAL\
+# started 2026-11-13T12:27:20.590Z
+
+
+Running 3 tests using 1 worker
+
+(node:8560) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/3] [chromium] › tests\art\baseline.capture.ts:161:1 › AR-00 visual baseline capture
+[2/3] [chromium] › tests\art\baseline.capture.ts:443:1 › AR-00 Station Zero (Signal prototype) capture
+[3/3] [chromium] › tests\art\concepts.capture.ts:20:1 › render concept SVGs to PNG
+  3 passed (56.0s)
+
+# exit 0 in 56.5 s

@@ -6,6 +6,8 @@ import { clamp, unit, angleDiff } from '../core/random';
 import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { Player } from './Player';
+import { HostileView } from '../art/survey/ActorView';
+import { actorDepth } from '../art/survey/tokens';
 
 export interface EnemySpec {
   kind: EnemyKind; x: number; y: number; room: number; depth: number;
@@ -21,6 +23,9 @@ export class Enemy {
   private attackTimer = 0;
   private wanderTimer = 0;
   private hitDir = { x: 0, y: 0 };
+  /** Visual facing (grid-space angle). Replaces sprite rotation, which also spun the baked shadow. */
+  facing = 0;
+  view: HostileView | null = null;
 
   constructor(public world: World, kind: EnemyKind, x: number, y: number, room: number, depth: number) {
     const base = ENEMY_STATS[kind];
@@ -37,6 +42,8 @@ export class Enemy {
     stats.attackRange /= TILE;
     this.sprite = world.scene.add.sprite(x, y, this.texture(kind));
     this.sprite.setDepth(90);
+    // Visual phase offset from spawn position only (no RNG draw) so idle cycles desync.
+    this.view = new HostileView(this.sprite, kind, ((x * 7 + y * 13) % 10) / 10);
     this.wx = x;
     this.wy = y;
     this.data = {
@@ -73,8 +80,15 @@ export class Enemy {
   project(): void {
     const s = this.world.worldToScreen(this.wx, this.wy);
     this.sprite.setPosition(s.x, s.y);
-    this.sprite.setDepth(Math.floor(this.wy));
+    // Iso depth (wx + wy), replacing floor(wy) which drew front/back in the wrong order.
+    this.sprite.setDepth(actorDepth(this.wx, this.wy));
   }
+
+  /** Remaining attack cooldown, read-only for the telegraph visuals. */
+  get attackCharge(): number { return this.attackTimer; }
+
+  /** Approx. head height in px for damage-number placement. */
+  headPx(): number { return this.view ? -this.view.art.apertureY + 18 : 40; }
 
   // HP stored on sprite? We'll keep hp in a parallel field.
   get hp(): number { return this._hp; }
@@ -153,8 +167,7 @@ export class Enemy {
   }
 
   private facePlayer(player: Player): void {
-    const a = Math.atan2(player.y - this.y, player.x - this.x);
-    this.sprite.setRotation(a);
+    this.facing = Math.atan2(player.y - this.y, player.x - this.x);
   }
 
   private moveToPlayer(dt: number, player: Player): void {
@@ -243,11 +256,14 @@ export class Enemy {
     this.data.stateTimer = seconds;
   }
 
-  applyVisual(): void {
-    if (this.data.hitFlash > 0) this.sprite.setTint(0xffffff);
-    else this.sprite.clearTint();
+  /** Visual sync only: frames / flip / flash / telegraph read from FSM state. */
+  applyVisual(dt = 0, clock = 0): void {
     this.project();
+    this.view?.update(dt, clock, {
+      kind: this.data.kind, wx: this.wx, wy: this.wy, facing: this.facing, state: this.data.state,
+      hitFlash: this.data.hitFlash, attackCharge: this.attackTimer, ranged: this.data.stats.ranged, alive: this._hp > 0,
+    }, this.world);
   }
 
-  getDepth(): number { return Math.floor(this.wy); }
+  getDepth(): number { return actorDepth(this.wx, this.wy); }
 }

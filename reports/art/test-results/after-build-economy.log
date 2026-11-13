@@ -1,0 +1,37 @@
+$ ..\..\..\..\..\..\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\node\bin\node.exe node_modules\vite\bin\vite.js build --config vite.economy.config.ts --outDir ..\..\..\..\AppData\Local\Temp\last-signal-art-build-1794572677134-economy --emptyOutDir
+# cwd C:\Users\CANCAN\Documents\ChatGPT\小游戏制作\LAST_SIGNAL\
+# started 2026-11-13T12:24:47.212Z
+
+vite v5.4.21 building for production...
+transforming...
+✓ 59 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/economy.html                     1.39 kB │ gzip:   0.62 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/index.html                       1.45 kB │ gzip:   0.76 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/front-2eexZ774.webp      87.80 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/side-CvPl_9-u.png        95.92 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/front-Br0lzxyn.webp      96.88 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/back-Cs7nyI1H.png        97.46 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/right-B8doFPiE.webp      99.20 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/left-CLOEH-t6.webp      100.76 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/front-D2ocoL1L.webp     103.71 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/right-C90Ks1ot.webp     105.13 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/left-D1n9k2ut.webp      105.59 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/right-BkGv0zXK.webp     115.74 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/right-DgTRAM6-.webp     117.66 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/left-Ivlq72ke.webp      120.62 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/front-CBDKhYDc.png      122.60 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/left-fAEw0IPE.webp      128.39 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/front-C4omC8w8.webp     155.56 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/economy-CvWEgN8R.css      1.98 kB │ gzip:   0.85 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/economy-DY8d5GPr.js       5.46 kB │ gzip:   2.27 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794572677134-economy/assets/main-CnCHBKap.js      1,613.90 kB │ gzip: 382.91 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.07s
+
+# exit 0 in 6.6 s

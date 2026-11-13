@@ -1,12 +1,23 @@
 /* VS-00 HUD. Overlays the Phaser canvas; only buttons receive pointer events. */
+:root {
+  --survey-shadow: #07090b;
+  --survey-panel: rgb(11 13 16 / 82%);
+  --survey-line: rgb(232 226 208 / 28%);
+  --survey-text: #e8e2d0;
+  --survey-muted: #bdb6a2;
+  --survey-signal: #7fb7ff;
+  --survey-interact: #4fe3d6;
+  --survey-warning: #f2a93b;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #05070c;
-  color: #eafaff;
+  background: var(--survey-shadow);
+  color: var(--survey-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
@@ -31,35 +42,33 @@ html, body {
   position: absolute;
   min-width: 190px;
   padding: 10px 12px;
-  background: rgba(5, 7, 12, 0.78);
-  border: 1px solid rgba(51, 224, 255, 0.35);
-  border-radius: 4px;
-  box-shadow: 0 0 18px rgba(51, 224, 255, 0.08) inset;
+  background: var(--survey-panel);
+  border: 1px solid var(--survey-line);
 }
 
 .vs00-top-left { top: 16px; left: 16px; }
 .vs00-top-right { top: 16px; right: 16px; text-align: right; }
-.vs00-bottom-left { bottom: 16px; left: 16px; max-width: min(560px, 62vw); }
+.vs00-bottom-left { bottom: 16px; left: 16px; max-width: min(400px, 31vw); }
 .vs00-bottom-right { bottom: 16px; right: 16px; text-align: right; }
 
 .vs00-label {
   font-size: 11px;
   letter-spacing: 2px;
-  color: #8fb8c8;
+  color: var(--survey-muted);
   text-transform: uppercase;
 }
 
 .vs00-value {
   margin-top: 4px;
   font-size: 20px;
-  color: #eafaff;
+  color: var(--survey-text);
 }
 
 .vs00-scan {
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.5;
-  color: #7ff0ff;
+  color: var(--survey-signal);
   max-width: 420px;
 }
 
@@ -67,7 +76,7 @@ html, body {
   margin-top: 4px;
   font-size: 13px;
   line-height: 1.55;
-  color: #eafaff;
+  color: var(--survey-text);
   white-space: pre-wrap;
 }
 
@@ -79,17 +88,15 @@ html, body {
   padding: 8px 16px;
   font-size: 14px;
   letter-spacing: 1px;
-  color: #8fb8c8;
-  background: rgba(5, 7, 12, 0.78);
-  border: 1px solid rgba(51, 224, 255, 0.25);
-  border-radius: 999px;
+  color: var(--survey-muted);
+  background: var(--survey-panel);
+  border: 1px solid var(--survey-line);
 }
 
 .vs00-complete[data-complete="1"] {
-  color: #05070c;
-  background: #33e0ff;
-  border-color: #7ff0ff;
-  box-shadow: 0 0 24px rgba(51, 224, 255, 0.5);
+  color: var(--survey-shadow);
+  background: var(--survey-interact);
+  border-color: var(--survey-interact);
 }
 
 .vs00-buttons {
@@ -107,18 +114,17 @@ html, body {
 .vs00-buttons button {
   font: inherit;
   font-size: 13px;
-  color: #eafaff;
-  background: #0d1822;
-  border: 1px solid #33e0ff;
-  border-radius: 4px;
+  color: var(--survey-text);
+  background: var(--survey-panel);
+  border: 1px solid var(--survey-interact);
   padding: 8px 14px;
   cursor: pointer;
 }
 
 .vs00-buttons button:hover,
 .vs00-buttons button:focus-visible {
-  background: #33e0ff;
-  color: #05070c;
+  background: var(--survey-interact);
+  color: var(--survey-shadow);
   outline: none;
 }
 
@@ -128,13 +134,13 @@ html, body {
   bottom: 64px;
   transform: translateX(-50%);
   font-size: 11px;
-  color: #8fb8c8;
+  color: var(--survey-muted);
   text-align: center;
   max-width: 80vw;
 }
 
-[data-testid="vs01-bridge-state"][data-state="UNSTABLE"] { color: #ffac79; }
-[data-testid="vs01-bridge-state"][data-state="STABLE"] { color: #7ff0ff; }
+[data-testid="vs01-bridge-state"][data-state="UNSTABLE"] { color: var(--survey-warning); }
+[data-testid="vs01-bridge-state"][data-state="STABLE"] { color: var(--survey-signal); }
 
 @media (max-width: 800px) {
   .vs00-panel { min-width: 0; max-width: 47vw; }

@@ -10,6 +10,7 @@ import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
 import { WhaleCharacterEffects } from '../core/WhaleCharacter';
 import { APPEARANCES, faceAvatar, resolveAvatar } from '../core/PlayerAppearance';
+import { ExecutorView, screenDir } from '../art/survey/ActorView';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -36,6 +37,8 @@ export class Player {
   private aimYaw = 0;
   private whaleEffects?: WhaleCharacterEffects;
   private readonly avatar: Avatar;
+  /** AR-02 visual controller (frames, shadow, mast lamp). Community art is never modified. */
+  view: ExecutorView;
 
   constructor(public world: World, x: number, y: number, private save: ReturnType<SaveSystem['load']>) {
     const stats = basePlayerData();
@@ -79,6 +82,10 @@ export class Player {
     } else if (this.avatar !== 'operator') {
       this.sprite.setScale(72 / this.sprite.height).setOrigin(APPEARANCES[this.avatar].feet[0], 0.99);
     }
+    // Operator = the procedural executor (animated); community avatars keep their
+    // licensed art untouched and only gain an env.ao contact shadow (03 §3), except
+    // Whale-chan whose own effect class already draws one.
+    this.view = new ExecutorView(this.sprite, this.avatar === 'operator', { shadow: this.avatar !== 'whale', lamp: this.avatar === 'operator' });
     this.aimYaw = 0;
     this.wx = x;
     this.wy = y;
@@ -210,6 +217,7 @@ export class Player {
       this.invuln = Math.max(this.invuln, this.data.dashDuration + 0.05);
       this.world.addShake(4);
       audio.ui();
+      this.world.onDash();
     }
 
     this.project();
@@ -266,8 +274,23 @@ export class Player {
     if (this.whaleEffects) {
       const aim = this.world.worldToScreen(this.x + Math.cos(this.aimYaw), this.y + Math.sin(this.aimYaw));
       this.whaleEffects.fire(aim.x - this.sprite.x, aim.y - this.sprite.y);
+    } else {
+      // Muzzle flash (bone, 1-2 frames) at the drawn rifle tip; recoil via the view.
+      const d = screenDir(this.world, this.x, this.y, this.aimYaw);
+      this.view.syncFacing(this.world, this.wx, this.wy, this.aimYaw);
+      const m = this.avatar === 'operator' ? this.view.muzzle() : { x: this.sprite.x + d.x * 16, y: this.sprite.y - 36 + d.y * 8 };
+      this.view.fired();
+      this.world.vfx.muzzle(m.x, m.y, d.x, d.y);
     }
     audio.shoot(w.kind);
+  }
+
+  /** Visual-only per-frame sync (called by World.update after movement / room logic). */
+  updateView(dt: number): void {
+    this.view.update(dt, this.world.clock, {
+      wx: this.wx, wy: this.wy, aimYaw: this.aimYaw, hurt: this.hurtTimer,
+      dashing: this.dashTimer > 0, alive: this.alive,
+    }, this.world);
   }
 
   // external fire flag, set by scene on mousedown

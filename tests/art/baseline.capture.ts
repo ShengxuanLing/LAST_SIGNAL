@@ -229,6 +229,40 @@ test('AR-00 visual baseline capture', async ({ page, browserName }) => {
 
   // 08..10 — weapon VFX in the same combat room
   const combatId = firstOf('combat') ?? firstOf('elite')!;
+  if (process.env.ART_AR02 === '1') {
+    await startRun(page, SEED);
+    await enterRoom(page, combatId, { fire: false });
+    await page.mouse.move(650, 540);
+    await step(page, 32);
+    await page.evaluate(() => {
+      (window as any).__game.scene.getScene('GameScene').fireHeld = true;
+    });
+    for (const [id, frames] of [['23-pulse-muzzle', 2], ['24-pulse-flight', 7]] as const) {
+      await step(page, frames);
+      await snap(page, { id, scene: 'GameScene', description: 'Pulse timing study, live shot after scripted aim', seed: SEED, roomId: combatId, steps: id === '23-pulse-muzzle' ? 34 : 41, camera: await cameraInfo(page), weapon: 'pulse' });
+    }
+
+    await startRun(page, SEED);
+    await enterRoom(page, combatId);
+    await page.evaluate((roomId) => {
+      const world = (window as any).__game.scene.getScene('GameScene').world;
+      for (const enemy of world.enemies) enemy.sprite.destroy();
+      world.enemies.length = 0;
+      const room = world.map.rooms[roomId];
+      const center = world.findWalkableInRoom(room);
+      const depth = world.roomDepth.of(roomId);
+      const actorSpot = { x: center.x - 2, y: center.y + 3 };
+      if (world.isWalkable(actorSpot.x, actorSpot.y, 0.5)) {
+        world.player.reset(actorSpot.x, actorSpot.y);
+      }
+      for (const [kind, offset] of [['drone', -2], ['stalker', 0], ['hunter', 2]] as const) {
+        const enemy = world.spawnEnemy(kind, center.x + offset - 1, center.y - offset - 1, roomId, depth);
+        enemy.update = () => {};
+      }
+    }, combatId);
+    await step(page, 32);
+    await snap(page, { id: '25-enemy-lineup', scene: 'GameScene', description: 'Controlled sprite lineup using actual spawn method: drone, stalker and hunter', seed: SEED, roomId: combatId, steps: 32, camera: await cameraInfo(page), notes: 'Scripted fixture. Natural spawn and balance are unchanged.' });
+  }
   for (const [id, weapon, frames] of [['08-weapon-scatter', 'scatter', 30], ['09-weapon-plasma', 'plasma', 40], ['10-weapon-arc', 'arc', 30]] as const) {
     await startRun(page, SEED);
     const info = await enterRoom(page, combatId, { fire: true, weapon });
@@ -310,7 +344,7 @@ test('AR-00 visual baseline capture', async ({ page, browserName }) => {
 
   // ---------- Performance baseline (real RAF loop, same scenario) ----------
   const perf: Record<string, unknown> = {};
-  for (const [name, kind] of [['elite-room-sustained-fire', 'elite'], ['boss-phase3-barrage', 'boss']] as const) {
+  for (const [name, kind] of [['combat-room-sustained-fire', 'combat'], ['elite-room-sustained-fire', 'elite'], ['boss-phase3-barrage', 'boss']] as const) {
     const roomId = firstOf(kind);
     if (roomId === undefined) continue;
     await startRun(page, SEED);
@@ -420,7 +454,13 @@ test('AR-00 Station Zero (Signal prototype) capture', async ({ page }) => {
   };
   await shoot('19-signal-lab-idle', 'Station Zero lab, sealed door, unscanned');
   await page.keyboard.press('z');
-  await page.waitForTimeout(400);
+  if (process.env.ART_AR02 === '1') {
+    await page.waitForTimeout(130);
+    await shoot('26-signal-scan-sweep', 'Station Zero lab during the Scan pulse');
+    await page.waitForTimeout(250);
+  } else {
+    await page.waitForTimeout(400);
+  }
   await shoot('20-signal-lab-scan', 'Lab after Scan (Z): receiver/source/link revealed');
   await page.keyboard.press('x');
   await page.waitForTimeout(400);
@@ -432,5 +472,6 @@ test('AR-00 Station Zero (Signal prototype) capture', async ({ page }) => {
   await page.keyboard.press('z');
   await page.waitForTimeout(400);
   await shoot('22-signal-corridor-scan', 'Unstable corridor after Scan: relay -> bridge / guard perception links');
+  expect(consoleErrors).toEqual([]);
   writeFileSync(path.join(OUT, 'manifest-station-zero.json'), JSON.stringify({ phase: PHASE, clock: 'real time (fixed 60 Hz rules tick)', visualRandomSeed: VISUAL_SEED, shots: extra }, null, 2));
 });
