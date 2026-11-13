@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="'Bahnschrift', 'Microsoft YaHei', sans-serif">
+  <title>CONCEPT B · BRUTALIST RELAY — HUD exploration (stamped steel plates)</title>
+  <defs><pattern id="hz" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#1c1c1b"/><rect width="5" height="10" fill="#c9922f"/></pattern></defs>
+  <rect width="1600" height="900" fill="#121212"/>
+  <text x="40" y="52" fill="#e9ecea" font-size="24" letter-spacing="2">B · BRUTALIST RELAY — HUD 探索：冲压钢铭牌</text>
+  <text x="40" y="78" fill="#9a9a90" font-size="13">Chunky chamfered plates, condensed sans, stencil numerals; strong diegetic "machine label" feel. 概念样稿，非实机截图。</text>
+  <g transform="translate(40 110)">
+    <rect width="640" height="360" fill="#1a1a19" stroke="#55554f"/>
+    <rect x="200" y="100" width="240" height="160" fill="none" stroke="#e8452c" stroke-opacity="0.5" stroke-dasharray="2 4"/>
+    <g fill="#55554f"><polygon points="12,12 140,12 146,18 146,46 12,46"/><polygon points="628,12 512,12 506,18 506,46 628,46"/><rect x="12" y="290" width="120" height="56"/><rect x="420" y="300" width="208" height="46"/><rect x="230" y="12" width="180" height="26"/></g>
+    <g fill="#e9ecea" font-size="10"><text x="18" y="32">OPERATIVE PLATE</text><text x="512" y="32">WEAPON PLATE</text><text x="18" y="318">TOOL RACK</text><text x="426" y="324">ECHO CHANNEL</text><text x="240" y="29">BOSS GANTRY BAR</text><text x="236" y="186" fill="#e8452c">COMBAT CORE</text></g>
+    <text x="12" y="376" font-size="10" fill="#9a9a90">Heavier frames occupy ~9% of screen vs ~5% in A.</text>
+  </g>
+  <g transform="translate(720 110)" fill="#e9ecea" font-size="12">
+    <text font-size="11" fill="#9a9a90" letter-spacing="2">2 · VITALS</text>
+    <g transform="translate(0 18)"><polygon points="0,0 300,0 312,12 312,70 0,70" fill="#151514" stroke="#55554f"/>
+      <text x="12" y="20" font-size="11" fill="#9a9a90" letter-spacing="2">OPERATIVE 07</text>
+      <rect x="12" y="28" width="240" height="14" fill="#262624"/><rect x="12" y="28" width="172" height="14" fill="#e9ecea"/><rect x="184" y="28" width="14" height="14" fill="#e8452c"/>
+      <text x="262" y="40" font-size="14">72</text>
+      <rect x="12" y="50" width="240" height="8" fill="#262624"/><rect x="12" y="50" width="154" height="8" fill="#5fd3c4"/><text x="262" y="59" font-size="11" fill="#5fd3c4">64</text></g>
+  </g>
+  <g transform="translate(720 230)" fill="#e9ecea" font-size="10">
+    <text font-size="11" fill="#9a9a90" letter-spacing="2">3 · TOOL RACK STATES</text>
+    <g transform="translate(0 16)"><rect width="72" height="80" fill="#151514" stroke="#5fd3c4"/><rect width="72" height="16" fill="#5fd3c4"/><text x="6" y="12" fill="#111">X JAM</text><path d="M18,48 h36 M22,36 l28,24" stroke="#5fd3c4" stroke-width="3"/><text x="6" y="74" fill="#5fd3c4">READY</text></g>
+    <g transform="translate(86 16)"><rect width="72" height="80" fill="#151514" stroke="#55554f"/><rect width="72" height="16" fill="#2d2d2b"/><text x="6" y="12" fill="#777">X JAM</text><rect x="8" y="24" width="56" height="40" fill="url(#hz)" opacity="0.4"/><text x="20" y="50" font-size="16" fill="#ffb347">4.3</text><text x="6" y="74" fill="#9a9a90">COOLDOWN</text></g>
+    <g transform="translate(172 16)"><rect width="72" height="80" fill="#151514" stroke="#55554f" stroke-dasharray="4 3"/><rect width="72" height="16" fill="#2d2d2b"/><text x="6" y="12" fill="#777">X JAM</text><text x="6" y="44" font-size="12">需 25</text><text x="6" y="60" font-size="11" fill="#9a9a90">现 18</text></g>
+    <g transform="translate(258 16)"><rect width="72" height="80" fill="#151514" stroke="#cfe8ff"/><rect width="72" height="16" fill="#cfe8ff"/><text x="6" y="12" fill="#111">X ACTIVE</text><rect x="0" y="74" width="44" height="6" fill="#cfe8ff"/><text x="6" y="50" font-size="12" fill="#cfe8ff">3.6s</text></g>
+    <g transform="translate(344 16)"><rect width="72" height="80" fill="#151514" stroke="#55554f"/><rect x="26" y="28" width="7" height="30" fill="#9a9a90"/><rect x="39" y="28" width="7" height="30" fill="#9a9a90"/><text x="6" y="74" fill="#9a9a90">PAUSED</text></g>
+  </g>
+  <g transform="translate(40 520)" fill="#e9ecea" font-size="13" font-family="'Microsoft YaHei', sans-serif">
+    <text font-size="11" fill="#9a9a90" letter-spacing="2">4 · ECHO CHANNEL</text>
+    <g transform="translate(0 16)"><rect width="640" height="48" fill="#151514" stroke="#e9ecea" stroke-opacity="0.5"/><rect width="8" height="48" fill="#e9ecea"/><text x="20" y="20" font-size="10" fill="#9a9a90" letter-spacing="2">ECHO · OBSERVATION 观察</text><text x="20" y="40">R-2 输出：开启。门接收器：持续接收。</text></g>
+    <g transform="translate(0 72)"><rect width="640" height="48" fill="#151514" stroke="#cfe8ff" stroke-opacity="0.5" stroke-dasharray="8 4"/><rect width="8" height="48" fill="#cfe8ff"/><text x="20" y="20" font-size="10" fill="#cfe8ff" letter-spacing="2">ECHO · INFERENCE 推测</text><text x="20" y="40">门锁可能依赖 R-2 —— 尚未确认。</text></g>
+    <g transform="translate(0 128)"><rect width="640" height="48" fill="#151514" stroke="#55554f" stroke-dasharray="2 4"/><rect width="8" height="48" fill="#55554f"/><text x="20" y="20" font-size="10" fill="#9a9a90" letter-spacing="2">ECHO · ARCHIVE 历史</text><text x="20" y="40" fill="#9a9a90">上一次苏醒时，这扇门是开着的。</text></g>
+  </g>
+  <g transform="translate(720 400)" fill="#e9ecea">
+    <text font-size="11" fill="#9a9a90" letter-spacing="2">5 · BOSS GANTRY BAR</text>
+    <g transform="translate(0 18)"><rect width="540" height="60" fill="#151514" stroke="#55554f"/><rect width="540" height="10" fill="url(#hz)"/><text x="12" y="30" font-size="14" letter-spacing="3">RELAY GANTRY · THE WARDEN</text><rect x="12" y="38" width="420" height="12" fill="#262624"/><rect x="12" y="38" width="250" height="12" fill="#e8452c"/><g fill="#eaf4ff"><rect x="446" y="36" width="14" height="16"/><rect x="466" y="36" width="14" height="16" fill="#55554f"/><rect x="486" y="36" width="14" height="16" fill="#55554f"/></g></g>
+  </g>
+  <g transform="translate(720 520)" fill="#e9ecea" font-size="12">
+    <text font-size="11" fill="#9a9a90" letter-spacing="2">6 · TARGET TAG</text>
+    <g transform="translate(0 16)"><polygon points="0,0 230,0 240,10 240,48 0,48" fill="#151514" stroke="#5fd3c4"/><text x="10" y="20" font-size="11" fill="#9a9a90">RECEIVER R2-A</text><text x="10" y="38" fill="#5fd3c4">[X] JAM 25 · [F] LOCKED</text></g>
+  </g>
+  <g transform="translate(1290 110)" fill="#e9ecea">
+    <text font-size="11" fill="#9a9a90" letter-spacing="2">7 · UPGRADE</text>
+    <g transform="translate(0 16)"><polygon points="0,0 260,0 270,10 270,280 0,280" fill="#151514" stroke="#55554f"/><rect width="270" height="40" fill="#55554f"/><text x="12" y="26" font-size="16" fill="#111">[2] TARGETING AI</text><rect x="85" y="70" width="100" height="100" fill="url(#hz)" opacity="0.5"/><text x="12" y="210" font-size="12">+6% critical hit chance.</text><text x="12" y="250" font-size="13" fill="#5fd3c4">CRIT 10% → 16%</text></g>
+  </g>
+  <g transform="translate(1290 440)" fill="#e9ecea">
+    <text font-size="11" fill="#9a9a90" letter-spacing="2">8 · NUMBERS</text>
+    <text y="40" font-size="18" font-weight="bold" stroke="#000" stroke-width="3" paint-order="stroke">12</text>
+    <text x="50" y="40" font-size="24" font-weight="bold" fill="#ffb347" stroke="#000" stroke-width="3" paint-order="stroke">31!</text>
+  </g>
+  <text x="40" y="880" fill="#9a9a90" font-size="11">Typography: condensed sans (Bahnschrift → DIN-like system fallback); stencil numerals for room codes. Risk: heavier chrome competes with the busy environment.</text>
+</svg>

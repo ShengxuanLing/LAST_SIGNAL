@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <title>CONCEPT C · CONSENSUS GHOST — silhouette sheet</title>
+  <defs>
+    <filter id="sil"><feColorMatrix type="matrix" values="0 0 0 0 0.08  0 0 0 0 0.08  0 0 0 0 0.1  0 0 0 1 0"/></filter>
+    <!-- EXECUTOR: porcelain, ink outline, always in register -->
+    <symbol id="exec" viewBox="-40 -110 80 120" overflow="visible">
+      <path d="M-9,0 L-8,-26 M9,0 L8,-26" stroke="#15151a" stroke-width="9" stroke-linecap="round"/>
+      <path d="M-18,-26 Q-20,-66 0,-72 Q20,-66 18,-26 Z" fill="#f6f4ef" stroke="#15151a" stroke-width="3"/>
+      <circle cx="0" cy="-84" r="13" fill="#f6f4ef" stroke="#15151a" stroke-width="3"/>
+      <rect x="-2" y="-89" width="14" height="8" fill="#15151a"/>
+      <path d="M10,-44 L46,-40" stroke="#15151a" stroke-width="6"/>
+    </symbol>
+    <symbol id="drone" viewBox="-40 -80 80 90" overflow="visible">
+      <rect x="-20" y="-64" width="40" height="28" rx="14" fill="#15151a"/>
+      <circle cx="-5" cy="-50" r="6" fill="#ff5a1f"/>
+      <path d="M-12,-36 L-18,0 M12,-36 L18,0" stroke="#15151a" stroke-width="4"/>
+    </symbol>
+    <symbol id="stalker" viewBox="-50 -50 100 60" overflow="visible">
+      <path d="M-30,0 Q0,-50 30,0 Z" fill="#15151a"/>
+      <rect x="-8" y="-18" width="16" height="4" fill="#ff5a1f"/>
+    </symbol>
+    <symbol id="hunter" viewBox="-60 -90 120 100" overflow="visible">
+      <polygon points="0,-76 26,-44 0,-12 -26,-44" fill="#15151a"/>
+      <circle cx="0" cy="-44" r="6" fill="#ff5a1f"/>
+    </symbol>
+    <symbol id="sentinel" viewBox="-50 -140 100 150" overflow="visible">
+      <polygon points="-24,0 24,0 14,-130 -14,-130" fill="#15151a"/>
+      <circle cx="0" cy="-96" r="10" fill="#ff5a1f"/>
+    </symbol>
+    <!-- WARDEN: halo + mask; its afterimages are the shield states -->
+    <symbol id="warden" viewBox="-130 -230 260 240" overflow="visible">
+      <circle cx="0" cy="-130" r="96" fill="none" stroke="#15151a" stroke-width="14"/>
+      <path d="M-46,-170 Q0,-200 46,-170 L40,-80 Q0,-60 -40,-80 Z" fill="#15151a"/>
+      <rect x="-26" y="-140" width="52" height="8" fill="#ff5a1f"/>
+      <path d="M-30,-60 L-40,0 M30,-60 L40,0" stroke="#15151a" stroke-width="8"/>
+    </symbol>
+  </defs>
+  <rect width="1600" height="900" fill="#d9d6cf"/>
+  <text x="40" y="52" fill="#15151a" font-size="24" letter-spacing="2">C · CONSENSUS GHOST — SILHOUETTES 轮廓表</text>
+  <text x="40" y="78" fill="#15151a" fill-opacity="0.6" font-size="13">Row 1 = pure silhouette test. Row 2 = styled with off-register plates on unstable hostiles. 概念样稿，非实机截图。</text>
+  <path d="M40,370 H1560 M40,740 H1560" stroke="#15151a" stroke-opacity="0.3"/>
+  <g filter="url(#sil)">
+    <use href="#exec" x="80" y="150" width="160" height="240"/>
+    <use href="#drone" x="300" y="210" width="160" height="180"/>
+    <use href="#stalker" x="500" y="270" width="200" height="120"/>
+    <use href="#hunter" x="720" y="170" width="240" height="200"/>
+    <use href="#sentinel" x="960" y="90" width="200" height="300"/>
+    <use href="#warden" x="1180" y="25" width="390" height="360"/>
+  </g>
+  <rect x="40" y="420" width="1520" height="340" fill="#eeebe4"/>
+  <g style="mix-blend-mode:multiply" opacity="0.55">
+    <use href="#hunter" x="708" y="544" width="240" height="200" style="filter:url(#sil)" opacity="0.3"/>
+    <g transform="translate(-10 4)" opacity="0.5"><use href="#warden" x="1180" y="395" width="390" height="360"/></g>
+  </g>
+  <g>
+    <use href="#exec" x="80" y="520" width="160" height="240"/>
+    <use href="#drone" x="300" y="580" width="160" height="180"/>
+    <use href="#stalker" x="500" y="640" width="200" height="120"/>
+    <use href="#hunter" x="720" y="540" width="240" height="200"/>
+    <use href="#sentinel" x="960" y="460" width="200" height="300"/>
+    <use href="#warden" x="1180" y="395" width="390" height="360"/>
+  </g>
+  <g style="mix-blend-mode:multiply">
+    <circle cx="1375" cy="545" r="144" fill="none" stroke="#00b8d4" stroke-width="12" opacity="0.6" transform="translate(-9 4)"/>
+    <circle cx="1375" cy="545" r="144" fill="none" stroke="#e0447c" stroke-width="12" opacity="0.6" transform="translate(8 -5)"/>
+  </g>
+  <g fill="#15151a" font-size="12">
+    <text x="90" y="800">EXECUTOR 受试者</text><text x="90" y="818" fill-opacity="0.6">唯一永远对齐的图形</text>
+    <text x="300" y="800">DRONE 胶囊</text><text x="300" y="818" fill-opacity="0.6">圆角 · 远程</text>
+    <text x="520" y="800">STALKER 穹</text><text x="520" y="818" fill-opacity="0.6">半圆 · 近战</text>
+    <text x="760" y="800">HUNTER 菱</text><text x="760" y="818" fill-opacity="0.6">残影滞后</text>
+    <text x="990" y="800">SENTINEL 碑</text><text x="990" y="818" fill-opacity="0.6">尖碑 · 圆眼</text>
+    <text x="1250" y="800">WARDEN 光环面具</text><text x="1250" y="818" fill-opacity="0.6">印版分离 = 护盾状态</text>
+  </g>
+  <text x="40" y="880" fill="#15151a" fill-opacity="0.6" font-size="11">Silhouettes are very clean but generic primitives (capsule/dome/diamond); identity depends on the misregistration effect, which must be rule-bound and disable-able.</text>
+</svg>

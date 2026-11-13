@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="900" viewBox="0 0 1600 900" font-family="Consolas, 'Microsoft YaHei', monospace">
+  <title>CONCEPT A · SURVEY INK — silhouette sheet (executor + 4 hostiles + Warden)</title>
+  <defs>
+    <!-- silhouette test: every pixel -> solid ink, alpha kept -->
+    <filter id="sil"><feColorMatrix type="matrix" values="0 0 0 0 0.91  0 0 0 0 0.886  0 0 0 0 0.816  0 0 0 1 0"/></filter>
+    <!-- EXECUTOR: bone hardsuit, asymmetric scanner mast (left), rifle (right) -->
+    <symbol id="exec" viewBox="-40 -110 80 120" overflow="visible">
+      <path d="M-9,0 L-8,-26 M9,0 L8,-26" stroke="#cfc8b4" stroke-width="9" stroke-linecap="round"/>
+      <path d="M-20,-26 Q-22,-64 0,-70 Q22,-64 20,-26 Z" fill="#e8e2d0"/>
+      <rect x="-26" y="-62" width="12" height="30" rx="3" fill="#bdb6a2"/>
+      <circle cx="0" cy="-82" r="13" fill="#e8e2d0"/>
+      <rect x="-1" y="-86" width="14" height="8" fill="#14181c"/>
+      <path d="M-22,-56 L-28,-108" stroke="#14181c" stroke-width="3"/>
+      <circle cx="-28" cy="-110" r="5" fill="#4fe3d6"/>
+      <path d="M10,-44 L48,-40" stroke="#14181c" stroke-width="7"/>
+    </symbol>
+    <!-- DRONE "THEODOLITE": the station's own survey tripod -->
+    <symbol id="drone" viewBox="-40 -80 80 90" overflow="visible">
+      <path d="M0,-34 L-22,4 M0,-34 L22,4 M0,-34 L4,8" stroke="#0a0b0d" stroke-width="5"/>
+      <rect x="-18" y="-62" width="36" height="28" rx="3" fill="#1a1e22"/>
+      <rect x="18" y="-56" width="8" height="12" fill="#1a1e22"/>
+      <circle cx="-6" cy="-48" r="7" fill="#ff4a3d"/>
+      <path d="M-18,-62 h36 v28 h-36z" fill="none" stroke="#e8e2d0" stroke-opacity="0.35"/>
+    </symbol>
+    <!-- STALKER "CLAMP": low, wide, forward pincers; fastest => lowest, widest -->
+    <symbol id="stalker" viewBox="-50 -50 100 60" overflow="visible">
+      <path d="M-30,2 L-18,-12 M30,2 L18,-12 M-20,8 L-8,-6 M20,8 L8,-6" stroke="#0a0b0d" stroke-width="5"/>
+      <path d="M-26,-10 Q0,-44 26,-10 L16,-4 Q0,-20 -16,-4 Z" fill="#1a1e22"/>
+      <path d="M-30,-30 l14,12 M30,-30 l-14,12" stroke="#1a1e22" stroke-width="6" stroke-linecap="round"/>
+      <rect x="-8" y="-24" width="16" height="5" fill="#ff4a3d"/>
+    </symbol>
+    <!-- HUNTER "RANGEFINDER KITE": hovering diamond, swept vanes, long sight line -->
+    <symbol id="hunter" viewBox="-60 -90 120 100" overflow="visible">
+      <polygon points="0,-74 26,-42 0,-12 -26,-42" fill="#1a1e22"/>
+      <polygon points="-26,-42 -54,-50 -30,-30" fill="#1a1e22"/><polygon points="26,-42 54,-50 30,-30" fill="#1a1e22"/>
+      <circle cx="0" cy="-42" r="7" fill="#ff4a3d"/>
+      <path d="M0,-12 V4" stroke="#1a1e22" stroke-width="3"/>
+    </symbol>
+    <!-- SENTINEL "GATE PYLON": tall slab, shutter eye, wide planted base; slow & armoured -->
+    <symbol id="sentinel" viewBox="-50 -140 100 150" overflow="visible">
+      <polygon points="-34,0 34,0 26,-12 -26,-12" fill="#0a0b0d"/>
+      <polygon points="-22,-12 22,-12 18,-120 -18,-120" fill="#1a1e22"/>
+      <rect x="-26" y="-132" width="52" height="14" fill="#1a1e22"/>
+      <rect x="-14" y="-92" width="28" height="8" fill="#ff4a3d"/>
+      <path d="M-18,-70 h36 M-18,-50 h36 M-18,-30 h36" stroke="#e8e2d0" stroke-opacity="0.25"/>
+    </symbol>
+    <!-- WARDEN "ARMILLARY": observatory instrument; ring segments = shield nodes (readable phases) -->
+    <symbol id="warden" viewBox="-130 -230 260 240" overflow="visible">
+      <path d="M-60,0 L-30,-60 M60,0 L30,-60 M0,6 L0,-60" stroke="#0a0b0d" stroke-width="10"/>
+      <ellipse cx="0" cy="-120" rx="110" ry="34" fill="none" stroke="#1a1e22" stroke-width="12"/>
+      <ellipse cx="0" cy="-120" rx="40" ry="104" fill="none" stroke="#1a1e22" stroke-width="12" transform="rotate(-25 0 -120)"/>
+      <circle cx="0" cy="-120" r="38" fill="#1a1e22"/>
+      <circle cx="0" cy="-120" r="16" fill="#ff4a3d"/>
+      <g fill="#7fb7ff"><circle cx="-110" cy="-120" r="8"/><circle cx="110" cy="-120" r="8"/><circle cx="-44" cy="-212" r="8"/></g>
+      <path d="M0,-120 m-38,0 a38,38 0 0 1 76,0" fill="none" stroke="#e8e2d0" stroke-opacity="0.35" stroke-width="2"/>
+    </symbol>
+  </defs>
+  <rect width="1600" height="900" fill="#0b0e11"/>
+  <text x="40" y="52" fill="#e8e2d0" font-size="24" letter-spacing="2">A · SURVEY INK — SILHOUETTES 轮廓表</text>
+  <text x="40" y="78" fill="#e8e2d0" fill-opacity="0.55" font-size="13">Row 1 = pure silhouette test (filter-flattened). Row 2 = styled. Scale ≈ 2.4× in-game. 概念样稿，非实机截图。</text>
+
+  <!-- ground lines -->
+  <path d="M40,370 H1560 M40,740 H1560" stroke="#e8e2d0" stroke-opacity="0.15"/>
+  <!-- row 1 silhouettes (ground y=370; hunter hovers ~20px above it) -->
+  <g filter="url(#sil)">
+    <use href="#exec" x="80" y="150" width="160" height="240"/>
+    <use href="#drone" x="300" y="210" width="160" height="180"/>
+    <use href="#stalker" x="500" y="270" width="200" height="120"/>
+    <use href="#hunter" x="720" y="170" width="240" height="200"/>
+    <use href="#sentinel" x="960" y="90" width="200" height="300"/>
+    <use href="#warden" x="1180" y="25" width="390" height="360"/>
+  </g>
+  <!-- row 2 styled, on graphite floor swatch (ground y=740) -->
+  <rect x="40" y="420" width="1520" height="340" fill="#14181c"/>
+  <g>
+    <use href="#exec" x="80" y="520" width="160" height="240"/>
+    <use href="#drone" x="300" y="580" width="160" height="180"/>
+    <use href="#stalker" x="500" y="640" width="200" height="120"/>
+    <use href="#hunter" x="720" y="540" width="240" height="200"/>
+    <use href="#sentinel" x="960" y="460" width="200" height="300"/>
+    <use href="#warden" x="1180" y="395" width="390" height="360"/>
+  </g>
+  <!-- annotations -->
+  <g fill="#e8e2d0" font-size="12">
+    <text x="90" y="800">EXECUTOR 执行者</text><text x="90" y="818" fill-opacity="0.6">最高明度块 · 左侧扫描桅杆</text><text x="90" y="836" fill-opacity="0.6">与右手武器构成不对称识别</text>
+    <text x="300" y="800">DRONE 经纬仪</text><text x="300" y="818" fill-opacity="0.6">三脚 + 方头 · 设施测绘机</text><text x="300" y="836" fill-opacity="0.6">远程 · 单红色光圈</text>
+    <text x="520" y="800">STALKER 钳行体</text><text x="520" y="818" fill-opacity="0.6">最低最宽 · 前伸钳</text><text x="520" y="836" fill-opacity="0.6">近战冲锋 · 红色条形</text>
+    <text x="760" y="800">HUNTER 测距风筝</text><text x="760" y="818" fill-opacity="0.6">悬浮菱形 · 侧翼</text><text x="760" y="836" fill-opacity="0.6">远程 · 瞄准线可被扫描</text>
+    <text x="990" y="800">SENTINEL 闸门塔</text><text x="990" y="818" fill-opacity="0.6">最高竖向 · 宽底座</text><text x="990" y="836" fill-opacity="0.6">重甲 · 慢 · 百叶眼</text>
+    <text x="1250" y="800">WARDEN 浑天仪</text><text x="1250" y="818" fill-opacity="0.6">环 = 共识节点护盾；阶段 = 环脱落</text><text x="1250" y="836" fill-opacity="0.6">冷蓝节点可 Scan/Jam（按实际机制）</text>
+  </g>
+  <g fill="#e8e2d0" fill-opacity="0.55" font-size="11">
+    <text x="40" y="880">Rule: hostile = dark mass + ONE vermilion aperture; ally/executor = light mass. Silhouette classes: tripod / low-wide / kite / slab / ring — no two hostiles share an outline class.</text>
+  </g>
+</svg>
