@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PlayerData, ProjectileData, Vec2 } from '../types';
+import { Avatar, PlayerData, ProjectileData, Vec2 } from '../types';
 import { basePlayerData, GAME } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import { clamp } from '../core/random';
@@ -8,7 +8,8 @@ import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
-import { hasWhaleTextures, WhaleCharacterEffects, WHALE_TEXTURE } from '../core/WhaleCharacter';
+import { WhaleCharacterEffects } from '../core/WhaleCharacter';
+import { APPEARANCES, faceClaude, resolveAvatar } from '../core/PlayerAppearance';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -34,6 +35,7 @@ export class Player {
   private cursors: any = null;
   private aimYaw = 0;
   private whaleEffects?: WhaleCharacterEffects;
+  private readonly avatar: Avatar;
 
   constructor(public world: World, x: number, y: number, private save: ReturnType<SaveSystem['load']>) {
     const stats = basePlayerData();
@@ -69,11 +71,13 @@ export class Player {
       weapons,
       upgrades: [], abilities: []
     } as PlayerData;
-    const whale = save.settings.avatar === 'whale' && hasWhaleTextures(world.scene.textures);
-    this.sprite = world.scene.add.sprite(x, y, whale ? WHALE_TEXTURE : 'player');
+    this.avatar = resolveAvatar(save.settings.avatar, world.scene.textures);
+    this.sprite = world.scene.add.sprite(x, y, APPEARANCES[this.avatar].textures[0]);
     this.sprite.setDepth(100);
-    if (whale) {
+    if (this.avatar === 'whale') {
       this.whaleEffects = new WhaleCharacterEffects(this.sprite);
+    } else if (this.avatar === 'claude') {
+      this.sprite.setScale(72 / this.sprite.height).setOrigin(0.5, 0.99);
     }
     this.aimYaw = 0;
     this.wx = x;
@@ -210,6 +214,7 @@ export class Player {
 
     this.project();
     this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
+    if (this.avatar === 'claude') faceClaude(this.sprite, this.sprite.x - previousX, this.sprite.y - previousY);
     // visuals
     if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
     else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }

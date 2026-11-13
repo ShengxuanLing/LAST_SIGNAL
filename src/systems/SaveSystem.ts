@@ -2,7 +2,7 @@
 // Never silently destroys existing valid save data; recovers from invalid/outdated saves.
 import { SAVE_KEY, SAVE_VERSION, DEFAULT_SETTINGS } from '../config/game';
 import { WEAPON_LIST } from '../config/weapons';
-import type { RunCheckpoint, SaveData } from '../types';
+import type { Avatar, RunCheckpoint, SaveData } from '../types';
 import { validateCheckpoint } from './RunCheckpoint';
 
 export const PERMANENT_TALENTS = [
@@ -37,6 +37,10 @@ const PERMANENT_NUMBERS = [
 const SETTINGS_NUMBERS = ['masterVolume', 'sfxVolume', 'mouseDpi'];
 const STATS_NUMBERS = ['enemiesKilled', 'itemsCollected', 'damageDealt', 'playTimeSeconds'];
 
+function isAvatar(value: unknown): value is Avatar {
+  return value === 'operator' || value === 'whale' || value === 'claude';
+}
+
 export function validate(data: any): data is SaveData {
   if (!data || typeof data !== 'object') return false;
   if (data.version !== SAVE_VERSION) return false;
@@ -55,7 +59,7 @@ export function validate(data: any): data is SaveData {
     if (typeof (s as any)[k] !== 'number') return false;
   }
   if (typeof s.fullscreen !== 'boolean' || typeof s.screenShake !== 'boolean') return false;
-  if (s.avatar !== undefined && s.avatar !== 'operator' && s.avatar !== 'whale') return false;
+  if (s.avatar !== undefined && !isAvatar(s.avatar)) return false;
 
   const st = data.stats;
   if (!st || typeof st !== 'object') return false;
@@ -129,7 +133,7 @@ export class SaveSystem {
     base.settings.mouseDpi = typeof s.mouseDpi === 'number' ? s.mouseDpi : base.settings.mouseDpi;
     base.settings.fullscreen = typeof s.fullscreen === 'boolean' ? s.fullscreen : base.settings.fullscreen;
     base.settings.screenShake = typeof s.screenShake === 'boolean' ? s.screenShake : base.settings.screenShake;
-    if (s.avatar === 'operator' || s.avatar === 'whale') base.settings.avatar = s.avatar;
+    if (isAvatar(s.avatar)) base.settings.avatar = s.avatar;
     base.stats.enemiesKilled = typeof st.enemiesKilled === 'number' ? st.enemiesKilled : base.stats.enemiesKilled;
     base.stats.itemsCollected = typeof st.itemsCollected === 'number' ? st.itemsCollected : base.stats.itemsCollected;
     base.stats.damageDealt = typeof st.damageDealt === 'number' ? st.damageDealt : base.stats.damageDealt;

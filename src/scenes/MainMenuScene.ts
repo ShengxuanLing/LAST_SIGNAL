@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME, SAVE_VERSION } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import { formatDuration } from '../core/formatDuration';
-import { hasWhaleTextures, WHALE_TEXTURE } from '../core/WhaleCharacter';
+import { APPEARANCES, availableAvatars, resolveAvatar } from '../core/PlayerAppearance';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
@@ -93,16 +93,19 @@ export class MainMenuScene extends Phaser.Scene {
       this.scene.restart({ view: 'permanent' });
     }, 0x274a55);
     const avatarX = 1000;
-    const whale = save.settings.avatar === 'whale' && hasWhaleTextures(this.textures);
+    const avatar = resolveAvatar(save.settings.avatar, this.textures);
+    const appearance = APPEARANCES[avatar];
     this.add.text(avatarX, 328, 'PLAYER APPEARANCE', {
       fontFamily: 'monospace', fontSize: '15px', color: '#8fb8c8'
     }).setOrigin(0.5);
-    const preview = this.add.image(avatarX, 406, whale ? WHALE_TEXTURE : 'player');
-    preview.setScale((whale ? 124 : 74) / preview.height);
-    this._button(avatarX, 490, whale ? 'WHALE-CHAN ↻' : 'OPERATOR ↻', 238, () => {
-      if (!hasWhaleTextures(this.textures)) { this._flash('WHALE-CHAN ART UNAVAILABLE'); return; }
+    const preview = this.add.image(avatarX, 406, appearance.textures[0]);
+    preview.setScale((avatar === 'operator' ? 74 : 124) / preview.height);
+    this._button(avatarX, 490, `${appearance.label} ↻`, 238, () => {
+      const avatars = availableAvatars(this.textures);
+      if (avatars.length <= 1) { this._flash('CHARACTER ART UNAVAILABLE'); return; }
       const latest = saveSystem.load();
-      latest.settings.avatar = latest.settings.avatar === 'whale' ? 'operator' : 'whale';
+      const current = resolveAvatar(latest.settings.avatar, this.textures);
+      latest.settings.avatar = avatars[(avatars.indexOf(current) + 1) % avatars.length];
       if (saveSystem.save(latest)) this.scene.restart({});
       else this._flash('APPEARANCE NOT SAVED');
     }, 0x274a55);

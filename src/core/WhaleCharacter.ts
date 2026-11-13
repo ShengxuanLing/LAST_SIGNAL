@@ -5,10 +5,6 @@ export const WHALE_REAR_TEXTURE = 'whale-chan-rear';
 export const WHALE_SIDE_TEXTURE = 'whale-chan-side';
 const WHALE_FOOT_Y = 0.99;
 
-export function hasWhaleTextures(textures: Phaser.Textures.TextureManager): boolean {
-  return [WHALE_TEXTURE, WHALE_SIDE_TEXTURE, WHALE_REAR_TEXTURE].every((key) => textures.exists(key));
-}
-
 export class WhaleCharacterEffects {
   private wakeTime = 0;
   private stride = 0;

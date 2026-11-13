@@ -1,0 +1,12 @@
+Claude-chan / Claude 娘
+
+Sprite artwork by CrossPet (lokicorvus/crosspet).
+Source: https://github.com/lokicorvus/crosspet/tree/8954eb8f7f69fcfb8d35e9deceeb78e10c804402/characters/claude
+Community character design: ZipZipPipe — https://www.bilibili.com/opus/1233069202138464289
+
+The original idle.webp, busy_left.webp and busy_right.webp are included under the
+names front.webp, left.webp and right.webp. Image bytes are unchanged.
+
+Art license: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International.
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+Upstream terms: https://github.com/lokicorvus/crosspet/blob/8954eb8f7f69fcfb8d35e9deceeb78e10c804402/characters/LICENSE.md

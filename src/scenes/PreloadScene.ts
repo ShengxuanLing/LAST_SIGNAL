@@ -2,17 +2,25 @@
 import Phaser from 'phaser';
 import { GAME } from '../config/game';
 import { WHALE_TEXTURE, WHALE_SIDE_TEXTURE, WHALE_REAR_TEXTURE } from '../core/WhaleCharacter';
-import front from '../assets/whale/front.png?url';
-import side from '../assets/whale/side.png?url';
-import back from '../assets/whale/back.png?url';
+import whaleFront from '../assets/whale/front.png?url';
+import whaleSide from '../assets/whale/side.png?url';
+import whaleBack from '../assets/whale/back.png?url';
+import { APPEARANCES } from '../core/PlayerAppearance';
+import claudeFront from '../assets/claude/front.webp?url';
+import claudeLeft from '../assets/claude/left.webp?url';
+import claudeRight from '../assets/claude/right.webp?url';
 
 export class PreloadScene extends Phaser.Scene {
   constructor() { super('PreloadScene'); }
 
   preload(): void {
-    this.load.image(WHALE_TEXTURE, front);
-    this.load.image(WHALE_SIDE_TEXTURE, side);
-    this.load.image(WHALE_REAR_TEXTURE, back);
+    this.load.image(WHALE_TEXTURE, whaleFront);
+    this.load.image(WHALE_SIDE_TEXTURE, whaleSide);
+    this.load.image(WHALE_REAR_TEXTURE, whaleBack);
+    const [front, left, right] = APPEARANCES.claude.textures;
+    this.load.image(front, claudeFront);
+    this.load.image(left, claudeLeft);
+    this.load.image(right, claudeRight);
   }
 
   create(): void {

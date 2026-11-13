@@ -106,6 +106,8 @@ export interface RunCheckpoint {
   stats: { kills: number; items: number; damage: number; elapsedSeconds: number; };
 }
 
+export type Avatar = 'operator' | 'whale' | 'claude';
+
 export interface SaveData {
   version: number; createdAt: string; updatedAt: string;
   permanent: {
@@ -117,7 +119,7 @@ export interface SaveData {
   settings: {
     masterVolume: number; sfxVolume: number; mouseDpi: number;
     fullscreen: boolean; screenShake: boolean;
-    avatar?: 'operator' | 'whale';
+    avatar?: Avatar;
   };
   stats: { enemiesKilled: number; itemsCollected: number; damageDealt: number; playTimeSeconds: number; };
   run?: RunCheckpoint;
