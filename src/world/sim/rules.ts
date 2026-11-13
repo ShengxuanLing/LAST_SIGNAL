@@ -335,6 +335,13 @@ export function createEnemyProjectileData(input: EnemyProjectileInput): Projecti
   };
 }
 
+export function resolveBossHit(input: {
+  hp: number; armor: number; damage: number;
+}): { hp: number; hitFlash: number } {
+  const reduction = 1 - Math.min(0.6, input.armor / (input.armor + 120));
+  return { hp: input.hp - Math.max(2, input.damage * reduction), hitFlash: 0.15 };
+}
+
 export interface PlayerHitInput {
   hp: number;
   position: GridPoint;

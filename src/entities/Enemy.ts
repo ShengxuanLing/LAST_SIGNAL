@@ -7,7 +7,7 @@ import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { Player } from './Player';
 import { axisSlideToward, distanceWithin, rangedAttackDescriptor, resolveEnemyHit } from '../world/sim/rules';
-import type { SimDroneState } from '../world/sim/core';
+import type { SimDroneState, SimTarget } from '../world/sim/core';
 
 export interface EnemySpec {
   kind: EnemyKind; x: number; y: number; room: number; depth: number;
@@ -25,15 +25,16 @@ export class Enemy {
   private hitDir = { x: 0, y: 0 };
   /** C2: drone state is owned by World.sim.drones; other kinds stay legacy. */
   private simDrone: SimDroneState | null = null;
+  private simTarget: SimTarget | null = null;
 
   get data(): EnemyData { return this.simDrone ? this.simDrone.data : this._data; }
   set data(value: EnemyData) { if (this.simDrone) this.simDrone.data = value; else this._data = value; }
-  get wx(): number { return this.simDrone ? this.simDrone.x : this._wx; }
-  set wx(value: number) { if (this.simDrone) this.simDrone.x = value; else this._wx = value; }
-  get wy(): number { return this.simDrone ? this.simDrone.y : this._wy; }
-  set wy(value: number) { if (this.simDrone) this.simDrone.y = value; else this._wy = value; }
-  get _hp(): number { return this.simDrone ? this.simDrone.hp : this.__hp; }
-  set _hp(value: number) { if (this.simDrone) this.simDrone.hp = value; else this.__hp = value; }
+  get wx(): number { return this.simDrone ? this.simDrone.x : this.simTarget ? this.simTarget.x : this._wx; }
+  set wx(value: number) { if (this.simDrone) this.simDrone.x = value; else if (this.simTarget) this.simTarget.x = value; else this._wx = value; }
+  get wy(): number { return this.simDrone ? this.simDrone.y : this.simTarget ? this.simTarget.y : this._wy; }
+  set wy(value: number) { if (this.simDrone) this.simDrone.y = value; else if (this.simTarget) this.simTarget.y = value; else this._wy = value; }
+  get _hp(): number { return this.simDrone ? this.simDrone.hp : this.simTarget ? this.simTarget.hp : this.__hp; }
+  set _hp(value: number) { if (this.simDrone) this.simDrone.hp = value; else if (this.simTarget) this.simTarget.hp = value; else this.__hp = value; }
   get attackTimer(): number { return this.simDrone ? this.simDrone.attackTimer : this._attackTimer; }
   set attackTimer(value: number) { if (this.simDrone) this.simDrone.attackTimer = value; else this._attackTimer = value; }
   get wanderTimer(): number { return this.simDrone ? this.simDrone.wanderTimer : this._wanderTimer; }
@@ -47,6 +48,13 @@ export class Enemy {
     state.attackTimer = this._attackTimer;
     state.wanderTimer = this._wanderTimer;
     this.simDrone = state;
+  }
+
+  attachSimTarget(state: SimTarget): void {
+    state.x = this._wx;
+    state.y = this._wy;
+    state.hp = this.__hp;
+    this.simTarget = state;
   }
 
   constructor(public world: World, kind: EnemyKind, x: number, y: number, room: number, depth: number) {

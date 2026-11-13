@@ -33,10 +33,11 @@ describe('C2 single-authority adapters', () => {
     expect(src).toContain('this.world.sim');
     expect(src).toContain('sampleIntent()');
     expect(src).toContain('syncVisual(');
-    expect(src).toContain('resolvePlayerHit(');
+    expect(src).toContain('enqueuePlayerHit(');
     expect(src).not.toContain('this.applyIntent(');
     expect(src).not.toContain('stepPlayerMovement(');
     expect(src).not.toContain('private tryFire(');
+    expect(src).not.toContain('this.data.hp = hit.hp');
     for (const debug of ['lastMoveStep', 'lastWeaponSpec', 'lastProjectileData', 'lastDroneStep', 'lastHitResult']) {
       expect(src, debug).not.toContain(debug);
     }

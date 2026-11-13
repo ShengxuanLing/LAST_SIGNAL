@@ -17,9 +17,10 @@ import { WEAPONS } from '../../config/weapons';
 import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, ProjectileData, Tile, Vec2 } from '../../types';
 import type { GridPoint } from './rules';
+import { payloadFingerprint } from '../../ai-native/protocol';
 import {
   advanceProjectile, aimYawFromGrid, buildWeaponSpec, createEnemyProjectileData,
-  createProjectileData, damageAfterArmor, projectileHitsTarget, resolveEnemyHit,
+  createProjectileData, projectileHitsTarget, resolveBossHit, resolveEnemyHit,
   resolvePlayerHit, stepDroneAi, stepPlayerMovement, weaponCooldown,
   type DroneAiResult, type EnemyHitResult, type PlayerHitResult, type WeaponFireSpec
 } from './rules';
@@ -54,11 +55,23 @@ export interface SimDroneState {
   wanderTimer: number;
 }
 
+export interface SimTarget {
+  id: number;
+  kind: string;
+  x: number;
+  y: number;
+  hp: number;
+  maxHp: number;
+  armor: number;
+  radius: number;
+  isBoss: boolean;
+}
+
 export interface SimProjectile {
   id: number;
   ownerId: number;
   side: 'player' | 'enemy';
-  source: 'player' | 'drone';
+  source: 'player' | 'enemy';
   kind: string;
   pos: Vec2;
   vel: Vec2;
@@ -79,7 +92,10 @@ export interface SimulationState {
   mapMinY: number;
   player: SimPlayerState;
   drones: SimDroneState[];
+  /** Legacy non-drone enemies and Boss; HP/position are core-owned. */
+  targets: SimTarget[];
   projectiles: SimProjectile[];
+  pendingPlayerHits: Array<{ damage: number; fromX: number; fromY: number }>;
   nextProjectileId: number;
 }
 
@@ -120,7 +136,9 @@ export function createSimulationState(input: CreateSimulationInput): SimulationS
       minY = Math.min(minY, tile.y);
     }
   }
-  const rng = new RNG(input.seed);
+  // Same initial RNG seed as the C1 World.rng, but a separate continuous stream
+  // so legacy loot/portal RNG cannot silently change crit state.
+  const rng = new RNG(input.seed * 7919 + 1);
   return {
     seed: input.seed,
     tick: 0,
@@ -139,7 +157,9 @@ export function createSimulationState(input: CreateSimulationInput): SimulationS
       aimYaw: 0
     },
     drones: [],
+    targets: [],
     projectiles: [],
+    pendingPlayerHits: [],
     nextProjectileId: input.nextProjectileId ?? 1
   };
 }
@@ -152,6 +172,39 @@ export function registerDrone(
   const drone: SimDroneState = { ...input, data: input.data };
   state.drones.push(drone);
   return drone;
+}
+
+export function registerTarget(state: SimulationState, target: SimTarget): SimTarget {
+  state.targets.push(target);
+  return target;
+}
+
+export function enqueuePlayerHit(
+  state: SimulationState,
+  damage: number,
+  fromX: number,
+  fromY: number
+): void {
+  state.pendingPlayerHits.push({ damage, fromX, fromY });
+}
+
+export function spawnEnemyProjectile(
+  state: SimulationState,
+  ownerId: number,
+  x: number,
+  y: number,
+  damage: number,
+  vel: Vec2,
+  lifetime?: number
+): SimProjectile {
+  const data = createEnemyProjectileData({
+    id: state.nextProjectileId++, ownerId, pos: { x, y }, damage, vel,
+    pixelToTile: GAME.PIXEL_TO_TILE
+  });
+  if (lifetime !== undefined) data.lifetime = lifetime;
+  const projectile = toSimProjectile(data, 'enemy', 'plasma');
+  state.projectiles.push(projectile);
+  return projectile;
 }
 
 export function tileAtFromState(state: SimulationState, x: number, y: number): Tile {
@@ -198,12 +251,7 @@ export function isWalkableFromState(
   );
 }
 
-function deriveTickRngSeed(seed: number, tick: number): number {
-  // Explicit, serializable per-tick seed. No cross-run hidden RNG state.
-  return (seed ^ ((tick + 1) * 0x9e3779b1)) >>> 0;
-}
-
-function toSimProjectile(data: ProjectileData, source: 'player' | 'drone', kind: string): SimProjectile {
+function toSimProjectile(data: ProjectileData, source: 'player' | 'enemy', kind: string): SimProjectile {
   return {
     id: data.id,
     ownerId: data.ownerId,
@@ -289,9 +337,17 @@ function stepPlayerFire(state: SimulationState, intent: SimulationIntent, rng: R
   events.push({ type: 'projectile-spawned', projectile });
 }
 
+function applyPendingPlayerHits(state: SimulationState, events: SimEvent[]): void {
+  if (state.pendingPlayerHits.length === 0) return;
+  const pending = state.pendingPlayerHits;
+  state.pendingPlayerHits = [];
+  for (const hit of pending) applyCorePlayerHit(state, hit.fromX, hit.fromY, hit.damage, events);
+}
+
 function stepPlayer(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
   const p = state.player;
   const tickDt = SIM_TUNING.TICK_MS / 1000;
+  applyPendingPlayerHits(state, events);
   // Preserve the existing recovery from a stuck/knockback position.
   const recovered = ensureWalkableFromState(state, { x: p.x, y: p.y });
   if (recovered.x !== p.x || recovered.y !== p.y) {
@@ -374,7 +430,7 @@ function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): voi
           pos: { x: drone.x, y: drone.y }, damage: step.attack.damage,
           vel: step.attack.velocity, pixelToTile: GAME.PIXEL_TO_TILE
         });
-        const projectile = toSimProjectile(data, 'drone', 'plasma');
+        const projectile = toSimProjectile(data, 'enemy', 'plasma');
         state.projectiles.push(projectile);
         events.push({ type: 'projectile-spawned', projectile });
       } else if (step.attack.kind === 'melee') {
@@ -456,6 +512,43 @@ function stepProjectiles(state: SimulationState, dt: number, events: SimEvent[])
           break;
         }
       }
+      if (!alive) {
+        if (alive) remaining.push(projectile);
+        continue;
+      }
+      for (const target of state.targets) {
+        if (target.hp <= 0 || projectile.hitIds.includes(target.id)) continue;
+        if (!projectileHitsTarget(previous, projectile.pos, { x: target.x, y: target.y }, target.radius, projectile.radius)) continue;
+        let hit: EnemyHitResult;
+        if (target.isBoss) {
+          const result = resolveBossHit({ hp: target.hp, armor: target.armor, damage: projectile.damage });
+          hit = { blocked: false, hp: result.hp, position: { x: target.x, y: target.y }, hitFlash: result.hitFlash, knockbackApplied: false };
+          target.hp = result.hp;
+        } else {
+          hit = resolveEnemyHit({
+            hp: target.hp,
+            position: { x: target.x, y: target.y },
+            armor: target.armor,
+            stunTimer: 0,
+            damage: projectile.damage,
+            source: projectile.pos,
+            isWalkable: (x, y, radius) => isWalkableFromState(state, x, y, radius),
+            pixelToTile: GAME.PIXEL_TO_TILE
+          });
+          target.hp = hit.hp;
+          target.x = hit.position.x;
+          target.y = hit.position.y;
+        }
+        events.push({ type: 'enemy-hit', enemyId: target.id, damage: projectile.damage, crit: projectile.crit, hit });
+        if (target.hp <= 0) events.push({ type: 'enemy-died', enemyId: target.id, x: target.x, y: target.y });
+        if (projectile.pierce > 0) {
+          projectile.pierce--;
+          projectile.hitIds.push(target.id);
+        } else {
+          alive = false;
+          break;
+        }
+      }
     } else {
       const p = state.player;
       if (p.data.hp > 0 && projectileHitsTarget(previous, projectile.pos, { x: p.x, y: p.y }, PLAYER_RADIUS, projectile.radius)) {
@@ -467,6 +560,7 @@ function stepProjectiles(state: SimulationState, dt: number, events: SimEvent[])
   }
   state.projectiles = remaining;
   state.drones = state.drones.filter((drone) => drone.hp > 0);
+  state.targets = state.targets.filter((target) => target.hp > 0);
 }
 
 export function stepSimulationTicks(
@@ -476,16 +570,15 @@ export function stepSimulationTicks(
 ): SimEvent[] {
   const events: SimEvent[] = [];
   const dt = SIM_TUNING.TICK_MS / 1000;
+  const rng = new RNG(0);
+  rng.restore(state.rngState);
   for (let i = 0; i < ticks; i++) {
-    const rng = new RNG(0);
-    rng.restore(deriveTickRngSeed(state.seed, state.tick));
-    state.rngState = rng.snapshot();
     stepPlayer(state, intent, rng, events);
     stepDrones(state, dt, events);
     stepProjectiles(state, dt, events);
     state.tick++;
-    state.rngState = rng.snapshot();
   }
+  state.rngState = rng.snapshot();
   return events;
 }
 
@@ -494,8 +587,8 @@ export function cloneSimulationState(state: SimulationState): SimulationState {
   return JSON.parse(JSON.stringify(state)) as SimulationState;
 }
 
-/** Canonical first-slice projection for parity. Legacy loot/XP/currency/upgrades
- *  stay out: they are adapter-side and must not affect the deterministic slice. */
+/** Canonical first-slice projection. Includes every core-owned field that can
+ *  affect future evolution; legacy loot/portal content is still adapter-side. */
 export interface CanonicalSimulationState {
   seed: number;
   tick: number;
@@ -503,21 +596,20 @@ export interface CanonicalSimulationState {
   mapSeed: number;
   mapMinX: number;
   mapMinY: number;
+  mapHash: string;
   player: {
     x: number; y: number;
-    hp: number; maxHp: number; speed: number; damage: number;
-    critChance: number; critDamage: number; pierceCount: number; armor: number;
-    dashDuration: number; cooldownReduced: number; hpRegen: number;
+    data: PlayerData;
     dashTimer: number; invuln: number; hurtTimer: number; fireTimer: number; aimYaw: number;
-    weaponKey: string;
-    weapons: Array<{ key: string; level: number; ammo: number; magazine: number; reloading: boolean; reloadTimer: number }>;
   };
   drones: SimDroneState[];
+  targets: SimTarget[];
   projectiles: SimProjectile[];
+  pendingPlayerHits: Array<{ damage: number; fromX: number; fromY: number }>;
+  nextProjectileId: number;
 }
 
 export function canonicalSimulationState(state: SimulationState): string {
-  const d = state.player.data;
   return JSON.stringify({
     seed: state.seed,
     tick: state.tick,
@@ -525,34 +617,28 @@ export function canonicalSimulationState(state: SimulationState): string {
     mapSeed: state.map.seed,
     mapMinX: state.mapMinX,
     mapMinY: state.mapMinY,
+    mapHash: payloadFingerprint(state.map),
     player: {
       x: state.player.x, y: state.player.y,
-      hp: d.hp, maxHp: d.maxHp, speed: d.speed, damage: d.damage,
-      critChance: d.critChance, critDamage: d.critDamage,
-      pierceCount: d.pierceCount, armor: d.armor,
-      dashDuration: d.dashDuration, cooldownReduced: d.cooldownReduced, hpRegen: d.hpRegen,
+      data: JSON.parse(JSON.stringify(state.player.data)),
       dashTimer: state.player.dashTimer, invuln: state.player.invuln,
-      hurtTimer: state.player.hurtTimer, fireTimer: state.player.fireTimer, aimYaw: state.player.aimYaw,
-      weaponKey: d.weaponKey,
-      weapons: d.weapons.map((w) => ({ ...w }))
+      hurtTimer: state.player.hurtTimer, fireTimer: state.player.fireTimer, aimYaw: state.player.aimYaw
     },
     drones: state.drones,
-    projectiles: state.projectiles
+    targets: state.targets,
+    projectiles: state.projectiles,
+    pendingPlayerHits: state.pendingPlayerHits,
+    nextProjectileId: state.nextProjectileId
   } as CanonicalSimulationState);
 }
 
-function canonicalEventValue(value: unknown): unknown {
-  if (typeof value === 'number') return Number(value.toFixed(9));
-  if (Array.isArray(value)) return value.map(canonicalEventValue);
-  if (value && typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) out[k] = canonicalEventValue(v);
-    return out;
-  }
-  return value;
-}
-
-/** Ordered, float-stable event projection (cosmetic 1e-9 rounding only). */
+/** Ordered exact event projection for gameplay parity. `faceAngle` is sprite
+ *  orientation only and is excluded; all damage/velocity/position/tick facts stay
+ *  exact (no rounding). */
 export function canonicalSimulationEvents(events: SimEvent[]): string {
-  return JSON.stringify(events.map(canonicalEventValue));
+  return JSON.stringify(events.map((event) => {
+    if (event.type !== 'drone-step') return event;
+    const { faceAngle: _faceAngle, ...step } = event.step;
+    return { ...event, step };
+  }));
 }

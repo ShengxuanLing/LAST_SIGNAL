@@ -5,6 +5,7 @@ import { GAME } from '../config/game';
 import { World } from '../world/World';
 import { audio } from '../systems/AudioSystem';
 import { isoToScreen } from '../core/iso';
+import type { SimTarget } from '../world/sim/core';
 
 // Boss projectile speeds are authored in screen-px/s (same convention as the
 // weapon configs). World.updateProjectiles advances pos in tile coords, so they
@@ -17,14 +18,22 @@ const toTilesPerSecond = (px: number): number => px / GAME.PIXEL_TO_TILE;
 export class Boss {
   sprite: Phaser.GameObjects.Sprite;
   _id = 0;
-  _hp = 0;
+  private __hp = 0;
+  private _wx: number;
+  private _wy: number;
+  private simTarget: SimTarget | null = null;
   phase = 1;
   stateTimer = 0;
   attackTimer = 0;
   hitFlash = 0;
   spawnRoom: number;
-  wx: number;
-  wy: number;
+
+  get _hp(): number { return this.simTarget ? this.simTarget.hp : this.__hp; }
+  set _hp(value: number) { if (this.simTarget) this.simTarget.hp = value; else this.__hp = value; }
+  get wx(): number { return this.simTarget ? this.simTarget.x : this._wx; }
+  set wx(value: number) { if (this.simTarget) this.simTarget.x = value; else this._wx = value; }
+  get wy(): number { return this.simTarget ? this.simTarget.y : this._wy; }
+  set wy(value: number) { if (this.simTarget) this.simTarget.y = value; else this._wy = value; }
 
   constructor(public world: World, x: number, y: number, room: number, _depth: number) {
     this.spawnRoom = room;
@@ -33,9 +42,9 @@ export class Boss {
     // player sprite. Grid y is not a display depth and can exceed HUD depth.
     this.sprite.setDepth(95);
     this.sprite.setScale(2.4);
-    this.wx = x;
-    this.wy = y;
-    this._hp = ENEMY_STATS.boss_warden.maxHp;
+    this._wx = x;
+    this._wy = y;
+    this.__hp = ENEMY_STATS.boss_warden.maxHp;
     // Project to display space immediately so the sprite does not flash at (x, y).
     this.project();
   }
@@ -54,6 +63,25 @@ export class Boss {
   private stats() { return ENEMY_STATS.boss_warden; }
 
   initHp(): void { this._hp = this.maxHp(); }
+
+  attachSimTarget(target: SimTarget): void {
+    target.x = this._wx;
+    target.y = this._wy;
+    target.hp = this.__hp;
+    this.simTarget = target;
+  }
+
+  /** Core owns HP; adapter only reflects phase transitions after a core hit. */
+  syncPhaseFromHp(): void {
+    const ratio = this._hp / this.maxHp();
+    const newPhase = ratio > 0.66 ? 1 : ratio > 0.33 ? 2 : 3;
+    if (newPhase === this.phase) return;
+    this.phase = newPhase;
+    this.world.scene.events.emit('boss-phase', this.phase);
+    this.stateTimer = 0;
+    audio.bossroar();
+    this.world.addShake(16);
+  }
 
   update(dt: number, player: PlayerLike): void {
     this.hitFlash = Math.max(0, this.hitFlash - dt);
@@ -115,12 +143,16 @@ export class Boss {
   private fireLaser(player: PlayerLike): void {
     const a = Math.atan2(player.y - this.y, player.x - this.x);
     for (let i = -1; i <= 1; i++) {
-      this.world.spawnEnemyProjectile(this._id, this.x, this.y, 8);
-      const proj = this.world.projectiles[this.world.projectiles.length - 1];
-      if (proj) {
-        const spread = a + i * 0.25;
-        proj.data.vel = { x: Math.cos(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX), y: Math.sin(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX) };
-      }
+      const spread = a + i * 0.25;
+      const proj = this.world.spawnEnemyProjectile(this._id, this.x, this.y, 8, {
+        x: Math.cos(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX),
+        y: Math.sin(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX)
+      });
+      // Explicit returned handle; never read/mutate the compatibility view.
+      proj.vel = {
+        x: Math.cos(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX),
+        y: Math.sin(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX)
+      };
     }
     audio.hurt();
   }

@@ -445,6 +445,9 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       const w = gs.world;
       const current = w.currentRoom()?.id ?? 0;
       const other = w.map.rooms.find((r: any) => r.id !== current);
+      // Guarantee at least one in-world enemy besides the hidden one, so the
+      // "hidden enemy exists in the World" assertion is deterministic.
+      w.spawnEnemy('drone', w.player.wx, w.player.wy, current, 1);
       const enemy = w.spawnEnemy('drone', other.gx + 2, other.gy + 2, other.id, 1);
       const obs = w.observationView();
       const view = w.intentView();
@@ -602,9 +605,14 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     const gs: any = g.scene.getScene('GameScene');
       gs.world.player.invuln = 0;
       gs.world.player.hurt(999999, gs.world.player.wx + 1, gs.world.player.wy);
+      // Commit the queued hit deterministically (B4: legacy hurt is applied by
+      // the core on the next tick, not synchronously by the adapter).
+      const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+      for (let i = 0; i < 10; i++) gs.world.stepFrame(1000 / 60, neutral);
     });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(400);
     const dead = await state(page);
+    expect(dead!.active, 'GameOverScene after death').toContain('GameOverScene');
     expect(dead!.active, 'GameOverScene after death').toContain('GameOverScene');
     expect(dead!.owner, 'ownership back to human after death').toBe('human');
     expect(dead!.aiEnabled, 'AI disabled after death').toBe(false);

@@ -170,8 +170,9 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
 
   // 5) Bullets must actually destroy their sprites when removed from world.projectiles.
   const worldSrc = readFileSync(path.join(PROJECT, 'src/world/World.ts'), 'utf8');
+  const simRulesSrc = readFileSync(path.join(PROJECT, 'src/world/sim/rules.ts'), 'utf8');
   expect(worldSrc, 'projectile sprite cleanup helper exists').toContain('destroyProjectileSprite');
-  expect(worldSrc, 'projectile radius is normalized to tile units').toContain('/ GAME.PIXEL_TO_TILE');
+  expect(simRulesSrc, 'aircraft projectile radius is normalized to tile units').toContain('/ (input.pixelToTile ?? GAME.PIXEL_TO_TILE)');
 
   await page.mouse.move(900, 360);
   await page.mouse.down();

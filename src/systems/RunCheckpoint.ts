@@ -32,7 +32,8 @@ export function cloneCheckpoint(run: RunCheckpoint): RunCheckpoint {
     clearedRooms: run.clearedRooms.slice(),
     player: JSON.parse(JSON.stringify(run.player)) as RunCheckpoint['player'],
     loot: run.loot.map((drop) => ({ ...drop })),
-    stats: { ...run.stats }
+    stats: { ...run.stats },
+    ...(run.coreState ? { coreState: JSON.parse(JSON.stringify(run.coreState)) } : {})
   };
 }
 
@@ -57,9 +58,17 @@ export function validateCheckpoint(run: RunCheckpoint | undefined): run is RunCh
     UPGRADE_LIST.some((def) => def.key === upgrade.key && upgrade.level <= def.maxLevel))) return false;
 
   const stats = run.stats;
-  return !!stats && isCount(stats.kills) && isCount(stats.items) &&
-    Number.isFinite(stats.damage) && stats.damage >= 0 && isCount(stats.elapsedSeconds) &&
-    Array.isArray(run.loot) && run.loot.every((drop) =>
-      drop && [drop.x, drop.y, drop.amount, drop.bob].every(Number.isFinite) &&
-      DROP_KINDS.includes(drop.kind) && typeof drop.key === 'string');
+  if (!stats || !isCount(stats.kills) || !isCount(stats.items) ||
+      !Number.isFinite(stats.damage) || stats.damage < 0 || !isCount(stats.elapsedSeconds) ||
+      !Array.isArray(run.loot) || !run.loot.every((drop) =>
+        drop && [drop.x, drop.y, drop.amount, drop.bob].every(Number.isFinite) &&
+        DROP_KINDS.includes(drop.kind) && typeof drop.key === 'string')) return false;
+
+  const core = run.coreState;
+  if (core) {
+    const t = core.playerTimers;
+    if (!isUint32(core.tick) || !isUint32(core.rngState) || !isCount(core.nextProjectileId) || !t ||
+        !['dashTimer', 'invuln', 'hurtTimer', 'fireTimer', 'aimYaw'].every((k) => Number.isFinite((t as any)[k]))) return false;
+  }
+  return true;
 }

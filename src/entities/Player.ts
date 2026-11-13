@@ -283,27 +283,10 @@ export class Player {
   setFireHeld(v: boolean): void { this._fireHeld = v; }
 
   hurt(amount: number, fromX: number, fromY: number): boolean {
-    const hit = resolvePlayerHit({
-      hp: this.data.hp,
-      position: { x: this.wx, y: this.wy },
-      armor: this.data.armor,
-      invuln: this.invuln,
-      damage: amount,
-      source: { x: fromX, y: fromY },
-      isWalkable: (x, y) => this.isWalkable(x, y),
-      pixelToTile: GAME.PIXEL_TO_TILE
-    });
-    if (hit.blocked) return false;
-    this.data.hp = hit.hp;
-    this.wx = hit.position.x;
-    this.wy = hit.position.y;
-    this.invuln = hit.invuln;
-    this.hurtTimer = hit.hurtTimer;
-    this.ensureWalkable();
-    this.project();
-    audio.hurt();
-    this.world.addShake(6);
-    if (this.data.hp <= 0) this.world.onPlayerDeath();
+    if (!this.alive || this.invuln > 0) return false;
+    // B4: never write core player state from the adapter outside a core tick.
+    // The World queues the hit; core applies resolvePlayerHit and emits events.
+    this.world.enqueuePlayerHit(amount, fromX, fromY);
     return true;
   }
 

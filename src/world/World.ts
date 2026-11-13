@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { MapData, Tile, Vec2, ProjectileData, LootDrop, HitFx, EnemyStateName, Room } from '../types';
-import { EnemyKind } from '../config/enemies';
+import { MapData, Tile, Vec2, LootDrop, HitFx, EnemyStateName, Room } from '../types';
+import { ENEMY_STATS, EnemyKind } from '../config/enemies';
 import { GAME } from '../config/game';
 import { ItemKind } from '../types';
 import { IsoMath, isoToScreen, screenToIso } from '../core/iso';
@@ -16,10 +16,10 @@ import type { ControllerActorView, LocalControllerView } from '../ai-native/loca
 import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
 import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
-import { advanceProjectile, projectileHitsTarget } from './sim/rules';
 import {
-  createSimulationState, registerDrone, stepSimulationTicks, SIM_TUNING,
-  type SimulationIntent, type SimulationState, type SimEvent, type SimProjectile
+  createSimulationState, enqueuePlayerHit, registerDrone, registerTarget,
+  spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
+  type SimulationIntent, type SimulationState, type SimEvent, type SimProjectile, type SimTarget
 } from './sim/core';
 
 export interface WorldCallbacks {
@@ -41,22 +41,32 @@ export class World {
   map: MapData;
   player: Player;
   enemies: Enemy[] = [];
-  /** Legacy-only projectile entries (Boss/other enemy). Public getter combines core views. */
-  private legacyProjectiles: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
   /** C2: first-slice authority for player/drone/core projectiles. */
   sim!: SimulationState;
   private simAccumulatorMs = 0;
   private coreProjectileViews = new Map<number, { spr: Phaser.GameObjects.Sprite; data: SimProjectile }>();
 
   /**
-   * Read-compatible combined view for existing regressions: legacy bullets plus
-   * core player/drone bullets. Writing replaces legacy and clears core bullets.
+   * Read-only compatibility view for old regressions. It returns fresh copies of
+   * core projectile data; callers cannot mutate authoritative projectiles.
+   * The setter is intentionally non-authoritative (legacy test cleanup only);
+   * use resetProjectilesForTest() for an explicit dev reset.
    */
   get projectiles(): Array<{ spr: Phaser.GameObjects.Sprite; data: any }> {
-    return [...this.legacyProjectiles, ...this.coreProjectileViews.values()];
+    return [...this.coreProjectileViews.values()].map((view) => ({
+      spr: view.spr,
+      data: {
+        ...view.data, pos: { ...view.data.pos }, vel: { ...view.data.vel },
+        hitIds: [...view.data.hitIds], hitSet: new Set(view.data.hitIds)
+      }
+    }));
   }
-  set projectiles(value: Array<{ spr: Phaser.GameObjects.Sprite; data: any }>) {
-    this.legacyProjectiles = value;
+  set projectiles(_value: Array<{ spr: Phaser.GameObjects.Sprite; data: any }>) {
+    // Compatibility setter must not clear or expose authoritative core state.
+  }
+
+  /** Explicit dev/test reset; not a general scene API. */
+  resetProjectilesForTest(): void {
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
     if (this.sim) this.sim.projectiles = [];
@@ -72,7 +82,6 @@ export class World {
   private callbacks: WorldCallbacks;
   private rng: RNG;
   private enemyIdCounter = 1;
-  private projIdCounter = 1;
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
   private currentRoomId = -1;
   private enteredRooms = new Set<number>();
@@ -513,6 +522,12 @@ export class World {
         attackTimer: e.attackTimer, wanderTimer: e.wanderTimer
       });
       e.attachSimDrone(drone);
+    } else {
+      const target = registerTarget(this.sim, {
+        id: e._id, kind, x: e.x, y: e.y, hp: e._hp, maxHp: e.data.stats.maxHp,
+        armor: e.data.stats.armor, radius: e.getRadius(), isBoss: false
+      });
+      e.attachSimTarget(target);
     }
     return e;
   }
@@ -523,34 +538,33 @@ export class World {
     this.boss = new Boss(this, landing.x, landing.y, r.id, depth);
     this.boss._id = this.enemyIdCounter++;
     this.boss.initHp();
+    const target = registerTarget(this.sim, {
+      id: this.boss._id, kind: 'boss_warden', x: this.boss.x, y: this.boss.y,
+      hp: this.boss._hp, maxHp: this.boss.maxHp(),
+      armor: ENEMY_STATS.boss_warden.armor, radius: this.boss.getRadius(), isBoss: true
+    });
+    this.boss.attachSimTarget(target);
   }
 
   boss: Boss | null = null;
 
-  spawnEnemyProjectile(ownerId: number, x: number, y: number, damage: number, vel: Vec2 = { x: 0, y: 0 }): ProjectileData {
-    const data: ProjectileData = {
-      id: this.projIdCounter++, ownerId, side: 'enemy', pos: { x, y },
-      vel: { x: vel.x, y: vel.y }, damage, lifetime: 2.5,
-      radius: Math.max(6 / GAME.PIXEL_TO_TILE, 0.2),
-      crit: false, pierce: 0, hitSet: new Set()
-    };
-    this.addProjectileSprite(data, 'plasma', true);
-    return data;
+  spawnEnemyProjectile(ownerId: number, x: number, y: number, damage: number, vel: Vec2 = { x: 0, y: 0 }): SimProjectile {
+    const projectile = spawnCoreEnemyProjectile(this.sim, ownerId, x, y, damage, vel);
+    // Expose the new core entry to legacy presentation callers immediately; the
+    // next stepFrame keeps its position in sync. No gameplay rule is duplicated.
+    this.syncCoreEntities(0);
+    return projectile;
+  }
+
+  /** Explicit sprite cleanup helper used by compatibility tests. */
+  private destroyProjectileSprite(p: { spr: Phaser.GameObjects.Sprite }): void {
+    if (p.spr && p.spr.scene) p.spr.destroy();
   }
 
   private projSprite(kind: any, enemy: boolean): string {
     if (enemy) return 'proj_enemy';
     const map: Record<string, string> = { pulse: 'proj_pulse', scatter: 'proj_pulse', plasma: 'proj_plasma', arc: 'proj_pulse' };
     return map[kind] ?? 'proj_pulse';
-  }
-
-  private addProjectileSprite(data: ProjectileData, kind: any, enemy: boolean): void {
-    const s = this.worldToScreen(data.pos.x, data.pos.y);
-    const spr = this.scene.add.sprite(s.x, s.y, this.projSprite(kind, enemy));
-    spr.setDepth(80);
-    spr.setScale(enemy ? 1.4 : 1.1);
-    if (enemy) spr.setTint(0xff5533);
-    this.legacyProjectiles.push({ spr, data });
   }
 
   spawnLoot(x: number, y: number, kind: ItemKind, key: string, amount: number, bob = Math.random() * Math.PI * 2): void {
@@ -589,7 +603,7 @@ export class World {
   // ---------- Update ----------
 
   /** C2: fixed 60Hz core ticks; render frame delta is only an accumulator input. */
-  stepFrame(frameDeltaMs: number, intent: SimulationIntent): void {
+  stepFrame(frameDeltaMs: number, intent: SimulationIntent): SimEvent[] {
     const delta = Math.max(0, Math.min(frameDeltaMs, SIM_TUNING.MAX_FRAME_DELTA_MS));
     this.simAccumulatorMs += delta;
     // Epsilon: 250ms must yield exactly 15 ticks despite binary rounding.
@@ -601,18 +615,30 @@ export class World {
     } else {
       this.simAccumulatorMs = Math.max(0, this.simAccumulatorMs - ticks * SIM_TUNING.TICK_MS);
     }
+    let events: SimEvent[] = [];
     if (ticks > 0) {
-      const events = stepSimulationTicks(this.sim, ticks, intent);
+      events = stepSimulationTicks(this.sim, ticks, intent);
       this.applySimEvents(events);
     }
     this.syncCoreEntities(delta / 1000);
     this.updateLegacy(delta / 1000);
+    return events;
   }
 
   resetSimulationAccumulator(): void { this.simAccumulatorMs = 0; }
 
-  /** Run exactly N core ticks from a controlled intent (no wall clock). */
+  /** Legacy melee/attack adapter: queue a player hit; core commits it next tick. */
+  enqueuePlayerHit(damage: number, fromX: number, fromY: number): void {
+    enqueuePlayerHit(this.sim, damage, fromX, fromY);
+  }
+
+  /**
+   * Strict dev/test-only diagnostic facade. It must NOT be used as official
+   * Node/Rendered parity evidence (parity drives stepFrame/accumulator).
+   */
   stepSimulationTicksForTest(ticks: number, intent: SimulationIntent): SimEvent[] {
+    const env = (import.meta as any).env ?? {};
+    if (!(env.DEV === true || env.MODE === 'test')) throw new Error('dev/test only');
     const events = stepSimulationTicks(this.sim, Math.max(0, Math.floor(ticks)), intent);
     this.applySimEvents(events);
     this.syncCoreEntities(0);
@@ -634,16 +660,26 @@ export class World {
           break;
         }
         case 'enemy-hit': {
-          const enemy = this.enemies.find((e) => e._id === event.enemyId);
-          if (enemy) {
-            this.addDamageNumber(enemy.x, enemy.y, event.damage, event.crit);
+          if (this.boss && this.boss._id === event.enemyId) {
+            this.boss.hitFlash = event.hit.hitFlash;
+            this.boss.syncPhaseFromHp();
+            this.addDamageNumber(this.boss.x, this.boss.y, event.damage, event.crit);
             this.callbacks.onStats({ enemies: 0, items: 0, dmg: event.damage });
+          } else {
+            const enemy = this.enemies.find((e) => e._id === event.enemyId);
+            if (enemy) {
+              this.addDamageNumber(enemy.x, enemy.y, event.damage, event.crit);
+              this.callbacks.onStats({ enemies: 0, items: 0, dmg: event.damage });
+            }
           }
           break;
         }
         case 'enemy-died': {
-          const enemy = this.enemies.find((e) => e._id === event.enemyId);
-          if (enemy) this.killEnemy(enemy);
+          if (this.boss && this.boss._id === event.enemyId) this.killBoss();
+          else {
+            const enemy = this.enemies.find((e) => e._id === event.enemyId);
+            if (enemy) this.killEnemy(enemy);
+          }
           break;
         }
         case 'player-hurt':
@@ -699,86 +735,12 @@ export class World {
       e.applyVisual();
     }
     if (this.boss) this.boss.update(dt, this.player);
-    this.updateProjectiles(dt);
     this.updateLoot(dt);
     this.updateFx(dt);
     this.updateRoom();
     this.updateCamera(dt);
     if (this.renderer) this.renderer.updateLight(this.player.wx, this.player.wy);
     this.shakeAmount = Math.max(0, this.shakeAmount - dt * 10);
-  }
-
-  /** C1: swept-hit geometry now lives in sim/rules.ts (single implementation). */
-  private destroyProjectileSprite(p: { spr: Phaser.GameObjects.Sprite; data: ProjectileData }): void {
-    if (p.spr && p.spr.scene) p.spr.destroy();
-  }
-
-  private updateProjectiles(dt: number): void {
-    const remaining: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
-    for (const p of this.legacyProjectiles) {
-      const prevX = p.data.pos.x;
-      const prevY = p.data.pos.y;
-      const advance = advanceProjectile({
-        pos: { x: prevX, y: prevY },
-        vel: p.data.vel,
-        lifetime: p.data.lifetime,
-        dt,
-        tileAt: (tx, ty) => this.tileAt(tx, ty),
-        mapWidth: this.map.width,
-        mapHeight: this.map.height
-      });
-      p.data.pos = advance.pos;
-      p.data.lifetime = advance.lifetime;
-      const s = this.worldToScreen(p.data.pos.x, p.data.pos.y);
-      p.spr.setPosition(s.x, s.y);
-      const expired = advance.expired;
-      if (expired) {
-        if (advance.hitWall) this.addHitFx(p.data.pos.x, p.data.pos.y, 0x88aacc);
-        // lifetime / hitWall / out-of-bounds: the entry leaves the array, so the sprite must go too.
-        this.destroyProjectileSprite(p);
-        continue;
-      }
-      // Swept collision: a fast bullet can cross a small hitbox between frames.
-      const hit = (tx: number, ty: number, targetRadius: number): boolean =>
-        projectileHitsTarget({ x: prevX, y: prevY }, p.data.pos, { x: tx, y: ty }, targetRadius, p.data.radius);
-      // collisions
-      let alive = true;
-      if (p.data.side === 'player') {
-        for (const e of this.enemies) {
-          if (e._hp <= 0 || p.data.hitSet.has(e._id)) continue;
-          if (hit(e.x, e.y, e.getRadius())) {
-            const dmg = p.data.damage;
-            e.hit(dmg, p.data.pos);
-            this.addDamageNumber(e.x, e.y, dmg, p.data.crit);
-            this.callbacks.onStats({ enemies: 0, items: 0, dmg: dmg });
-            if (e._hp <= 0) this.killEnemy(e);
-            if (p.data.pierce > 0) { p.data.pierce--; p.data.hitSet.add(e._id); }
-            else { alive = false; break; }
-          }
-        }
-        if (this.boss && this.boss._hp > 0 && !p.data.hitSet.has(this.boss._id)) {
-          if (hit(this.boss.x, this.boss.y, this.boss.getRadius() + 1)) {
-            const dmg = p.data.damage;
-            this.boss.hit(dmg, p.data.pos);
-            this.addDamageNumber(this.boss.x, this.boss.y, dmg, p.data.crit);
-            this.callbacks.onStats({ enemies: 0, items: 0, dmg: dmg });
-            if (this.boss._hp <= 0) this.killBoss();
-            if (p.data.pierce > 0) { p.data.pierce--; p.data.hitSet.add(this.boss._id); }
-            else { alive = false; }
-          }
-        }
-      } else {
-        if (this.player.alive && hit(this.player.x, this.player.y, this.player.getRadius())) {
-          this.player.hurt(p.data.damage, p.data.pos.x, p.data.pos.y);
-          alive = false;
-        }
-      }
-      // Anything that is no longer alive (hit an enemy / boss / player, without pierce)
-      // also has to release its sprite instead of becoming a ghost on screen.
-      if (alive) remaining.push(p);
-      else this.destroyProjectileSprite(p);
-    }
-    this.legacyProjectiles = remaining;
   }
 
   private updateLoot(dt: number): void {
@@ -901,7 +863,16 @@ export class World {
       portalTarget: this.currentRoomId === room.id ? this.portal?.targetRoom ?? null : null,
       rngState: this.rng.snapshot(),
       player: this.player.data,
-      loot: this.loot.map(({ data }) => data)
+      loot: this.loot.map(({ data }) => data),
+      coreState: {
+        tick: this.sim.tick,
+        rngState: this.sim.rngState,
+        playerTimers: {
+          dashTimer: this.sim.player.dashTimer, invuln: this.sim.player.invuln,
+          hurtTimer: this.sim.player.hurtTimer, fireTimer: this.sim.player.fireTimer, aimYaw: this.sim.player.aimYaw
+        },
+        nextProjectileId: this.sim.nextProjectileId
+      }
     });
   }
 
@@ -930,7 +901,26 @@ export class World {
     this.rng.restore(run.rngState);
     this.sim.tick = 0;
     this.sim.drones = [];
+    this.sim.targets = [];
     this.sim.projectiles = [];
+    this.sim.pendingPlayerHits = [];
+    this.sim.player.dashTimer = 0; this.sim.player.invuln = 0; this.sim.player.hurtTimer = 0;
+    this.sim.player.fireTimer = 0; this.sim.player.aimYaw = 0;
+    if (run.coreState) {
+      // Restore the authoritative fixed-tick core contract so the resumed run
+      // keeps the exact tick / RNG / timer / projectile-id sequence it had at
+      // save time. Without this the core would silently re-randomise.
+      this.sim.tick = run.coreState.tick;
+      this.sim.rngState = run.coreState.rngState;
+      const t = run.coreState.playerTimers;
+      this.sim.player.dashTimer = t.dashTimer; this.sim.player.invuln = t.invuln;
+      this.sim.player.hurtTimer = t.hurtTimer; this.sim.player.fireTimer = t.fireTimer; this.sim.player.aimYaw = t.aimYaw;
+      this.sim.nextProjectileId = run.coreState.nextProjectileId;
+    } else {
+      // Legacy frame: re-derive the core RNG from the map seed so a restored
+      // run still produces a deterministic core stream.
+      this.sim.rngState = new RNG(run.seed * 7919 + 1).snapshot();
+    }
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
     for (const drop of run.loot) this.spawnLoot(drop.x, drop.y, drop.kind, drop.key, drop.amount, drop.bob);
@@ -940,11 +930,10 @@ export class World {
   reset(): void {
     for (const e of this.enemies) e.sprite.destroy();
     this.enemies = [];
-    for (const p of this.legacyProjectiles) p.spr.destroy();
-    this.legacyProjectiles = [];
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
     this.sim.drones = [];
+    this.sim.targets = [];
     this.sim.projectiles = [];
     for (const l of this.loot) l.spr.destroy();
     this.loot = [];

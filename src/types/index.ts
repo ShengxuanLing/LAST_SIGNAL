@@ -93,6 +93,13 @@ export interface UpgradeProgress { key: string; level: number; }
 
 export interface HudData { show: boolean; fps: number; roomIndex: number; roomTotal: number; }
 
+export interface CoreCheckpointState {
+  tick: number;
+  rngState: number;
+  playerTimers: { dashTimer: number; invuln: number; hurtTimer: number; fireTimer: number; aimYaw: number };
+  nextProjectileId: number;
+}
+
 export interface RunCheckpoint {
   id: string;
   seed: number;
@@ -104,6 +111,8 @@ export interface RunCheckpoint {
   player: PlayerData;
   loot: LootDrop[];
   stats: { kills: number; items: number; damage: number; elapsedSeconds: number; };
+  /** Optional authoritative fixed-tick core snapshot captured alongside a checkpoint. */
+  coreState?: CoreCheckpointState;
 }
 
 export interface SaveData {

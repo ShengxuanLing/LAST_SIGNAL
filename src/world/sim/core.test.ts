@@ -9,6 +9,7 @@ import { GAME, basePlayerData } from '../../config/game';
 import { WEAPONS } from '../../config/weapons';
 import { ENEMY_STATS } from '../../config/enemies';
 import { MapGenerator, assignRoles, guaranteeReachable } from '../MapGenerator';
+import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, Vec2 } from '../../types';
 import {
   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
@@ -151,5 +152,41 @@ describe('C2 fixed-tick authoritative core', () => {
     expect(a.state).toContain('"tick":120');
     expect(WEAPONS.pulse.baseDamage).toBe(12);
     expect(GAME.PIXEL_TO_TILE).toBe(64);
+  });
+
+  it('H1/H6: canonical state is authoritative and events are not rounded', () => {
+    const { state, drone } = makeState();
+    const events = stepSimulationTicks(state, 40, neutral({ x: 0, y: 0 }, true, { x: drone.x, y: drone.y }));
+    const canonical = canonicalSimulationState(state);
+    expect(canonical).toContain('"mapHash"');
+    expect(canonical).toContain('"targets"');
+    expect(canonical).toContain('"pendingPlayerHits"');
+    expect(canonical).toContain('"nextProjectileId"');
+    expect(canonical).toContain('"weaponKey"');
+    const parsed = JSON.parse(canonical);
+    expect(Number.isInteger(parsed.nextProjectileId)).toBe(true);
+    expect(typeof parsed.mapHash).toBe('string');
+    expect(Array.isArray(parsed.targets)).toBe(true);
+    const canonicalEvents = canonicalSimulationEvents(events);
+    expect(canonicalEvents).not.toContain('faceAngle');
+    const evt = JSON.parse(canonicalEvents);
+    const hasFloat = evt.some((e: any) =>
+      (e.position && !Number.isInteger(e.position.x)) ||
+      (e.projectile && !Number.isInteger(e.projectile.pos.x)));
+    expect(hasFloat, 'events preserve sub-tile float positions').toBe(true);
+  });
+
+  it('H2: core RNG is a continuous stream seeded from the map seed', () => {
+    const mk = () => createSimulationState({ seed: 123, map: realMap(), playerData: playerData(), playerX: 0, playerY: 0 });
+    const s1 = mk();
+    expect(s1.rngState).toBe(new RNG(123 * 7919 + 1).snapshot());
+    const run = (s: SimulationState) => {
+      const ev = stepSimulationTicks(s, 30, neutral({ x: 0, y: 0 }, true, { x: s.player.x + 1, y: s.player.y }));
+      return { rng: s.rngState, crits: ev.filter((e) => e.type === 'projectile-spawned' && e.projectile.crit).length };
+    };
+    const a = run(cloneSimulationState(s1));
+    const b = run(cloneSimulationState(mk()));
+    expect(a.rng).toBe(b.rng);
+    expect(a.crits).toBe(b.crits);
   });
 });
