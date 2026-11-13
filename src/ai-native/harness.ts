@@ -611,7 +611,16 @@ export class Harness {
     const maxWallMs = isFiniteInt(params.maxWallMs, 1, 3_600_000) ? params.maxWallMs : 15000;
     const maxEvents = isFiniteInt(params.maxEvents, 1, 10000) ? params.maxEvents : 512;
     const startedAt = Date.now();
-    const test = this.manager.createTestSession({ seed: params.seed });
+    // A scenario run occupies a real session slot: it must respect the shared
+    // per-process budget and fail cleanly when the process is full.
+    let test;
+    try {
+      test = this.manager.createTestSession({ seed: params.seed });
+    } catch (error) {
+      const code = (error as { code?: ErrorCodeV1 }).code;
+      if (code === 'E_RESOURCE_LIMIT') return fail('E_RESOURCE_LIMIT', 'process session budget exhausted');
+      return fail('E_INTERNAL_TRANSACTION', 'scenario session unavailable');
+    }
     const session = this.manager.get(test.sessionId);
     if (!session) return fail('E_INTERNAL_TRANSACTION', 'session unavailable');
     const owner = session.ownerHandle();

@@ -19,6 +19,7 @@
  *    before ANY state is touched (atomic); the Player save schema is untouched.
  */
 import { randomBytes } from 'node:crypto';
+import { createProcessSessionBudget, type ProcessSessionBudget } from './sessions';
 import { SliceModel, SLICE, type ActionResult } from '../slice/rules';
 import { isFullSliceState, type SliceEvidenceV1, type FullRoomId } from '../slice/fullState';
 import {
@@ -870,19 +871,40 @@ export class CoopSession {
 export class CoopManager {
   private readonly sessions = new Map<string, CoopSession>();
   private counter = 0;
-  constructor(private readonly maxSessions = 10) {}
+  private readonly budget: ProcessSessionBudget;
+  private readonly maxSessions: number;
+  constructor(maxSessions = 10, budget?: ProcessSessionBudget) {
+    this.maxSessions = maxSessions;
+    this.budget = budget ?? createProcessSessionBudget(maxSessions);
+  }
   get size(): number { return this.sessions.size; }
+  /**
+   * Coop worlds compete for the SAME shared per-process budget as ordinary
+   * Player sessions, so the process can never exceed the total cap.
+   */
   create(options: { readonly seed: number; readonly fixture?: CoopFixture; readonly echoBudget?: number; readonly humanSensorRange?: number; readonly echoSensorRange?: number }): CoopResponse<{ readonly handle: string; readonly session: CoopSession }> {
-    if (this.sessions.size >= this.maxSessions) return coopFail('E_RESOURCE_LIMIT', `at most ${this.maxSessions} coop sessions`);
-    this.counter += 1;
-    const handle = `coop_${this.counter.toString(16).padStart(24, '0').slice(-24)}`;
-    const session = new CoopSession(options);
-    this.sessions.set(handle, session);
-    return coopOk({ handle, session });
+    if (!this.budget.tryAcquire()) return coopFail('E_RESOURCE_LIMIT', 'process session budget exhausted');
+    try {
+      this.counter += 1;
+      const handle = `coop_${this.counter.toString(16).padStart(24, '0').slice(-24)}`;
+      const session = new CoopSession(options);
+      this.sessions.set(handle, session);
+      return coopOk({ handle, session });
+    } catch (error) {
+      this.budget.release();
+      throw error;
+    }
   }
   get(handle: string): CoopSession | undefined { return this.sessions.get(handle); }
-  close(handle: string): boolean { return this.sessions.delete(handle); }
-  dispose(): void { this.sessions.clear(); }
+  close(handle: string): boolean {
+    if (this.sessions.delete(handle)) { this.budget.release(); return true; }
+    return false;
+  }
+
+  dispose(): void {
+    for (const session of this.sessions.values()) this.budget.release();
+    this.sessions.clear();
+  }
 }
 
 export interface HumanCoopHandle {

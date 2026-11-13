@@ -104,7 +104,37 @@ function makeError(
   });
 }
 
+/**
+ * Shared per-process session budget. One instance is injected into every manager
+ * that belongs to the same process, so ordinary Player sessions and coop worlds
+ * compete for the same slots (default 10). It is a plain object owned by the
+ * caller — no global singleton.
+ */
+export interface ProcessSessionBudget {
+  readonly max: number;
+  readonly used: number;
+  tryAcquire(): boolean;
+  release(): void;
+}
+export function createProcessSessionBudget(max = 10): ProcessSessionBudget {
+  let used = 0;
+  return {
+    max,
+    get used() { return used; },
+    tryAcquire() {
+      if (used >= max) return false;
+      used += 1;
+      return true;
+    },
+    release() {
+      if (used > 0) used -= 1;
+    },
+  };
+}
+
 export interface SessionManagerOptions {
+  /** Shared per-process budget across SessionManager + CoopManager (default 10). */
+  budget?: ProcessSessionBudget;
   maxSessions?: number;
   maxConcurrentSteps?: number;
   idleTimeoutMs?: number;
@@ -364,7 +394,7 @@ function validateManagerOptions(options: unknown): asserts options is SessionMan
   if (options === null || typeof options !== 'object' || Array.isArray(options)) {
     throw new SessionError('E_SCHEMA', 'session manager options must be an object', 'schema');
   }
-  const allowed = new Set<string>([...MANAGER_NUMERIC_KEYS, ...MANAGER_FN_KEYS]);
+  const allowed = new Set<string>([...MANAGER_NUMERIC_KEYS, ...MANAGER_FN_KEYS, 'budget']);
   for (const key of Object.keys(options as Record<string, unknown>)) {
     if (!allowed.has(key)) throw new SessionError('E_SCHEMA', `unknown session manager option: ${key}`, 'schema');
   }
@@ -402,6 +432,7 @@ export class SessionManager {
   readonly maxEventsPerPage: number;
   readonly maxSnapshotBytes: number;
   readonly maxActionDurationTicks: number;
+  private readonly budget: ProcessSessionBudget;
   private concurrentSteps = 0;
   private disposed = false;
 
@@ -420,6 +451,7 @@ export class SessionManager {
     this.clock = options.clock ?? now;
     this.seedProvider = options.seedProvider ?? defaultSeed;
     this.hasher = options.hasher ?? sha256;
+    this.budget = options.budget ?? createProcessSessionBudget(this.maxSessions);
   }
 
   get size(): number {
@@ -449,42 +481,52 @@ export class SessionManager {
 
   createProductionSession(options: ProductionSessionOptions = {}): PlayerSessionHandle {
     if (this.disposed) throw new SessionError('E_SESSION_CLOSED', 'manager disposed', 'session_closed');
-    if (this.sessions.size >= this.maxSessions) throw new SessionError('E_RESOURCE_LIMIT', 'session limit reached', 'resource_limit');
-    const session = new Session(this, {
-      id: this.newSessionId(), kind: 'production', role: 'PLAYER', seed: this.seedProvider(),
-      resourceLimits: options.resourceLimits, clock: this.clock, hasher: this.hasher,
-      idleTimeoutMs: this.idleTimeoutMs, maxSessionWallMs: this.maxSessionWallMs,
-    });
-    this.register(session);
+    const session = this.createSessionInternal(options.resourceLimits, 'production', this.seedProvider(), false);
     session.startIdleWatcher();
     return session.playerHandle();
   }
 
   createTestSession(options: TestSessionOptions): TestSessionHandle {
     if (this.disposed) throw new SessionError('E_SESSION_CLOSED', 'manager disposed', 'session_closed');
-    if (this.sessions.size >= this.maxSessions) throw new SessionError('E_RESOURCE_LIMIT', 'session limit reached', 'resource_limit');
     if (!isFiniteInt(options.seed, 0, 0xffffffff)) throw new SessionError('E_SCHEMA', 'test seed must be an integer in 0..0xffffffff', 'schema');
-    const session = new Session(this, {
-      id: this.newSessionId(), kind: 'test', role: 'PLAYER', seed: options.seed,
-      resourceLimits: options.resourceLimits, clock: this.clock, hasher: this.hasher,
-      idleTimeoutMs: this.idleTimeoutMs, maxSessionWallMs: this.maxSessionWallMs,
-    });
-    this.register(session);
+    const session = this.createSessionInternal(options.resourceLimits, 'test', options.seed, false);
     session.startIdleWatcher();
     return session.testHandle();
   }
 
   createCompanionSession(options: CompanionSessionOptions = {}): CompanionSessionHandle {
     if (this.disposed) throw new SessionError('E_SESSION_CLOSED', 'manager disposed', 'session_closed');
-    if (this.sessions.size >= this.maxSessions) throw new SessionError('E_RESOURCE_LIMIT', 'session limit reached', 'resource_limit');
-    const session = new Session(this, {
-      id: this.newSessionId(), kind: 'production', role: 'COMPANION', seed: this.seedProvider(),
-      resourceLimits: options.resourceLimits, clock: this.clock, hasher: this.hasher,
-      idleTimeoutMs: this.idleTimeoutMs, maxSessionWallMs: this.maxSessionWallMs, companion: true,
-    });
-    this.register(session);
+    const session = this.createSessionInternal(options.resourceLimits, 'production', this.seedProvider(), true);
     session.startIdleWatcher();
     return session.companionHandle();
+  }
+
+  /**
+   * Single creation path for every session kind. The shared process budget is
+   * taken BEFORE the session is constructed and released again if construction
+   * fails, so a failed create never consumes a slot.
+   */
+  private createSessionInternal(
+    resourceLimits?: Partial<ResourceLimitsV1>,
+    kind: 'production' | 'test' = 'production',
+    seed?: number,
+    companion = false,
+  ): Session {
+    if (!this.budget.tryAcquire()) {
+      throw new SessionError('E_RESOURCE_LIMIT', 'process session budget exhausted', 'resource_limit');
+    }
+    try {
+      const session = new Session(this, {
+        id: this.newSessionId(), kind, role: companion ? 'COMPANION' : 'PLAYER', seed: seed ?? this.seedProvider(),
+        resourceLimits, clock: this.clock, hasher: this.hasher,
+        idleTimeoutMs: this.idleTimeoutMs, maxSessionWallMs: this.maxSessionWallMs, companion,
+      });
+      this.register(session);
+      return session;
+    } catch (error) {
+      this.budget.release();
+      throw error;
+    }
   }
 
   private register(session: Session): void {
@@ -510,7 +552,7 @@ export class SessionManager {
     this.concurrentSteps = Math.max(0, this.concurrentSteps - 1);
   }
   remove(id: string): void {
-    this.sessions.delete(id);
+    if (this.sessions.delete(id)) this.budget.release();
   }
 }
 

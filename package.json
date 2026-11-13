@@ -18,7 +18,8 @@
     "game:mcp:client": "vite-node src/ai-native/mcpClient.mts",
     "game:agent-client": "vite-node src/ai-native/agentClient.mts",
     "game:replay-p4": "vite-node src/ai-native/replayPlayerTrace.mts",
-    "game:coop-demo": "vite-node src/ai-native/coopDemo.mts"
+    "game:coop-demo": "vite-node src/ai-native/coopDemo.mts",
+    "game:budget-client": "vite-node src/ai-native/budgetClient.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",

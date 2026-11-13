@@ -18,9 +18,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { createSessionManager, type DevFixture } from './sessions';
+import { createSessionManager, createProcessSessionBudget, type DevFixture } from './sessions';
 import { Harness, toolMatrix, type HarnessResult, type RunSummary } from './harness';
-import { CoopManager, type CoopSession } from './coop';
+import { CoopManager, type CoopSession, type CoopFixture } from './coop';
 import type { ActionResultV1, EventV1, ObservationV1, StepResultV1 } from './protocol';
 
 const RESULT_SCHEMA = 'last_signal.mcp.tool-result.v1';
@@ -143,7 +143,12 @@ function register(server: McpServer, name: string, description: string, inputSch
     (async (args: unknown) => {
       try {
         return await handler((args ?? {}) as Record<string, unknown>);
-      } catch {
+      } catch (error) {
+        // Surface a session-level budget/limit rejection with its own code
+        // instead of a generic internal error.
+        const code = (error as { code?: string }).code;
+        if (code === 'E_RESOURCE_LIMIT') return errPayload('E_RESOURCE_LIMIT', 'process session budget exhausted');
+        if (code === 'E_SESSION_CLOSED') return errPayload('E_SESSION_CLOSED', 'session closed');
         return errPayload('E_INTERNAL_TRANSACTION', 'tool handler failed');
       }
     }) as never,
@@ -338,7 +343,7 @@ function registerDevTools(server: McpServer, harness: Harness): void {
     z.strictObject({ session: sessionHandle, fixture: fixtureInput }),
     (args) => {
       const session = args.session as string;
-      return fromHarness(harness.injectFixture(session, args.fixture as DevFixture), (v) => ({
+      return fromHarness(harness.injectFixture(session, args.fixture as unknown as DevFixture), (v) => ({
         session, epoch: v.epoch, tick: v.tick, tampered: v.tampered, fixtures: v.audit,
         dev: true, audit: harness.auditTail(session),
       }));
@@ -525,12 +530,13 @@ function registerCoopTools(server: McpServer, coop: CoopManager): void {
 // ---------------------------------------------------------------------------
 async function main(): Promise<void> {
   const dev = process.argv.slice(2).includes('--dev');
+  const budget = createProcessSessionBudget(10);
   const manager = createSessionManager({
     maxSessions: 10, maxConcurrentSteps: 2,
-    idleTimeoutMs: 300_000, maxSessionWallMs: 3_600_000,
+    idleTimeoutMs: 300_000, maxSessionWallMs: 3_600_000, budget,
   });
   const harness = new Harness(manager, dev ? 'dev' : 'player');
-  const coopManager = new CoopManager();
+  const coopManager = new CoopManager(10, budget);
   const server = new McpServer({
     name: dev ? 'last-signal-dev-harness' : 'last-signal-player',
     version: '0.3.0',

@@ -464,3 +464,21 @@ E2E 由 `npx playwright test` 全量执行，**未加 `--grep`、未 skip、未�
 **真实合作链（官方 Dev MCP）**：HumanA 扫 receiver / EchoB 独立扫 seal source（A/B 不同、互不可见）→ echo share 自有子集 → hypothesis 不 canonical → 未确认/拒绝执行 `E_PERMISSION` 零副作用 → human confirm → echo 合法 Jam → door `JAMMED_OPEN` → human 过门 `passed=true`；pause/takeover/cancel 停 ECHO 且 human 可继续、预算耗尽 `E_RESOURCE_LIMIT`、offline 确定性；Player 面仍 6 工具无 coop、P4 replay 不变。
 
 **边界**：只读源码/仓库测试；未 commit/切分支、未扩正式 ECHO/World/旧档/key/version；只写项目外 `p5-final-tester-*` 与本节；fixture 明确 `test:true` 仅初态、不计合作行动。
+
+---
+
+## 21. AI-NATIVE-01 · 最终混合预算小修（Tester 只读独立验收）
+
+**任务**：P0–P5 全部验收后的最后一项小修（共享进程会话预算）；完成后仅剩最终材料/PR 交付。固定版 HEAD `903096ddd1402658d1bf662af2cb9c2b41f04015`（停写）。
+
+**判定：PASS**（无 BLOCKED）。报告：`D:/Project/AI-NATIVE-01-evidence/final-budget-tester.md`，单行 gate 表 `final-budget-tester-gate-summary.log`。
+
+**稳定 MD5（Lead 指定 = 实测，before/after STABLE）**：sessions `409f1f1a…`、coop `f10d1dc4…`、harness `87e64a00…`、server `c35de76e…`、budget.test `81fc9161…`、budgetClient `5ee666ac…`。`src/slice/*` 与 `tests/*` 无改动；`rules.ts`/`sharedCore.ts`/`fullState.ts` MD5 与 P5 终版一致。
+
+**Gate**：typecheck PASS、`npm run build` PASS、`game:mcp:build` PASS、`npm test` 全量 **292**（13 files）PASS、P4 replay PASS(5/5)、`coopDemo.mts` PASS；独立官方 SDK 混合预算探针 `final-budget-tester-sdk.mts` **13/13**、独立直连预算语义探针 `final-budget-tester-direct.mts` **12/12**。纯 Node 预算改动，未重跑浏览器（Lead 明确无需，且无 slice/浏览器变更）。
+
+**独立探针要点**（不依赖 developer `budgetClient.mts`）：单进程一份 `ProcessSessionBudget(10)` 注入 `SessionManager`+`CoopManager`；普通 5+coop 5=10 成功，第 11 个普通/coop 均 `E_RESOURCE_LIMIT`；关闭普通+coop 各归还 slot、跨类型释放成立；非法创建不吃 slot；10 coop 填满后 `run_scenario`/`run_batch` 拒绝且关闭释放后恢复（Harness batch 走真实 slot）；close/dispose 后 10 个新会话全成功、上限仍精确 10、进程释放。直连验证：budget 为普通 per-instance 对象非全局；失败 constructor（Session/CoopSession 构造抛错）不吃 slot；dispose 归还全部 `used→0`；未注入时各 manager 独立预算。
+
+**节点证据映射（不抹除）**：P5 终版 = **287** 单测 + **23 E2E×2**（`p5-final-tester-e2e.log`/`-run2.log`）；本轮 = **292** 单测（+`budget.test.ts` 5 例），无浏览器/slice 变更故 23 E2E 结论继续有效。更早 pre-fix / V1–V5 / P4 历史均保留。
+
+**边界**：只读源码/仓库测试；未 commit/切分支、未扩正式 ECHO/World/旧档/key/version、未改 Lead 最终交付材料；仅写项目外 `final-budget-tester-*` 与本节。

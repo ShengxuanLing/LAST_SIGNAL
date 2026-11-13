@@ -1,0 +1,122 @@
+{
+  "sampleOnly": true,
+  "scope": "Dev/test forensic sample; issuing instance required for restore, cross-process import unsupported",
+  "snapshot": {
+    "schema": "last_signal.ai-native.runtime-snapshot.v1",
+    "protocolVersion": 1,
+    "kernelVersion": "station-zero-r1-r2@1",
+    "scenario": "station-zero",
+    "snapshotId": "snap_9b2916ef0",
+    "sessionId": "ses_9b2916efe5fd3dcbbee7e74d",
+    "seed": 2026,
+    "rngState": 0,
+    "status": "running",
+    "epoch": 0,
+    "tick": 1,
+    "movement": {
+      "intent": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "remainingTicks": 0
+    },
+    "model": {
+      "energy": 90,
+      "tick": 1,
+      "door": "SEALED",
+      "manualOpenIntent": false,
+      "sealSourcePresent": true,
+      "jamRemainingTicks": 0,
+      "jamCooldownTicks": 0,
+      "scanCooldownTicks": 119,
+      "scanRevealTicks": 479,
+      "revealDoorReceiver": true,
+      "revealSealSource": true,
+      "pendingSafeClose": false,
+      "safeClearTicks": 60,
+      "regenAcc": 1,
+      "accumulatorMs": 0,
+      "playerX": 3.5,
+      "playerY": 5.5,
+      "occupancy": false,
+      "passed": false,
+      "paused": false,
+      "lastRelayInteractTick": -1,
+      "lastResult": {
+        "code": "OK",
+        "message": "扫描完成：已发现范围内的门接收器/封锁载波（只揭示，不开门）。",
+        "cost": 10
+      },
+      "corridorReveal": null,
+      "corridor": null,
+      "evidence": [
+        {
+          "targetId": "tgt_lab_door_receiver",
+          "relationId": "rel_lab_seal_link",
+          "position": {
+            "x": 3.5,
+            "y": 5.5
+          },
+          "observedAtTick": 0,
+          "expiresAtTick": 480,
+          "stateLabel": "receiver-visible",
+          "roomId": "station-zero-r1"
+        },
+        {
+          "targetId": "tgt_lab_seal_source",
+          "relationId": "rel_lab_seal_link",
+          "position": {
+            "x": 3.5,
+            "y": 5.5
+          },
+          "observedAtTick": 0,
+          "expiresAtTick": 480,
+          "stateLabel": "carrier-visible",
+          "roomId": "station-zero-r1"
+        }
+      ],
+      "evidenceRescanRequired": false
+    },
+    "events": [
+      {
+        "eventSeq": 0,
+        "tick": 0,
+        "phase": 0,
+        "ordinal": 0,
+        "type": "SESSION_CREATED",
+        "payload": {
+          "scenario": "station-zero",
+          "seed": 2026
+        }
+      },
+      {
+        "eventSeq": 1,
+        "tick": 0,
+        "phase": 2,
+        "ordinal": 0,
+        "type": "ACTION_ACCEPTED",
+        "payload": {
+          "actionId": "sample-scan",
+          "actor": "player",
+          "type": "scan",
+          "code": "OK",
+          "cost": 10
+        }
+      }
+    ],
+    "eventSeq": 2,
+    "droppedEvents": 0,
+    "actionSeq": 1,
+    "actionLog": [
+      {
+        "id": "sample-scan",
+        "actor": "player",
+        "type": "scan"
+      }
+    ],
+    "stateHash": "sha256:9fdcd9a0f841bbb460f6d9b30ec683b7a95cf86863368c42a724961d4a103dd3",
+    "eventsHash": "sha256:60e62bd761414492fd17cd373c9de03d28c7b5322fc306aa2624d976aceafcda"
+  }
+}

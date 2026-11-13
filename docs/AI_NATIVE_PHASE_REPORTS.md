@@ -107,3 +107,9 @@
 - 下一阶段：提交最终范围/验收矩阵与PR供Owner审核；不自动合并。
 
 证据：`D:/Project/AI-NATIVE-01-evidence/p5-review-residual-final.md`、`p5-tester-final.md`、`p5-final-tester-*`、`p5-residual-final-reviewer-*`、`p5-residual-developer-*`。最终MD5 coop `f2dfe8b1b6b521916fdf25038e33a504`、test `40de8152c8e248eadc058c7f0fab7829`。P0–P5 的实际执行渠道均为 Orca Worker 与 Lead；未使用原生子代理替代 Worker。
+
+## 最终资源预算与材料收尾
+
+P5提交后Lead发现普通Session与coop各10槽位可合计20，已由Orca Worker developer最小修正为调用方持有的单个ProcessSessionBudget(10)，不使用全局单例；两类实例、run_scenario/batch同池，构造失败/close/idle/dispose归还槽。Orca Worker tester独立官方MCP13/13与直连12/12通过，Orca Worker reviewer结论代码可接受、无阻断。新增budget.test.ts五例，最终全量292/292；typecheck/build/MCPbuild/P4replay/coopDemo通过，slice与browser逐字未变，沿用P5两次完整23E2E。
+
+实际文件为sessions/coop/harness/MCP server的预算注入、budget.test.ts/budgetClient.mts、scripts和最终文档/取证样例。完整gate在仓库外`final-budget-{developer,reviewer,tester}-*`；最终审查和Tester结论归档进`docs/ai-native-evidence/`。未合并main，GitHub P5节点两项CI已通过；最终新提交的CI需以PR实时状态为准。最终提交hash见本节所在提交。
