@@ -28,7 +28,9 @@ export class Boss {
 
   constructor(public world: World, x: number, y: number, room: number, _depth: number) {
     this.spawnRoom = room;
-    this.sprite = this.world.scene.add.sprite(x, y, 'enemy_hunter');
+    // AR-02 restyled 'enemy_hunter'; the Warden is outside the slice and keeps its
+    // pre-AR-02 look under its own key until AR-04 designs the armillary Warden.
+    this.sprite = this.world.scene.add.sprite(x, y, 'enemy_warden_legacy');
     // Keep the Boss below the player (depth 100) so an overlap never hides the
     // player sprite. Grid y is not a display depth and can exceed HUD depth.
     this.sprite.setDepth(95);

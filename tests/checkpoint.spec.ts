@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { SAVE_KEY } from '../src/config/game';
+import { WEAPONS } from '../src/config/weapons';
+import { UPGRADE_LIST } from '../src/config/upgrades';
 
 function readSave(page: Page) {
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), SAVE_KEY);
@@ -49,6 +51,122 @@ async function pickFirstCard(page: Page) {
   expect(card, 'level-up card available').not.toBeNull();
   await page.mouse.click(Math.round(card!.x), Math.round(card!.y));
 }
+
+test('inventory equips an owned weapon and the safe checkpoint restores the selection', async ({ page }) => {
+  await page.goto('/');
+  await waitForScene(page, 'MainMenuScene');
+  await fixSeed(page, 424242);
+  await page.evaluate((key) => {
+    localStorage.setItem(key, JSON.stringify({ permanent: { unlockedWeapons: ['pulse', 'scatter', 'plasma'] } }));
+  }, SAVE_KEY);
+  await clickButton(page, 'NEW RUN');
+  await waitForScene(page, 'GameScene');
+
+  const inventory = () => page.evaluate(() => {
+    const game = (window as any).__game;
+    const scene = game.scene.getScene('PauseScene');
+    const player = game.scene.getScene('GameScene').world.player;
+    const buttons = scene.children.list
+      .filter((child: any) => child.type === 'Text' && ['EQUIP', 'EQUIPPED'].includes(child.text))
+      .map((child: any) => ({ label: child.text, y: child.y, enabled: child.input?.enabled ?? false }));
+    return { weapon: player.data.weaponKey, buttons };
+  });
+
+  await page.keyboard.press('i');
+  await expect.poll(async () => (await inventory()).buttons).toEqual([
+    { label: 'EQUIPPED', y: 186, enabled: false },
+    { label: 'EQUIP', y: 230, enabled: true },
+    { label: 'EQUIP', y: 274, enabled: true }
+  ]);
+  await page.mouse.click(420, 242); // Equip Scatter Gun using its on-screen button.
+  await expect.poll(inventory).toEqual({
+    weapon: 'scatter',
+    buttons: [
+      { label: 'EQUIP', y: 186, enabled: true },
+      { label: 'EQUIPPED', y: 230, enabled: false },
+      { label: 'EQUIP', y: 274, enabled: true }
+    ]
+  });
+  await page.keyboard.press('e');
+  expect((await inventory()).weapon).toBe('scatter');
+  await page.keyboard.press('3');
+  await expect.poll(async () => (await inventory()).weapon).toBe('plasma');
+  await expect.poll(() => sceneLabels(page, 'PauseScene')).toContain(WEAPONS.plasma.description);
+  await page.keyboard.press('2');
+  await expect.poll(async () => (await inventory()).weapon).toBe('scatter');
+
+  await page.keyboard.press('i');
+  await page.waitForFunction(() => !(window as any).__game.scene.isActive('PauseScene'));
+  await expect.poll(() => sceneLabels(page, 'GameScene')).toContain('Scatter Gun [◆] · 8/8');
+  await page.evaluate(() => {
+    const game = (window as any).__game.scene.getScene('GameScene');
+    const scatter = game.world.player.data.weapons.find((weapon: { key: string }) => weapon.key === 'scatter');
+    Object.assign(scatter, { ammo: 0, reloading: true, reloadTimer: 2 });
+  });
+  await expect.poll(() => sceneLabels(page, 'GameScene')).toContain('Scatter Gun [◆] · RELOADING');
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => (window as any).__game.scene.isActive('PauseScene'));
+  await clickButton(page, 'QUIT TO MENU');
+  await waitForScene(page, 'MainMenuScene');
+  expect((await readSave(page)).run.player.weaponKey).toBe('scatter');
+
+  await clickButton(page, 'LOAD RUN');
+  await expect.poll(async () => (await sceneLabels(page, 'MainMenuScene'))
+    .find((label: string) => label.startsWith('EQUIPPED'))).toMatch(/^EQUIPPED Scatter Gun · TIME \d+:\d{2}$/);
+  await clickButton(page, 'RESUME CHECKPOINT');
+  await waitForScene(page, 'GameScene');
+  await page.keyboard.press('i');
+  await expect.poll(async () => (await inventory()).buttons[1]?.label).toBe('EQUIPPED');
+  expect((await inventory()).weapon).toBe('scatter');
+});
+
+function sceneLabels(page: Page, name: string): Promise<string[]> {
+  return page.evaluate((key) => (window as any).__game.scene.getScene(key).children.list
+    .filter((child: any) => child.type === 'Text').map((child: any) => child.text), name);
+}
+
+test('number keys select an upgrade when four choices are eligible', async ({ page }) => {
+  await page.goto('/');
+  await waitForScene(page, 'MainMenuScene');
+  await fixSeed(page, 424242);
+  await clickButton(page, 'NEW RUN');
+  await waitForScene(page, 'GameScene');
+  await page.evaluate((maxed) => {
+    const player = (window as any).__game.scene.getScene('GameScene').world.player;
+    player.data.upgrades = maxed;
+    player.addXp(player.data.xpToNext);
+  }, UPGRADE_LIST.slice(4).map(({ key, maxLevel }) => ({ key, level: maxLevel })));
+  await waitForScene(page, 'LevelUpScene');
+  expect(await sceneLabels(page, 'LevelUpScene')).toEqual(expect.arrayContaining(['[1]', '[2]', '[3]']));
+  const key = await page.evaluate(() => (window as any).__game.scene.getScene('LevelUpScene').choices[2]);
+  await page.keyboard.press('3');
+  await expect.poll(async () => (await readSave(page)).run?.player.upgrades).toContainEqual({ key, level: 1 });
+});
+
+test('loss recap shows run stats and retries the same seed', async ({ page }) => {
+  await page.goto('/');
+  await waitForScene(page, 'MainMenuScene');
+  await fixSeed(page, 424242);
+  await clickButton(page, 'NEW RUN');
+  await waitForScene(page, 'GameScene');
+  const runId = (await readSave(page)).run.id;
+  await page.evaluate(() => {
+    const game = (window as any).__game.scene.getScene('GameScene');
+    game.enemiesKilled = 3;
+    game.itemsCollected = 5;
+    game.damageDealt = 79.6;
+    game.runStart = game.time.now - 65000;
+    game.world.onPlayerDeath();
+  });
+  await waitForScene(page, 'GameOverScene');
+  expect(await sceneLabels(page, 'GameOverScene')).toEqual(expect.arrayContaining([
+    'KILLS 3 · DAMAGE DEALT 80', 'ITEMS COLLECTED 5 · TIME 1:05'
+  ]));
+  await clickButton(page, 'RETRY SAME SEED');
+  await waitForScene(page, 'GameScene');
+  expect((await readSave(page)).run).toMatchObject({ seed: 424242 });
+  expect((await readSave(page)).run.id).not.toBe(runId);
+});
 
 test('resume reuses the checkpoint id and restores saved HP / run-scoped progress', async ({ page }) => {
   const errors: string[] = [];

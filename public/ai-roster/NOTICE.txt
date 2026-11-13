@@ -1,0 +1,14 @@
+Grok-chan, Gemini-chan and GPT-chan
+
+Sprite artwork by CrossPet (lokicorvus/crosspet), commit 8954eb8f7f69fcfb8d35e9deceeb78e10c804402.
+https://github.com/lokicorvus/crosspet/tree/8954eb8f7f69fcfb8d35e9deceeb78e10c804402/characters
+
+Grok and GPT character designs: ZipZipPipe — https://space.bilibili.com/4168597
+Gemini: community Gemini-chan design with cat ears, heterochromia and a four-pointed star ornament, as credited by CrossPet.
+
+Each character uses the original idle.webp, busy_left.webp and busy_right.webp
+under the names front.webp, left.webp and right.webp. Image bytes are unchanged.
+
+Art license: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International.
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+Upstream terms: https://github.com/lokicorvus/crosspet/blob/8954eb8f7f69fcfb8d35e9deceeb78e10c804402/characters/LICENSE.md

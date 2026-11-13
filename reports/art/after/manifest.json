@@ -1,0 +1,324 @@
+{
+  "phase": "after",
+  "capturedAt": "2026-11-13T12:28:07.347Z",
+  "browser": "chromium",
+  "viewport": {
+    "width": 1280,
+    "height": 720,
+    "deviceScaleFactor": 1
+  },
+  "visualRandomSeed": 20261113,
+  "mapSeed": 1,
+  "mapSeedHasAllKinds": false,
+  "fallbackSeeds": {},
+  "rooms": [
+    {
+      "id": 0,
+      "kind": "start",
+      "w": 9,
+      "h": 11
+    },
+    {
+      "id": 1,
+      "kind": "combat",
+      "w": 12,
+      "h": 9
+    },
+    {
+      "id": 2,
+      "kind": "resource",
+      "w": 12,
+      "h": 13
+    },
+    {
+      "id": 3,
+      "kind": "combat",
+      "w": 13,
+      "h": 10
+    },
+    {
+      "id": 4,
+      "kind": "boss",
+      "w": 13,
+      "h": 11
+    },
+    {
+      "id": 5,
+      "kind": "elite",
+      "w": 8,
+      "h": 10
+    }
+  ],
+  "clock": "RAF loop slept; game.step(t, 1000/60) per frame",
+  "settings": "fresh localStorage profile; defaults (screenShake on, master 0.7, sfx 0.8)",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+    "phaser": "3.90.0",
+    "renderer": "CANVAS",
+    "devicePixelRatio": 1,
+    "hardwareConcurrency": 8
+  },
+  "shots": [
+    {
+      "id": "01-main-menu",
+      "scene": "MainMenuScene",
+      "description": "Fresh profile main menu, OPERATOR avatar",
+      "steps": 30,
+      "file": "01-main-menu.png"
+    },
+    {
+      "id": "02-explore-start",
+      "scene": "GameScene",
+      "description": "Start room on spawn, no hostiles, portal visible",
+      "seed": 1,
+      "roomKind": "start",
+      "steps": 62,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 2704,
+        "scrollY": 0
+      },
+      "file": "02-explore-start.png"
+    },
+    {
+      "id": "03-room-combat",
+      "scene": "GameScene",
+      "description": "Combat room right after entry, pulse rifle firing at nearest hostile",
+      "seed": 1,
+      "roomId": 1,
+      "roomKind": "combat",
+      "steps": 48,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 5936,
+        "scrollY": 2896
+      },
+      "weapon": "pulse",
+      "file": "03-room-combat.png"
+    },
+    {
+      "id": "04-room-resource",
+      "scene": "GameScene",
+      "description": "Resource room: loot + decor props",
+      "seed": 1,
+      "roomId": 2,
+      "roomKind": "resource",
+      "steps": 30,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 2640,
+        "scrollY": 2880
+      },
+      "weapon": "pulse",
+      "file": "04-room-resource.png"
+    },
+    {
+      "id": "05-room-shop",
+      "file": "",
+      "scene": "GameScene",
+      "description": "Shop room: one guard + loot — SKIPPED: kind not found in seeds 1..400"
+    },
+    {
+      "id": "06-room-event",
+      "file": "",
+      "scene": "GameScene",
+      "description": "Event room (currently plays as combat) — SKIPPED: kind not found in seeds 1..400"
+    },
+    {
+      "id": "07-room-elite",
+      "scene": "GameScene",
+      "description": "Elite room: largest regular fight",
+      "seed": 1,
+      "roomId": 5,
+      "roomKind": "elite",
+      "steps": 48,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 6064,
+        "scrollY": 1712
+      },
+      "weapon": "pulse",
+      "file": "07-room-elite.png"
+    },
+    {
+      "id": "23-pulse-muzzle",
+      "scene": "GameScene",
+      "description": "Pulse timing study, live shot after scripted aim",
+      "seed": 1,
+      "roomId": 1,
+      "steps": 34,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 5936,
+        "scrollY": 2896
+      },
+      "weapon": "pulse",
+      "file": "23-pulse-muzzle.png"
+    },
+    {
+      "id": "24-pulse-flight",
+      "scene": "GameScene",
+      "description": "Pulse timing study, live shot after scripted aim",
+      "seed": 1,
+      "roomId": 1,
+      "steps": 41,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 5936,
+        "scrollY": 2896
+      },
+      "weapon": "pulse",
+      "file": "24-pulse-flight.png"
+    },
+    {
+      "id": "25-enemy-lineup",
+      "scene": "GameScene",
+      "description": "Controlled sprite lineup using actual spawn method: drone, stalker and hunter",
+      "seed": 1,
+      "roomId": 1,
+      "steps": 32,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 5905,
+        "scrollY": 2912
+      },
+      "notes": "Scripted fixture. Natural spawn and balance are unchanged.",
+      "file": "25-enemy-lineup.png"
+    },
+    {
+      "id": "08-weapon-scatter",
+      "scene": "GameScene",
+      "description": "Weapon scatter firing in combat room",
+      "seed": 1,
+      "roomId": 1,
+      "roomKind": "combat",
+      "steps": 30,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 5936,
+        "scrollY": 2896
+      },
+      "weapon": "scatter",
+      "file": "08-weapon-scatter.png"
+    },
+    {
+      "id": "09-weapon-plasma",
+      "scene": "GameScene",
+      "description": "Weapon plasma firing in combat room",
+      "seed": 1,
+      "roomId": 1,
+      "roomKind": "combat",
+      "steps": 40,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 5936,
+        "scrollY": 2896
+      },
+      "weapon": "plasma",
+      "file": "09-weapon-plasma.png"
+    },
+    {
+      "id": "10-weapon-arc",
+      "scene": "GameScene",
+      "description": "Weapon arc firing in combat room",
+      "seed": 1,
+      "roomId": 1,
+      "roomKind": "combat",
+      "steps": 30,
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 5936,
+        "scrollY": 2896
+      },
+      "weapon": "arc",
+      "file": "10-weapon-arc.png"
+    },
+    {
+      "id": "11-boss-phase1",
+      "scene": "GameScene",
+      "description": "Warden boss room, phase 1, 1.5 s after entry",
+      "seed": 1,
+      "roomId": 4,
+      "roomKind": "boss",
+      "steps": 90,
+      "camera": {
+        "zoom": 1.25,
+        "scrollX": 7120,
+        "scrollY": 4032
+      },
+      "file": "11-boss-phase1.png"
+    },
+    {
+      "id": "12-boss-phase3-barrage",
+      "scene": "GameScene",
+      "description": "Warden forced to phase 3 (30% HP), laser fan + shockwave rings",
+      "seed": 1,
+      "roomId": 4,
+      "roomKind": "boss",
+      "steps": 75,
+      "camera": {
+        "zoom": 1.25,
+        "scrollX": 7120,
+        "scrollY": 4032
+      },
+      "file": "12-boss-phase3-barrage.png"
+    },
+    {
+      "id": "13-level-up",
+      "scene": "LevelUpScene",
+      "description": "Level-up 3-card choice over combat room",
+      "seed": 1,
+      "roomId": 1,
+      "steps": 50,
+      "file": "13-level-up.png"
+    },
+    {
+      "id": "14-pause",
+      "scene": "PauseScene",
+      "description": "Pause overlay (mode pause)",
+      "seed": 1,
+      "steps": 50,
+      "file": "14-pause.png"
+    },
+    {
+      "id": "15-inventory",
+      "scene": "PauseScene",
+      "description": "Inventory overlay (mode inventory)",
+      "seed": 1,
+      "steps": 50,
+      "file": "15-inventory.png"
+    },
+    {
+      "id": "16-game-over",
+      "scene": "GameOverScene",
+      "description": "Death recap",
+      "seed": 1,
+      "steps": 20,
+      "file": "16-game-over.png"
+    },
+    {
+      "id": "17-victory",
+      "scene": "GameOverScene",
+      "description": "Victory recap (+1 core)",
+      "seed": 1,
+      "steps": 20,
+      "file": "17-victory.png"
+    },
+    {
+      "id": "18-avatar-whale-combat",
+      "scene": "GameScene",
+      "description": "Whale-chan community sprite in the combat room",
+      "seed": 1,
+      "roomId": 1,
+      "steps": 40,
+      "avatar": "whale",
+      "camera": {
+        "zoom": 0.8,
+        "scrollX": 5936,
+        "scrollY": 2896
+      },
+      "file": "18-avatar-whale-combat.png"
+    }
+  ],
+  "consoleErrors": []
+}

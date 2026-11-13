@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PlayerData, ProjectileData, Vec2 } from '../types';
+import { Avatar, PlayerData, ProjectileData, Vec2 } from '../types';
 import { basePlayerData, GAME } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import { clamp } from '../core/random';
@@ -8,6 +8,9 @@ import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
+import { WhaleCharacterEffects } from '../core/WhaleCharacter';
+import { APPEARANCES, faceAvatar, resolveAvatar } from '../core/PlayerAppearance';
+import { ExecutorView, screenDir } from '../art/survey/ActorView';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -32,6 +35,10 @@ export class Player {
   private keys: any = null;
   private cursors: any = null;
   private aimYaw = 0;
+  private whaleEffects?: WhaleCharacterEffects;
+  private readonly avatar: Avatar;
+  /** AR-02 visual controller (frames, shadow, mast lamp). Community art is never modified. */
+  view: ExecutorView;
 
   constructor(public world: World, x: number, y: number, private save: ReturnType<SaveSystem['load']>) {
     const stats = basePlayerData();
@@ -67,8 +74,18 @@ export class Player {
       weapons,
       upgrades: [], abilities: []
     } as PlayerData;
-    this.sprite = world.scene.add.sprite(x, y, 'player');
+    this.avatar = resolveAvatar(save.settings.avatar, world.scene.textures);
+    this.sprite = world.scene.add.sprite(x, y, APPEARANCES[this.avatar].textures[0]);
     this.sprite.setDepth(100);
+    if (this.avatar === 'whale') {
+      this.whaleEffects = new WhaleCharacterEffects(this.sprite);
+    } else if (this.avatar !== 'operator') {
+      this.sprite.setScale(72 / this.sprite.height).setOrigin(APPEARANCES[this.avatar].feet[0], 0.99);
+    }
+    // Operator = the procedural executor (animated); community avatars keep their
+    // licensed art untouched and only gain an env.ao contact shadow (03 §3), except
+    // Whale-chan whose own effect class already draws one.
+    this.view = new ExecutorView(this.sprite, this.avatar === 'operator', { shadow: this.avatar !== 'whale', lamp: this.avatar === 'operator' });
     this.aimYaw = 0;
     this.wx = x;
     this.wy = y;
@@ -83,6 +100,7 @@ export class Player {
   project(): void {
     const s = this.world.worldToScreen(this.wx, this.wy);
     this.sprite.setPosition(s.x, s.y);
+    this.whaleEffects?.project();
   }
   get alive(): boolean { return this.data.hp > 0; }
   getRadius(): number { return 0.5; }
@@ -122,6 +140,12 @@ export class Player {
   }
 
   get weapon() { return WEAPONS[this.data.weaponKey] ?? WEAPONS.pulse; }
+
+  equipWeapon(key: string): boolean {
+    if (key === this.data.weaponKey || !this.data.weapons.some((weapon) => weapon.key === key)) return false;
+    this.data.weaponKey = key;
+    return true;
+  }
 
   aimFromPointer(pointer: Phaser.Input.Pointer): void {
     const cam = this.world.scene.cameras.main;
@@ -178,13 +202,13 @@ export class Player {
       vy = (ty - tx) / 2 * speed;
     }
 
+    const previousX = this.sprite.x;
+    const previousY = this.sprite.y;
     // axis-separate sliding collision
     const nx = this.wx + vx * dt;
     if (this.isWalkable(nx, this.wy)) this.wx = nx;
     const ny = this.wy + vy * dt;
     if (this.isWalkable(this.wx, ny)) this.wy = ny;
-
-    this.project();
 
     // dash
     if (this.cursors && this.cursors.space.isDown
@@ -193,9 +217,14 @@ export class Player {
       this.invuln = Math.max(this.invuln, this.data.dashDuration + 0.05);
       this.world.addShake(4);
       audio.ui();
+      this.world.onDash();
     }
 
     this.project();
+    this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
+    if (this.avatar !== 'operator' && this.avatar !== 'whale') {
+      faceAvatar(this.sprite, this.avatar, this.sprite.x - previousX, this.sprite.y - previousY);
+    }
     // visuals
     if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
     else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }
@@ -242,7 +271,26 @@ export class Player {
       lifetime: w.baseRange / w.baseProjectileSpeed, kind: w.kind,
       magazine: ws.magazine, shots: w.kind === 'scatter' ? 5 : 1, spread: w.baseSpread
     }, 'player');
+    if (this.whaleEffects) {
+      const aim = this.world.worldToScreen(this.x + Math.cos(this.aimYaw), this.y + Math.sin(this.aimYaw));
+      this.whaleEffects.fire(aim.x - this.sprite.x, aim.y - this.sprite.y);
+    } else {
+      // Muzzle flash (bone, 1-2 frames) at the drawn rifle tip; recoil via the view.
+      const d = screenDir(this.world, this.x, this.y, this.aimYaw);
+      this.view.syncFacing(this.world, this.wx, this.wy, this.aimYaw);
+      const m = this.avatar === 'operator' ? this.view.muzzle() : { x: this.sprite.x + d.x * 16, y: this.sprite.y - 36 + d.y * 8 };
+      this.view.fired();
+      this.world.vfx.muzzle(m.x, m.y, d.x, d.y);
+    }
     audio.shoot(w.kind);
+  }
+
+  /** Visual-only per-frame sync (called by World.update after movement / room logic). */
+  updateView(dt: number): void {
+    this.view.update(dt, this.world.clock, {
+      wx: this.wx, wy: this.wy, aimYaw: this.aimYaw, hurt: this.hurtTimer,
+      dashing: this.dashTimer > 0, alive: this.alive,
+    }, this.world);
   }
 
   // external fire flag, set by scene on mousedown

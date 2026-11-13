@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
 import { GAME, SAVE_VERSION } from '../config/game';
+import { WEAPONS } from '../config/weapons';
+import { formatDuration } from '../core/formatDuration';
+import { APPEARANCES, availableAvatars, resolveAvatar } from '../core/PlayerAppearance';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
@@ -7,6 +10,7 @@ import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
 interface MenuConfig {
   view?: 'checkpoint' | 'permanent' | 'replace';
   notice?: string;
+  seed?: number;
 }
 
 export class MainMenuScene extends Phaser.Scene {
@@ -50,19 +54,20 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     if (config.view === 'checkpoint' && save.run) {
-      const { player, clearedRooms, seed } = save.run;
+      const { player, clearedRooms, seed, stats } = save.run;
       this.line(cx, 266, `CHECKPOINT · SEED ${seed}`, '#33e0ff');
       this.line(cx, 305, `ROOMS CLEARED ${clearedRooms.length} · LEVEL ${player.level} · RUN CREDITS ${player.currency}`);
       this.line(cx, 336, `RUN UPGRADES ${player.upgrades.length} · HP ${Math.ceil(player.hp)}/${player.maxHp}`);
-      this._button(cx, 400, 'RESUME CHECKPOINT', 360, () => this.scene.start('GameScene', { resume: true }), 0x33e0ff);
-      this._button(cx, 460, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
+      this.line(cx, 367, `EQUIPPED ${WEAPONS[player.weaponKey].name} · TIME ${formatDuration(stats.elapsedSeconds)}`);
+      this._button(cx, 420, 'RESUME CHECKPOINT', 360, () => this.scene.start('GameScene', { resume: true }), 0x33e0ff);
+      this._button(cx, 480, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
       return;
     }
 
     if (config.view === 'replace') {
       this.line(cx, 287, 'STARTING OVER REPLACES THE CURRENT RUN CHECKPOINT.', '#ff8a3c');
       this.line(cx, 323, 'Permanent cores, talents and weapon unlocks are kept.');
-      this._button(cx, 400, 'REPLACE AND START', 360, () => this.scene.start('GameScene', {}), 0x5a2a3a);
+      this._button(cx, 400, 'REPLACE AND START', 360, () => this.scene.start('GameScene', { seed: config.seed }), 0x5a2a3a);
       this._button(cx, 460, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
       return;
     }
@@ -86,6 +91,23 @@ export class MainMenuScene extends Phaser.Scene {
     }, 0x274a55, !save.run);
     this._button(cx, menuY + 180, `PERMANENT TALENTS · ${save.permanent.cores} CORES`, 450, () => {
       this.scene.restart({ view: 'permanent' });
+    }, 0x274a55);
+    const avatarX = 1000;
+    const avatar = resolveAvatar(save.settings.avatar, this.textures);
+    const appearance = APPEARANCES[avatar];
+    this.add.text(avatarX, 328, 'PLAYER APPEARANCE', {
+      fontFamily: 'monospace', fontSize: '15px', color: '#8fb8c8'
+    }).setOrigin(0.5);
+    const preview = this.add.image(avatarX, 406, appearance.textures[0]);
+    preview.setScale((avatar === 'operator' ? 74 : 124) / preview.height);
+    this._button(avatarX, 490, `${appearance.label} ↻`, 238, () => {
+      const avatars = availableAvatars(this.textures);
+      if (avatars.length <= 1) { this._flash('CHARACTER ART UNAVAILABLE'); return; }
+      const latest = saveSystem.load();
+      const current = resolveAvatar(latest.settings.avatar, this.textures);
+      latest.settings.avatar = avatars[(avatars.indexOf(current) + 1) % avatars.length];
+      if (saveSystem.save(latest)) this.scene.restart({});
+      else this._flash('APPEARANCE NOT SAVED');
     }, 0x274a55);
     if (config.notice) this._flash(config.notice);
 

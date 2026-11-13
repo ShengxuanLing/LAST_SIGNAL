@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="'Bahnschrift', 'Microsoft YaHei', sans-serif">
+  <title>CONCEPT B · BRUTALIST RELAY — semantic palette, value check, materials, light</title>
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" seed="11" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0" result="g"/>
+      <feComponentTransfer in="g" result="g2"><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
+      <feComposite in="g2" in2="SourceGraphic" operator="in" result="m"/>
+      <feBlend in="SourceGraphic" in2="m" mode="multiply"/>
+    </filter>
+    <filter id="rust" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.12" numOctaves="3" seed="5" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.24 0 0 0 0 0.42 0 0 0 0 0.4 0 0 0 9 -5.6" result="p0"/>
+      <feComponentTransfer in="p0" result="p"><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+      <feComposite in="p" in2="SourceGraphic" operator="in" result="c"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="c"/></feMerge>
+    </filter>
+    <filter id="gray"><feColorMatrix type="saturate" values="0"/></filter>
+    <pattern id="hz" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="#1c1c1b"/><rect width="7" height="14" fill="#c9922f"/></pattern>
+    <radialGradient id="sod" cx="0.5" cy="0.3" r="0.7"><stop offset="0" stop-color="#ffb347" stop-opacity="0.7"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
+    <g id="sw">
+      <rect x="0" width="140" height="90" fill="#3a3a37"/><rect x="150" width="140" height="90" fill="#0a0a0a" stroke="#55554f"/>
+      <rect x="300" width="140" height="90" fill="#e9ecea"/><rect x="450" width="140" height="90" fill="#e8452c"/>
+      <rect x="600" width="140" height="90" fill="url(#hz)"/><rect x="750" width="140" height="90" fill="#cfe8ff"/>
+      <rect x="900" width="140" height="90" fill="#5fd3c4"/><rect x="1050" width="140" height="90" fill="#d8b25a"/>
+      <rect x="1200" width="140" height="90" fill="#ffb347"/><rect x="1350" width="140" height="90" fill="#151514" stroke="#55554f"/>
+    </g>
+  </defs>
+  <rect width="1600" height="900" fill="#121212"/>
+  <text x="40" y="52" fill="#e9ecea" font-size="24" letter-spacing="2">B · BRUTALIST RELAY — COLOR &amp; MATERIAL 色彩与材质</text>
+  <text x="40" y="78" fill="#9a9a90" font-size="13">Concept board. Warm sodium environment light vs cold relay signal; the infrastructure is the protagonist of the frame. 概念样稿。</text>
+  <g transform="translate(40 110)">
+    <use href="#sw"/>
+    <g font-size="12" fill="#e9ecea">
+      <text y="112">ENV 混凝土</text><text y="128" fill="#9a9a90">#3A3A37</text>
+      <text x="150" y="112">SHADOW 深影</text><text x="150" y="128" fill="#9a9a90">#121212</text>
+      <text x="300" y="112">EXECUTOR 作业白</text><text x="300" y="128" fill="#9a9a90">#E9ECEA · 15.6:1</text>
+      <text x="450" y="112">HOSTILE 敌对</text><text x="450" y="128" fill="#9a9a90">#E8452C · 4.7:1</text>
+      <text x="600" y="112">DANGER 警示条</text><text x="600" y="128" fill="#9a9a90">#C9922F 斜纹</text>
+      <text x="750" y="112">SIGNAL 中继信号</text><text x="750" y="128" fill="#9a9a90">#CFE8FF · 14.7:1</text>
+      <text x="900" y="112">INTERACT 铜绿交互</text><text x="900" y="128" fill="#9a9a90">#5FD3C4 · 10.3:1</text>
+      <text x="1050" y="112">RARE 黄铜</text><text x="1050" y="128" fill="#9a9a90">#D8B25A · 9.2:1</text>
+      <text x="1200" y="112">LIGHT 钠灯(非语义)</text><text x="1200" y="128" fill="#9a9a90">#FFB347 · 10.4:1</text>
+      <text x="1350" y="112">UI 钢板</text><text x="1350" y="128" fill="#9a9a90">#151514</text>
+    </g>
+    <text y="150" font-size="10" fill="#e8452c">RISK: sodium light, hazard paint and brass rare are all warm yellow — three meanings on one hue family; hostile red only 4.7:1.</text>
+  </g>
+  <g transform="translate(40 296)"><text y="-8" font-size="12" fill="#e9ecea">VALUE CHECK 灰度检验</text><g filter="url(#gray)" transform="scale(1 0.4)"><use href="#sw"/></g></g>
+  <g transform="translate(40 360)" font-size="12" fill="#e9ecea">
+    <text y="-10">MATERIALS 材质</text>
+    <g><rect width="240" height="180" fill="#4a4a46" filter="url(#grain)"/><path d="M0,30 H240 M0,60 H240 M0,90 H240 M0,120 H240 M0,150 H240" stroke="#000" stroke-opacity="0.25"/><g fill="#000" fill-opacity="0.4"><circle cx="40" cy="45" r="2.5"/><circle cx="200" cy="45" r="2.5"/><circle cx="40" cy="135" r="2.5"/><circle cx="200" cy="135" r="2.5"/></g><text y="200">BOARD-FORMED CONCRETE 木模混凝土</text></g>
+    <g transform="translate(260 0)"><rect width="240" height="180" fill="#3a3b39" filter="url(#rust)"/><text y="200">OXIDISED STEEL 氧化钢 · 铜绿流痕</text></g>
+    <g transform="translate(520 0)"><rect width="240" height="180" fill="#262624"/><g fill="#1a1a19"><rect x="6" y="6" width="36" height="16"/><rect x="48" y="6" width="36" height="16"/><rect x="90" y="6" width="36" height="16"/><rect x="132" y="6" width="36" height="16"/><rect x="174" y="6" width="36" height="16"/><rect x="6" y="28" width="36" height="16"/><rect x="48" y="28" width="36" height="16"/><rect x="90" y="28" width="36" height="16"/><rect x="132" y="28" width="36" height="16"/><rect x="174" y="28" width="36" height="16"/></g><rect y="60" width="240" height="120" fill="url(#hz)"/><rect y="60" width="240" height="120" fill="#121212" opacity="0.35" filter="url(#grain)"/><text y="200">GRATING + WORN HAZARD 格栅 + 磨损警示</text></g>
+    <g transform="translate(780 0)"><rect width="240" height="180" fill="#151514"/><rect x="100" y="0" width="40" height="180" fill="#1e1e1d"/><path d="M110,0 V180 M120,0 V180 M130,0 V180" stroke="#0c0c0c" stroke-width="3"/><g fill="#cfe8ff"><circle cx="120" cy="40" r="4"/><circle cx="120" cy="120" r="4"/></g><text y="200">CABLE TRAY 电缆槽 · 信号脉冲沿缆移动</text></g>
+    <g transform="translate(1040 0)"><rect width="240" height="180" fill="#121212"/><rect x="80" y="20" width="80" height="16" fill="#111"/><rect x="88" y="30" width="64" height="4" fill="#ffd28a"/><rect y="36" width="240" height="144" fill="url(#sod)"/><text y="200">SODIUM WORK-LIGHT 钠灯光池</text></g>
+    <g transform="translate(1300 0)"><rect width="220" height="180" fill="#e9ecea" filter="url(#grain)"/><rect x="20" y="20" width="80" height="14" fill="#5fd3c4"/><text x="20" y="120" font-size="28" fill="#121212" font-weight="bold">07</text><text y="200">WORKWEAR SHELL 工装外壳</text></g>
+  </g>
+  <g transform="translate(40 640)" font-size="13" fill="#e9ecea">
+    <text>• 体量叙事：墙高 150px、地板厚 40px、前景管道遮挡 → 极强的"巨构"感；代价是遮挡战斗与资产量。</text>
+    <text y="26">• 光：钠灯暖光池 + 冷信号 → 冷暖对比强，但暖色同时承担环境/警示/稀有三种含义，需要严格规则。</text>
+    <text y="52">• Canvas 可实现：墙体与光池可烘焙；前景遮挡需要按玩家位置淡出（额外逻辑但不触碰玩法）。</text>
+    <text y="78">• 风险：最容易滑向"通用工业科幻"，独特性依赖布景内容而非视觉规则。</text>
+  </g>
+</svg>

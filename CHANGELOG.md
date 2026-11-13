@@ -8,6 +8,10 @@
 
 > 本节记录本分支的改动。其中「仓库美化与 CI 稳定性修复」为继承自 `main` 基线的历史记录——`README.md`、`LICENSE`、`CONTRIBUTING.md`、`docs/README.md` 与 `assets/` 在 `main` 上已存在，本分支并未重新新增这些文件；本分支净新增内容见「局内检查点与永久进度」。
 
+### 武器库存
+
+- 暂停时可在库存中点选已持有的武器，装备标记随选择更新。
+
 ### 仓库美化与 CI 稳定性修复
 - 新增 `README.md`：项目简介、当前可玩特性、截图区、快速开始、操作表、测试命令、项目结构、已有设计文档列表、路线图简述、已知限制、许可。
 - 新增 `LICENSE`：MIT 许可证（Copyright (c) 2026 LAST SIGNAL contributors）。

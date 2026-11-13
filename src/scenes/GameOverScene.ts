@@ -1,15 +1,18 @@
 import Phaser from 'phaser';
 import { GAME } from '../config/game';
-import { saveSystem, game } from '../main';
+import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
+import { formatDuration } from '../core/formatDuration';
+import type { RunCheckpoint } from '../types';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
 
-  create(config: { seed: number; killCount?: number; dmg?: number; won?: boolean; coreAwarded?: boolean }): void {
+  create(config: { seed: number; stats?: RunCheckpoint['stats']; won?: boolean; coreAwarded?: boolean }): void {
     const won = config?.won === true;
-    const killCount = config?.killCount ?? 0;
-    const dmg = config?.dmg ?? 0;
+    const { kills, damage, items, elapsedSeconds } = config?.stats ?? {
+      kills: 0, damage: 0, items: 0, elapsedSeconds: 0
+    };
     const seed = config?.seed ?? 0;
 
     const save = saveSystem.load();
@@ -28,8 +31,8 @@ export class GameOverScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5);
 
     this.add.text(GAME.WINDOW_W / 2, 250, `SEED ${seed}`, { fontFamily: 'monospace', fontSize: '14px', color: '#5a7480' }).setOrigin(0.5, 0.5);
-    this.add.text(GAME.WINDOW_W / 2, 278, `KILLS ${killCount}`, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff' }).setOrigin(0.5, 0.5);
-    this.add.text(GAME.WINDOW_W / 2, 306, `DMAGE DEALT ${Math.round(dmg)}`, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff' }).setOrigin(0.5, 0.5);
+    this.add.text(GAME.WINDOW_W / 2, 278, `KILLS ${kills} · DAMAGE DEALT ${Math.round(damage)}`, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff' }).setOrigin(0.5, 0.5);
+    this.add.text(GAME.WINDOW_W / 2, 306, `ITEMS COLLECTED ${items} · TIME ${formatDuration(elapsedSeconds)}`, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff' }).setOrigin(0.5, 0.5);
     this.add.text(GAME.WINDOW_W / 2, 334, `RUNS COMPLETED ${save.permanent.runs} · BOSSES ${save.permanent.bossesDefeated}`, {
       fontFamily: 'monospace', fontSize: '14px', color: '#5a7480'
     }).setOrigin(0.5, 0.5);
@@ -39,9 +42,10 @@ export class GameOverScene extends Phaser.Scene {
       this.add.text(GAME.WINDOW_W / 2, 408, save.permanent.unlockedWeapons.join(' · '), { fontFamily: 'monospace', fontSize: '14px', color: '#ffd233' }).setOrigin(0.5, 0.5);
     }
 
-    this._button(GAME.WINDOW_W / 2, 500, won ? 'NEW RUN' : 'RETRY', () => {
-      if (saveSystem.load().run) this.scene.start('MainMenuScene', { view: 'replace' });
-      else this.scene.start('GameScene', {});
+    this._button(GAME.WINDOW_W / 2, 500, won ? 'NEW RUN' : 'RETRY SAME SEED', () => {
+      const nextSeed = won ? undefined : seed;
+      if (saveSystem.load().run) this.scene.start('MainMenuScene', { view: 'replace', seed: nextSeed });
+      else this.scene.start('GameScene', { seed: nextSeed });
     }, 0x33e0ff);
     this._button(GAME.WINDOW_W / 2, 560, 'MAIN MENU', () => this.scene.start('MainMenuScene', {}), 0x274a55);
   }

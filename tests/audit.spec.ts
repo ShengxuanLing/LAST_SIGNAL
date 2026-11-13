@@ -395,6 +395,11 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   expect(settingsAfter.master, 'master volume changed').not.toBe(settingsBefore.master);
   expect(settingsAfter.sfx, 'sfx volume changed').not.toBe(settingsBefore.sfx);
   expect(settingsAfter.settings?.screenShake, 'strict validate() still accepts persisted save').toBe(true);
+  await page.mouse.click(640, 370); // screen shake toggle
+  await page.mouse.click(640, 405); // reset audio
+  const restoredSettings = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('last_signal_save_v1') || '{}').settings);
+  expect(restoredSettings).toMatchObject({ screenShake: false, masterVolume: 0.7, sfxVolume: 0.8 });
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
   const settingsClosed = await page.evaluate(() => ({
