@@ -14,6 +14,7 @@ import type { RunCheckpoint, SaveData } from '../types';
 import { audio } from '../systems/AudioSystem';
 import type { ControllerActorView, LocalControllerView } from '../ai-native/localController';
 import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
+import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
 
 export interface WorldCallbacks {
@@ -164,34 +165,75 @@ export class World {
 
   /**
    * Read-only adapter for the local deterministic controller (AI-NATIVE-02 P1).
-   * It exposes only publicly observable state (positions / HP / portal /
-   * walkability). It has no setters: a controller can never write coordinates
-   * or HP, it can only return a PlayerIntent for Player.applyIntent().
+   * It exposes only a bounded perception projection: own state, perceived
+   * actors / boss / portal, and a short-range local walkability probe. It has no
+   * setters and no full-map collision oracle; a controller can never write
+   * coordinates or HP, only return a PlayerIntent for Player.applyIntent().
    */
   intentView(): LocalControllerView {
     const observation = this.observationView();
-    const enemies: ControllerActorView[] = observation.visibleActors.map((actor) => ({
+    const enemies: ControllerActorView[] = observation.perceivedActors.map((actor) => ({
       id: actor.id, kind: actor.kind, x: actor.x, y: actor.y, alive: actor.alive
     }));
     const boss: ControllerActorView | null = observation.boss
       ? { id: observation.boss.id, kind: 'boss_warden', x: observation.boss.x, y: observation.boss.y, alive: true }
       : null;
+    const center = { x: observation.player.x, y: observation.player.y };
     return {
-      ready: observation.player.alive,
-      player: { x: observation.player.x, y: observation.player.y, alive: observation.player.alive },
+      ready: observation.player.alive && !this.player.control.paused,
+      player: { x: center.x, y: center.y, alive: observation.player.alive },
       roomId: observation.roomId,
       enemies,
       boss,
       portal: observation.portal ? { x: observation.portal.x, y: observation.portal.y } : null,
-      canWalk: (x, y) => this.isWalkable(x, y, 0.5),
+      // F-01: bounded local probe. Far / non-finite / unexplored queries are
+      // uniformly rejected and never reach the real terrain predicate.
+      canWalk: createLocalProbe({
+        center,
+        probeRadiusTiles: WORLD_PERCEPTION.probeRadiusTiles,
+        isExplored: (x, y) => this.isExploredCell(x, y),
+        isWalkable: (x, y) => this.isWalkable(x, y, 0.5)
+      }),
       timeSeconds: this.clock
     };
   }
 
+  /** Room id containing a grid point, or null when outside all room bounds. */
+  private roomIdAt(x: number, y: number): number | null {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    for (const r of this.map.rooms) {
+      if (x >= r.gx && x < r.gx + r.w && y >= r.gy && y < r.gy + r.h) return r.id;
+    }
+    return null;
+  }
+
+  /** Only rooms the player has actually entered count as known territory. */
+  private isExploredCell(x: number, y: number): boolean {
+    const id = this.roomIdAt(x, y);
+    return id !== null && this.enteredRooms.has(id);
+  }
+
+  /** Wall cells occlude sight. Lava/water block movement, not sight. */
+  private isOpaqueCell(x: number, y: number): boolean {
+    return this.tileAt(Math.floor(x), Math.floor(y)).type === 'wall';
+  }
+
+  /** F-02: grid-only perception, no camera, viewport or spawn-room shortcut. */
+  private isPerceivable(x: number, y: number): boolean {
+    return gridLineOfSight({ x, y }, {
+      center: { x: this.player.x, y: this.player.y },
+      radiusTiles: WORLD_PERCEPTION.radiusTiles,
+      isExplored: (sx, sy) => this.isExploredCell(sx, sy),
+      isOpaque: (sx, sy) => this.isOpaqueCell(sx, sy),
+      stepTiles: WORLD_PERCEPTION.losStepTiles
+    });
+  }
+
   /**
    * Legal read-only projection for AI adapters (see ai-native/worldObservation).
-   * Only the current room, own player state, visible actors, boss HP (already
-   * rendered by the HUD) and the portal position leave the World here.
+   * Actors, boss and portal are included only when they satisfy the bounded
+   * grid radius + explored-room + LOS predicate. Portal destination, Boss phase,
+   * seed / RNG / full map never leave the World here.
    */
   observationView(): WorldObservationV1 {
     const room = this.currentRoom();
@@ -213,7 +255,16 @@ export class World {
         : null,
       portal: this.portal
         ? { x: this.portal.wx, y: this.portal.wy, targetRoom: this.portal.targetRoom }
-        : null
+        : null,
+      perception: {
+        basis: 'grid-radius+explored+line-of-sight',
+        center: { x: this.player.x, y: this.player.y },
+        radiusTiles: WORLD_PERCEPTION.radiusTiles,
+        probeRadiusTiles: WORLD_PERCEPTION.probeRadiusTiles,
+        requiresExplored: true,
+        requiresLineOfSight: true
+      },
+      isPerceivable: (x, y) => this.isPerceivable(x, y)
     });
   }
 

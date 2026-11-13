@@ -135,6 +135,24 @@ P5提交后Lead发现普通Session与coop各10槽位可合计20，已由Orca Wor
 - 命令与结果：`npm run typecheck` PASS；`npm test` 321/321（新增 29 项）；`npm run build` / `npm run game:mcp:build` PASS；冻结快照 5281 专属端口 `npx playwright test tests/ai-native-world.spec.ts --workers=1` 6/6 PASS；双端口全量 `PORT=5173 npx playwright test --workers=1` 33/33 PASS。日志 `reports/ai-native-02/final-*.log`、`p1-full-playwright.log`、`final-playwright-frozen.log`。
 - 证据：`reports/ai-native-02/evidence-frozen/`（5 张分辨率 HUD 截图、AI 连续截图、暂停/升级/死亡截图、`operation-log-*.json`）；五分辨率物理最小字号 19.5/13.87/13/10.4/8.125 CSS px；AI 14 帧采样 pathLength 9.478 tiles、5 个移动意图、1 次合法传送门房间转场、所有采样点 walkable；白名单把其他房间敌人排除，portal targetRoom 不外泄；暂停菜单 AI 运行时确认为 ON、手动 OFF 后不自抢；升级弹层内按 W 真实夺回；死亡清 run、新局 human 且无残留；checkpoint 捕获帧不随活状态变异。
 - 失败历史：早期 WIP 采样的「位移点数>2」失败不是放宽阈值掩盖，而是发现 LevelUpScene 暂停与合法传送门房间跳变；最终用连续细采样、同房间步长/碰撞合法性与单独记录 interact 转场修复。另有生产构建 class 名被压缩导致按 `constructor.name` 找 Scene 失败，已全部改为 Phaser scene key。
-- 独立复核：**Reviewer 与 Tester 只做了基线核查，尚未对本 P1 实现做独立最终验收**；两者报告见 `reports/ai-native-02/reviewer/REVIEW_P0P1_WORLD_MIGRATION_RISK.md`、`reports/ai-native-02/tester/`。开发者自测不得冒充独立验收。
+- 独立复核：Tester `reports/ai-native-02/tester/p1-final/P1-FINAL-ACCEPTANCE.md` **P1 PASS（无阻断）**，含 6/6 冻结浏览器复核与 2 个无夹具探针（自然受伤 / 自然升级 / 自然死亡 / 真实键鼠夺回）；Reviewer `reports/ai-native-02/reviewer/REVIEW_P1_IMPLEMENTATION.md` **P1 PASS（有条件）**，要求 F-01/F-02/F-04/F-05/F-06/F-07 闭环后才允许接外部 Agent。两者均不是开发者自测，也不等于真人/外部 Agent 验收。
 - 剩余风险/未完成：World 纯权威核与固定 tick（P2）、全玩法 seeded RNG 与 Replay/确定性（P4）、外部 Agent 经正式通道接入、Human+ECHO 正式双 Actor、Station Zero runtime 的 actor/reset 硬化、`onLoot`/`statsSnapshot()` 空实现；P1 不重构这些。
-- 下一阶段：由 Lead 派 Tester / Reviewer 对本提交做独立最终验收；再决定 P2–P5 范围。
+- 下一阶段：先闭环 Reviewer 条件项，再由 Lead 派独立复核；P2–P5 由 Lead 另行排期。
+
+## P1 条件项修复（F-01/F-02/F-04/F-05/F-06/F-07）
+
+- 提交：见本节所在提交（父 `2d78e805...`），未合并 main。
+- 实现：新增 `src/ai-native/worldPerception.ts`（有界网格半径 12 tiles / 已探索房间 / 墙遮挡 LOS / ±1.5 tiles 局部 `canWalk` 探针）；`WorldObservationV1` 改名为 `perceivedActors` 并增加 `visibilityBasis`，`observationView()/intentView()` 按 `isPerceivable` 过滤敌人/Boss/portal，远距、墙后、未进入房间全部不可感知，从他房追入感知范围的敌人可见；`GameScene` 把背包纳入 `control.pause()` + 清输入 + HUD 刷新，覆盖层内 W/A/S/D/SPACE、非 UI 鼠标、F 均可夺回，UI 点击用 `hitTestPointer` 归覆盖层所有，关闭后不自抢；紧凑视口（scale<0.85）放大右列与操作提示并拉开行距，提示文字改高对比色，测试改名为几何断言（最小 ≥10 CSS px）。
+- 新增回归：`src/ai-native/worldPerception.test.ts`（8）、重写 `worldObservation.test.ts`（6）、`tests/ai-native-world.spec.ts` 新增 2 个正式 World 用例（覆盖层所有权 + 有界感知），并把五视口断言从「readable」改为几何 + 截图供人工判读。
+- 证据范围表（F-07）：
+
+| 证据类别 | 具体来源 | 夹具 | 能证明 | 不能证明 |
+| --- | --- | --- | --- | --- |
+| 开发者 P1 主控制流 / 五视口截图 | `reports/ai-native-02/evidence-frozen/`、`p1-fixes/evidence-frozen/` | 固定 seed 注入 `scene.start`、每 100ms 刷新 `invuln`、`addXp` 触发升级、`spawnEnemy` 注入隐藏敌人、`hurt(999999)` 合成伤害、第二武器 fixture | 控制所有权、暂停冻结、夺回、升级/死亡**清理流程**、HUD 几何、checkpoint 不变性、感知投影边界 | 真实战斗难度 / 生存击杀 / 真实 XP 升级 / 真实战斗死亡 / 外部 Agent 接入 |
+| 开发者新增覆盖层回归 | `p1-fixes/evidence-frozen/operation-log-overlay-ownership-1280x720.json` | i-frames、第二武器、addXp 升级、隐藏敌人 | 背包/暂停/升级 UI 点击归属、移动/开火/F 夺回、关闭不自抢 | 真人游玩、外部 Agent |
+| 独立 Tester 无夹具短演示 | `reports/ai-native-02/tester/p1-final/04-normal-run-probe.log`、`normal-run-log.json`、`evidence-normal/` | **无** i-frames / HP / 坐标 / addXp / spawnEnemy / seed 注入 | 自然受伤（100 → 6.53 → 25.36）、真实升级弹层、墙碰撞合法性、KeyD/鼠标/F 真实夺回、暂停 OFF 不自抢 | 真人、外部 Agent、战斗胜利 |
+| 独立 Tester 无夹具自然死亡 | `reports/ai-native-02/tester/p1-final/05-natural-death-wall-probe.log`、`natural-death-wall-log.json`、`evidence-natural/` | **无**夹具 | HP 100 → 0 自然死亡、GameOver 清档、新 R0 控制复位、墙邻域合法性 | 真人、外部 Agent、战斗胜利 |
+| 外部 Agent / Headless World / Replay | 无 | — | — | **全部未实现**；HUD/菜单/报告始终 `EXTERNAL NOT CONNECTED`；`game:headless`/MCP 只服务 Station Zero |
+
+- 人工可读性判读（F-06）：开发者已查看 `p1-fixes/evidence-dev/hud-ai-800x600.png`（修复后）：右列 7 行与左下提示在 800x600 下完整、无裁切/重叠、字号明显放大且提示高对比；结论记为「可辨，不需要放大」，但这是开发者看图结论，不冒充独立人工验收；数字阈值只作几何下限。
+- 仍未处理：F-03（`window.__game` 生产暴露）、F-08（`restoreCheckpoint` 入参别名）、F-09（`intentToWorldVelocity` 硬编码 64/32）、R-01/R-02/R-05/R-06/R-09 与外部 Agent 接入；全部带入 P2/P4。

@@ -101,14 +101,18 @@ export interface LocalControllerView {
 }
 export class LocalDeterministicController { decide(view): AiDecision; reset(); }
 
-// src/ai-native/worldObservation.ts —— 合法可见观察白名单
+// src/ai-native/worldObservation.ts + worldPerception.ts —— 合法感知投影
+// `WorldObservationV1` 是 controller 输入投影，不是安全边界（F-03 未修）：
+// 仅自身位置/HP、roomId、被感知的敌人/Boss/传送门位置，带明确的 visibilityBasis。
+// 感知 = 有界网格半径(12 tiles) + 已探索房间 + 墙遮挡 LOS；当前房间成员身份不充分。
+// 不含：seed / RNG / 全图 / 未探索房间 / Boss phase / portal targetRoom / 内部状态。
 export function buildWorldObservation(input): WorldObservationV1;
-// 仅：自身位置/HP、当前 roomId、当前房间存活敌人、当前房间 Boss（HUD 已显示的 HP）、传送门位置
-// 不含：seed / RNG / 隐藏房间 / 未进入房间敌人 / Boss phase / portal targetRoom / 内部状态
+export function gridLineOfSight(target, options): boolean;   // 纯网格，无 camera
+export function createLocalProbe(options): (x, y) => boolean; // 有界局部探针，非全图 oracle
 
 // src/world/World.ts —— 只读适配，无 setter
 observationView(): WorldObservationV1;
-intentView(): LocalControllerView;
+intentView(): LocalControllerView;      // canWalk 仅接受玩家 ±1.5 tiles 的有限、已探索探针
 
 // src/entities/Player.ts —— 唯一写入口
 setAimGrid(x, y): void;                 // 人类指针与 AI 共用
@@ -127,12 +131,12 @@ toggleAiControl(): boolean;             // Pause 菜单开发入口
 1. 启动正式 World（见 §7），从主菜单 **NEW RUN** 开局。
 2. 游戏中按 **ESC** → 暂停菜单点 **AI CONTROL: OFF**（第 5 个按钮，逻辑坐标 640,540）→ 变为 `ON · LOCAL DEMO`。
 3. 按 **ESC** 或点 **RESUME** 回到游戏；HUD 右列显示 `CONTROL AI · LOCAL DETERMINISTIC`、最近动作（如 `AI ACTION MOVE / ENGAGE / TRAVEL / INTERACT`）与实际目标。
-4. **任意 WASD / SPACE / 鼠标开火 / F** 立即把控制权交还人类并关闭本地演示（升级弹层覆盖时也可用一个移动键夺回）。
-5. 再按 ESC 可暂停/恢复；暂停时 HUD 与控制权冻结，菜单显示当前归属；点同一个按钮可把 AI 关回 OFF。
+4. **任意 WASD / SPACE / 鼠标左键开火 / F** 立即把控制权交还人类并关闭本地演示；覆盖层（背包 / 升级选卡 / 暂停菜单）期间同样有效，不需要先关闭覆盖层。覆盖层上的**可交互 UI 点击**（换装 EQUIP、升级卡片、菜单按钮）归 UI 所有，不算开火、不夺回；空白处点击才算开火/夺回。
+5. 再按 ESC / I 可暂停或开关背包；暂停与背包都会冻结 authority、清理残留输入并把 HUD 刷成 `PAUSED`；关闭后若人类已在覆盖层里夺回，AI **不会自动抢回**。
 6. `LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED` 是真实连接状态：**没有接外部 Agent**。
 7. 死亡走既有 `finishRun` → 新 R0；退出/刷新仍恢复最近安全点。控制状态不写入存档，也不跨局继承。
 
-HUD 左下常驻：`ESC PAUSE · ANY MOVE / FIRE TAKES HUMAN CONTROL`。
+HUD 左下常驻：`ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL`。800x600 等紧凑视口自动加大逻辑字号并拉开行距（最小状态行 ≥10 CSS px，提示行同色高对比），不隐藏提示、不靠 z-index；数值断言只是几何检查，可读性仍需人工看截图。
 
 ---
 
@@ -141,8 +145,9 @@ HUD 左下常驻：`ESC PAUSE · ANY MOVE / FIRE TAKES HUMAN CONTROL`。
 - `LocalDeterministicController` 只用 `PlayerIntent` 表达意图；没有 `setPosition`、没有 HP 写入、没有 Scene 访问。
 - 移动预算是**正式 World 真实各向异性**：屏幕单位方向经 `intentToWorldVelocity()` 转为网格速度，再走 `World.isWalkable(...,0.5)` 轴分离碰撞；没有搬 Station Zero 的 `SLICE.MOVE_SPEED / canFit`。
 - 瞄准不伪造 Phaser pointer：`aimFromPointer()` 把屏幕点转网格后调用 `setAimGrid()`，AI 用同一个方法。
-- 目标选择只使用 `WorldObservationV1` 白名单：只有当前房间存活敌人/当前房间 Boss；其他房间敌人、隐藏目标房间号、Boss phase、RNG/seed 不进入观察。
-- 控制权转移：`enableAi` → `pause` → `resume` → `humanTakeover` → `disableAi` → `onDeath` → `onRunStart` → `onSceneExit`；每次都清理 `fireHeld`、方向键状态与交互排队，并重置控制器防卡死记忆。
+- 目标选择只使用 `WorldObservationV1` 感知投影：有界网格半径 + 已探索房间 + 墙遮挡 LOS；同房间但远距/墙后的敌人不可见，从其他房间追进感知范围的敌人可见。Boss / 传送门位置也受同一范围约束；`targetRoom`、Boss phase、seed/RNG 不进入观察。
+- `intentView().canWalk` 是**有界局部探针**：非有限、超出 ±1.5 tiles、未探索坐标统一返回 `false` 且不查询真实地形；只有控制器转向所需的近距合法探针到达 `World.isWalkable(...,0.5)`，因此不是全图碰撞 oracle。注意 `window.__game` 仍存在（F-03 未修），本投影是 controller 输入约束，不是页面级隐藏信息边界。
+- 控制权转移：`enableAi` → `pause` → `resume` → `humanTakeover` → `disableAi` → `onDeath` → `onRunStart` → `onSceneExit`；暂停/背包/升级覆盖层都冻结 authority 并清理 `fireHeld`、方向键与交互排队；覆盖层内移动键 / 非 UI 鼠标 / F 均可夺回，夺回后关闭覆盖层不自动回切 AI。
 - `captureCheckpoint()` 现在返回深拷贝（`cloneCheckpoint()`），避免内存持有者拿到会继续变化的活引用；已有单测和浏览器证据。
 - 主 World 仍是变长 dt、含视觉随机（`Math.random()` 用于 bob/掉落/召唤），没有固定 tick、快照/Replay 或跨实例确定性承诺。固定 seed 仅用于复现证据。
 - 不把浏览器自动化说成 Headless Agent，不把本地控制器说成 LLM/Codex，不把开发者自测说成独立验收。
@@ -160,6 +165,12 @@ HUD 左下常驻：`ESC PAUSE · ANY MOVE / FIRE TAKES HUMAN CONTROL`。
 | R-10 三类冒充 | HUD/暂停菜单/本报告/测试报告均明示本地确定性演示与外部未连接 |
 | R-01 纯权威核 / R-02 确定性 | **留 P2/P4 架构风险**：主 World 仍是 Phaser+规则耦合、变长 dt、玩法/视觉随机混合；本轮按 Lead 裁定只做意图适配，不重构、不宣称 Headless/Replay |
 | R-05 运行时 actor 标签 / R-06 reset 换 seed | 属 Station Zero Headless 侧，**本轮未把 runtime 接进 Scene**；留 P2/P4 |
+| F-01/F-02（P1 修复） | 已修：`worldPerception.ts` 有界半径/已探索/LOS；`World.observationView()` 按 `isPerceivable` 过滤敌人/Boss/portal；`createLocalProbe()` 拒绝远距、非有限、未探索查询；纯单测 + 正式 World Playwright 覆盖远距/墙后/未探索/Boss/portal/近距合法探针 |
+| F-04/F-05（P1 修复） | 已修：背包与暂停/升级同样 `control.pause()` + 清输入 + 刷新 HUD；覆盖层内 W/A/S/D/SPACE、非 UI 鼠标、F 均可夺回；UI 点击用 `hitTestPointer` 判归覆盖层，不误判为开火；关闭后不自抢 |
+| F-06（P1 修复） | 已修：紧凑视口放大右列与提示逻辑字号、提高提示对比度、拉开行距；测试改名为几何断言（≥10 CSS px）并保存截图供人工判读，不用阈值冒充可读性 |
+| F-07（P1 修复） | 已修：本报告新增「P1 证据范围」表，逐类标注夹具与无夹具独立证据 |
+| F-03（P2 阻断） | **未修**：`window.__game` 生产暴露仍在；感知投影不是页面级安全边界，外部 Agent 接入前必须收敛 |
+| F-08/F-09/F-10 | 低优先残留：`restoreCheckpoint` 入参别名、`intentToWorldVelocity` 硬编码 64/32、暂停 HUD 刷新（本轮已顺带修复 F-10 的 HUD 模式刷新） |
 | R-09 `onLoot` / `statsSnapshot()` 空实现 | 与 P1 意图适配无关，未处理，列为后续缺陷 |
 
 **明确遗留**：共享纯核、固定 60Hz tick、全玩法 seeded RNG、跨端 parity、World Replay/state hash、`WorldCore` parity 测试、外部 Agent 经正式 Player/MCP 通道接入、Human+ECHO 正式双 Actor、P5 后续分辨率/玩法范围扩展。当前 `Human + ECHO` 未实现，不能伪装可用；现有 `src/ai-native/coop.ts` 仍是隔离 Headless 测试实体。
@@ -188,5 +199,6 @@ PORT=5173 LS_SHOT_DIR=reports/ai-native-02/screens npx playwright test --reporte
 
 单测/类型/构建：`npm run typecheck`、`npm test`、`npm run build`、`npm run game:mcp:build`。
 完整输出位于 `reports/ai-native-02/*.log`；截图/连续取样/操作日志位于 `reports/ai-native-02/evidence-frozen/`。
+P1 条件项修复的完整日志与证据在 `reports/ai-native-02/p1-fixes/logs/`、`reports/ai-native-02/p1-fixes/evidence-frozen/`；冻结快照端口 5283，命令见 `reports/ai-native-02/p1-fixes/REPORT.md`。
 
-> 证据中的 i-frames 刷新是**测试夹具**（防止无关战斗死亡打断控制流采样），由 Playwright 注入；死亡仍通过真实 `hurt()` 路径验证，夹具不修改 HP 或坐标，也不由控制器执行。
+> 证据分两类：①开发者 spec 注入固定 seed / i-frames / addXp / spawnEnemy / 合成伤害的**夹具证据**，只证明控制流、几何、清理与投影，不证明真实战斗或外部 Agent；②独立 Tester 的 `reports/ai-native-02/tester/p1-final/` 无夹具探针（`probe-normal-run.mjs`、`probe-natural-death-wall.mjs`）记录自然受伤、自然升级、自然死亡与真实键鼠夺回，仍是自动化浏览器证据而非真人/外部 Agent。两类均不得宣称 Headless、LLM、Codex 或战斗胜利。

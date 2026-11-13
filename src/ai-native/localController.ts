@@ -33,7 +33,11 @@ export interface LocalControllerView {
   boss: ControllerActorView | null;
   /** Position only: the portal's destination is hidden information. */
   portal: { x: number; y: number } | null;
-  /** Same predicate the player collision uses; radius is owned by the adapter. */
+  /**
+   * Bounded local steering probe (F-01). Non-finite, far-away and unexplored
+   * coordinates are uniformly rejected; this is NOT a full-map collision oracle.
+   * The adapter uses the real World.isWalkable predicate only inside the probe.
+   */
   canWalk: (x: number, y: number) => boolean;
   timeSeconds: number;
 }

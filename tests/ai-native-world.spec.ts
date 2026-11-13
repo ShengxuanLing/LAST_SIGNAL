@@ -11,6 +11,14 @@
 // NO external agent connected. It does not claim a real LLM/Codex run, a
 // Headless World or an MCP-in-Scene integration.
 //
+// Evidence scope (F-07): this spec injects fixed seed, i-frames refresh,
+// addXp level-ups, a hidden enemy, a second weapon and synthetic lethal damage.
+// It therefore proves control ownership / pause / takeover / UI-click ownership /
+// geometry / perception bounds, NOT real combat survival or AI skill. Independent
+// no-fixture probes with natural injury, natural level-up and natural death live
+// in reports/ai-native-02/tester/p1-final/ and are a separate evidence class.
+// Neither class is a real external Agent or a human playtest.
+//
 // Recommended run (frozen built snapshot, no HMR):
 //   npm run build
 //   npx vite preview --port 5173 --strictPort
@@ -92,6 +100,11 @@ async function state(page: Page) {
       projectiles: gs.world.projectiles.length,
       hp: gs.world.player.data.hp,
       damage: gs.damageDealt,
+      fireHeld: gs.fireHeld,
+      playerFireHeld: gs.world.player.fireHeld(),
+      inputFlags: { ...gs.world.player.input },
+      weaponKey: gs.world.player.data.weaponKey,
+      visibilityBasis: gs.world.observationView().visibilityBasis,
       room: gs.world.currentRoom()?.kind ?? null,
       hpBarText: gs.txtHp.text,
       txtControl: gs.txtControl.text,
@@ -136,7 +149,8 @@ async function hudRects(page: Page) {
         x: sx - o.originX * o.width,
         y: sy - o.originY * o.height,
         w: o.width,
-        h: o.height
+        h: o.height,
+        color: o.style && o.style.color ? o.style.color : null
       };
     }).filter(Boolean);
   });
@@ -359,7 +373,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
         hiddenEnemyId: enemy._id,
         hiddenEnemyRoom: other.id,
         currentRoom: current,
-        visibleIds: obs.visibleActors.map((a: any) => a.id),
+        perceivedIds: obs.perceivedActors.map((a: any) => a.id),
         intentEnemyIds: view.enemies.map((a: any) => a.id),
         hasTargetRoom: JSON.stringify(obs).includes('targetRoom'),
         playerHp: obs.player.hp,
@@ -367,7 +381,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       };
     });
     expect(whitelist.worldEnemies, 'hidden enemy exists in the World').toBeGreaterThan(1);
-    expect(whitelist.visibleIds, 'other-room enemy is not in the whitelist').not.toContain(whitelist.hiddenEnemyId);
+    expect(whitelist.perceivedIds, 'other-room enemy is not in the perception projection').not.toContain(whitelist.hiddenEnemyId);
     expect(whitelist.intentEnemyIds, 'controller view also excludes it').not.toContain(whitelist.hiddenEnemyId);
     expect(whitelist.hasTargetRoom, 'portal destination never leaves the projection').toBe(false);
     expect(whitelist.playerHp, 'own public HP is kept in the projection').toBeGreaterThan(0);
@@ -582,7 +596,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
   });
 
   for (const [w, h] of [[1920, 1080], [1366, 768], [1280, 720], [1024, 768], [800, 600]] as Array<[number, number]>) {
-    test(`HUD fully visible, non-overlapping and readable after scaling at ${w}x${h}`, async ({ page }) => {
+    test(`HUD fully visible, non-overlapping and scaled geometry at ${w}x${h}`, async ({ page }) => {
       test.setTimeout(60000);
       const errors: string[] = [];
       page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
@@ -638,19 +652,350 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
             `HUD rows ${a.name}/${b.name} must not overlap`).toBe(true);
         }
       }
-      // Readability after real CSS scaling: smallest rendered text height in CSS px.
+      // F-06: geometry, not a claim that a numeric threshold proves readability.
+      // Compact viewports (<0.85 scale) use larger logical fonts so the minimum
+      // rendered row is >=10 CSS px; screenshots are saved for human judgement.
       const renderedHeights = column.map((r) => ({ name: r.name, cssPx: r.h * scale }));
       const minRow = renderedHeights.reduce((a, b) => (a.cssPx < b.cssPx ? a : b));
-      expect(minRow.cssPx, `smallest HUD status row readable at ${w}x${h} (${minRow.name})`).toBeGreaterThanOrEqual(7.5);
-      // Fire CSS size for the main HUD rows (evidence only, no absolute-unit dependency).
+      expect(minRow.cssPx, `smallest HUD status row geometry >=10 CSS px at ${w}x${h} (${minRow.name})`).toBeGreaterThanOrEqual(10);
+      const help = rects.find((r) => r.name === 'txtHelp');
+      expect(help, 'operation hint is present').toBeTruthy();
+      expect(help!.h * scale, 'operation hint geometry >=10 CSS px').toBeGreaterThanOrEqual(10);
+      expect(help!.color, 'operation hint uses readable contrast').toBe('#8fb8c8');
+      expect(help!.text, 'operation hint mentions move / fire / F takeover').toContain('ANY MOVE / FIRE / F TAKES HUMAN CONTROL');
       record(`hud-${w}x${h}`, {
         box, scale, canvasCssWidth: box!.w, canvasCssHeight: box!.h,
         logicalResolution: `${GAME_W}x${GAME_H}`,
-        renderedHeights, minRow, rects, mode: st!.mode
+        renderedHeights, minRow, help: { cssPx: help!.h * scale, color: help!.color, text: help!.text },
+        geometryOnly: true, readabilityClaim: false,
+        note: 'numeric threshold is a geometry check; screenshots saved for human visual review',
+        rects, mode: st!.mode
       });
       await page.screenshot({ path: path.join(OUT, `hud-ai-${w}x${h}.png`) });
       expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
       saveLog(`hud-${w}x${h}`);
     });
   }
+
+  test('F-04/F-05: inventory/pause/level-up overlay ownership, UI clicks vs fire/F takeover', async ({ page }) => {
+    test.setTimeout(120000);
+    const errors: string[] = [];
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    mkdirSync(OUT, { recursive: true });
+    await bootRun(page);
+    await stabilizeEvidenceRun(page);
+    record('evidence-fixture', {
+      reason: 'overlay ownership regression uses i-frames refresh + a second weapon fixture',
+      onlyIFramesRefreshed: true, injectedWeapon: 'scatter', actor: 'test-harness'
+    });
+    // Fixture: an unowned second weapon makes the inventory EQUIP button active.
+    await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      gs.world.player.data.weapons.push({
+        key: 'scatter', level: 1, ammo: 6, magazine: 6, reloading: false, reloadTimer: 0
+      });
+    });
+
+    await enableAiViaPause(page);
+    let st = await state(page);
+    expect(st!.owner).toBe('ai');
+
+    // Inventory is a pause-like overlay: authority paused, input dropped.
+    await page.keyboard.press('KeyI');
+    await page.waitForTimeout(500);
+    st = await state(page);
+    expect(st!.active, 'inventory overlay open').toContain('PauseScene');
+    expect(st!.authorityPaused, 'inventory freezes control authority').toBe(true);
+    expect(st!.mode).toBe('PAUSED');
+    expect(st!.txtControl).toContain('PAUSED');
+    expect(st!.fireHeld, 'no residual fire flag').toBe(false);
+    expect(st!.playerFireHeld, 'no residual player fire flag').toBe(false);
+    expect(Object.values(st!.inputFlags).every((v) => !v), 'no residual direction flags').toBe(true);
+    record('inventory-open', { mode: st!.mode, authorityPaused: st!.authorityPaused, fireHeld: st!.fireHeld });
+
+    // UI click ownership: EQUIP changes weapon, does NOT count as fire / takeover.
+    await clickLogical(page, 420, 236);
+    await page.waitForTimeout(400);
+    st = await state(page);
+    expect(st!.weaponKey, 'inventory equip still works').toBe('scatter');
+    expect(st!.owner, 'UI equip click does not take control').toBe('ai');
+    expect(st!.aiEnabled, 'AI remains enabled after UI click').toBe(true);
+    expect(st!.fireHeld, 'UI click does not leave a fire flag').toBe(false);
+    record('ui-equip-click', { weaponKey: st!.weaponKey, owner: st!.owner, fireHeld: st!.fireHeld });
+
+    // CLOSE UI click resumes AI (no takeover happened).
+    await clickLogical(page, 640, GAME_H - 60);
+    await page.waitForTimeout(500);
+    st = await state(page);
+    expect(st!.paused, 'inventory closed').toBe(false);
+    expect(st!.owner, 'AI resumes when no human takeover occurred').toBe('ai');
+    expect(st!.aiEnabled).toBe(true);
+    expect(st!.fireHeld).toBe(false);
+    record('inventory-close-no-takeover', { owner: st!.owner, paused: st!.paused });
+
+    // Movement key takeover inside inventory, then CLOSE must NOT re-grab AI.
+    await page.keyboard.press('KeyI');
+    await page.waitForTimeout(400);
+    const beforeKey = await state(page);
+    await page.keyboard.press('KeyW');
+    await page.waitForTimeout(350);
+    st = await state(page);
+    expect(st!.active, 'inventory still open during key takeover').toContain('PauseScene');
+    expect(st!.owner, 'W takes over inside inventory').toBe('human');
+    expect(st!.aiEnabled, 'AI disabled by overlay takeover').toBe(false);
+    expect(st!.takeoverCount).toBe(beforeKey!.takeoverCount + 1);
+    expect(st!.lastTakeoverReason).toBe('human-input');
+    await clickLogical(page, 640, GAME_H - 60);
+    await page.waitForTimeout(500);
+    st = await state(page);
+    expect(st!.owner, 'closing inventory does not auto re-grab a human-taken run').toBe('human');
+    expect(st!.aiEnabled).toBe(false);
+    expect(st!.txtControl).toContain('HUMAN');
+    await page.waitForTimeout(1200);
+    expect((await state(page))!.owner, 'human stays in control after inventory close').toBe('human');
+    record('inventory-key-takeover', { owner: st!.owner, takeoverCount: st!.takeoverCount });
+
+    // F key takeover inside inventory.
+    await enableAiViaPause(page);
+    await page.keyboard.press('KeyI');
+    await page.waitForTimeout(400);
+    await page.keyboard.press('KeyF');
+    await page.waitForTimeout(350);
+    st = await state(page);
+    expect(st!.active, 'inventory still open during F takeover').toContain('PauseScene');
+    expect(st!.owner, 'F takes over inside inventory').toBe('human');
+    expect(st!.aiEnabled).toBe(false);
+    await clickLogical(page, 640, GAME_H - 60);
+    await page.waitForTimeout(400);
+    expect((await state(page))!.owner).toBe('human');
+    record('inventory-f-takeover', { owner: st!.owner, reason: st!.lastTakeoverReason });
+
+    // Non-UI mouse press (fire) inside inventory takes over; no UI hit there.
+    await enableAiViaPause(page);
+    await page.keyboard.press('KeyI');
+    await page.waitForTimeout(400);
+    await clickLogical(page, 100, 100);
+    await page.waitForTimeout(350);
+    st = await state(page);
+    expect(st!.owner, 'non-UI mouse press takes over inside inventory').toBe('human');
+    expect(st!.aiEnabled).toBe(false);
+    await clickLogical(page, 640, GAME_H - 60);
+    await page.waitForTimeout(400);
+    expect((await state(page))!.owner).toBe('human');
+    record('inventory-pointer-takeover', { owner: st!.owner });
+
+    // Level-up card click is UI, NOT fire: AI ownership survives the click.
+    await enableAiViaPause(page);
+    await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const pl = gs.world.player;
+      pl.addXp(pl.data.xpToNext);
+    });
+    await page.waitForTimeout(1000);
+    const cardOwnerBefore = await state(page);
+    expect(cardOwnerBefore!.active).toContain('LevelUpScene');
+    expect(cardOwnerBefore!.owner).toBe('ai');
+    await clickLogical(page, 380, 320);
+    await page.waitForTimeout(800);
+    st = await state(page);
+    expect(st!.active, 'level-up closed after card click').not.toContain('LevelUpScene');
+    expect(st!.owner, 'card UI click does not take control').toBe('ai');
+    expect(st!.aiEnabled).toBe(true);
+    expect(st!.paused).toBe(false);
+    record('levelup-card-ui-click', { owner: st!.owner, paused: st!.paused });
+
+    // Pause-menu SETTINGS button is UI, NOT fire: AI ownership survives.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(450);
+    await clickLogical(page, 640, 420);
+    await page.waitForTimeout(450);
+    const settingsOpened = await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      const ps: any = g.scene.getScene('PauseScene');
+      return (ps.children.list as any[]).some((c) => c.type === 'Container');
+    });
+    expect(settingsOpened, 'settings panel opened').toBe(true);
+    st = await state(page);
+    expect(st!.owner, 'pause menu UI click does not take control').toBe('ai');
+    expect(st!.aiEnabled).toBe(true);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(450);
+    expect((await state(page))!.paused, 'pause overlay closed').toBe(false);
+    record('pause-settings-ui-click', { owner: st!.owner, settingsOpened });
+
+    // Level-up overlay: F and non-UI pointer also reclaim control for real.
+    for (const input of ['KeyF', 'pointer'] as const) {
+      // AI may still be ON after the UI-click checks; enable only when OFF.
+      if (!(await state(page))!.aiEnabled) await enableAiViaPause(page);
+      await page.evaluate(() => {
+        const g: any = (window as any).__game;
+        const gs: any = g.scene.getScene('GameScene');
+        const pl = gs.world.player;
+        pl.addXp(pl.data.xpToNext);
+      });
+      await page.waitForTimeout(900);
+      const before = await state(page);
+      expect(before!.active).toContain('LevelUpScene');
+      expect(before!.owner).toBe('ai');
+      if (input === 'KeyF') await page.keyboard.press('KeyF');
+      else await clickLogical(page, 100, 100);
+      await page.waitForTimeout(350);
+      const during = await state(page);
+      expect(during!.active, `level-up still open during ${input} takeover`).toContain('LevelUpScene');
+      expect(during!.owner, `${input} takes over inside level-up`).toBe('human');
+      expect(during!.aiEnabled).toBe(false);
+      await page.keyboard.press('1');
+      await page.waitForTimeout(650);
+      const after = await state(page);
+      expect(after!.owner, 'human keeps control after card choice').toBe('human');
+      expect(after!.paused).toBe(false);
+      record(`levelup-${input}-takeover`, { owner: during!.owner, reason: during!.lastTakeoverReason });
+    }
+
+    expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
+    saveLog('overlay-ownership-1280x720');
+  });
+
+  test('F-01/F-02: perception radius, occlusion, unexplored rooms, boss/portal and bounded canWalk', async ({ page }) => {
+    test.setTimeout(90000);
+    const errors: string[] = [];
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    mkdirSync(OUT, { recursive: true });
+    await bootRun(page);
+
+    const probe = await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const w = gs.world;
+      const p = { x: w.player.wx, y: w.player.wy };
+      const room = w.currentRoom();
+      const other = w.map.rooms.find((r: any) => r.id !== room.id);
+      const hidden = w.spawnEnemy('drone', other.gx + 2, other.gy + 2, other.id, 1);
+
+      // Far floor / far wall anywhere on the map (real terrain, unentered room).
+      let farFloor: any = null, farWall: any = null;
+      for (const row of w.map.tiles) {
+        for (const tile of row) {
+          const d = Math.hypot(tile.x - p.x, tile.y - p.y);
+          if (d < 20) continue;
+          if (!farFloor && w.isWalkable(tile.x, tile.y, 0.5)) farFloor = { x: tile.x, y: tile.y };
+          if (!farWall && tile.type === 'wall') farWall = { x: tile.x, y: tile.y };
+        }
+      }
+      const view0 = w.intentView();
+      const canWalkFarFloor = farFloor ? view0.canWalk(farFloor.x + 0.2, farFloor.y + 0.2) : null;
+      const canWalkFarWall = farWall ? view0.canWalk(farWall.x + 0.2, farWall.y + 0.2) : null;
+      const nonFiniteRejected = !view0.canWalk(NaN, 0) && !view0.canWalk(Infinity, 0) && !view0.canWalk(0, -Infinity);
+
+      // A short-range, explored, walkable probe must still work for steering.
+      let nearProbe = null;
+      for (let dx = -1; dx <= 1 && nearProbe === null; dx += 0.5) {
+        for (let dy = -1; dy <= 1; dy += 0.5) {
+          if (Math.hypot(dx, dy) > 1.2 || (dx === 0 && dy === 0)) continue;
+          if (w.isWalkable(p.x + dx, p.y + dy, 0.5)) {
+            nearProbe = { x: p.x + dx, y: p.y + dy, canWalk: view0.canWalk(p.x + dx, p.y + dy) };
+            break;
+          }
+        }
+      }
+
+      const obs0 = w.observationView();
+      const hiddenVisibleUnexplored = obs0.perceivedActors.some((a: any) => a.id === hidden._id);
+      w.enteredRooms.add(other.id); // mark it explored, but still far away
+      const obsExplored = w.observationView();
+      const hiddenVisibleExploredButFar = obsExplored.perceivedActors.some((a: any) => a.id === hidden._id);
+      const canWalkFarFloorExplored = farFloor ? w.intentView().canWalk(farFloor.x + 0.2, farFloor.y + 0.2) : null;
+
+      // Find a perceivable, floor, same-room point ~3 tiles away with a clear
+      // mid-cell; then temporarily turn that mid-cell into a wall (LOS test).
+      let candidate: any = null;
+      for (let dx = -4; dx <= 4 && !candidate; dx++) {
+        for (let dy = -4; dy <= 4; dy++) {
+          const d = Math.hypot(dx, dy);
+          if (d < 2 || d > 5) continue;
+          const tx = p.x + dx, ty = p.y + dy;
+          if (!w.isWalkable(tx, ty, 0.5)) continue;
+          if (!w.isPerceivable(tx, ty)) continue;
+          const mid = w.tileAt(Math.floor(p.x + dx / 2), Math.floor(p.y + dy / 2));
+          if (mid.type === 'wall') continue;
+          candidate = { x: tx, y: ty, mid };
+          break;
+        }
+      }
+      const nearEnemy = candidate ? w.spawnEnemy('drone', candidate.x, candidate.y, room.id, 1) : null;
+      const nearVisible = nearEnemy ? w.observationView().perceivedActors.some((a: any) => a.id === nearEnemy._id) : null;
+      let nearVisibleBehindWall = null;
+      if (candidate) {
+        const previousType = candidate.mid.type;
+        candidate.mid.type = 'wall';
+        nearVisibleBehindWall = w.observationView().perceivedActors.some((a: any) => a.id === nearEnemy._id);
+        candidate.mid.type = previousType;
+      }
+
+      // Boss position obeys the same bounds.
+      w.spawnBoss(w.map.rooms[room.id]);
+      const boss: any = w.boss;
+      const nearPoint = candidate ?? { x: p.x + 1, y: p.y };
+      boss.wx = nearPoint.x; boss.wy = nearPoint.y;
+      const bossNear = !!w.observationView().boss;
+      boss.wx = other.gx + 2; boss.wy = other.gy + 2;
+      const bossFar = !!w.observationView().boss;
+      boss.sprite.destroy(); w.boss = null;
+
+      // Portal position obeys the same bounds; destination never leaves the DTO.
+      const portal = w.portal;
+      const originalPortal = { x: portal.wx, y: portal.wy };
+      portal.wx = nearPoint.x; portal.wy = nearPoint.y;
+      const portalNear = !!w.observationView().portal;
+      portal.wx = other.gx + 2; portal.wy = other.gy + 2;
+      const portalFar = !!w.observationView().portal;
+      portal.wx = originalPortal.x; portal.wy = originalPortal.y;
+      const finalObs = w.observationView();
+
+      return {
+        player: p, roomId: room.id, otherRoomId: other.id,
+        hiddenEnemyId: hidden._id,
+        visibilityBasis: finalObs.visibilityBasis,
+        perception: finalObs.perception,
+        farFloor, farWall, canWalkFarFloor, canWalkFarWall, canWalkFarFloorExplored,
+        nonFiniteRejected, nearProbe,
+        hiddenVisibleUnexplored, hiddenVisibleExploredButFar,
+        nearVisible, nearVisibleBehindWall,
+        bossNear, bossFar, portalNear, portalFar,
+        hasTargetRoom: JSON.stringify(finalObs).includes('targetRoom'),
+        hasPhase: JSON.stringify(finalObs).includes('phase'),
+        perceivedIds: finalObs.perceivedActors.map((a: any) => a.id)
+      };
+    });
+
+    record('perception-probe', probe);
+    expect(probe.visibilityBasis).toBe('grid-radius+explored+line-of-sight');
+    expect(probe.perception.requiresExplored).toBe(true);
+    expect(probe.perception.requiresLineOfSight).toBe(true);
+    expect(probe.farFloor, 'found a real far floor cell').not.toBeNull();
+    expect(probe.farWall, 'found a real far wall cell').not.toBeNull();
+    expect(probe.canWalkFarFloor, 'far floor query is rejected').toBe(false);
+    expect(probe.canWalkFarWall, 'far wall query is rejected').toBe(false);
+    expect(probe.canWalkFarFloor, 'far floor and wall queries are indistinguishable').toBe(probe.canWalkFarWall);
+    expect(probe.canWalkFarFloorExplored, 'explored-but-far query is still rejected').toBe(false);
+    expect(probe.nonFiniteRejected, 'non-finite probes rejected').toBe(true);
+    expect(probe.nearProbe, 'found a short-range local probe').not.toBeNull();
+    expect(probe.nearProbe.canWalk, 'short-range legal probe still works').toBe(true);
+    expect(probe.hiddenVisibleUnexplored, 'unexplored-room enemy is not perceived').toBe(false);
+    expect(probe.hiddenVisibleExploredButFar, 'explored but out-of-range enemy is not perceived').toBe(false);
+    expect(probe.nearVisible, 'near, unobstructed same-room enemy is perceived').toBe(true);
+    expect(probe.nearVisibleBehindWall, 'same enemy behind a wall is not perceived').toBe(false);
+    expect(probe.bossNear, 'near boss position is perceived').toBe(true);
+    expect(probe.bossFar, 'far boss position is not perceived').toBe(false);
+    expect(probe.portalNear, 'near portal position is perceived').toBe(true);
+    expect(probe.portalFar, 'far portal position is not perceived').toBe(false);
+    expect(probe.hasTargetRoom, 'portal destination never leaves the projection').toBe(false);
+    expect(probe.hasPhase, 'boss phase never leaves the projection').toBe(false);
+    expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
+    saveLog('perception-bounds-1280x720');
+  });
 });

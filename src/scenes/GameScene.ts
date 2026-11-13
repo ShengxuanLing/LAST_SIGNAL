@@ -49,6 +49,13 @@ export class GameScene extends Phaser.Scene {
   private txtAiTarget!: Phaser.GameObjects.Text;
   private txtAgentLink!: Phaser.GameObjects.Text;
   private txtHelp!: Phaser.GameObjects.Text;
+  /** Compact-viewport HUD layout (F-06): larger logical fonts, no z-index tricks. */
+  private hudLayout = {
+    weaponY: 20, roomY: 44, enemiesY: 64,
+    controlY: 90, actionY: 110, targetY: 128, linkY: 146,
+    helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
+    helpFont: '13px', helpColor: '#8fb8c8'
+  };
 
   private runStart = 0;
   private enemiesKilled = 0;
@@ -146,7 +153,12 @@ export class GameScene extends Phaser.Scene {
       if (!event.repeat) this.toggleInventory();
     });
     this.input.keyboard!.on('keydown-F', () => {
-      if (this.paused) return;
+      if (this.paused) {
+        // F-05: an interaction key must also be able to reclaim control while
+        // an overlay is on top; it must NOT interact with a paused world.
+        this.takeoverFromHumanInput();
+        return;
+      }
       this.saveCheckpoint();
       // Queue the interaction so it executes in Player.applyIntent, the same
       // path the local controller uses (legal action, not a direct teleport).
@@ -154,18 +166,22 @@ export class GameScene extends Phaser.Scene {
     });
     this.input.keyboard!.on('keydown-Q', () => this.switchWeapon(-1));
     this.input.keyboard!.on('keydown-E', () => this.switchWeapon(1));
-    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (p.button === 0) this.fireHeld = true; });
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      if (p.button !== 0) return;
+      // UI click ownership: a pointerdown on an interactive overlay object
+      // belongs to that overlay (weapon equip / upgrade card / menu button),
+      // not to "fire". Only a non-UI press counts as fire and can take over.
+      if (this.pointerDownOnUi(p)) return;
+      if (this.world.player.control.owner === 'ai') this.takeoverFromHumanInput();
+      this.fireHeld = !this.paused;
+    });
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => { if (p.button === 0) this.fireHeld = false; });
     // Real product takeover: movement keys must work even while a pause-like
-    // overlay (LevelUpScene / PauseScene) is on top, where Player.update() is
-    // not running. This gives the human one-key control reclaim instead of
-    // requiring the test to close the overlay first.
+    // overlay (LevelUpScene / PauseScene / inventory) is on top, where
+    // Player.update() is not running.
     const takeoverOnMove = (event: KeyboardEvent) => {
       if (event.repeat) return;
-      if (this.world.player.control.owner !== 'ai') return;
-      this.world.player.control.humanTakeover('human-input');
-      this.world.player.clearHeldInput();
-      this.fireHeld = false;
+      this.takeoverFromHumanInput();
     };
     for (const code of ['W', 'A', 'S', 'D', 'SPACE']) {
       this.input.keyboard!.on(`keydown-${code}`, takeoverOnMove);
@@ -205,6 +221,27 @@ export class GameScene extends Phaser.Scene {
     return map;
   }
 
+  /** UI clicks belong to the overlay scene; only the remaining pointer presses are fire. */
+  private pointerDownOnUi(pointer: Phaser.Input.Pointer): boolean {
+    for (const key of ['PauseScene', 'LevelUpScene']) {
+      if (!this.scene.isActive(key)) continue;
+      const overlay: any = this.scene.get(key);
+      const input = overlay?.input as Phaser.Input.InputPlugin | undefined;
+      if (input && typeof input.hitTestPointer === 'function' &&
+          input.hitTestPointer(pointer).length > 0) return true;
+    }
+    return false;
+  }
+
+  /** One-key / one-click human reclaim, valid during overlays too. */
+  private takeoverFromHumanInput(): void {
+    if (this.world.player.control.owner !== 'ai') return;
+    this.world.player.control.humanTakeover('human-input');
+    this.world.player.clearHeldInput();
+    this.fireHeld = false;
+    this.refreshHud();
+  }
+
   private setupHud(): void {
     // Screen-space HUD. Each element is added directly to the scene; every frame, lockHud
     // places its origin in the world (scroll + target / zoom) and scales it by 1 / zoom so
@@ -216,6 +253,29 @@ export class GameScene extends Phaser.Scene {
     const HUD_DEPTH = 500;
     const style = { fontFamily: 'monospace', fontStyle: 'bold' };
     const add = this.add;
+    // F-06: FIT scales the 1280x720 canvas down (0.625 at 800x600). Use larger
+    // logical fonts and more vertical room in compact viewports instead of
+    // hiding rows, relying on z-index, or calling 7.5 CSS px "readable".
+    // Phaser's displayScale is not a reliable FIT ratio across builds; use the
+    // actual viewport-to-logical-canvas ratio (FIT + CENTER_BOTH).
+    const scale = Math.min(
+      window.innerWidth / GAME.WINDOW_W,
+      window.innerHeight / GAME.WINDOW_H
+    ) || 1;
+    const compact = scale < 0.85;
+    this.hudLayout = compact
+      ? {
+          weaponY: 16, roomY: 42, enemiesY: 68,
+          controlY: 96, actionY: 124, targetY: 152, linkY: 180,
+          helpY: GAME.WINDOW_H - 52, baseRowFont: '17px', controlFont: '17px', rowFont: '17px',
+          helpFont: '16px', helpColor: '#8fb8c8'
+        }
+      : {
+          weaponY: 20, roomY: 44, enemiesY: 64,
+          controlY: 90, actionY: 110, targetY: 128, linkY: 146,
+          helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
+          helpFont: '13px', helpColor: '#8fb8c8'
+        };
 
     // Graphics bars: fillRect() draws at fixed local offsets with origin (0,0), so the bar
     // origin (x,y) is the rect's top-left. lockHud pins it to that point via the camera
@@ -235,14 +295,15 @@ export class GameScene extends Phaser.Scene {
     this.txtXp = add.text(128, 40, 'XP 0', { ...style, fontSize: '12px', color: '#8fb8c8' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtCurrency = add.text(20, 60, 'CREDITS 0', { fontFamily: 'monospace', fontSize: '14px', color: '#ffd233' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtLevel = add.text(20, 80, 'LV 1', { fontFamily: 'monospace', fontSize: '14px', color: '#33e0ff' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
-    this.txtWeapon = add.text(GAME.WINDOW_W - 20, 20, '', { fontFamily: 'monospace', fontSize: '16px', color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtRoom = add.text(GAME.WINDOW_W - 20, 44, '', { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtEnemies = add.text(GAME.WINDOW_W - 20, 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtControl = add.text(GAME.WINDOW_W - 20, 90, '', { fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtAiAction = add.text(GAME.WINDOW_W - 20, 110, '', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtAiTarget = add.text(GAME.WINDOW_W - 20, 128, '', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtAgentLink = add.text(GAME.WINDOW_W - 20, 146, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: 'monospace', fontSize: '12px', color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtHelp = add.text(20, GAME.WINDOW_H - 44, 'ESC PAUSE · ANY MOVE / FIRE TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: '12px', color: '#3d535d' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
+    const L = this.hudLayout;
+    this.txtWeapon = add.text(GAME.WINDOW_W - 20, L.weaponY, '', { fontFamily: 'monospace', fontSize: L.baseRowFont, color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtRoom = add.text(GAME.WINDOW_W - 20, L.roomY, '', { fontFamily: 'monospace', fontSize: L.baseRowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtEnemies = add.text(GAME.WINDOW_W - 20, L.enemiesY, '', { fontFamily: 'monospace', fontSize: L.baseRowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtControl = add.text(GAME.WINDOW_W - 20, L.controlY, '', { fontFamily: 'monospace', fontSize: L.controlFont, fontStyle: 'bold', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAiAction = add.text(GAME.WINDOW_W - 20, L.actionY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAiTarget = add.text(GAME.WINDOW_W - 20, L.targetY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAgentLink = add.text(GAME.WINDOW_W - 20, L.linkY, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtBossHp = add.text(GAME.WINDOW_W / 2, 30, '', { fontFamily: 'monospace', fontSize: '20px', color: '#ff3355', fontStyle: 'bold' }).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     this.bossBarFill = add.rectangle(GAME.WINDOW_W / 2, 52, 0, 8, 0xff3355, 1).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     this.timer = add.text(20, 104, '', { fontFamily: 'monospace', fontSize: '12px', color: '#5a7480' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
@@ -273,14 +334,15 @@ export class GameScene extends Phaser.Scene {
     place(this.txtXp, 128, 40);
     place(this.txtCurrency, 20, 60);
     place(this.txtLevel, 20, 80);
-    place(this.txtWeapon, GAME.WINDOW_W - 20, 20);
-    place(this.txtRoom, GAME.WINDOW_W - 20, 44);
-    place(this.txtEnemies, GAME.WINDOW_W - 20, 64);
-    place(this.txtControl, GAME.WINDOW_W - 20, 90);
-    place(this.txtAiAction, GAME.WINDOW_W - 20, 110);
-    place(this.txtAiTarget, GAME.WINDOW_W - 20, 128);
-    place(this.txtAgentLink, GAME.WINDOW_W - 20, 146);
-    place(this.txtHelp, 20, GAME.WINDOW_H - 44);
+    const L = this.hudLayout;
+    place(this.txtWeapon, GAME.WINDOW_W - 20, L.weaponY);
+    place(this.txtRoom, GAME.WINDOW_W - 20, L.roomY);
+    place(this.txtEnemies, GAME.WINDOW_W - 20, L.enemiesY);
+    place(this.txtControl, GAME.WINDOW_W - 20, L.controlY);
+    place(this.txtAiAction, GAME.WINDOW_W - 20, L.actionY);
+    place(this.txtAiTarget, GAME.WINDOW_W - 20, L.targetY);
+    place(this.txtAgentLink, GAME.WINDOW_W - 20, L.linkY);
+    place(this.txtHelp, 20, L.helpY);
     place(this.txtBossHp, GAME.WINDOW_W / 2, 30);
     place(this.bossBarFill, GAME.WINDOW_W / 2, 52);
     place(this.timer, 20, 104);
@@ -443,6 +505,7 @@ export class GameScene extends Phaser.Scene {
     this.paused = true;
     this.world.player.control.pause();
     this.world.player.clearHeldInput();
+    this.refreshHud();
     this.cameras.main.setAlpha(0.5);
     this.scene.launch('LevelUpScene', { level, onClose: () => this.onLevelUpClosed() });
   }
@@ -458,6 +521,7 @@ export class GameScene extends Phaser.Scene {
       this.paused = false;
       this.world.player.control.resume();
       this.world.player.clearHeldInput();
+      this.refreshHud();
       this.cameras.main.setAlpha(1);
     }
   }
@@ -538,6 +602,7 @@ export class GameScene extends Phaser.Scene {
     this.world.player.control.pause();
     this.world.player.clearHeldInput();
     this.fireHeld = false;
+    this.refreshHud();
     this.scene.launch('PauseScene', { mode: 'pause' });
   }
 
@@ -546,6 +611,7 @@ export class GameScene extends Phaser.Scene {
     this.world.player.control.resume();
     this.world.player.clearHeldInput();
     this.fireHeld = false;
+    this.refreshHud();
   }
 
   /** Dev entry for the real World, used by the Pause menu button. */
@@ -557,6 +623,7 @@ export class GameScene extends Phaser.Scene {
       return false;
     }
     control.enableAi(this.world.clock);
+    this.refreshHud();
     return true;
   }
 
@@ -572,7 +639,14 @@ export class GameScene extends Phaser.Scene {
 
   private toggleInventory(): void {
     if (this.paused) return;
+    // F-04: inventory is a pause-like overlay. Freeze authority and drop held
+    // input exactly like onPause(); human takeover inside the overlay disables
+    // the demo, so onResume() cannot silently hand control back to the AI.
     this.paused = true;
+    this.world.player.control.pause();
+    this.world.player.clearHeldInput();
+    this.fireHeld = false;
+    this.refreshHud();
     this.scene.launch('PauseScene', { mode: 'inventory' });
   }
 }
