@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME } from '../config/game';
+import { DEFAULT_SETTINGS, GAME } from '../config/game';
 import { UPGRADES } from '../config/upgrades';
 import { WEAPONS } from '../config/weapons';
 import { saveSystem } from '../main';
@@ -29,12 +29,14 @@ export class PauseScene extends Phaser.Scene {
         if (parent) parent.onResume();
       }});
     };
-    // ESC closes the overlay. Remove the listener on shutdown so scene.restart()
-    // (inventory / settings back) never accumulates duplicate handlers.
-    const onEsc = () => close();
-    this.input.keyboard?.on('keydown-ESC', onEsc);
+    const closeFromKey = (event: KeyboardEvent) => {
+      if (!event.repeat) close();
+    };
+    this.input.keyboard?.on('keydown-ESC', closeFromKey);
+    if (mode === 'inventory') this.input.keyboard?.on('keydown-I', closeFromKey);
     this.events.once('shutdown', () => {
-      this.input.keyboard?.off('keydown-ESC', onEsc);
+      this.input.keyboard?.off('keydown-ESC', closeFromKey);
+      this.input.keyboard?.off('keydown-I', closeFromKey);
     });
 
     if (mode === 'inventory') {
@@ -42,6 +44,15 @@ export class PauseScene extends Phaser.Scene {
 
       // weapons
       this.add.text(120, 150, 'WEAPON ARSENAL', { fontFamily: 'monospace', fontSize: '18px', color: '#ff8a3c' });
+      const description = this.add.text(120, 390, '', {
+        fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', wordWrap: { width: 350 }
+      });
+      const equipWeapon = (key: string) => {
+        if (closing || !player.equipWeapon(key)) return;
+        audio.ui();
+        refreshWeapons();
+      };
+      const shortcuts = ['ONE', 'TWO', 'THREE', 'FOUR'];
       const refreshWeaponRows = player.data.weapons.map((w, i) => {
         const def = WEAPONS[w.key];
         const y = 186 + i * 44;
@@ -52,10 +63,17 @@ export class PauseScene extends Phaser.Scene {
         }).setOrigin(0.5, 0);
         equip.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
           event.stopPropagation();
-          if (closing || !player.equipWeapon(w.key)) return;
-          audio.ui();
-          refreshWeaponRows.forEach((refresh) => refresh());
+          equipWeapon(w.key);
         });
+        const shortcut = shortcuts[i];
+        if (shortcut) {
+          const eventName = `keydown-${shortcut}`;
+          const onKey = (event: KeyboardEvent) => {
+            if (!event.repeat) equipWeapon(w.key);
+          };
+          this.input.keyboard?.on(eventName, onKey);
+          this.events.once('shutdown', () => this.input.keyboard?.off(eventName, onKey));
+        }
         return () => {
           const active = player.data.weaponKey === w.key;
           name.setColor(active ? '#ffd233' : '#cfe8ef');
@@ -66,7 +84,16 @@ export class PauseScene extends Phaser.Scene {
           else equip.setInteractive({ useHandCursor: true });
         };
       });
-      refreshWeaponRows.forEach((refresh) => refresh());
+      const refreshWeapons = () => {
+        refreshWeaponRows.forEach((refresh) => refresh());
+        description.setText(player.weapon.description);
+      };
+      refreshWeapons();
+      if (player.data.weapons.length > 1) {
+        this.add.text(120, 355, `1–${Math.min(player.data.weapons.length, shortcuts.length)} EQUIP`, {
+          fontFamily: 'monospace', fontSize: '13px', color: '#7ff0ff'
+        });
+      }
 
       // stats
       const s = player.data;
@@ -115,6 +142,7 @@ export class PauseScene extends Phaser.Scene {
     // that would otherwise land on the pause-menu buttons underneath.
     const blocker = this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, 0x000000, 0)
       .setOrigin(0, 0).setInteractive();
+    const panel = this.add.rectangle(GAME.WINDOW_W / 2, 403, 780, 310, 0x0d1822);
     const wrap = this.add.container(GAME.WINDOW_W / 2, 300);
 
     const vol = this.add.text(0, 0, `MASTER ${Math.round(save.settings.masterVolume * 100)}%`, { fontFamily: 'monospace', fontSize: '18px', color: '#eafaff' }).setOrigin(0.5, 0.5);
@@ -132,6 +160,12 @@ export class PauseScene extends Phaser.Scene {
 
     let master = save.settings.masterVolume;
     let sfxVol = save.settings.sfxVolume;
+    let screenShake = save.settings.screenShake;
+    const shake = this.add.text(0, 70, '', {
+      fontFamily: 'monospace', fontSize: '16px', color: '#eafaff', backgroundColor: '#274a55'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    shake.setText(`SCREEN SHAKE ${screenShake ? 'ON' : 'OFF'}`);
+    wrap.add(shake);
     const apply = () => {
       vol.setText(`MASTER ${Math.round(master * 100)}%`);
       sfx.setText(`SFX ${Math.round(sfxVol * 100)}%`);
@@ -139,6 +173,7 @@ export class PauseScene extends Phaser.Scene {
       const latest = saveSystem.load();
       latest.settings.masterVolume = master;
       latest.settings.sfxVolume = sfxVol;
+      latest.settings.screenShake = screenShake;
       saveSystem.save(latest);
     };
     const step = (v: number, delta: number) => Math.max(0, Math.min(1, Math.round((v + delta) * 10) / 10));
@@ -147,11 +182,31 @@ export class PauseScene extends Phaser.Scene {
     sfxLeft.on('pointerdown', () => { sfxVol = step(sfxVol, -0.1); apply(); audio.ui(); });
     sfxRight.on('pointerdown', () => { sfxVol = step(sfxVol, 0.1); apply(); audio.ui(); });
 
-    const hint = this.add.text(0, 135, '◀ / ▶ ADJUST VOLUME · ESC RESUME', { fontFamily: 'monospace', fontSize: '12px', color: '#48606b' }).setOrigin(0.5, 0.5);
-    const back = this.add.text(0, 90, 'BACK', { fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', backgroundColor: '#0d1822' }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    wrap.add([hint, back]);
-    const closeBack = () => { audio.ui(); blocker.destroy(); wrap.destroy(); this.scene.restart({ mode: 'pause' }); };
-    back.on('pointerdown', closeBack);
+    shake.on('pointerdown', () => {
+      screenShake = !screenShake;
+      shake.setText(`SCREEN SHAKE ${screenShake ? 'ON' : 'OFF'}`);
+      apply();
+      audio.ui();
+    });
+    const reset = this.add.text(0, 105, 'RESET AUDIO', {
+      fontFamily: 'monospace', fontSize: '14px', color: '#eafaff', backgroundColor: '#274a55'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    reset.on('pointerdown', () => {
+      master = DEFAULT_SETTINGS.masterVolume;
+      sfxVol = DEFAULT_SETTINGS.sfxVolume;
+      apply();
+      audio.ui();
+    });
+    const hint = this.add.text(0, 175, 'ESC RESUME', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(0.5);
+    const back = this.add.text(0, 140, 'BACK', { fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', backgroundColor: '#0d1822' }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
+    wrap.add([reset, hint, back]);
+    back.on('pointerdown', () => {
+      audio.ui();
+      blocker.destroy();
+      panel.destroy();
+      wrap.destroy();
+      this.scene.restart({ mode: 'pause' });
+    });
   }
 
   private _button(cx: number, y: number, label: string, cb: () => void, color: number): void {

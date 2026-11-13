@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { GAME, SAVE_VERSION } from '../config/game';
+import { WEAPONS } from '../config/weapons';
+import { formatDuration } from '../core/formatDuration';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
@@ -7,6 +9,7 @@ import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
 interface MenuConfig {
   view?: 'checkpoint' | 'permanent' | 'replace';
   notice?: string;
+  seed?: number;
 }
 
 export class MainMenuScene extends Phaser.Scene {
@@ -50,19 +53,20 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     if (config.view === 'checkpoint' && save.run) {
-      const { player, clearedRooms, seed } = save.run;
+      const { player, clearedRooms, seed, stats } = save.run;
       this.line(cx, 266, `CHECKPOINT · SEED ${seed}`, '#33e0ff');
       this.line(cx, 305, `ROOMS CLEARED ${clearedRooms.length} · LEVEL ${player.level} · RUN CREDITS ${player.currency}`);
       this.line(cx, 336, `RUN UPGRADES ${player.upgrades.length} · HP ${Math.ceil(player.hp)}/${player.maxHp}`);
-      this._button(cx, 400, 'RESUME CHECKPOINT', 360, () => this.scene.start('GameScene', { resume: true }), 0x33e0ff);
-      this._button(cx, 460, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
+      this.line(cx, 367, `EQUIPPED ${WEAPONS[player.weaponKey].name} · TIME ${formatDuration(stats.elapsedSeconds)}`);
+      this._button(cx, 420, 'RESUME CHECKPOINT', 360, () => this.scene.start('GameScene', { resume: true }), 0x33e0ff);
+      this._button(cx, 480, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
       return;
     }
 
     if (config.view === 'replace') {
       this.line(cx, 287, 'STARTING OVER REPLACES THE CURRENT RUN CHECKPOINT.', '#ff8a3c');
       this.line(cx, 323, 'Permanent cores, talents and weapon unlocks are kept.');
-      this._button(cx, 400, 'REPLACE AND START', 360, () => this.scene.start('GameScene', {}), 0x5a2a3a);
+      this._button(cx, 400, 'REPLACE AND START', 360, () => this.scene.start('GameScene', { seed: config.seed }), 0x5a2a3a);
       this._button(cx, 460, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
       return;
     }

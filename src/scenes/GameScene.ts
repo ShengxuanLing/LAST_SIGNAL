@@ -6,6 +6,7 @@ import { WEAPONS } from '../config/weapons';
 import { UPGRADES } from '../config/upgrades';
 import { saveSystem, game } from '../main';
 import { audio } from '../systems/AudioSystem';
+import { formatDuration } from '../core/formatDuration';
 import { Player } from '../entities/Player';
 import type { RunCheckpoint } from '../types';
 
@@ -132,8 +133,12 @@ export class GameScene extends Phaser.Scene {
     // Input
     this.keys = this.input.keyboard!.addKey('SPACE');
     this.input.keyboard!.on('keydown_SPACE', () => {});
-    this.input.keyboard!.on('keydown-ESC', () => this.onPause());
-    this.input.keyboard!.on('keydown-I', () => this.toggleInventory());
+    this.input.keyboard!.on('keydown-ESC', (event: KeyboardEvent) => {
+      if (!event.repeat) this.onPause();
+    });
+    this.input.keyboard!.on('keydown-I', (event: KeyboardEvent) => {
+      if (!event.repeat) this.toggleInventory();
+    });
     this.input.keyboard!.on('keydown-F', () => {
       if (this.paused) return;
       this.saveCheckpoint();
@@ -306,13 +311,17 @@ export class GameScene extends Phaser.Scene {
     this.txtXp.setText(`XP ${p.data.xp}/${p.data.xpToNext}`);
     this.txtCurrency.setText(`CREDITS ${p.data.currency}`);
     this.txtLevel.setText(`LV ${p.data.level}`);
-    this.txtWeapon.setText(`${w.name} [${w.icon}]`);
+    const weaponState = p.data.weapons.find(({ key }) => key === p.data.weaponKey);
+    const ammo = weaponState && weaponState.magazine > 0
+      ? weaponState.reloading ? ' · RELOADING' : ` · ${weaponState.ammo}/${weaponState.magazine}`
+      : '';
+    this.txtWeapon.setText(`${w.name} [${w.icon}]${ammo}`);
     const room = this.world.currentRoom();
     if (room) this.txtRoom.setText(`${room.kind.toUpperCase()} ROOM`);
     const aliveEnemies = this.world.enemies.length + (this.world.boss ? 1 : 0);
     this.txtEnemies.setText(`HOSTILES ${aliveEnemies}`);
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
-    this.timer.setText(`${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, '0')}`);
+    this.timer.setText(formatDuration(Math.max(0, secs)));
     const settings = saveSystem.getSettings();
     audio.setVolumes(settings.masterVolume, settings.sfxVolume);
   }
@@ -431,15 +440,17 @@ export class GameScene extends Phaser.Scene {
     this.pendingLevels = [];
     this.levelUpActive = false;
     audio.death();
-    saveSystem.finishRun(this.runId, false, this.seed, this.runStats());
+    const stats = this.runStats();
+    saveSystem.finishRun(this.runId, false, this.seed, stats);
     this.scene.stop('LevelUpScene');
-    this.scene.start('GameOverScene', { seed: this.seed, killCount: this.enemiesKilled, dmg: this.damageDealt, won: false });
+    this.scene.start('GameOverScene', { seed: this.seed, stats, won: false });
   }
 
   private onBossWin(): void {
     if (this.runFinished) return;
     this.runFinished = true;
-    const coreAwarded = saveSystem.finishRun(this.runId, true, this.seed, this.runStats());
+    const stats = this.runStats();
+    const coreAwarded = saveSystem.finishRun(this.runId, true, this.seed, stats);
     this.pendingLevels = [];
     this.levelUpActive = false;
     audio.bossroar();
@@ -455,7 +466,7 @@ export class GameScene extends Phaser.Scene {
       callback: () => {
         this.scene.stop('PauseScene');
         this.scene.stop('LevelUpScene');
-        this.scene.start('GameOverScene', { seed: this.seed, killCount: this.enemiesKilled, dmg: this.damageDealt, won: true, coreAwarded });
+        this.scene.start('GameOverScene', { seed: this.seed, stats, won: true, coreAwarded });
       }
     });
   }

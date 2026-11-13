@@ -55,9 +55,17 @@ export class LevelUpScene extends Phaser.Scene {
       glow.on('pointerover', () => panel.setFillStyle(0x16303a, 1));
       glow.on('pointerout', () => panel.setFillStyle(0x0d1822, 0.9));
       glow.on('pointerdown', () => this.choose(key));
+      const shortcut = `keydown-${['ONE', 'TWO', 'THREE'][i]}`;
+      const onKey = (event: KeyboardEvent) => {
+        if (!event.repeat) this.choose(key);
+      };
+      this.input.keyboard?.on(shortcut, onKey);
+      this.events.once('shutdown', () => this.input.keyboard?.off(shortcut, onKey));
 
       // icon
-      this.add.text(x, 200, '★', { fontSize: '48px', color: '#ffd233' }).setOrigin(0.5, 0.5);
+      this.add.text(x, 200, `[${i + 1}]`, {
+        fontFamily: 'monospace', fontSize: '26px', color: '#ffd233'
+      }).setOrigin(0.5);
       this.add.text(x, 250, def.name, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff', fontStyle: 'bold' }).setOrigin(0.5, 0.5);
       const prog = this.player.upgrades.find((u) => u.key === def.key);
       this.add.text(x, 280, `Lv ${prog?.level ?? 0}/${def.maxLevel}`, { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' }).setOrigin(0.5, 0.5);
@@ -74,8 +82,8 @@ export class LevelUpScene extends Phaser.Scene {
       this.add.text(x, 450, diff, { fontFamily: 'monospace', fontSize: '12px', color: '#7ff0ff' }).setOrigin(0.5, 0.5);
     });
 
-    this.add.text(GAME.WINDOW_W / 2, GAME.WINDOW_H - 24, 'choose one to continue', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#48606b'
+    this.add.text(GAME.WINDOW_W / 2, GAME.WINDOW_H - 24, 'CLICK A CARD OR PRESS ITS NUMBER', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8'
     }).setOrigin(0.5, 0.5);
   }
 
@@ -112,7 +120,8 @@ export class LevelUpScene extends Phaser.Scene {
     const out: T[] = [];
     const remainingItems = items.slice();
     const remainingWeights = weights.slice();
-    for (let i = 0; i < Math.min(n, remainingItems.length); i++) {
+    const count = Math.min(n, remainingItems.length);
+    for (let i = 0; i < count; i++) {
       const total = remainingWeights.reduce((a, b) => a + b, 0);
       let r = Math.random() * total;
       let idx = 0;
