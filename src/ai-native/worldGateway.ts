@@ -72,6 +72,7 @@ interface PendingAction {
   readonly actionId: string;
   readonly requestId: string;
   readonly fingerprint: string;
+  readonly acceptedTick: number;
   readonly applyByTick: number;
   readonly queuedAtMs: number;
   readonly action: WorldActionV1;
@@ -97,6 +98,12 @@ interface SessionState {
   pending: PendingAction[];
   requestCache: Map<string, CachedRequest>;
   actionCache: Map<string, CachedAction>;
+  // F2: ids evicted from the bounded idempotency cache stay rejected, so a
+  // retried request/action that fell out of the cache can never re-execute.
+  evictedRequestIds: Set<string>;
+  evictedRequestRing: string[];
+  evictedActionIds: Set<string>;
+  evictedActionRing: string[];
 }
 
 export interface WorldGatewayOptions {
@@ -146,7 +153,11 @@ export class WorldGateway {
       lastObservation: null,
       pending: [],
       requestCache: new Map(),
-      actionCache: new Map()
+      actionCache: new Map(),
+      evictedRequestIds: new Set(),
+      evictedRequestRing: [],
+      evictedActionIds: new Set(),
+      evictedActionRing: []
     });
     return { ok: true, session, epoch: 1 };
   }
@@ -181,6 +192,12 @@ export class WorldGateway {
     const parsed = parseWorldObservation(value);
     if (!parsed.ok) return parsed;
     if (parsed.value.epoch !== epoch) return this.err('E_STALE_EPOCH', 'world.stale_epoch');
+    // F1: observations must be monotonic per session/epoch. A stale (lower-tick)
+    // observation must not roll back the authoritative white-list state nor
+    // extend the action TTL baseline.
+    if (s.lastObservation && parsed.value.tick < s.lastObservation.tick) {
+      return this.err('E_STALE_TICK', 'world.stale_tick');
+    }
     s.lastObservation = parsed.value;
     s.lastSeenMs = nowMs;
     this.expireByWall(s, nowMs);
@@ -208,6 +225,11 @@ export class WorldGateway {
     const ttl = batch.ttlTicks ?? WORLD_LIMITS.DEFAULT_TTL_TICKS;
     const acceptedTick = s.lastObservation.tick;
     const applyByTick = acceptedTick + ttl;
+    // F2: a request id evicted from the idempotency window is permanently
+    // rejected (not re-queued) — retrying it after eviction must not execute.
+    if (s.evictedRequestIds.has(input.requestId)) {
+      return this.err('E_RETRY_AFTER_EVICTION', 'world.request_evicted');
+    }
     const batchFingerprint = worldBatchFingerprint(batch);
 
     const cachedRequest = s.requestCache.get(input.requestId);
@@ -227,6 +249,9 @@ export class WorldGateway {
     const toQueue: Array<{ action: WorldActionV1; fingerprint: string }> = [];
     for (const action of batch.actions) {
       const fingerprint = worldActionFingerprint(action);
+      if (s.evictedActionIds.has(action.actionId)) {
+        return this.err('E_RETRY_AFTER_EVICTION', 'world.action_evicted');
+      }
       const cached = s.actionCache.get(action.actionId);
       const pending = s.pending.find((p) => p.actionId === action.actionId);
       if (cached) {
@@ -250,6 +275,7 @@ export class WorldGateway {
         actionId: entry.action.actionId,
         requestId: input.requestId,
         fingerprint: entry.fingerprint,
+        acceptedTick,
         applyByTick,
         queuedAtMs: input.nowMs,
         action: entry.action
@@ -259,10 +285,9 @@ export class WorldGateway {
         receipt: { actionId: entry.action.actionId, status: 'queued', applyByTick }
       });
     }
-    this.trimCache(s.requestCache);
-    this.trimCache(s.actionCache);
+    this.trimCache(s, s.requestCache, 'request');
     s.requestCache.set(input.requestId, { fingerprint: batchFingerprint, actionIds });
-    this.trimCache(s.requestCache);
+    this.trimCache(s, s.requestCache, 'request');
     const receipt = this.composeReceipt(s, input.requestId, actionIds, acceptedTick, applyByTick, false);
     if (replayed.length > 0) {
       // queued action cache is already reflected by composeReceipt.
@@ -328,6 +353,12 @@ export class WorldGateway {
     if (input.result === 'applied' && finalTickInvalid(input.appliedTick)) {
       return this.err('E_SCHEMA', 'world.applied_tick_invalid');
     }
+    // F3: a fake ACK cannot claim an appliedTick below the accepted tick or
+    // above applyByTick. The browser is the authority, but the contract bounds
+    // what a plausible ACK may assert.
+    if (input.result === 'applied' && input.appliedTick! < pending.acceptedTick) {
+      return this.err('E_SCHEMA', 'world.applied_tick_invalid');
+    }
     if (input.result === 'applied' && input.appliedTick! > pending.applyByTick) {
       s.pending.splice(index, 1);
       const expired: WorldActionReceipt = {
@@ -335,7 +366,7 @@ export class WorldGateway {
         code: 'E_ACTION_EXPIRED'
       };
       s.actionCache.set(pending.actionId, { fingerprint: pending.fingerprint, receipt: expired });
-      this.trimCache(s.actionCache);
+      this.trimCache(s, s.actionCache, 'action');
       return {
         session: s.session, epoch: s.epoch, actionId: input.actionId,
         status: 'expired', code: 'E_ACTION_EXPIRED'
@@ -351,7 +382,7 @@ export class WorldGateway {
       ...(input.code ? { code: input.code } : {})
     };
     s.actionCache.set(input.actionId, { fingerprint: pending.fingerprint, receipt });
-    this.trimCache(s.actionCache);
+    this.trimCache(s, s.actionCache, 'action');
     return {
       session: s.session,
       epoch: s.epoch,
@@ -418,6 +449,11 @@ export class WorldGateway {
     return lost;
   }
 
+  sessionOrigin(sessionId: string): string | null {
+    const s = this.sessions.get(sessionId);
+    return s ? s.origin : null;
+  }
+
   dispose(): void {
     for (const s of this.sessions.values()) {
       s.status = 'closed';
@@ -439,7 +475,7 @@ export class WorldGateway {
       } else still.push(p);
     }
     s.pending = still;
-    this.trimCache(s.actionCache);
+    this.trimCache(s, s.actionCache, 'action');
   }
 
   private expireByTick(s: SessionState, tick: number): void {
@@ -453,7 +489,7 @@ export class WorldGateway {
       } else still.push(p);
     }
     s.pending = still;
-    this.trimCache(s.actionCache);
+    this.trimCache(s, s.actionCache, 'action');
   }
 
   private composeReceipt(
@@ -478,11 +514,25 @@ export class WorldGateway {
     };
   }
 
-  private trimCache<T>(cache: Map<string, T>): void {
+  private trimCache<T>(s: SessionState, cache: Map<string, T>, kind: 'request' | 'action'): void {
     while (cache.size > this.maxCacheEntries) {
       const oldest = cache.keys().next().value;
       if (oldest === undefined) break;
       cache.delete(oldest);
+      this.recordEviction(s, kind, oldest as string);
+    }
+  }
+
+  private recordEviction(s: SessionState, kind: 'request' | 'action', id: string): void {
+    const set = kind === 'request' ? s.evictedRequestIds : s.evictedActionIds;
+    const ring = kind === 'request' ? s.evictedRequestRing : s.evictedActionRing;
+    // An id that left the bounded idempotency cache must stay rejected forever
+    // within this session/epoch, so the remembered-evicted set is NOT capped.
+    // The ring is kept only as a bounded audit trail.
+    if (!set.has(id)) {
+      set.add(id);
+      ring.push(id);
+      if (ring.length > this.maxCacheEntries * 4) ring.shift();
     }
   }
 

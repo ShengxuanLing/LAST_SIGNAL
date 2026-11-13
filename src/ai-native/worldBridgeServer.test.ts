@@ -184,3 +184,38 @@ describe('C3-a loopback bridge auth / origin / lifecycle', () => {
   });
 
 });
+
+describe('C3-a bridge F3: per-operation origin binding', () => {
+  it('rejects observe/ACK/yield from an origin other than the handshake origin', async () => {
+    const gateway = new WorldGateway({ sessionIdFactory: () => 'ses_' + 'a'.repeat(24) });
+    const OTHER = 'http://localhost:5199';
+    const server = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN, OTHER], heartbeatIntervalMs: 20 });
+    try {
+      const linked = await request(server, '/world-link/handshake', { origin: ORIGIN, body: { authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION } });
+      expect(linked.status).toBe(200);
+      const { session, epoch } = linked.body;
+      const pushed = await request(server, '/world-link/observation', { origin: ORIGIN, body: { session, epoch, observation: observation(epoch, 10) } });
+      expect(pushed.status).toBe(200);
+      // An allowed but non-handshake origin cannot update this session.
+      const cross = await request(server, '/world-link/observation', { origin: OTHER, body: { session, epoch, observation: observation(epoch, 11) } });
+      expect(cross.status).toBe(403);
+      expect(cross.body.code).toBe('E_PERMISSION');
+      // Queue an action directly (no action-submit HTTP route by design), then
+      // an ACK from the wrong origin must be rejected, correct origin works.
+      const sub = gateway.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: { actions: [{ type: 'move', actionId: aid(1), dir: { x: 1, y: 0 }, ticks: 10 }], ttlTicks: 60 }, nowMs: Date.now() });
+      expect((sub as any).acceptedTick).toBe(10);
+      const ackCross = await request(server, '/world-link/action-ack', { origin: OTHER, body: { session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: 12 } });
+      expect(ackCross.status).toBe(403);
+      const ackOk = await request(server, '/world-link/action-ack', { origin: ORIGIN, body: { session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: 12 } });
+      expect(ackOk.status).toBe(200);
+      // Yield from the wrong origin is rejected; correct origin works.
+      const yieldCross = await request(server, '/world-link/yield', { origin: OTHER, body: { session, epoch, reason: 'test' } });
+      expect(yieldCross.status).toBe(403);
+      const yieldOk = await request(server, '/world-link/yield', { origin: ORIGIN, body: { session, epoch, reason: 'test' } });
+      expect(yieldOk.status).toBe(200);
+      expect(gateway.sessionOrigin(session)).toBe(ORIGIN);
+    } finally {
+      await server.close();
+    }
+  });
+});

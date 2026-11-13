@@ -107,7 +107,7 @@ export const AI_NATIVE_ERROR_CODES_V1 = Object.freeze([
   'E_LINK_UNAVAILABLE', 'E_RETRYABLE', 'E_ENERGY_INSUFFICIENT', 'E_COOLDOWN',
   'E_RATE_LIMIT', 'E_RESOURCE_LIMIT', 'E_CANCELLED', 'E_PREEMPTED', 'E_TIMEOUT',
   'E_SNAPSHOT_INVALID', 'E_REPLAY_INCOMPATIBLE', 'E_SAVE_FAILED',
-  'E_INTERNAL_TRANSACTION',
+  'E_INTERNAL_TRANSACTION', 'E_RETRY_AFTER_EVICTION',
 ] as const);
 export type ErrorCodeV1 = (typeof AI_NATIVE_ERROR_CODES_V1)[number];
 export type StepResultCodeV1 = 'OK' | ErrorCodeV1;
@@ -772,6 +772,7 @@ export const AI_NATIVE_ERROR_MESSAGES_V1: Readonly<Record<ErrorCodeV1, string>> 
   E_REPLAY_INCOMPATIBLE: 'The snapshot or replay is incompatible with this reader.',
   E_SAVE_FAILED: 'Persistence write failed.',
   E_INTERNAL_TRANSACTION: 'The atomic transaction failed; no state was committed.',
+  E_RETRY_AFTER_EVICTION: 'The request id was evicted from the idempotency window and cannot be retried.',
 });
 
 function issue(code: ErrorCodeV1, path: string): AiNativeValidationIssue {

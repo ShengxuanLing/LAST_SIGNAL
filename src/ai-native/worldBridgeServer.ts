@@ -121,6 +121,10 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const session = asString(body.session);
     const epoch = asInt(body.epoch);
     if (!session || epoch === null) return badRequest(res);
+    // F3: every operation binds to the handshake origin, not just the shared
+    // allow-list + token. A request from a different origin cannot update this
+    // session's observation/ACK/yield.
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
     const result = options.gateway.pushObservation(session, epoch, body.observation, Date.now());
     if (!result.ok) return respond(res, statusFor(result.code), result);
     respond(res, 200, { ok: true, tick: result.tick });
@@ -132,6 +136,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const session = asString(body.session);
     const epoch = asInt(body.epoch);
     if (!session || epoch === null) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
     const result = options.gateway.heartbeat(session, epoch, Date.now());
     if (!result.ok) return respond(res, statusFor(result.code), result);
     respond(res, 200, { ok: true });
@@ -142,6 +147,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const session = url.searchParams.get('session');
     const epoch = Number(url.searchParams.get('epoch'));
     if (!session || !Number.isInteger(epoch) || epoch < 0) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
     const afterActionId = url.searchParams.get('after') ?? undefined;
     const result = options.gateway.nextAction({ sessionId: session, epoch, afterActionId, nowMs: Date.now() });
     if (result && 'ok' in result) return respond(res, statusFor(result.code), result);
@@ -162,6 +168,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
       return badRequest(res);
     }
     if (result === 'applied' && appliedTick === null) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
     const ack = options.gateway.ackAction({
       sessionId: session, epoch, requestId, actionId,
       result, ...(appliedTick !== undefined && appliedTick !== null ? { appliedTick } : {}),
@@ -178,6 +185,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const epoch = asInt(body.epoch);
     const reason = asString(body.reason) ?? 'human-input';
     if (!session || epoch === null) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
     const result = options.gateway.yieldSession(session, epoch, reason, Date.now());
     if (!result.ok) return respond(res, statusFor(result.code), result);
     respond(res, 200, { ok: true, epoch: result.epoch, status: 'yielded' });
@@ -203,6 +211,14 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   return { url: `http://127.0.0.1:${address.port}`, port: address.port, close: closeBridge };
 }
 
+function originMatches(req: IncomingMessage, gateway: WorldGateway, session: string): boolean {
+  const so = gateway.sessionOrigin(session);
+  if (so === null) return true; // unknown session is rejected by the gateway itself
+  return so === req.headers.origin;
+}
+function originDenied(res: ServerResponse): void {
+  respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'world.origin_mismatch' });
+}
 function authorized(req: IncomingMessage, token: string): boolean {
   const header = req.headers.authorization;
   if (typeof header !== 'string' || !header.startsWith('Bearer ')) return false;
@@ -265,6 +281,7 @@ function statusFor(code: ErrorCodeV1): number {
   switch (code) {
     case 'E_SESSION_NOT_FOUND': return 404;
     case 'E_STALE_EPOCH': return 409;
+    case 'E_STALE_TICK': return 409;
     case 'E_PERMISSION': return 403;
     case 'E_RESOURCE_LIMIT': return 429;
     case 'E_TIMEOUT': return 504;

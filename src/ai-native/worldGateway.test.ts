@@ -184,3 +184,66 @@ describe('C3-a WorldGateway queue/idempotency/TTL', () => {
   });
 
 });
+
+describe('C3-a gateway hard gates (F1/F2/F3) from independent tester findings', () => {
+  it('F1: observations are monotonic; stale tick is rejected and never rolls back the baseline', () => {
+    const g = gateway();
+    const { session, epoch } = linked(g); // observation pushed at tick 5
+    const stale = g.pushObservation(session, epoch, observation(epoch, 3), 2000);
+    expect((stale as any).ok !== true).toBe(true);
+    expect((stale as any).code).toBe('E_STALE_TICK');
+    expect(g.listSessions()[0].tick).toBe(5);
+    const r = g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1), 10), nowMs: 2000 });
+    expect((r as any).ok !== true).toBe(true);
+    expect((r as any).acceptedTick).toBe(5);
+    // Same tick is allowed (no rollback, no TTL extension beyond current max).
+    expect(g.pushObservation(session, epoch, observation(epoch, 5), 2001).ok).toBe(true);
+    // Newer tick advances the baseline.
+    expect(g.pushObservation(session, epoch, observation(epoch, 9), 2002).ok).toBe(true);
+    const r2 = g.submitActions({ sessionId: session, epoch, requestId: rid(2), actions: batch(aid(2), 10), nowMs: 2002 });
+    expect((r2 as any).ok !== true).toBe(true);
+    expect((r2 as any).acceptedTick).toBe(9);
+  });
+
+  it('F2: a request/action id evicted from the cache cannot be retried into the queue', () => {
+    const g = gateway({ maxCacheEntries: 2, maxPendingActions: 64 });
+    const { session, epoch } = linked(g);
+    const first = g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1), 10), nowMs: 1000 });
+    expect((first as any).ok !== true).toBe(true);
+    // ACK the first action so it becomes applied and stays in cache until evicted.
+    const ack = g.ackAction({ sessionId: session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: 6, nowMs: 1001 });
+    expect((ack as any).status).toBe('applied');
+    // Flood the bounded caches so req1/actionA are evicted from the window.
+    for (let i = 0; i < 10; i++) {
+      g.submitActions({ sessionId: session, epoch, requestId: rid(10 + i), actions: batch(aid(10 + i), 10), nowMs: 1100 + i });
+    }
+    // The same request/action that fell out of the window must be rejected, not re-queued.
+    const retry = g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1), 10), nowMs: 1200 });
+    expect((retry as any).ok !== true).toBe(true);
+    expect((retry as any).code).toBe('E_RETRY_AFTER_EVICTION');
+    const retryAction = g.submitActions({ sessionId: session, epoch, requestId: rid(99), actions: batch(aid(1), 10), nowMs: 1201 });
+    expect((retryAction as any).ok !== true).toBe(true);
+    expect((retryAction as any).code).toBe('E_RETRY_AFTER_EVICTION');
+  });
+
+  it('F3: ACK appliedTick must be within [acceptedTick, applyByTick] (no future/fake ACK)', () => {
+    const g = gateway();
+    const { session, epoch } = linked(g);
+    const r = g.submitActions({ sessionId: session, epoch, requestId: rid(1), actions: batch(aid(1), 10), nowMs: 1000 });
+    expect((r as any).ok !== true).toBe(true);
+    const accepted = (r as any).acceptedTick;
+    const applyBy = (r as any).applyByTick;
+    // Below accepted -> schema invalid (no fake/early ACK).
+    const low = g.ackAction({ sessionId: session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: accepted - 1, nowMs: 1001 });
+    expect((low as any).code).toBe('E_SCHEMA');
+    // A separate action is used for the above-applyBy bound so its pending is
+    // actually removed by the expiry path.
+    const r2 = g.submitActions({ sessionId: session, epoch, requestId: rid(2), actions: batch(aid(2), 10), nowMs: 1000 });
+    const applyBy2 = (r2 as any).applyByTick;
+    const high = g.ackAction({ sessionId: session, epoch, requestId: rid(2), actionId: aid(2), result: 'applied', appliedTick: applyBy2 + 1, nowMs: 1001 });
+    expect((high as any).status).toBe('expired');
+    // Within bounds on the original action -> applied.
+    const ok = g.ackAction({ sessionId: session, epoch, requestId: rid(1), actionId: aid(1), result: 'applied', appliedTick: accepted + 2, nowMs: 1001 });
+    expect((ok as any).status).toBe('applied');
+  });
+});
