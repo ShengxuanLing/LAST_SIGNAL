@@ -1,0 +1,72 @@
+{
+  "viewport": "1920x1080",
+  "browser": "Chromium (Playwright, headless)",
+  "lab-off": {
+    "mean": 17.040677966101672,
+    "p95": 16.799999999999955,
+    "frames": 177
+  },
+  "corridor-off": {
+    "mean": 19.36193548387097,
+    "p95": 33.399999999999636,
+    "frames": 155
+  },
+  "stats-off": {
+    "textures": 0,
+    "objects": 0,
+    "particles": 0,
+    "lights": 0,
+    "degradations": 0
+  },
+  "lab-low": {
+    "mean": 17.202285714217584,
+    "p95": 16.799999999999955,
+    "frames": 175
+  },
+  "corridor-low": {
+    "mean": 18.353658536585368,
+    "p95": 33.30000000000018,
+    "frames": 164
+  },
+  "stats-low": {
+    "textures": 3,
+    "objects": 4,
+    "particles": 10,
+    "lights": 0,
+    "degradations": 0
+  },
+  "lab-medium": {
+    "mean": 18.460365853694878,
+    "p95": 33.30000000000018,
+    "frames": 164
+  },
+  "corridor-medium": {
+    "mean": 18.01556886227545,
+    "p95": 33.30000000000109,
+    "frames": 167
+  },
+  "stats-medium": {
+    "textures": 10,
+    "objects": 13,
+    "particles": 28,
+    "lights": 9,
+    "degradations": 0
+  },
+  "lab-high": {
+    "mean": 18.48098159523829,
+    "p95": 33.40000000000009,
+    "frames": 163
+  },
+  "corridor-high": {
+    "mean": 17.66647058834048,
+    "p95": 33.30000000000018,
+    "frames": 170
+  },
+  "stats-high": {
+    "textures": 10,
+    "objects": 13,
+    "particles": 48,
+    "lights": 9,
+    "degradations": 0
+  }
+}
