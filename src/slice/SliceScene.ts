@@ -8,6 +8,9 @@ import { resolveTransitions, stepMovement, type MovementIntent, type SliceTransi
 import type { BridgeState } from './corridor';
 import { CORRIDOR, corridorTile, isBridgeCell } from './corridorRoom';
 import { clearSlice, loadSlice, saveSlice } from './storage';
+// ART-02: read-only presentation layer (src/visual). Observes snapshots only.
+import { createSliceVisuals } from '../visual/sliceAdapter';
+import type { SliceVisuals } from '../visual/SliceVisuals';
 
 const DOOR_LABEL: Record<DoorState, string> = {
   SEALED: '封锁中（不可通行）',
@@ -77,6 +80,7 @@ export class SliceScene extends Phaser.Scene {
   private interactButton!: HTMLElement;
   private jamButton!: HTMLElement;
   private jamGuardButton!: HTMLElement;
+  private visuals: SliceVisuals | null = null;
 
   constructor() {
     super('SliceScene');
@@ -115,6 +119,8 @@ export class SliceScene extends Phaser.Scene {
     this.model.setPlayerPos(this.px, this.py);
 
     this.playerSprite = this.add.image(0, 0, 'player').setDepth(500);
+    this.visuals = createSliceVisuals(this, (x, y) => this.toScreen(x, y), () => this.roomScale,
+      [this.floors, this.walls, this.doorGfx, this.markerGfx]);
     this.drawRoom();
 
     const kb = this.input.keyboard;
@@ -206,6 +212,7 @@ export class SliceScene extends Phaser.Scene {
       }
     }
     this.renderEntities();
+    this.visuals?.update(this.model.snapshot(), delta);
     this.refreshHud();
   }
 
@@ -311,6 +318,8 @@ export class SliceScene extends Phaser.Scene {
   };
 
   private teardown(): void {
+    this.visuals?.destroy();
+    this.visuals = null;
     this.model.dispose();
     this.listeners.abort();
     if (this.kb) {
@@ -412,6 +421,7 @@ export class SliceScene extends Phaser.Scene {
         }
       }
     }
+    this.visuals?.onRoomLayout(this.model.inCorridor ? 'corridor' : 'lab');
   }
 
   private renderEntities(): void {
