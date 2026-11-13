@@ -60,7 +60,8 @@ export class Enemy {
   private texture(kind: EnemyKind): string {
     const map: Record<string, string> = {
       drone: 'enemy_drone', stalker: 'enemy_stalker', sentinel: 'enemy_sentinel',
-      hunter: 'enemy_hunter', boss_warden: 'enemy_hunter'
+      hunter: 'enemy_hunter', boss_warden: 'enemy_hunter',
+      sentry: 'enemy_sentry', shiver: 'enemy_shiver', slag: 'enemy_slag'
     };
     return map[kind] ?? 'enemy_drone';
   }
@@ -157,13 +158,17 @@ export class Enemy {
     this.sprite.setRotation(a);
   }
 
+  private canMove(x: number, y: number, radius = this.getRadius()): boolean {
+    return this.world.canMoveInRoom(x, y, radius, this.data.spawnRoom);
+  }
+
   private moveToPlayer(dt: number, player: Player): void {
     const stats = this.data.stats;
     const dx = player.x - this.x, dy = player.y - this.y;
     const d = Math.hypot(dx, dy) || 1;
     let vx = dx / d * stats.speed, vy = dy / d * stats.speed;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    if (this.canMove(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
+    if (this.canMove(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
     this.facePlayer(player);
     this.project();
   }
@@ -181,8 +186,8 @@ export class Enemy {
       return;
     }
     let vx = dx / d * stats.speed * 0.5, vy = dy / d * stats.speed * 0.5;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    if (this.canMove(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
+    if (this.canMove(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
     this.project();
   }
 
@@ -193,8 +198,8 @@ export class Enemy {
     const dx = this.x - player.x, dy = this.y - player.y;
     const d = Math.hypot(dx, dy) || 1;
     let vx = dx / d * stats.speed, vy = dy / d * stats.speed;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    if (this.canMove(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
+    if (this.canMove(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
     this.facePlayer(player);
     this.project();
   }
@@ -212,7 +217,11 @@ export class Enemy {
       // ranged projectile: spawn at the enemy and travel toward the player in grid space
       const a = Math.atan2(player.y - this.y, player.x - this.x);
       const speed = 160 / GAME.PIXEL_TO_TILE;
-      this.world.spawnEnemyProjectile(this.id, this.x, this.y, stats.damage, { x: Math.cos(a) * speed, y: Math.sin(a) * speed });
+      const offsets = this.data.kind === 'sentry' ? [-0.22, 0.22] : this.data.kind === 'shiver' ? [-0.3, 0, 0.3] : [0];
+      for (const offset of offsets) {
+        this.world.spawnEnemyProjectile(this.id, this.x, this.y, stats.damage,
+          { x: Math.cos(a + offset) * speed, y: Math.sin(a + offset) * speed });
+      }
     }
   }
 
@@ -232,7 +241,7 @@ export class Enemy {
     const kb = 16 / GAME.PIXEL_TO_TILE;
     const nx = this.wx + (dx / d) * kb;
     const ny = this.wy + (dy / d) * kb;
-    if (this.world.isWalkable(nx, ny, 0.4)) { this.wx = nx; this.wy = ny; }
+    if (this.canMove(nx, ny, 0.4)) { this.wx = nx; this.wy = ny; }
     this.project();
     return true;
   }

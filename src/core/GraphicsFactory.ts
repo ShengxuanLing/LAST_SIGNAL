@@ -77,6 +77,9 @@ export class GraphicsFactory {
     gen('enemy_stalker', 26, 24, (c) => drawEnemy(c, '#3a2030', '#ff3355', 11, false));
     gen('enemy_sentinel', 34, 30, (c) => drawEnemy(c, '#2a3020', '#ffd233', 15, false));
     gen('enemy_hunter', 26, 24, (c) => drawEnemy(c, '#20303a', '#a05cff', 11, false));
+    gen('enemy_sentry', 28, 28, (c) => drawEnemy(c, '#2c3f42', '#75e6f0', 12, true));
+    gen('enemy_shiver', 26, 26, (c) => drawEnemy(c, '#2f3a66', '#adc9ff', 11, true));
+    gen('enemy_slag', 32, 32, (c) => drawEnemy(c, '#492729', '#ff855e', 14, false));
 
     gen(WHALE_TEXTURE, 100, 100, (canvas) => drawWhaleCharacter(canvas, false));
     gen(WHALE_REAR_TEXTURE, 100, 100, (canvas) => drawWhaleCharacter(canvas, true));

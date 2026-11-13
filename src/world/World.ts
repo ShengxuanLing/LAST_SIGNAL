@@ -12,6 +12,7 @@ import { RoomDepth } from '../world/roomdepth';
 import { WorldRenderer } from '../world/WorldRenderer';
 import type { RunCheckpoint, SaveData } from '../types';
 import { audio } from '../systems/AudioSystem';
+import { deckLabel, dungeonRng, encounter, TOTAL_DECKS } from '../config/dungeon';
 
 export interface WorldCallbacks {
   onLevelUp: (level: number) => void;
@@ -21,6 +22,7 @@ export interface WorldCallbacks {
   onLoot: (drop: LootDrop) => void;
   onStats: (delta: { enemies: number; items: number; dmg: number }) => void;
   onBossWin: () => void;
+  onNextDeck: () => void;
 }
 
 export interface RoomInfo {
@@ -53,13 +55,16 @@ export class World {
   private _minY = 0;
   private _maxX = 0;
   private _maxY = 0;
-  private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number; wx: number; wy: number } | null = null;
+  private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number | null; wx: number; wy: number } | null = null;
+  private waves: EnemyKind[][] = [];
+  private activeWave = 0;
+  private roomSeal?: Phaser.GameObjects.Graphics;
 
   constructor(scene: Phaser.Scene, map: MapData, save: SaveData, callbacks: WorldCallbacks) {
     this.scene = scene;
     this.map = map;
     this.callbacks = callbacks;
-    this.rng = new RNG(map.seed * 7919 + 1);
+    this.rng = map.deck === undefined ? new RNG(map.seed * 7919 + 1) : dungeonRng(map.seed);
     this.roomDepth.build(map);
     this._computeBounds();
     // Build the renderer first: Player/Enemy/Boss project() in their constructors and
@@ -169,6 +174,44 @@ export class World {
     return null;
   }
 
+  private get exitRoom(): Room | undefined {
+    return this.map.rooms.find(({ kind }) => kind === 'boss' || kind === 'extraction');
+  }
+
+  private get exitUnlocked(): boolean {
+    const exit = this.exitRoom;
+    return this.map.rooms.every((room) => room === exit || room.cleared);
+  }
+
+  private isDeckExit(room: Room): boolean {
+    return this.map.deck !== undefined && room === this.exitRoom;
+  }
+
+  private get nextDeck(): number | undefined {
+    const deck = this.map.deck;
+    return deck !== undefined && deck + 1 < TOTAL_DECKS ? deck + 1 : undefined;
+  }
+
+  canMovePlayer(x: number, y: number): boolean {
+    const room = this.map.rooms[this.currentRoomId];
+    return this.canMoveInRoom(x, y, this.player.getRadius(), room?.spawned && !room.cleared ? room.id : undefined);
+  }
+
+  canMoveInRoom(x: number, y: number, radius: number, roomId?: number): boolean {
+    const room = this.map.deck !== undefined && roomId !== undefined ? this.map.rooms[roomId] : undefined;
+    if (room && (x < room.gx || x >= room.gx + room.w || y < room.gy || y >= room.gy + room.h)) return false;
+    return this.isWalkable(x, y, radius);
+  }
+
+  get roomObjective(): string {
+    const room = this.map.rooms[this.currentRoomId];
+    if (!room) return '';
+    if (room.cleared && this.isDeckExit(room) && this.nextDeck !== undefined) return `F · DESCEND TO ${deckLabel(this.nextDeck)}`;
+    if (this.isDeckExit(room) && !this.exitUnlocked) return 'EXIT LOCKED · CLEAR OTHER ROOMS';
+    if (!room.cleared && this.waves.length) return `WAVE ${this.activeWave}/${this.waves.length}`;
+    return this.portal && room.cleared ? 'F AT PORTAL · NEXT ROOM' : '';
+  }
+
   updateRoom(): void {
     const room = this.currentRoom();
     if (!room) return;
@@ -179,34 +222,88 @@ export class World {
     // clear when all enemies in room dead
     const inRoom = this.enemies.filter((e) => e.data.spawnRoom === room.id && e.alive);
     const r = this.map.rooms[room.id];
-    if (r.spawned && inRoom.length === 0 && !r.cleared) {
+    if (r.spawned && inRoom.length === 0 && !r.cleared &&
+        (this.map.deck === undefined || !this.boss)) {
+      if (this.map.deck !== undefined && this.activeWave < this.waves.length) {
+        this.spawnSectorWave(r);
+        return;
+      }
       r.cleared = true;
+      this.clearRoomSeal();
+      if (this.map.deck !== undefined && !this.won) this.placePortal(r);
       this.callbacks.onRoomCleared(room);
     }
   }
 
   private onEnterRoom(room: RoomInfo): void {
     const r = this.map.rooms[room.id];
+    this.activeWave = 0;
+    this.waves = [];
     this.enteredRooms.add(room.id);
     if (!r.spawned) {
-      if (r.kind === 'boss') this.spawnBoss(r);
-      else this.spawnForRoom(r);
+      if (this.isDeckExit(r) && !this.exitUnlocked) {
+        this.placePortal(r);
+        return;
+      }
+      if (r.kind === 'boss') {
+        this.spawnBoss(r);
+        if (this.map.deck !== undefined) r.spawned = true;
+      } else if (this.map.deck === undefined) this.spawnForRoom(r);
+      else {
+        r.spawned = true;
+        this.waves = encounter(this.map.seed, this.map.deck, r.id, r.kind);
+        if (this.waves.length) this.spawnSectorWave(r);
+      }
       if (r.kind === 'resource' || r.kind === 'shop') this.spawnResourceLoot(r);
       this.callbacks.onRoomEntered(room);
     }
-    this.placePortal(r);
+    if (this.map.deck !== undefined && !r.cleared && (this.boss || this.waves.length)) this.showRoomSeal(r);
+    if (this.map.deck === undefined || r.cleared) this.placePortal(r);
+    else this.clearPortal();
+  }
+
+  private showRoomSeal(room: Room): void {
+    this.clearRoomSeal();
+    const seal = this.scene.add.graphics().setDepth(58);
+    seal.lineStyle(3, 0xff805b, 0.9);
+    const edge = (x: number, y: number, ax: number, ay: number, bx: number, by: number) => {
+      if (this.tileAt(x, y).type === 'wall') return;
+      const from = this.worldToScreen(ax, ay);
+      const to = this.worldToScreen(bx, by);
+      seal.lineBetween(from.x, from.y, to.x, to.y);
+    };
+    const right = room.gx + room.w;
+    const bottom = room.gy + room.h;
+    for (let x = room.gx; x < right; x++) {
+      edge(x, room.gy - 1, x, room.gy, x + 1, room.gy);
+      edge(x, bottom, x, bottom, x + 1, bottom);
+    }
+    for (let y = room.gy; y < bottom; y++) {
+      edge(room.gx - 1, y, room.gx, y, room.gx, y + 1);
+      edge(right, y, right, y, right, y + 1);
+    }
+    this.roomSeal = seal;
+  }
+
+  private clearRoomSeal(): void {
+    this.roomSeal?.destroy();
+    this.roomSeal = undefined;
   }
 
   private placePortal(r: Room, savedTarget?: number | null): void {
+    if (this.isDeckExit(r) && r.cleared && this.nextDeck !== undefined) {
+      this.makePortal(null, this.findWalkableInRoom(r));
+      return;
+    }
     // Prefer the first step toward any unvisited room. If every room is already
     // visited, allow backtracking instead of destroying the portal and soft-locking
     // the run in a leaf room.
     let target = savedTarget ?? this.nextRoomTowardUnvisited(r.id);
     if (target === null) {
-      const neighbors = r.connectedTo.filter((n) => n !== r.id);
+      const neighbors = r.connectedTo.filter((n) => n !== r.id &&
+        (this.map.deck === undefined || this.exitUnlocked || this.map.rooms[n] !== this.exitRoom));
       if (neighbors.length === 0) {
-        if (this.portal) this.portal.spr.destroy();
-        this.portal = null;
+        this.clearPortal();
         return;
       }
       target = this.rng.pick(neighbors);
@@ -233,11 +330,23 @@ export class World {
       }
     }
 
-    if (this.portal) { this.portal.spr.destroy(); this.portal = null; }
+    this.makePortal(target, best);
+  }
+
+  private clearPortal(): void {
+    if (!this.portal) return;
+    this.scene.tweens.killTweensOf(this.portal.spr);
+    this.portal.spr.destroy();
+    this.portal = null;
+  }
+
+  private makePortal(target: number | null, best: Vec2): void {
+    this.clearPortal();
     const s = this.worldToScreen(best.x, best.y);
     const spr = this.scene.add.sprite(s.x, s.y, 'icon_pause');
     spr.setDepth(60);
     spr.setScale(0.8);
+    if (target === null) spr.setTint(0xffd233).setScale(1.2);
     this.scene.add.tween({ targets: spr, alpha: { from: 0.4, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
     this.portal = { spr, targetRoom: target, wx: best.x, wy: best.y };
   }
@@ -250,8 +359,12 @@ export class World {
     let goal: number | null = null;
     while (queue.length) {
       const cur = queue.shift()!;
-      if (cur !== startId && !this.enteredRooms.has(cur)) { goal = cur; break; }
+      if (cur !== startId && (this.map.deck === undefined ? !this.enteredRooms.has(cur) : !this.map.rooms[cur].cleared)) {
+        goal = cur;
+        break;
+      }
       for (const nb of this.map.rooms[cur].connectedTo) {
+        if (this.map.deck !== undefined && !this.exitUnlocked && this.map.rooms[nb] === this.exitRoom) continue;
         if (!parent.has(nb)) { parent.set(nb, cur); queue.push(nb); }
       }
     }
@@ -310,17 +423,42 @@ export class World {
 
   tryInteract(player: Player): void {
     if (!this.portal) return;
+    if (this.map.deck !== undefined) {
+      const room = this.currentRoom();
+      if (!room || (!this.map.rooms[room.id].cleared && !this.isDeckExit(this.map.rooms[room.id]))) return;
+    }
     const dx = player.x - this.portal.wx, dy = player.y - this.portal.wy;
     if (Math.hypot(dx, dy) < 2.0) {
+      if (this.portal.targetRoom === null) {
+        this.callbacks.onNextDeck();
+        return;
+      }
       const target = this.map.rooms[this.portal.targetRoom];
       const landing = this.findWalkableInRoom(target);
       this.currentRoomId = -1;
       this.enteredRooms.delete(this.portal.targetRoom);
-      this.portal.spr.destroy();
-      this.portal = null;
-      player.reset(landing.x, landing.y);
+      this.clearPortal();
+      player.reset(landing.x, landing.y, this.map.deck === undefined);
+      if (this.map.deck !== undefined) this.updateRoom();
       audio.wave();
     }
+  }
+
+  private spawnSectorWave(room: Room): void {
+    const rng = dungeonRng(this.map.seed ^ Math.imul(room.id + 1, 0x27d4eb2d) ^ this.activeWave);
+    const spots: Vec2[] = [];
+    for (let x = room.gx + 1; x < room.gx + room.w - 1; x++) {
+      for (let y = room.gy + 1; y < room.gy + room.h - 1; y++) {
+        if (Math.hypot(x - this.player.x, y - this.player.y) >= 2 && this.isWalkable(x, y)) spots.push({ x, y });
+      }
+    }
+    const positions = rng.shuffle(spots);
+    const depth = this.roomDepth.of(room.id) + Math.floor((this.map.deck ?? 0) / 2);
+    for (const kind of this.waves[this.activeWave++]) {
+      const { x, y } = positions.pop() ?? this.findWalkableInRoom(room);
+      this.spawnEnemy(kind, x, y, room.id, depth);
+    }
+    audio.wave();
   }
 
   private spawnForRoom(r: Room): void {
@@ -349,6 +487,12 @@ export class World {
   }
 
   private spawnResourceLoot(r: Room): void {
+    if (this.map.deck !== undefined) {
+      const center = this.findWalkableInRoom(r);
+      this.spawnLoot(center.x - 1, center.y, 'health', 'health', 0);
+      this.spawnLoot(center.x + 1, center.y, 'currency', 'currency', 12);
+      return;
+    }
     const n = r.kind === 'shop' ? 3 : 2 + (this.roomDepth.of(r.id) % 3);
     for (let i = 0; i < n; i++) {
       const x = r.gx + 2 + (i + 1) * 2;
@@ -468,6 +612,7 @@ export class World {
   update(dt: number): void {
     this.clock += dt;
     this.player.update(dt);
+    if (this.map.deck !== undefined) this.updateRoom();
     // enemies
     for (const e of this.enemies) {
       e.update(dt, this.player);
@@ -513,9 +658,7 @@ export class World {
       p.spr.setPosition(s.x, s.y);
       const t = this.tileAt(p.data.pos.x, p.data.pos.y);
       const hitWall = t.type === 'wall';
-      const expired = p.data.lifetime <= 0 || hitWall ||
-        p.data.pos.x < -40 || p.data.pos.x > this.map.width + 40 ||
-        p.data.pos.y < -40 || p.data.pos.y > this.map.height + 40;
+      const expired = p.data.lifetime <= 0 || hitWall;
       if (expired) {
         if (hitWall) this.addHitFx(p.data.pos.x, p.data.pos.y, 0x88aacc);
         // lifetime / hitWall / out-of-bounds: the entry leaves the array, so the sprite must go too.
@@ -547,8 +690,12 @@ export class World {
             this.boss.hit(dmg, p.data.pos);
             this.addDamageNumber(this.boss.x, this.boss.y, dmg, p.data.crit);
             this.callbacks.onStats({ enemies: 0, items: 0, dmg: dmg });
-            if (this.boss._hp <= 0) this.killBoss();
-            if (p.data.pierce > 0) { p.data.pierce--; p.data.hitSet.add(this.boss._id); }
+            if (this.boss._hp <= 0) {
+              const transitionBoss = this.nextDeck !== undefined;
+              this.killBoss();
+              if (transitionBoss) return;
+              alive = false;
+            } else if (p.data.pierce > 0) { p.data.pierce--; p.data.hitSet.add(this.boss._id); }
             else { alive = false; }
           }
         }
@@ -573,14 +720,16 @@ export class World {
       const dx = this.player.x - l.data.x, dy = this.player.y - l.data.y;
       const d = Math.hypot(dx, dy);
       // magnet
-      if (d > 0 && d < this.player.data.pickupRange) {
-        const pull = 120 * (1 - d / this.player.data.pickupRange);
+      const sector = this.map.deck !== undefined;
+      const range = this.player.data.pickupRange / (sector ? GAME.PIXEL_TO_TILE : 1);
+      if (d > 0 && d < range) {
+        const pull = (sector ? 4 : 120) * (1 - d / range);
         l.data.x += (dx / d) * pull * dt;
         l.data.y += (dy / d) * pull * dt;
         const s = this.worldToScreen(l.data.x, l.data.y);
         l.spr.setPosition(s.x, s.y);
       }
-      if (d < this.player.getRadius() + 12) {
+      if (d < this.player.getRadius() + (sector ? 0.45 : 12)) {
         // Collected drops must remove their display sprite too, otherwise the
         // icon stays on screen forever after the item was already banked.
         l.spr.destroy();
@@ -634,14 +783,30 @@ export class World {
 
   private killBoss(): void {
     if (!this.boss) return;
+    const bossRoom = this.map.rooms[this.boss.spawnRoom];
     this.boss._hp = 0;
     this.boss.sprite.destroy();
     this.boss = null;
+    this.clearRoomSeal();
+    if (this.nextDeck !== undefined) {
+      for (const enemy of this.enemies) enemy.sprite.destroy();
+      this.enemies = [];
+      for (const projectile of this.projectiles) this.destroyProjectileSprite(projectile);
+      this.projectiles = [];
+      bossRoom.cleared = true;
+      this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
+      this.placePortal(bossRoom);
+      this.callbacks.onRoomCleared(bossRoom);
+      this.player.addXp(60);
+      return;
+    }
     this.won = true;
     this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
     this.player.addXp(200);
-    const bx = this.player.x, by = this.player.y;
-    for (let i = 0; i < 12; i++) this.spawnLoot(bx + (Math.random() - 0.5) * 120, by + (Math.random() - 0.5) * 120, 'currency', 'currency', 10);
+    if (this.map.deck === undefined) {
+      const bx = this.player.x, by = this.player.y;
+      for (let i = 0; i < 12; i++) this.spawnLoot(bx + (Math.random() - 0.5) * 120, by + (Math.random() - 0.5) * 120, 'currency', 'currency', 10);
+    }
     audio.bossroar();
     this.callbacks.onBossWin();
   }
@@ -677,7 +842,7 @@ export class World {
         this.won || this.boss || this.enemies.some((enemy) => enemy.alive) ||
         this.map.rooms.some((entry) => entry.spawned && !entry.cleared)) return null;
     return {
-      id, seed, stats, roomId: room.id,
+      id, seed, deck: this.map.deck, stats, roomId: room.id,
       position: { x: this.player.x, y: this.player.y },
       clearedRooms: this.map.rooms.filter((entry) => entry.cleared).map((entry) => entry.id),
       portalTarget: this.currentRoomId === room.id ? this.portal?.targetRoom ?? null : null,
@@ -689,7 +854,8 @@ export class World {
 
   restoreCheckpoint(run: RunCheckpoint): boolean {
     const room = this.map.rooms[run.roomId];
-    if (!room || !run.clearedRooms.every((id) => this.map.rooms[id]?.kind && this.map.rooms[id].kind !== 'boss') ||
+    if (!room || !run.clearedRooms.every((id) => this.map.rooms[id] &&
+          (this.map.rooms[id].kind !== 'boss' || this.nextDeck !== undefined)) ||
         (run.portalTarget !== null && !room.connectedTo.includes(run.portalTarget))) return false;
 
     for (const id of run.clearedRooms) {

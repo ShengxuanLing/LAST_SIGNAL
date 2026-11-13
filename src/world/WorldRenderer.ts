@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { MapData, Tile } from '../types';
 import { GAME } from '../config/game';
+import { sectorFor } from '../config/dungeon';
 
 // Builds a static isometric map texture (floor + walls + props + lighting) once,
 // then composites it under the entity sprites. Keeps per-frame cost to a single
@@ -13,8 +14,10 @@ export class WorldRenderer {
   private readonly _lightLock = () => this._lockLightToScreen();
   public _offX = 0;
   public _offY = 0;
+  private readonly sector;
 
   constructor(public scene: Phaser.Scene, public map: MapData) {
+    this.sector = map.deck === undefined ? undefined : sectorFor(map.deck);
     const src = this._buildTexture();
     if (scene.textures.exists('worldLayer')) scene.textures.remove('worldLayer');
     const tex = scene.textures.createCanvas('worldLayer', src.width, src.height)!;
@@ -236,12 +239,13 @@ export class WorldRenderer {
   private _drawFloor(g: CanvasRenderingContext2D, cx: number, cy: number, halfW: number, halfH: number, t: Tile, door: boolean): void {
     this._diamond(g, cx, cy, halfW, halfH);
     const grd = g.createLinearGradient(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
-    grd.addColorStop(0, door ? '#14303a' : '#0e1822');
-    grd.addColorStop(1, door ? '#1a3a44' : '#12202c');
+    grd.addColorStop(0, door ? '#14303a' : this.sector?.floor[0] ?? '#0e1822');
+    grd.addColorStop(1, door ? '#1a3a44' : this.sector?.floor[1] ?? '#12202c');
     g.fillStyle = grd; g.fill();
-    g.strokeStyle = door ? 'rgba(51,224,255,0.4)' : 'rgba(51,224,255,0.14)';
+    const accent = this.sector?.accent ?? '51,224,255';
+    g.strokeStyle = `rgba(${accent},${door ? 0.4 : 0.14})`;
     g.lineWidth = 1; g.stroke();
-    g.fillStyle = door ? 'rgba(51,224,255,0.45)' : 'rgba(51,224,255,0.18)';
+    g.fillStyle = `rgba(${accent},${door ? 0.45 : 0.18})`;
     for (const [dx, dy] of [[-halfW * 0.6, -halfH * 0.6], [halfW * 0.6, -halfH * 0.6], [-halfW * 0.6, halfH * 0.6], [halfW * 0.6, halfH * 0.6]] as const) {
       g.beginPath(); g.arc(cx + dx, cy + dy, 1.4, 0, Math.PI * 2); g.fill();
     }
@@ -252,7 +256,7 @@ export class WorldRenderer {
     g: CanvasRenderingContext2D, cx: number, cy: number, halfW: number, halfH: number,
     t: Tile, isWalkable: (gx: number, gy: number) => boolean
   ): void {
-    g.strokeStyle = 'rgba(51,224,255,0.15)';
+    g.strokeStyle = `rgba(${this.sector?.accent ?? '51,224,255'},0.15)`;
     g.lineWidth = 1;
     const edge = (x1: number, y1: number, x2: number, y2: number) => {
       g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
@@ -273,12 +277,12 @@ export class WorldRenderer {
     // never overlaps the diamonds of neighbouring walkable cells (where the player
     // stands). The visible sides now drop BELOW cy; tiles sorted later by x+y draw
     // their floors over that overhang, which gives correct front-to-back occlusion.
-    g.fillStyle = '#0a1016';
+    g.fillStyle = this.sector?.wall[0] ?? '#0a1016';
     this._wallBody(g, cx, cy, halfW, halfH, wallH);
-    g.fillStyle = '#16202b';
+    g.fillStyle = this.sector?.wall[1] ?? '#16202b';
     this._diamond(g, cx, cy, halfW, halfH);
     g.fill();
-    g.strokeStyle = '#1d2a36'; g.lineWidth = 1; g.stroke();
+    g.strokeStyle = this.sector?.wall[2] ?? '#1d2a36'; g.lineWidth = 1; g.stroke();
     if (accent) {
       // Doorframe-only warning: just the wall cells directly beside a doorway get a
       // short, faint orange tick (0.12 alpha, ~10x2px). Never a screen-wide 64px bar,

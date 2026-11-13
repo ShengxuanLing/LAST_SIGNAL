@@ -6,28 +6,35 @@
 import { RNG } from '../core/random';
 import { MapData, Room, Tile, TileType } from '../types';
 import { GAME } from '../config/game';
+import { dungeonRng, hasSectorBoss } from '../config/dungeon';
 
 export class MapGenerator {
   private rng: RNG;
   private CELL_STEP = 0;
 
-  constructor(private seed: number) {
-    this.rng = new RNG(seed);
+  constructor(private seed: number, private deck?: number) {
+    this.rng = deck === undefined ? new RNG(seed) : dungeonRng(seed);
   }
 
   reseed(seed: number): void {
-    this.rng.seed(seed);
+    this.seed = seed;
+    this.rng = this.deck === undefined ? new RNG(seed) : dungeonRng(seed);
   }
 
   generate(): MapData {
-    const roomCount = this.rng.int(GAME.MAP_MIN_ROOMS, GAME.MAP_MAX_ROOMS);
+    const roomCount = this.deck === undefined
+      ? this.rng.int(GAME.MAP_MIN_ROOMS, GAME.MAP_MAX_ROOMS)
+      : this.rng.int(5, 6);
     const rooms = this._placeRooms(roomCount);
     const order = this._greedySpanningBfs(rooms);
-    assignRoles(this, rooms, order);
+    if (this.deck === undefined) assignRoles(this, rooms, order);
+    else this.assignSectorRooms(rooms, order, this.deck);
     const floorCells = this._carveCorridors(rooms);
+    if (this.deck !== undefined) this.addCover(rooms, floorCells, this.deck);
     const { tiles, doorways } = this._buildTiles(rooms, floorCells);
     return {
       seed: this.seed,
+      deck: this.deck,
       width: tiles[0].length,
       height: tiles.length,
       tiles,
@@ -37,20 +44,49 @@ export class MapGenerator {
     };
   }
 
+  private assignSectorRooms(rooms: Room[], order: number[], deck: number): void {
+    rooms[0].kind = 'start';
+    const end = rooms[order[order.length - 1]];
+    end.kind = hasSectorBoss(deck) ? 'boss' : 'extraction';
+    const interior = this.rng.shuffle(order.slice(1, -1));
+    rooms[interior[0]].kind = 'resource';
+    rooms[interior[1]].kind = 'elite';
+    // The route toward other rooms never needs to cross the sector exit.
+    const pathNeighbor = order[order.length - 2];
+    for (const id of end.connectedTo) {
+      if (id !== pathNeighbor) rooms[id].connectedTo = rooms[id].connectedTo.filter((neighbor) => neighbor !== end.id);
+    }
+    end.connectedTo = [pathNeighbor];
+  }
+
+  private addCover(rooms: Room[], floor: Set<string>, deck: number): void {
+    for (const room of rooms) {
+      if (room.kind !== 'combat' && room.kind !== 'elite') continue;
+      const offset = this.rng.pick([2, room.w - 3]);
+      const x = room.gx + offset;
+      const y = room.gy + 2;
+      floor.delete(`${x},${y}`);
+      if (deck >= 2) floor.delete(`${x},${y + 1}`);
+      if (deck >= 4) floor.delete(`${room.gx + room.w - offset - 1},${room.gy + room.h - 3}`);
+    }
+  }
+
   private _placeRooms(count: number): Room[] {
-    const step = GAME.ROOM_MAX + 4;
+    const sector = this.deck !== undefined;
+    const maxSize = sector ? 11 : GAME.ROOM_MAX;
+    const step = maxSize + 4;
     this.CELL_STEP = step;
     const placed: Room[] = [];
     const used = new Set<string>();
     let guard = 0;
     while (placed.length < count && guard < count * 10) {
       guard++;
-      const cx = this.rng.int(0, 12);
-      const cy = this.rng.int(0, 9);
+      const cx = this.rng.int(0, sector ? 4 : 12);
+      const cy = this.rng.int(0, sector ? 3 : 9);
       const key = `${cx},${cy}`;
       if (used.has(key)) continue;
-      const w = this.rng.int(GAME.ROOM_MIN, GAME.ROOM_MAX);
-      const h = this.rng.int(GAME.ROOM_MIN, GAME.ROOM_MAX);
+      const w = this.rng.int(GAME.ROOM_MIN, maxSize);
+      const h = this.rng.int(GAME.ROOM_MIN, maxSize);
       const originX = cx * step + this.rng.int(1, Math.max(1, step - w - 2));
       const originY = cy * step + this.rng.int(1, Math.max(1, step - h - 2));
       let overlap = false;
@@ -148,9 +184,12 @@ export class MapGenerator {
         const bx = Math.floor(rb.gx + rb.w / 2);
         const by = Math.floor(rb.gy + rb.h / 2);
         const sx = Math.min(ax, bx), ex = Math.max(ax, bx);
-        for (let x = sx; x <= ex; x++) floor.add(key(x, ay));
         const sy = Math.min(ay, by), ey = Math.max(ay, by);
-        for (let y = sy; y <= ey; y++) floor.add(key(bx, y));
+        const halfWidth = this.deck === undefined ? 0 : 1;
+        for (let offset = -halfWidth; offset <= halfWidth; offset++) {
+          for (let x = sx; x <= ex; x++) floor.add(key(x, ay + offset));
+          for (let y = sy; y <= ey; y++) floor.add(key(bx + offset, y));
+        }
       }
     }
     return floor;

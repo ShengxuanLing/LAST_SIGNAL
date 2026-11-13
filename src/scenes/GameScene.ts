@@ -7,12 +7,15 @@ import { UPGRADES } from '../config/upgrades';
 import { saveSystem, game } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { formatDuration } from '../core/formatDuration';
+import { deckLabel, deckSeed, sectorFor } from '../config/dungeon';
 import { Player } from '../entities/Player';
-import type { RunCheckpoint } from '../types';
+import type { MapData, RunCheckpoint } from '../types';
 
 interface SceneConfig {
   seed?: number;
   resume?: boolean;
+  sectorRun?: boolean;
+  transition?: Pick<RunCheckpoint, 'id' | 'player' | 'stats'> & { deck: number };
 }
 
 export class GameScene extends Phaser.Scene {
@@ -36,6 +39,7 @@ export class GameScene extends Phaser.Scene {
   private txtWeapon!: Phaser.GameObjects.Text;
   private txtLevel!: Phaser.GameObjects.Text;
   private txtRoom!: Phaser.GameObjects.Text;
+  private txtObjective!: Phaser.GameObjects.Text;
   private txtEnemies!: Phaser.GameObjects.Text;
   private txtBossHp!: Phaser.GameObjects.Text;
   private bossBar!: Phaser.GameObjects.Graphics;
@@ -58,6 +62,7 @@ export class GameScene extends Phaser.Scene {
   private levelUpActive = false;
 
   seed = 0;
+  private deck?: number;
 
   create(config: SceneConfig): void {
     // A previous run may have been left paused by an overlay (e.g. QUIT TO MENU).
@@ -67,6 +72,7 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setAlpha(1);
     const save = saveSystem.load();
     const checkpoint = config?.resume ? save.run : undefined;
+    const transition = config?.transition;
     if (config?.resume && !checkpoint) {
       this.scene.start('MainMenuScene', { notice: 'NO CHECKPOINT AVAILABLE' });
       return;
@@ -74,17 +80,19 @@ export class GameScene extends Phaser.Scene {
     // A resumed run keeps the checkpoint's id; a brand-new run gets a fresh id.
     // A NEW RUN must not carry over a previous run's id, and its first checkpoint
     // write replaces the old on-disk run (see the undefined expectedId below).
-    this.runId = checkpoint ? checkpoint.id : crypto.getRandomValues(new Uint32Array(4)).join('-');
+    const progress = checkpoint ?? transition;
+    this.runId = progress?.id ?? crypto.getRandomValues(new Uint32Array(4)).join('-');
     this.checkpointDirty = false;
     this.runFinished = false;
     this.pendingLevels = [];
     this.levelUpActive = false;
-    this.enemiesKilled = checkpoint?.stats.kills ?? 0;
-    this.itemsCollected = checkpoint?.stats.items ?? 0;
-    this.damageDealt = checkpoint?.stats.damage ?? 0;
-    this.runStart = this.time.now - (checkpoint?.stats.elapsedSeconds ?? 0) * 1000;
+    this.enemiesKilled = progress?.stats.kills ?? 0;
+    this.itemsCollected = progress?.stats.items ?? 0;
+    this.damageDealt = progress?.stats.damage ?? 0;
+    this.runStart = this.time.now - (progress?.stats.elapsedSeconds ?? 0) * 1000;
     this.seed = (checkpoint?.seed ?? config?.seed ?? Math.floor(Math.random() * 1e9)) >>> 0;
-    const map = this.buildMap(this.seed);
+    this.deck = progress?.deck ?? (config?.sectorRun ? 0 : undefined);
+    const map = this.buildMap(this.seed, this.deck);
     const callbacks: WorldCallbacks = {
       onLevelUp: (level) => this.onLevelUp(level),
       onDeath: () => this.onDeath(),
@@ -99,7 +107,8 @@ export class GameScene extends Phaser.Scene {
         }
         if (delta.dmg) this.damageDealt += delta.dmg;
       },
-      onBossWin: () => this.onBossWin()
+      onBossWin: () => this.onBossWin(),
+      onNextDeck: () => this.advanceDeck()
     };
     this.world = new World(this, map, save, callbacks);
     if (checkpoint && !this.world.restoreCheckpoint(checkpoint)) {
@@ -107,13 +116,14 @@ export class GameScene extends Phaser.Scene {
       this.scene.start('MainMenuScene', { notice: 'CHECKPOINT INCOMPATIBLE' });
       return;
     }
+    if (transition) this.world.player.data = transition.player;
     if (!checkpoint) this.world.updateRoom();
     const firstCheckpoint = this.world.captureCheckpoint(this.runId, this.seed, this.runStats());
     if (firstCheckpoint) {
       // First write replaces any existing on-disk checkpoint (expectedId ===
       // undefined) so a NEW RUN clears the old run and a RESUME re-saves the same
       // id. Later writes pass this.runId so they can only touch the active run.
-      saveSystem.writeCheckpoint(firstCheckpoint, undefined);
+      saveSystem.writeCheckpoint(firstCheckpoint, progress?.id);
     }
     this.checkpointDirty = false;
 
@@ -139,8 +149,8 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard!.on('keydown-I', (event: KeyboardEvent) => {
       if (!event.repeat) this.toggleInventory();
     });
-    this.input.keyboard!.on('keydown-F', () => {
-      if (this.paused) return;
+    this.input.keyboard!.on('keydown-F', (event: KeyboardEvent) => {
+      if (this.paused || this.runFinished || (this.deck !== undefined && event.repeat)) return;
       this.saveCheckpoint();
       this.world.tryInteract(this.world.player);
     });
@@ -158,9 +168,21 @@ export class GameScene extends Phaser.Scene {
     const start = this.cam.getScroll(px, py);
     this.cam.setScroll(start.x, start.y);
     audio.ensureContext();
+    if (!checkpoint && this.deck !== undefined) this.showDeckArrival(this.deck);
   }
 
-  private buildMap(seed: number): any {
+  private showDeckArrival(deck: number): void {
+    const announcement = this.add.text(GAME.WINDOW_W / 2, 126,
+      [deckLabel(deck), sectorFor(deck).brief], {
+        fontFamily: 'monospace', fontSize: '16px', align: 'center',
+        color: '#d7f3ff', backgroundColor: '#0b1521', padding: { x: 12, y: 7 }
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(501);
+    this.tweens.add({ targets: announcement, alpha: 0, delay: 2300, duration: 400,
+      onComplete: () => announcement.destroy() });
+  }
+
+  private buildMap(seed: number, deck?: number): MapData {
+    if (deck !== undefined) return new MapGenerator(deckSeed(seed, deck), deck).generate();
     const gen = new MapGenerator(seed);
     const map = gen.generate();
     assignRoles(gen, map.rooms, map.roomsOrder);
@@ -172,6 +194,18 @@ export class GameScene extends Phaser.Scene {
       return m2;
     }
     return map;
+  }
+
+  private advanceDeck(): void {
+    if (this.deck === undefined || this.paused || this.runFinished) return;
+    this.paused = true;
+    this.scene.restart({
+      seed: this.seed,
+      transition: {
+        id: this.runId, deck: this.deck + 1,
+        player: structuredClone(this.world.player.data), stats: this.runStats()
+      }
+    } satisfies SceneConfig);
   }
 
   private setupHud(): void {
@@ -206,6 +240,7 @@ export class GameScene extends Phaser.Scene {
     this.txtLevel = add.text(20, 80, 'LV 1', { fontFamily: 'monospace', fontSize: '14px', color: '#33e0ff' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtWeapon = add.text(GAME.WINDOW_W - 20, 20, '', { fontFamily: 'monospace', fontSize: '16px', color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtRoom = add.text(GAME.WINDOW_W - 20, 44, '', { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtObjective = add.text(GAME.WINDOW_W / 2, 676, '', { fontFamily: 'monospace', fontSize: '15px', color: '#7ff0ff' }).setOrigin(0.5).setDepth(HUD_DEPTH);
     this.txtEnemies = add.text(GAME.WINDOW_W - 20, 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtBossHp = add.text(GAME.WINDOW_W / 2, 30, '', { fontFamily: 'monospace', fontSize: '20px', color: '#ff3355', fontStyle: 'bold' }).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     this.bossBarFill = add.rectangle(GAME.WINDOW_W / 2, 52, 0, 8, 0xff3355, 1).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
@@ -239,6 +274,7 @@ export class GameScene extends Phaser.Scene {
     place(this.txtLevel, 20, 80);
     place(this.txtWeapon, GAME.WINDOW_W - 20, 20);
     place(this.txtRoom, GAME.WINDOW_W - 20, 44);
+    place(this.txtObjective, GAME.WINDOW_W / 2, 676);
     place(this.txtEnemies, GAME.WINDOW_W - 20, 64);
     place(this.txtBossHp, GAME.WINDOW_W / 2, 30);
     place(this.bossBarFill, GAME.WINDOW_W / 2, 52);
@@ -317,7 +353,12 @@ export class GameScene extends Phaser.Scene {
       : '';
     this.txtWeapon.setText(`${w.name} [${w.icon}]${ammo}`);
     const room = this.world.currentRoom();
-    if (room) this.txtRoom.setText(`${room.kind.toUpperCase()} ROOM`);
+    if (this.deck === undefined) {
+      if (room) this.txtRoom.setText(`${room.kind.toUpperCase()} ROOM`);
+    } else {
+      this.txtRoom.setText(`${deckLabel(this.deck)} · ${room?.kind.toUpperCase() ?? 'CORRIDOR'}`);
+      this.txtObjective.setText(this.world.roomObjective);
+    }
     const aliveEnemies = this.world.enemies.length + (this.world.boss ? 1 : 0);
     this.txtEnemies.setText(`HOSTILES ${aliveEnemies}`);
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
@@ -330,13 +371,16 @@ export class GameScene extends Phaser.Scene {
     const m = this.minimap;
     m.clear();
     const map = this.world.map;
+    const accent = this.deck === undefined ? 0x33e0ff : sectorFor(this.deck).color;
     const scale = 0.25;
     const ox = GAME.WINDOW_W - 160, oy = GAME.WINDOW_H - 140;
     m.fillStyle(0x0d1822, 0.6);
     m.fillRect(ox - 4, oy - 4, map.width * scale + 8, map.height * scale + 8);
+    const activeRoomId = this.world.currentRoom()?.id;
     for (const r of map.rooms) {
-      const inRoom = this.world.currentRoom()?.id === r.id;
-      m.fillStyle(inRoom ? 0x33e0ff : 0x2a3a44, 1);
+      const exit = r.kind === 'boss' || r.kind === 'extraction';
+      const color = this.deck === undefined ? 0x2a3a44 : exit ? 0xff805b : r.cleared ? 0x35645b : 0x2a3a44;
+      m.fillStyle(activeRoomId === r.id ? accent : color, 1);
       m.fillRect(ox + r.gx * scale, oy + r.gy * scale, Math.max(4, r.w * scale), Math.max(4, r.h * scale));
     }
     const px = ox + this.world.player.x * scale;
@@ -353,7 +397,7 @@ export class GameScene extends Phaser.Scene {
     this.bossBar.fillStyle(0x0d1822, 1);
     this.bossBar.fillRect(0, 0, 320, 24);
     this.bossBarFill.width = 316 * ratio;
-    this.txtBossHp.setText(`★ THE WARDEN — PHASE ${boss.phase} ★`);
+    this.txtBossHp.setText(`★ ${boss.name} — PHASE ${boss.phase} ★`);
     // Do not overwrite bossBarFill.y: lockHud() already pinned it to screen y=52.
     // The old line wrote raw world coordinate 48 and moved the red fill offscreen.
   }
@@ -443,7 +487,7 @@ export class GameScene extends Phaser.Scene {
     const stats = this.runStats();
     saveSystem.finishRun(this.runId, false, this.seed, stats);
     this.scene.stop('LevelUpScene');
-    this.scene.start('GameOverScene', { seed: this.seed, stats, won: false });
+    this.scene.start('GameOverScene', { seed: this.seed, stats, won: false, deck: this.deck });
   }
 
   private onBossWin(): void {
@@ -466,7 +510,7 @@ export class GameScene extends Phaser.Scene {
       callback: () => {
         this.scene.stop('PauseScene');
         this.scene.stop('LevelUpScene');
-        this.scene.start('GameOverScene', { seed: this.seed, stats, won: true, coreAwarded });
+        this.scene.start('GameOverScene', { seed: this.seed, stats, won: true, coreAwarded, deck: this.deck });
       }
     });
   }

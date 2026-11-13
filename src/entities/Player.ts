@@ -119,12 +119,12 @@ export class Player {
     this.cursors = cursors;
   }
 
-  reset(x: number, y: number): void {
+  reset(x: number, y: number, heal = true): void {
     this.wx = x;
     this.wy = y;
     this.project();
     this.ensureWalkable();
-    this.data.hp = this.data.maxHp;
+    if (heal) this.data.hp = this.data.maxHp;
     this.invuln = 1.0;
     this.fireTimer = 0;
   }
@@ -149,7 +149,7 @@ export class Player {
   }
 
   private isWalkable(nx: number, ny: number): boolean {
-    return this.world.isWalkable(nx, ny, this.getRadius());
+    return this.world.canMovePlayer(nx, ny);
   }
 
   update(dt: number): void {

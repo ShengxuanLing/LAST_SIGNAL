@@ -2,6 +2,7 @@ import { basePlayerData, GAME } from '../config/game';
 import { WEAPON_LIST } from '../config/weapons';
 import { UPGRADE_LIST } from '../config/upgrades';
 import type { ItemKind, RunCheckpoint } from '../types';
+import { TOTAL_DECKS } from '../config/dungeon';
 
 const PLAYER_NUMBERS = [...Object.keys(basePlayerData()), 'level', 'xp', 'xpToNext', 'currency'];
 const WEAPON_KEYS = WEAPON_LIST.map(({ key }) => key);
@@ -21,6 +22,7 @@ function isUint32(value: number): boolean {
 
 export function validateCheckpoint(run: RunCheckpoint | undefined): run is RunCheckpoint {
   if (!run || typeof run.id !== 'string' || !run.id || !isUint32(run.seed) || !isUint32(run.rngState)) return false;
+  if (run.deck !== undefined && (!isCount(run.deck) || run.deck >= TOTAL_DECKS)) return false;
   if (!isRoomId(run.roomId) || !Number.isFinite(run.position?.x) || !Number.isFinite(run.position?.y)) return false;
   if (!Array.isArray(run.clearedRooms) || !run.clearedRooms.every(isRoomId) || !run.clearedRooms.includes(run.roomId)) return false;
   if (run.portalTarget !== null && !isRoomId(run.portalTarget)) return false;

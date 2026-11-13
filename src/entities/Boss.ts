@@ -5,6 +5,7 @@ import { GAME } from '../config/game';
 import { World } from '../world/World';
 import { audio } from '../systems/AudioSystem';
 import { isoToScreen } from '../core/iso';
+import { sectorFor } from '../config/dungeon';
 
 // Boss projectile speeds are authored in screen-px/s (same convention as the
 // weapon configs). World.updateProjectiles advances pos in tile coords, so they
@@ -25,17 +26,19 @@ export class Boss {
   spawnRoom: number;
   wx: number;
   wy: number;
+  private readonly variant;
 
   constructor(public world: World, x: number, y: number, room: number, _depth: number) {
     this.spawnRoom = room;
-    this.sprite = this.world.scene.add.sprite(x, y, 'enemy_hunter');
+    this.variant = world.map.deck === undefined ? undefined : sectorFor(world.map.deck).boss;
+    this.sprite = this.world.scene.add.sprite(x, y, this.variant?.texture ?? 'enemy_hunter');
     // Keep the Boss below the player (depth 100) so an overlap never hides the
     // player sprite. Grid y is not a display depth and can exceed HUD depth.
     this.sprite.setDepth(95);
     this.sprite.setScale(2.4);
     this.wx = x;
     this.wy = y;
-    this._hp = ENEMY_STATS.boss_warden.maxHp;
+    this._hp = this.maxHp();
     // Project to display space immediately so the sprite does not flash at (x, y).
     this.project();
   }
@@ -44,7 +47,8 @@ export class Boss {
   get y(): number { return this.wy; }
   get alive(): boolean { return this._hp > 0; }
   getRadius(): number { return 3.0; }
-  maxHp(): number { return ENEMY_STATS.boss_warden.maxHp; }
+  maxHp(): number { return this.variant?.hp ?? ENEMY_STATS.boss_warden.maxHp; }
+  get name(): string { return this.variant?.name ?? 'THE WARDEN'; }
 
   project(): void {
     const s = this.world.worldToScreen(this.wx, this.wy);
@@ -52,6 +56,10 @@ export class Boss {
   }
 
   private stats() { return ENEMY_STATS.boss_warden; }
+
+  private canMove(x: number, y: number): boolean {
+    return this.world.canMoveInRoom(x, y, 0.5, this.spawnRoom);
+  }
 
   initHp(): void { this._hp = this.maxHp(); }
 
@@ -67,15 +75,15 @@ export class Boss {
     let speed = stats.speed / 64;
     if (this.phase === 1 && d > 10) {
       const vx = dx / d * speed, vy = dy / d * speed;
-      if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-      if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+      if (this.canMove(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
+      if (this.canMove(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
     } else if (this.phase === 2) {
       // circle at medium range
       const desired = 6;
       const factor = d < desired ? -1 : 1;
       const vx = dx / d * speed * factor, vy = dy / d * speed * factor;
-      if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-      if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+      if (this.canMove(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
+      if (this.canMove(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
     }
     this.sprite.setRotation(Math.atan2(dy, dx));
     this.project();
@@ -87,6 +95,17 @@ export class Boss {
   }
 
   private doAttack(player: PlayerLike, d: number): void {
+    if (this.variant) {
+      const { pattern } = this.variant;
+      if (pattern === 'ring' || (pattern === 'mixed' && this.phase > 1)) this.shockwave();
+      if (pattern !== 'ring' || this.phase > 1) this.fireLaser(player);
+      if (this.phase > 1 && this.stateTimer <= 0) {
+        this.summonDrones();
+        this.stateTimer = 9;
+      }
+      this.attackTimer = 2 - this.phase * 0.35;
+      return;
+    }
     if (this.phase === 1) {
       // phase 1: chase and fire a shockwave ring; bite if the player gets too close
       if (d < 3) {
@@ -142,8 +161,8 @@ export class Boss {
       const angle = Math.random() * Math.PI * 2;
       const ex = this.x + Math.cos(angle) * 6;
       const ey = this.y + Math.sin(angle) * 6;
-      if (this.world.isWalkable(ex, ey)) {
-        const e = this.world.spawnEnemy('drone', ex, ey, this.spawnRoom, 3);
+      if (this.canMove(ex, ey)) {
+        const e = this.world.spawnEnemy(this.variant?.summon ?? 'drone', ex, ey, this.spawnRoom, 3);
         e._id = this._id + 100 + i;
       }
     }
