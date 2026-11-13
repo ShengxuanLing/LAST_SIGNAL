@@ -414,7 +414,8 @@ export class GameScene extends Phaser.Scene {
     else audio.wave();
     const p = this.world.player;
     const s = this.world.worldToScreen(p.x, p.y);
-    const t = this.add.text(s.x, s.y - 40, `${room.kind.toUpperCase()} ROOM`, {
+    const labelY = Math.max(40, p.sprite.displayOriginY * p.sprite.scaleY + 14);
+    const t = this.add.text(s.x, s.y - labelY, `${room.kind.toUpperCase()} ROOM`, {
       fontFamily: 'monospace', fontSize: '16px', color: '#33e0ff'
     }).setOrigin(0.5, 0.5).setDepth(200);
     this.tweens.add({ targets: t, alpha: 0, duration: 1200, onComplete: () => t.destroy() });
@@ -428,7 +429,8 @@ export class GameScene extends Phaser.Scene {
     audio.wave();
     const p = this.world.player;
     const s = this.world.worldToScreen(p.x, p.y);
-    const t = this.add.text(s.x, s.y - 40, 'ROOM CLEARED', {
+    const labelY = Math.max(40, p.sprite.displayOriginY * p.sprite.scaleY + 14);
+    const t = this.add.text(s.x, s.y - labelY, 'ROOM CLEARED', {
       fontFamily: 'monospace', fontSize: '16px', color: '#33e0ff'
     }).setOrigin(0.5, 0.5).setDepth(200);
     this.tweens.add({ targets: t, alpha: 0, duration: 1200, onComplete: () => t.destroy() });
@@ -456,7 +458,8 @@ export class GameScene extends Phaser.Scene {
     audio.bossroar();
     const p = this.world.player;
     const s = this.world.worldToScreen(p.x, p.y);
-    const t = this.add.text(s.x, s.y - 40, 'THE WARDEN DESTROYED', {
+    const labelY = Math.max(40, p.sprite.displayOriginY * p.sprite.scaleY + 14);
+    const t = this.add.text(s.x, s.y - labelY, 'THE WARDEN DESTROYED', {
       fontFamily: 'monospace', fontSize: '20px', color: '#ffd233', fontStyle: 'bold'
     }).setOrigin(0.5, 0.5).setDepth(200);
     this.tweens.add({ targets: t, alpha: 0, duration: 1200, onComplete: () => t.destroy() });

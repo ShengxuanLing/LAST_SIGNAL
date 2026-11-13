@@ -26,7 +26,7 @@
 
 - **Vite 5 + TypeScript 5 + Phaser 3.90**（`Phaser.CANVAS` 渲染），纯前端、零后端。
 - **Vitest** 覆盖纯逻辑单测，**Playwright** 覆盖端到端可玩性回归。
-- **不使用任何外部图片资源**：所有美术（玩家机体、敌人、道具、房间、HUD）均由 `src/core/GraphicsFactory.ts` 与 `src/world/WorldRenderer.ts` 用 Canvas 程序化生成；音效由 `src/systems/AudioSystem.ts` 用 Web Audio API 实时合成。
+- **美术资源随游戏打包**：场景和基础单位由 Canvas 程序化绘制。鲸鱼娘使用随游戏打包的社区三视图。音效由 Web Audio API 实时合成。
 - **无云端 AI 依赖**：游戏逻辑在浏览器本地运行。Station Zero 提供独立的 Signal 玩法原型。
 
 > 项目愿景是 *A Game for Humans and Agents*（为人类与 AI Agent 共同游玩而设计的游戏）。Agent Bridge 与 Human+AI Co-op 的规划见 `docs/`。
@@ -36,7 +36,7 @@
 以下特性均来自 `0.1.0` 真实源码（已逐文件复核）：
 
 - **主菜单**：`NEW RUN` 开始新的随机地牢。已有一局时，会先确认是否替换检查点。`LOAD RUN` 查看检查点，`CONTINUE` 直接恢复。
-- **角色外观**：在主菜单右侧切换 `OPERATOR` / `WHALE-CHAN`。鲸鱼娘使用 Q 版等距精灵，附移动水纹、冲刺残影和开火水花。[制作与署名](docs/WHALE_CHAN.md)
+- **角色外观**：在主菜单右侧切换 `OPERATOR` / `WHALE-CHAN`。鲸鱼娘使用 GitHub 社区发布的 Q 版透明三视图，游戏中按方向切换正面、侧面和背面。[素材与署名](docs/WHALE_CHAN.md)
 - **等距房间与地图**：`src/world/MapGenerator.ts` 生成房间深度（RoomDepth）结构，`WorldRenderer` 把整张地图烘焙成单张等距纹理；带小地图（minimap）与相机跟随 / 缩放（`CAM_ZOOM_MIN 0.8` ~ `CAM_ZOOM_MAX 1.25`）。
 - **战斗**：鼠标瞄准、按住左键射击；`SPACE` 冲刺（dash）；敌人含 drone / stalker / hunter / sentinel 四型（随房间深度解锁更强类型），掉落资源 / 经验 / 信用点（credits）。
 - **武器系统**：4 把武器（Pulse Rifle / Scatter Gun / Plasma Cannon / Arc Drone），`Q` / `E` 切换，`F` 与场景互动物（传送门 / 拾取）交互；弹匣耗尽自动换弹。
@@ -154,7 +154,7 @@ LAST_SIGNAL/
 | 文档 | 内容 |
 | --- | --- |
 | [`docs/README.md`](docs/README.md) | 设计文档索引与历史快照说明；解释审计文档里的 Git / 测试状态为何不能再当作当前状态。 |
-| [`docs/STYLE_GUIDE.md`](docs/STYLE_GUIDE.md) | 美术风格指南（暗底单色辉光、几何极简、青色为「系统/我方」、程序化纹理，无外部图片资源）——**已生效**，改动美术须遵守。 |
+| [`docs/STYLE_GUIDE.md`](docs/STYLE_GUIDE.md) | 美术风格指南（暗底单色辉光、几何极简、青色为「系统/我方」、程序化纹理）。 |
 | [`docs/PROJECT_ROADMAP.md`](docs/PROJECT_ROADMAP.md) | 项目路线图（PHASE 0–5 与 `0.2.0-alpha/beta/rc` 节奏）。 |
 | [`docs/ARCHITECTURE_DECISIONS.md`](docs/ARCHITECTURE_DECISIONS.md) | 架构决策记录（ADR 集合）。 |
 | [`docs/SIGNAL_SYSTEM_DESIGN.md`](docs/SIGNAL_SYSTEM_DESIGN.md) | Signal 系统技术设计（PHASE 2，Scan/Jam/Decoy 等）。 |
@@ -181,7 +181,6 @@ LAST_SIGNAL/
 
 - **Station Zero** 的 Signal 原型覆盖实验室门和失稳走廊。Agent Bridge 与 Human+AI Co-op 仍处于设计阶段。
 - **无云端 AI 依赖，也无任何 AI 功能**：全部逻辑在浏览器本地运行，无网络请求、无远端服务。
-- **不使用外部图片资源**：美术与音效均程序化生成（见 `docs/STYLE_GUIDE.md`）。
 - **仅桌面键鼠**：未做移动端触控适配（Touch API 已禁用，专注 pointer/keyboard）。
 - **局内检查点（checkpoint）仅在安全点 / 清房点保存**：开始游戏、清房、安全区域内拾取时自动写入当前浏览器地址的 `run` 检查点；战斗中途退出会回到上一处安全检查点，而非实时快照。
 - **`NEW RUN` 会替换并覆盖旧检查点**：同一地址只保留一个局内检查点，开始新一局即弃用上一局的 `run`。

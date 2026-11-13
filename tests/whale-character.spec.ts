@@ -5,8 +5,12 @@ function playerState(page: Page) {
   return page.evaluate(() => {
     const game = (window as any).__game;
     const scene = game.scene.getScene('GameScene');
+    const { sprite } = scene.world.player;
     return {
-      texture: scene.world.player.sprite.texture.key,
+      texture: sprite.texture.key,
+      sourceHeight: sprite.height,
+      displayHeight: sprite.displayHeight,
+      flipped: sprite.flipX,
       radius: scene.world.player.getRadius(),
       effects: scene.children.list.map((child: { name: string }) => child.name)
         .filter((name: string) => name.startsWith('whale-'))
@@ -25,11 +29,18 @@ test('whale appearance persists and responds to real movement and shots', async 
 
   await page.reload();
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
-  if (process.env.LS_SHOT_DIR) await page.screenshot({ path: `${process.env.LS_SHOT_DIR}/whale-menu.png` });
+  if (process.env.LS_SHOT_DIR) await page.screenshot({ path: `${process.env.LS_SHOT_DIR}/whale-art-menu.png` });
   await page.mouse.click(640, 340);
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'));
-  expect(await playerState(page)).toMatchObject({ texture: 'whale-chan', radius: 0.5 });
-  if (process.env.LS_SHOT_DIR) await page.screenshot({ path: `${process.env.LS_SHOT_DIR}/whale-game.png` });
+  expect(await playerState(page)).toMatchObject({ texture: 'whale-chan', sourceHeight: 306, displayHeight: 72, radius: 0.5 });
+  if (process.env.LS_SHOT_DIR) await page.screenshot({ path: `${process.env.LS_SHOT_DIR}/whale-art-game.png` });
+
+  await page.keyboard.down('a');
+  await expect.poll(() => playerState(page)).toMatchObject({ texture: 'whale-chan-side', flipped: false });
+  await page.keyboard.up('a');
+  await page.keyboard.down('d');
+  await expect.poll(() => playerState(page)).toMatchObject({ texture: 'whale-chan-side', flipped: true });
+  await page.keyboard.up('d');
 
   await page.keyboard.down('w');
   await expect.poll(() => playerState(page)).toMatchObject({
@@ -40,6 +51,9 @@ test('whale appearance persists and responds to real movement and shots', async 
   await page.keyboard.up('Space');
   await page.keyboard.up('w');
 
+  await page.keyboard.down('s');
+  await expect.poll(() => playerState(page)).toMatchObject({ texture: 'whale-chan', flipped: false });
+  await page.keyboard.up('s');
   await page.mouse.move(860, 450);
   await page.mouse.down();
   await expect.poll(async () => (await playerState(page)).effects).toContain('whale-shot');

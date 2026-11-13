@@ -1,6 +1,6 @@
 # 贡献指南（CONTRIBUTING）
 
-欢迎为 **LAST SIGNAL** 做贡献。本仓库当前是 `0.1.0` 可玩纵向切片，所有改动都应保持「无云端 AI 依赖、无外部图片资源」的基线。请先读 [`README.md`](README.md) 与 [`docs/STYLE_GUIDE.md`](docs/STYLE_GUIDE.md)。
+欢迎为 **LAST SIGNAL** 做贡献。本仓库当前是 `0.1.0` 可玩纵向切片。请先读 [`README.md`](README.md) 与 [`docs/STYLE_GUIDE.md`](docs/STYLE_GUIDE.md)。
 
 ## 1. 分支与提交规范
 
@@ -84,7 +84,7 @@ LS_SHOT_DIR=</path/outside/repo> npm run playwright
 - **暗底 + 单色辉光**：背景接近纯黑（海军蓝 `#05070c`），物体靠描边色与内发光被看见。
 - **几何极简**：只用圆 / 菱形 / 菱形星等基础图形，统一描边。
 - **青色 `#33e0ff` 为「系统 / 我方」基色**；橙 / 红 / 紫 / 金只用于敌人、威胁、稀有奖励。
-- **不使用任何外部图片或远程资源**：所有纹理由 Canvas 程序化生成，音效由 Web Audio 合成。新增视觉应延续这一约束，不要引入图片文件、CDN 资源或云端 AI 服务。
+- **资源随游戏打包**：场景纹理由 Canvas 程序化生成，音效由 Web Audio 合成。鲸鱼娘的社区素材与许可一起存放在仓库内。[素材与署名](docs/WHALE_CHAN.md)
 - HUD 文字使用等宽字体（monospace），保证在小缩放下仍清晰可读。
 
 ## 5. 其他约定

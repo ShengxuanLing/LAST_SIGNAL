@@ -8,7 +8,7 @@ import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
-import { WhaleCharacterEffects, WHALE_TEXTURE } from '../core/WhaleCharacter';
+import { hasWhaleTextures, WhaleCharacterEffects, WHALE_TEXTURE } from '../core/WhaleCharacter';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -69,11 +69,10 @@ export class Player {
       weapons,
       upgrades: [], abilities: []
     } as PlayerData;
-    const whale = save.settings.avatar === 'whale';
+    const whale = save.settings.avatar === 'whale' && hasWhaleTextures(world.scene.textures);
     this.sprite = world.scene.add.sprite(x, y, whale ? WHALE_TEXTURE : 'player');
     this.sprite.setDepth(100);
     if (whale) {
-      this.sprite.setScale(0.61).setOrigin(0.46, 0.91);
       this.whaleEffects = new WhaleCharacterEffects(this.sprite);
     }
     this.aimYaw = 0;
