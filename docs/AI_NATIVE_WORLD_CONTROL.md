@@ -171,9 +171,26 @@ HUD 左下常驻：`ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL`。800x
 | F-07（P1 修复） | 已修：本报告新增「P1 证据范围」表，逐类标注夹具与无夹具独立证据 |
 | F-03（P2 阻断） | **未修**：`window.__game` 生产暴露仍在；感知投影不是页面级安全边界，外部 Agent 接入前必须收敛 |
 | F-08/F-09/F-10 | 低优先残留：`restoreCheckpoint` 入参别名、`intentToWorldVelocity` 硬编码 64/32、暂停 HUD 刷新（本轮已顺带修复 F-10 的 HUD 模式刷新） |
+| F-09（C1 修复） | 已修：`intentToWorldVelocity` / `screenDirectionTowardGrid` 改用 `IsoMath.TILE_W/H` 并委托 `sim/rules.ts` 单一实现；未扩张其他历史清理 |
+| C1（本轮） | 已实施：唯一纯规则模块 + Phaser 即时接线；**不是**完整状态集中/固定 tick/外部 Agent，详见 §6.5 |
 | R-09 `onLoot` / `statsSnapshot()` 空实现 | 与 P1 意图适配无关，未处理，列为后续缺陷 |
 
-**明确遗留**：共享纯核、固定 60Hz tick、全玩法 seeded RNG、跨端 parity、World Replay/state hash、`WorldCore` parity 测试、外部 Agent 经正式 Player/MCP 通道接入、Human+ECHO 正式双 Actor、P5 后续分辨率/玩法范围扩展。当前 `Human + ECHO` 未实现，不能伪装可用；现有 `src/ai-native/coop.ts` 仍是隔离 Headless 测试实体。
+**明确遗留**：集中 `SimulationState`、固定 60Hz tick、全玩法 seeded RNG、跨端 parity、World Replay/state hash、`WorldCore` parity 测试（C2）；外部 Agent 经正式 Player/MCP 通道接入（C3，**P2 完成条件**）；Human+ECHO 正式双 Actor、正式 World Signal 接入（总任务义务）；P5 后续分辨率/玩法范围扩展。当前 `Human + ECHO` 与正式 Signal 未实现，不能伪装可用；现有 `src/ai-native/coop.ts` 仍是隔离 Headless 测试实体。
+
+---
+
+## 6.5 C1 — 共享纯规则抽取与即时接线（状态所有权边界）
+
+- 新增唯一纯模块 `src/world/sim/rules.ts`（无 Phaser / DOM / `Math.random`）：移动/轴分离碰撞/瞄准、武器 spec、弹丸创建（真实 `RNG`）、弹丸推进与扫掠命中、护甲伤害/击退、drone FSM、非 drone 共用移动与远程攻击描述符。`src/ai-native/control.ts` 的 `intentToWorldVelocity` / `screenDirectionTowardGrid` 改为调用该模块并复用 `IsoMath.TILE_W/H`（F-09）。
+- `Player.applyIntent()` / `setAimGrid()` / `tryFire()` / `hurt()`、`Enemy.update()`（drone 走纯 FSM，其他 kind 走 legacy FSM）/ `hit()` / 移动与攻击助手、`World.spawnProjectile()` / `updateProjectiles()` 全部改为调用这些唯一实现；旧的内联规则体已删除，没有保留「旧函数 + 新 core」两套权威。渲染、音效、回调、精灵生命周期仍在适配层。
+- **明确边界**：C1 不是完整权威核/Headless/Replay。可变状态仍分散在 `Player` / `Enemy` / `World` 对象上；`GameScene.update()` 仍是变长 `dt`，`World.rng` 仍由 World 持有，存档 `SAVE_VERSION=2` / `finishRun` / checkpoint 语义未改。集中 `SimulationState`、固定 60Hz tick、事件队列、全部玩法 RNG 归一是 **C2** 工作，C1 不以一组几何 helper 冒充完成。
+- 首片是 `drone` + `pulse`；`buildWeaponSpec` / `createProjectileData` / `advanceProjectile` / `projectileHitsTarget` / `resolveEnemyHit` 对所有武器与敌人共用，scatter/plasma 等其他配置未回归；Boss.hit 仍保留自己的旧公式，不在首片内。
+- 真实标签不变：仍是本地确定性演示，`EXTERNAL NOT CONNECTED`；**真实外部 Agent 经正式通道战斗依旧是 P2 完成条件**（C3），不得重定义为 P3，也不得用浏览器自动化/假 Headless 冒充。
+
+## 6.6 Signal 支持状态（C1）
+
+- **正式 World 当前不支持 Signal 玩法**：没有 Scan / Jam / Decoy / Relay / Bridge / Guard / Signal Energy / 设施状态机；`docs/SIGNAL_SYSTEM_DESIGN.md` 是设计提案，相关实现只存在于 Station Zero `src/slice/`。
+- C1 只迁移真实存在的移动/碰撞/弹丸/drone 规则，没有发明、伪造或隐式引入 Signal。Signal 正式接入仍是 AI-NATIVE-02 总任务义务，后续阶段按真实设计另行实现。
 
 ---
 

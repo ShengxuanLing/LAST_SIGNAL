@@ -155,4 +155,14 @@ P5提交后Lead发现普通Session与coop各10槽位可合计20，已由Orca Wor
 | 外部 Agent / Headless World / Replay | 无 | — | — | **全部未实现**；HUD/菜单/报告始终 `EXTERNAL NOT CONNECTED`；`game:headless`/MCP 只服务 Station Zero |
 
 - 人工可读性判读（F-06）：开发者已查看 `p1-fixes/evidence-dev/hud-ai-800x600.png`（修复后）：右列 7 行与左下提示在 800x600 下完整、无裁切/重叠、字号明显放大且提示高对比；结论记为「可辨，不需要放大」，但这是开发者看图结论，不冒充独立人工验收；数字阈值只作几何下限。
-- 仍未处理：F-03（`window.__game` 生产暴露）、F-08（`restoreCheckpoint` 入参别名）、F-09（`intentToWorldVelocity` 硬编码 64/32）、R-01/R-02/R-05/R-06/R-09 与外部 Agent 接入；全部带入 P2/P4。
+- 仍未处理：F-03（`window.__game` 生产暴露）、F-08（`restoreCheckpoint` 入参别名）、R-01/R-02/R-05/R-06/R-09、固定 tick、集中状态、外部 Agent 接入；F-09 已在 C1 修复，其余带入 P2/P4。
+
+## C1 — 共享纯规则抽取与即时接线（提交见本节所在提交）
+
+- **状态**：Developer 自测完成，未合并 main；父提交 `1aadd2e04...`。范围仅 C1，**没有**实施 C2 固定 tick / RNG 归一 / 集中状态，也没有 C3 外部 Agent 或 Signal 玩法。
+- **实现**：唯一纯模块 `src/world/sim/rules.ts`（无 Phaser / DOM / `Math.random`）承载移动/轴分离碰撞/瞄准、武器 spec、弹丸创建（复用真实 `World.rng`）、弹丸推进与扫掠命中、护甲伤害/击退、drone FSM、非 drone 共用移动/远程攻击助手；`Player` / `Enemy` / `World` 立即调用这些唯一实现，旧内联规则体删除；渲染、音效、回调、精灵生命周期仍在适配层。`src/ai-native/control.ts` 改用 `IsoMath.TILE_W/H`（F-09），`drone/pulse` 为首片，scatter/plasma 等其他武器与敌人共用通用纯函数未回归。
+- **不是权威核完成**：可变状态仍分散在 `Player` / `Enemy` / `World`；`GameScene.update()` 仍是变长 `dt`，`World.rng` 仍由 World 持有，存档契约（SAVE_VERSION=2 / `finishRun` / checkpoint）未改。集中 `SimulationState`、固定 60Hz tick、事件队列、全部玩法 RNG 归一是 **C2**；C1 不以一组几何 helper 冒充完成。
+- **Signal**：正式 World 当前不支持任何 Signal 玩法（Scan/Jam/Decoy/Relay/Bridge/Guard/Signal Energy 只在 Station Zero `src/slice/`；`SIGNAL_SYSTEM_DESIGN.md` 是设计提案）。C1 没有发明 Signal；正式接入仍是 AI-NATIVE-02 总任务义务。
+- **阶段口径**：C3 真实外部 Agent 经正式通道战斗**仍是 P2 完成条件**，排在 C1/C2 依赖之后，不重定义为 P3；HUD/菜单/报告持续 `EXTERNAL NOT CONNECTED`，不得用本地 demo / 浏览器自动化 / 假 Headless 冒充。
+- **验证**：Node 单测用真实 `MapGenerator(424242)` + `WEAPONS.pulse` + `ENEMY_STATS.drone` 覆盖受阻移动、瞄准、射击、扫掠命中/墙、伤害/死亡、drone FSM；静态 rewiring 单测证明 Phaser 三个适配器调用 `sim/rules` 且旧规则体已删除；Rendered Playwright 用真实键鼠断言 `Player.lastMoveStep` / `lastWeaponSpec`、`World.lastProjectileData`、`Enemy.lastDroneStep` / `lastHitResult`，并覆盖 P1 五视口与旧全量回归。完整日志与证据在 `reports/ai-native-02/c1/`。
+- **C2 下一步**：集中 `SimulationState`、固定 tick 累加器、玩法/视觉 RNG 拆分、`SimEvent[]` 呈现事件隔离、Node/Rendered canonical parity；仍不宣称全游戏 Replay/确定性。

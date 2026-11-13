@@ -16,6 +16,10 @@ import type { ControllerActorView, LocalControllerView } from '../ai-native/loca
 import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
 import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
+import {
+  advanceProjectile, createProjectileData, projectileHitsTarget,
+  type WeaponFireSpec
+} from './sim/rules';
 
 export interface WorldCallbacks {
   onLevelUp: (level: number) => void;
@@ -37,6 +41,8 @@ export class World {
   player: Player;
   enemies: Enemy[] = [];
   projectiles: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
+  /** C1 evidence: first projectile produced by the single pure builder. */
+  lastProjectileData: ProjectileData | null = null;
   loot: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> = [];
   fx: HitFx[] = [];
   private damageTexts: Phaser.GameObjects.Text[] = [];
@@ -488,28 +494,30 @@ export class World {
   boss: Boss | null = null;
 
   spawnProjectile(ownerId: number, x: number, y: number, angle: number, spec: any, side: 'player' | 'enemy'): ProjectileData {
-    const shots = spec.shots ?? 1;
+    // C1: crit / damage / velocity / lifetime / radius come from one pure rule.
+    const weaponSpec = spec as WeaponFireSpec;
+    const shots = weaponSpec.shots ?? 1;
     const results: ProjectileData[] = [];
     for (let i = 0; i < shots; i++) {
-      const spread = spec.spread ?? 0;
-      const a = angle + (shots > 1 ? (i / (shots - 1) - 0.5) * spread * shots : 0);
-      const px = x + Math.cos(a) * 16 / GAME.PIXEL_TO_TILE;
-      const py = y + Math.sin(a) * 16 / GAME.PIXEL_TO_TILE;
-      const crit = this.rng.float() < spec.critChance;
-      const dmg = (crit ? spec.critDamage : 1) * spec.damage;
-      const data: ProjectileData = {
-        id: this.projIdCounter++, ownerId, side, pos: { x: px, y: py },
-        vel: { x: Math.cos(a) * spec.speed, y: Math.sin(a) * spec.speed },
-        // Collision radius is expressed in tile-world units. Convert the px-authored
-        // value, then keep a small minimum hitbox so fast bullets remain hittable
-        // without falling back to the old 6-tile "magnet" radius.
-        damage: dmg, lifetime: spec.lifetime,
-        radius: Math.max((spec.magazine > 0 && spec.kind === 'scatter' ? 5 : 6) / GAME.PIXEL_TO_TILE, 0.2),
-        crit, pierce: spec.pierce ?? 0, hitSet: new Set()
-      };
-      this.addProjectileSprite(data, spec.kind, side === 'enemy');
+      const data = createProjectileData({
+        id: this.projIdCounter++,
+        ownerId,
+        side,
+        origin: { x, y },
+        angle,
+        spec: weaponSpec,
+        rng: this.rng,
+        shotIndex: i,
+        shotCount: shots,
+        pixelToTile: GAME.PIXEL_TO_TILE
+      });
+      this.addProjectileSprite(data, weaponSpec.kind, side === 'enemy');
       results.push(data);
     }
+    // Snapshot (not a live reference): C1 evidence of the pure builder output.
+    this.lastProjectileData = results[0]
+      ? { ...results[0], pos: { ...results[0].pos }, vel: { ...results[0].vel }, hitSet: new Set(results[0].hitSet) }
+      : null;
     return results[0];
   }
 
@@ -594,18 +602,7 @@ export class World {
     this.shakeAmount = Math.max(0, this.shakeAmount - dt * 10);
   }
 
-  /** Shortest distance from point P to segment AB; used for swept projectile hits. */
-  private segmentPointDistance(ax: number, ay: number, bx: number, by: number, px: number, py: number): number {
-    const dx = bx - ax, dy = by - ay;
-    const l2 = dx * dx + dy * dy;
-    if (l2 <= 1e-9) return Math.hypot(px - ax, py - ay);
-    let t = ((px - ax) * dx + (py - ay) * dy) / l2;
-    t = Math.max(0, Math.min(1, t));
-    const cx = ax + t * dx, cy = ay + t * dy;
-    return Math.hypot(px - cx, py - cy);
-  }
-
-  /** Remove a projectile's display sprite exactly once (reset()/other paths may have done it already). */
+  /** C1: swept-hit geometry now lives in sim/rules.ts (single implementation). */
   private destroyProjectileSprite(p: { spr: Phaser.GameObjects.Sprite; data: ProjectileData }): void {
     if (p.spr && p.spr.scene) p.spr.destroy();
   }
@@ -615,26 +612,29 @@ export class World {
     for (const p of this.projectiles) {
       const prevX = p.data.pos.x;
       const prevY = p.data.pos.y;
-      p.data.pos.x += p.data.vel.x * dt;
-      p.data.pos.y += p.data.vel.y * dt;
-      p.data.lifetime -= dt;
+      const advance = advanceProjectile({
+        pos: { x: prevX, y: prevY },
+        vel: p.data.vel,
+        lifetime: p.data.lifetime,
+        dt,
+        tileAt: (tx, ty) => this.tileAt(tx, ty),
+        mapWidth: this.map.width,
+        mapHeight: this.map.height
+      });
+      p.data.pos = advance.pos;
+      p.data.lifetime = advance.lifetime;
       const s = this.worldToScreen(p.data.pos.x, p.data.pos.y);
       p.spr.setPosition(s.x, s.y);
-      const t = this.tileAt(p.data.pos.x, p.data.pos.y);
-      const hitWall = t.type === 'wall';
-      const expired = p.data.lifetime <= 0 || hitWall ||
-        p.data.pos.x < -40 || p.data.pos.x > this.map.width + 40 ||
-        p.data.pos.y < -40 || p.data.pos.y > this.map.height + 40;
+      const expired = advance.expired;
       if (expired) {
-        if (hitWall) this.addHitFx(p.data.pos.x, p.data.pos.y, 0x88aacc);
+        if (advance.hitWall) this.addHitFx(p.data.pos.x, p.data.pos.y, 0x88aacc);
         // lifetime / hitWall / out-of-bounds: the entry leaves the array, so the sprite must go too.
         this.destroyProjectileSprite(p);
         continue;
       }
       // Swept collision: a fast bullet can cross a small hitbox between frames.
       const hit = (tx: number, ty: number, targetRadius: number): boolean =>
-        this.segmentPointDistance(prevX, prevY, p.data.pos.x, p.data.pos.y, tx, ty)
-          <= targetRadius + p.data.radius;
+        projectileHitsTarget({ x: prevX, y: prevY }, p.data.pos, { x: tx, y: ty }, targetRadius, p.data.radius);
       // collisions
       let alive = true;
       if (p.data.side === 'player') {

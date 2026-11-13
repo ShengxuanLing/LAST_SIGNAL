@@ -6,6 +6,10 @@ import { clamp, unit, angleDiff } from '../core/random';
 import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { Player } from './Player';
+import {
+  axisSlideToward, distanceWithin, rangedAttackDescriptor, resolveEnemyHit, stepDroneAi,
+  type DroneAiResult, type EnemyHitResult
+} from '../world/sim/rules';
 
 export interface EnemySpec {
   kind: EnemyKind; x: number; y: number; room: number; depth: number;
@@ -79,6 +83,9 @@ export class Enemy {
   // HP stored on sprite? We'll keep hp in a parallel field.
   get hp(): number { return this._hp; }
   _hp = 0;
+  /** C1 evidence: last pure drone FSM / hit results applied by this Phaser enemy. */
+  lastDroneStep: DroneAiResult | null = null;
+  lastHitResult: EnemyHitResult | null = null;
 
   initHp(): void { this._hp = this.data.stats.maxHp; }
 
@@ -88,19 +95,66 @@ export class Enemy {
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     this.wanderTimer -= dt;
     this.data.stateTimer -= dt;
-    this.stateMachine(dt, player);
+    // C1: drone rules come from the single pure FSM; every other enemy kind
+    // still uses the legacy generic FSM below (no duplicate drone authority).
+    if (this.data.kind === 'drone') {
+      const step = stepDroneAi({
+        dt,
+        position: { x: this.wx, y: this.wy },
+        player: { x: player.x, y: player.y },
+        stats: {
+          speed: this.data.stats.speed,
+          aggroRange: this.data.stats.aggroRange,
+          attackRange: this.data.stats.attackRange,
+          attackCooldown: this.data.stats.attackCooldown,
+          damage: this.data.stats.damage,
+          ranged: this.data.stats.ranged,
+          reachEnemy: this.data.stats.reachEnemy
+        },
+        state: this.data.state,
+        stateTimer: this.data.stateTimer,
+        wanderTimer: this.wanderTimer,
+        attackTimer: this.attackTimer,
+        patrolPoints: this.data.patrolPoints,
+        patrolIndex: this.data.patrolIndex,
+        targetId: this.data.targetId,
+        isWalkable: (x, y) => this.world.isWalkable(x, y),
+        pixelToTile: GAME.PIXEL_TO_TILE
+      });
+      this.lastDroneStep = step;
+      this.applyDroneStep(step, player);
+    } else {
+      this.legacyStateMachine(dt, player);
+    }
   }
 
-  private distanceTo(player: Player): number {
-    const dx = player.x - this.x, dy = player.y - this.y;
-    return Math.hypot(dx, dy);
+  /** Adapter side of the pure drone step: sprites, projectiles, hurt calls. */
+  private applyDroneStep(step: DroneAiResult, player: Player): void {
+    this.wx = step.position.x;
+    this.wy = step.position.y;
+    this.data.state = step.state;
+    this.data.stateTimer = step.stateTimer;
+    this.wanderTimer = step.wanderTimer;
+    this.data.patrolIndex = step.patrolIndex;
+    this.data.targetId = step.targetId;
+    this.attackTimer = step.attackTimer;
+    if (step.faceAngle !== null) this.sprite.setRotation(step.faceAngle);
+    if (step.attack) {
+      if (step.attack.kind === 'ranged' && step.attack.velocity) {
+        this.world.spawnEnemyProjectile(this.id, this.x, this.y, step.attack.damage, step.attack.velocity);
+      } else if (step.attack.kind === 'melee') {
+        player.hurt(step.attack.damage, this.x, this.y);
+      }
+    }
+    this.project();
   }
 
   private inRange(player: Player, range: number): boolean {
-    return this.distanceTo(player) <= range;
+    return distanceWithin({ x: this.x, y: this.y }, { x: player.x, y: player.y }, range);
   }
 
-  private stateMachine(dt: number, player: Player): void {
+  /** Non-drone kinds only; drone is dispatched to stepDroneAi() above. */
+  private legacyStateMachine(dt: number, player: Player): void {
     switch (this.data.state) {
       case 'idle':
         if (this.data.stateTimer <= 0 || this.wanderTimer <= 0) this.data.state = 'patrol';
@@ -143,7 +197,7 @@ export class Enemy {
   }
 
   private detects(player: Player): boolean {
-    return this.distanceTo(player) <= this.data.stats.aggroRange;
+    return distanceWithin({ x: this.x, y: this.y }, { x: player.x, y: player.y }, this.data.stats.aggroRange);
   }
 
   private enterDetect(player: Player): void {
@@ -159,11 +213,9 @@ export class Enemy {
 
   private moveToPlayer(dt: number, player: Player): void {
     const stats = this.data.stats;
-    const dx = player.x - this.x, dy = player.y - this.y;
-    const d = Math.hypot(dx, dy) || 1;
-    let vx = dx / d * stats.speed, vy = dy / d * stats.speed;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    const next = axisSlideToward({ x: this.wx, y: this.wy }, { x: player.x, y: player.y }, stats.speed, dt,
+      (x, y) => this.world.isWalkable(x, y));
+    this.wx = next.x; this.wy = next.y;
     this.facePlayer(player);
     this.project();
   }
@@ -180,21 +232,19 @@ export class Enemy {
       this.data.stateTimer = 1.2;
       return;
     }
-    let vx = dx / d * stats.speed * 0.5, vy = dy / d * stats.speed * 0.5;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    const next = axisSlideToward({ x: this.wx, y: this.wy }, target, stats.speed * 0.5, dt,
+      (x, y) => this.world.isWalkable(x, y));
+    this.wx = next.x; this.wy = next.y;
     this.project();
   }
 
   private reposition(dt: number): void {
     const stats = this.data.stats;
-    // move away from player, perpendicular preferred
     const player = this.world.player;
-    const dx = this.x - player.x, dy = this.y - player.y;
-    const d = Math.hypot(dx, dy) || 1;
-    let vx = dx / d * stats.speed, vy = dy / d * stats.speed;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    const away = { x: 2 * this.x - player.x, y: 2 * this.y - player.y };
+    const next = axisSlideToward({ x: this.wx, y: this.wy }, away, stats.speed, dt,
+      (x, y) => this.world.isWalkable(x, y));
+    this.wx = next.x; this.wy = next.y;
     this.facePlayer(player);
     this.project();
   }
@@ -209,10 +259,8 @@ export class Enemy {
         player.hurt(stats.damage, this.x, this.y);
       }
     } else if (stats.ranged) {
-      // ranged projectile: spawn at the enemy and travel toward the player in grid space
-      const a = Math.atan2(player.y - this.y, player.x - this.x);
-      const speed = 160 / GAME.PIXEL_TO_TILE;
-      this.world.spawnEnemyProjectile(this.id, this.x, this.y, stats.damage, { x: Math.cos(a) * speed, y: Math.sin(a) * speed });
+      const shot = rangedAttackDescriptor({ x: this.x, y: this.y }, { x: player.x, y: player.y }, GAME.PIXEL_TO_TILE);
+      this.world.spawnEnemyProjectile(this.id, this.x, this.y, stats.damage, shot.velocity);
     }
   }
 
@@ -220,19 +268,22 @@ export class Enemy {
   _id = 0;
 
   hit(damage: number, source: Vec2): boolean {
-    if (this.data.stunTimer > 0) return false;
-    const reduction = 1 - Math.min(0.75, this.data.stats.armor / (this.data.stats.armor + 80));
-    const dmg = Math.max(1, damage * reduction);
-    this._hp -= dmg;
-    this.data.hitFlash = 0.15;
-    // Knockback is a small grid-space nudge (16px), not a 3-tile teleport.
-    // Do not push the enemy into a wall.
-    const dx = this.wx - source.x, dy = this.wy - source.y;
-    const d = Math.hypot(dx, dy) || 1;
-    const kb = 16 / GAME.PIXEL_TO_TILE;
-    const nx = this.wx + (dx / d) * kb;
-    const ny = this.wy + (dy / d) * kb;
-    if (this.world.isWalkable(nx, ny, 0.4)) { this.wx = nx; this.wy = ny; }
+    const result = resolveEnemyHit({
+      hp: this._hp,
+      position: { x: this.wx, y: this.wy },
+      armor: this.data.stats.armor,
+      stunTimer: this.data.stunTimer,
+      damage,
+      source,
+      isWalkable: (x, y, radius) => this.world.isWalkable(x, y, radius),
+      pixelToTile: GAME.PIXEL_TO_TILE
+    });
+    this.lastHitResult = result;
+    if (result.blocked) return false;
+    this._hp = result.hp;
+    this.data.hitFlash = result.hitFlash;
+    this.wx = result.position.x;
+    this.wy = result.position.y;
     this.project();
     return true;
   }

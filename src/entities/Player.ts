@@ -9,10 +9,14 @@ import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
 import { WhaleCharacterEffects, WHALE_TEXTURE } from '../core/WhaleCharacter';
 import {
-  ControlAuthority, intentFromHumanInput, intentToWorldVelocity, neutralIntent,
+  ControlAuthority, intentFromHumanInput, neutralIntent,
   type ControlOwner, type PlayerIntent
 } from '../ai-native/control';
 import { LocalDeterministicController } from '../ai-native/localController';
+import {
+  aimYawFromGrid, buildWeaponSpec, damageAfterArmor, stepPlayerMovement,
+  type PlayerMoveResult, type WeaponFireSpec
+} from '../world/sim/rules';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -32,6 +36,9 @@ export class Player {
   /** Last intent actually executed this frame (read-only HUD / evidence truth). */
   lastIntent: PlayerIntent = neutralIntent();
   lastIntentOwner: ControlOwner = 'human';
+  /** C1 evidence: last pure-rule results actually applied by this Phaser player. */
+  lastMoveStep: PlayerMoveResult | null = null;
+  lastWeaponSpec: WeaponFireSpec | null = null;
   private aiController = new LocalDeterministicController();
   private lastIntentOwnerSeen: ControlOwner = 'human';
   private _interactQueued = false;
@@ -167,8 +174,8 @@ export class Player {
    * (review R-08).
    */
   setAimGrid(x: number, y: number): void {
-    const dx = x - this.wx, dy = y - this.wy;
-    if (Math.hypot(dx, dy) > 1e-4) this.aimYaw = Math.atan2(dy, dx);
+    const yaw = aimYawFromGrid({ x: this.wx, y: this.wy }, { x, y });
+    if (yaw !== null) this.aimYaw = yaw;
   }
 
   private isWalkable(nx: number, ny: number): boolean {
@@ -213,27 +220,24 @@ export class Player {
    * controller never writes coordinates or HP directly.
    */
   private applyIntent(dt: number, intent: PlayerIntent): void {
-    const mag = Math.hypot(intent.move.x, intent.move.y);
-    let speed = this.data.speed;
-    if (this.dashTimer > 0) { speed = this.data.speed * 2.6; this.dashTimer -= dt; }
-    let vx = 0, vy = 0;
-    if (mag > 0) {
-      // Shared anisotropic screen -> grid budget (see ai-native/control.ts).
-      const v = intentToWorldVelocity(intent.move, speed);
-      vx = v.x; vy = v.y;
-    }
-
     const previousX = this.sprite.x;
     const previousY = this.sprite.y;
-    // axis-separate sliding collision
-    const nx = this.wx + vx * dt;
-    if (this.isWalkable(nx, this.wy)) this.wx = nx;
-    const ny = this.wy + vy * dt;
-    if (this.isWalkable(this.wx, ny)) this.wy = ny;
-
-    // dash
-    if (intent.dash && this.dashTimer <= 0 && mag > 0) {
-      this.dashTimer = this.data.dashDuration;
+    // C1: movement / axis-separated collision / dash budget is one pure rule.
+    const step = stepPlayerMovement({
+      position: { x: this.wx, y: this.wy },
+      move: intent.move,
+      dash: intent.dash,
+      speed: this.data.speed,
+      dt,
+      dashTimer: this.dashTimer,
+      dashDuration: this.data.dashDuration,
+      isWalkable: (x, y) => this.isWalkable(x, y)
+    });
+    this.lastMoveStep = step;
+    this.wx = step.position.x;
+    this.wy = step.position.y;
+    this.dashTimer = step.dashTimer;
+    if (step.dashStarted) {
       this.invuln = Math.max(this.invuln, this.data.dashDuration + 0.05);
       this.world.addShake(4);
       audio.ui();
@@ -327,14 +331,18 @@ export class Player {
     }
     this.fireTimer = this.fireCooldown();
     if (ws.magazine > 0) ws.ammo--;
-    this.world.spawnProjectile(0, this.x, this.y, this.aimYaw, {
-      damage: w.baseDamage * this.data.damage,
-      speed: w.baseProjectileSpeed / GAME.PIXEL_TO_TILE, critBase: w.critBase, critDamage: this.data.critDamage,
+    // C1: weapon spec comes from the single pure builder (real WEAPONS config).
+    const spec = buildWeaponSpec({
+      weapon: w,
+      damageMultiplier: this.data.damage,
       critChance: this.data.critChance,
-      pierce: this.data.pierceCount + (w.kind === 'plasma' ? 2 : 0),
-      lifetime: w.baseRange / w.baseProjectileSpeed, kind: w.kind,
-      magazine: ws.magazine, shots: w.kind === 'scatter' ? 5 : 1, spread: w.baseSpread
-    }, 'player');
+      critDamage: this.data.critDamage,
+      pierceCount: this.data.pierceCount,
+      magazine: ws.magazine,
+      pixelToTile: GAME.PIXEL_TO_TILE
+    });
+    this.lastWeaponSpec = spec;
+    this.world.spawnProjectile(0, this.x, this.y, this.aimYaw, spec, 'player');
     if (this.whaleEffects) {
       const aim = this.world.worldToScreen(this.x + Math.cos(this.aimYaw), this.y + Math.sin(this.aimYaw));
       this.whaleEffects.fire(aim.x - this.sprite.x, aim.y - this.sprite.y);
@@ -349,8 +357,7 @@ export class Player {
 
   hurt(amount: number, fromX: number, fromY: number): boolean {
     if (this.invuln > 0 || !this.alive) return false;
-    const reduction = 1 - Math.min(0.75, this.data.armor / (this.data.armor + 80));
-    const dmg = Math.max(1, amount * reduction);
+    const dmg = damageAfterArmor(amount, this.data.armor);
     this.data.hp = Math.max(0, this.data.hp - dmg);
     this.hurtTimer = 0.2;
     this.invuln = Math.max(this.invuln, 0.3);

@@ -11,6 +11,8 @@
 // LLM / Codex / MCP agent is connected to the rendered World in this phase.
 
 import type { Vec2 } from '../types';
+import { screenVelocityToGridVelocity, gridDirectionToScreenDirection } from '../world/sim/rules';
+import { IsoMath } from '../core/iso';
 
 export type ControlOwner = 'human' | 'ai';
 
@@ -67,24 +69,14 @@ export interface IntentVelocity { x: number; y: number; }
  *  direction gets from the real Player movement code. Diagonal on-screen input
  *  therefore costs different grid speed per axis — the axis-separated budget is
  *  preserved, not replaced by a uniform speed. */
-export function intentToWorldVelocity(move: Vec2, speed: number, tileW = 64, tileH = 32): IntentVelocity {
-  const mag = Math.hypot(move.x, move.y);
-  if (mag <= 1e-9) return { x: 0, y: 0 };
-  const sx = move.x / mag;
-  const sy = move.y / mag;
-  const tx = sx / (tileW / 2);
-  const ty = sy / (tileH / 2);
-  return { x: (tx + ty) / 2 * speed, y: (ty - tx) / 2 * speed };
+export function intentToWorldVelocity(move: Vec2, speed: number, tileW = IsoMath.TILE_W, tileH = IsoMath.TILE_H): IntentVelocity {
+  return screenVelocityToGridVelocity(move, speed, tileW, tileH);
 }
 
 /** Grid-space direction -> screen-space direction that the executor turns back
  *  into that same grid direction (unit budget). Used only to aim movement. */
-export function screenDirectionTowardGrid(dx: number, dy: number, tileW = 64, tileH = 32): Vec2 {
-  const sx = (dx - dy) * (tileW / 2);
-  const sy = (dx + dy) * (tileH / 2);
-  const mag = Math.hypot(sx, sy);
-  if (mag <= 1e-9) return { x: 0, y: 0 };
-  return { x: sx / mag, y: sy / mag };
+export function screenDirectionTowardGrid(dx: number, dy: number, tileW = IsoMath.TILE_W, tileH = IsoMath.TILE_H): Vec2 {
+  return gridDirectionToScreenDirection(dx, dy, tileW, tileH);
 }
 
 // ---------------------------------------------------------------------------
