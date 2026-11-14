@@ -1,7 +1,7 @@
 {
   "seed": 424242,
-  "tick": 71,
-  "rngState": 3663131626,
+  "tick": 69,
+  "rngState": 1831565813,
   "map": {
     "seed": 424242,
     "width": 212,
@@ -135245,7 +135245,7 @@
       "level": 1,
       "xp": 0,
       "xpToNext": 30,
-      "currency": 20,
+      "currency": 0,
       "weaponKey": "pulse",
       "weapons": [
         {
@@ -135335,7 +135335,8 @@
   "projectiles": [],
   "pendingPlayerHits": [],
   "pendingCommands": [],
+  "purchaseTransactions": [],
   "loot": [],
-  "nextLootId": 3,
+  "nextLootId": 1,
   "nextProjectileId": 1
 }
