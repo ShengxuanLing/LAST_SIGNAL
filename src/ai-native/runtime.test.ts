@@ -59,6 +59,7 @@ class CliChannel {
   private readonly waiters: Array<(line: string) => void> = [];
   private readonly child: ChildProcessWithoutNullStreams;
   readonly exit: Promise<number | null>;
+  private exited = false;
 
   constructor(dev = true) {
     this.child = spawn(process.execPath, [VITE_NODE, CLI, '--run', ...(dev ? ['--dev'] : [])], {
@@ -70,18 +71,43 @@ class CliChannel {
       else this.queue.push(line);
     });
     this.exit = new Promise((resolve) => this.child.on('exit', (code) => resolve(code)));
+    void this.exit.then(() => { this.exited = true; });
   }
 
   write(command: Record<string, unknown>): void {
     this.child.stdin.write(`${JSON.stringify(command)}\n`);
   }
 
-  next(): Promise<Record<string, unknown>> {
+  /** Bounded wait: protocol readiness, not a fixed sleep. On timeout, the
+   *  channel kills and reaps its own child so no process is leaked. */
+  next(timeoutMs = 15_000): Promise<Record<string, unknown>> {
     const buffered = this.queue.shift();
     if (buffered !== undefined) return Promise.resolve(JSON.parse(buffered) as Record<string, unknown>);
-    return new Promise((resolve) => {
-      this.waiters.push((line) => resolve(JSON.parse(line) as Record<string, unknown>));
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      let waiter: (line: string) => void;
+      const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        const idx = this.waiters.indexOf(waiter);
+        if (idx >= 0) this.waiters.splice(idx, 1);
+        this.close();
+        reject(new Error(`CLI did not respond within ${timeoutMs}ms (cold-start budget)`));
+      }, timeoutMs);
+      waiter = (line: string) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(JSON.parse(line) as Record<string, unknown>);
+      };
+      this.waiters.push(waiter);
     });
+  }
+
+  /** Kill our own child process if it is still running. */
+  close(): void {
+    if (this.exited || this.child.killed) return;
+    this.child.kill('SIGKILL');
   }
 }
 
@@ -614,6 +640,7 @@ describe('B7 — CLI strict schema and resource limits', () => {
 
   it('restore requires hashes and only accepts this instance issued frame', async () => {
     const ch = new CliChannel(true);
+    try {
     ch.write({ cmd: 'create', id: 'g', seed: 42 });
     expect(await ch.next()).toMatchObject({ ok: true, cmd: 'create' });
     ch.write({ cmd: 'snapshot', id: 'g' });
@@ -644,12 +671,15 @@ describe('B7 — CLI strict schema and resource limits', () => {
     expect(await ch.next()).toMatchObject({ ok: true, cmd: 'restore' });
     ch.write({ cmd: 'quit' });
     expect(await ch.exit).toBe(0);
-  });
+    } finally {
+      ch.close();
+    }
+  }, 20_000);
 
   it('quit exits and cleans up without waiting for stdin EOF', async () => {
     const child = spawn(process.execPath, [VITE_NODE, CLI, '--run', '--dev'], { cwd: REPO, stdio: ['pipe', 'pipe', 'pipe'] });
     const exit = new Promise<number | null>((resolve, reject) => {
-      const timer = setTimeout(() => { child.kill(); reject(new Error('quit did not exit')); }, 30_000);
+      const timer = setTimeout(() => { child.kill(); reject(new Error('quit did not exit within 15s')); }, 15_000);
       child.on('exit', (code) => { clearTimeout(timer); resolve(code); });
     });
     child.stdin.write(JSON.stringify({ cmd: 'create', id: 'g', seed: 1 }) + '\n');
@@ -657,7 +687,7 @@ describe('B7 — CLI strict schema and resource limits', () => {
     // Intentionally do NOT call child.stdin.end(): quit must close on its own.
     const code = await exit;
     expect(code).toBe(0);
-  });
+  }, 20_000);
 });
 
 describe('purity and real Node CLI process', () => {
