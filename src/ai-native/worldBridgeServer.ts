@@ -138,12 +138,18 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const existing = linkedByOrigin.get(origin);
     if (existing) {
       const current = options.gateway.listSessions().find((s) => s.session === existing);
-      if (current && current.status !== 'closed') {
+      // Only a LIVE connected link blocks a new authorization. A closed,
+      // yielded or LOST (browser reload/crash) session is ATOMICALLY reclaimed:
+      // its pending actions, request caches and agent lease are dropped, the
+      // session is closed, and a BRAND-NEW session id/epoch is created. The old
+      // epoch can never be used again and the same token cannot revive it.
+      if (current && current.status === 'connected') {
         respond(res, 409, { ok: false, code: 'E_PERMISSION', messageKey: 'world.duplicate_handshake' });
         return;
       }
-      linkedByOrigin.delete(origin);
       leases.invalidateSession(existing);
+      options.gateway.closeSession(existing, Date.now());
+      linkedByOrigin.delete(origin);
     }
     const linked = options.gateway.linkSession({ authorized: true, origin, nowMs: Date.now() });
     if (!linked.ok) {

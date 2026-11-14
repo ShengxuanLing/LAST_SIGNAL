@@ -169,8 +169,18 @@ describe('C3-a loopback bridge auth / origin / lifecycle', () => {
       expect(view?.status).toBe('lost');
       const next = await request(server, `/world-link/next-action?session=${session}&epoch=${epoch}`);
       expect(next.status).toBe(409); // old epoch is stale
+      // A LOST session (browser reload/crash) is reclaimed by a NEW explicit
+      // human authorization: no bridge restart, no automatic reconnect. The
+      // old session id/epoch is gone and cannot be revived by the same token.
+      const reclaimed = await request(server, '/world-link/handshake', { body: { authorized: true, protocolVersion: 1 } });
+      expect(reclaimed.status).toBe(200);
+      expect(reclaimed.body.session).not.toBe(session);
+      expect(gateway.listSessions().some((s) => s.session === session)).toBe(false);
+      const staleAfterReclaim = await request(server, `/world-link/next-action?session=${session}&epoch=${epoch}`);
+      expect(staleAfterReclaim.status).toBeGreaterThanOrEqual(400);
+      // A duplicate handshake for the LIVE new session is still refused.
       const duplicate = await request(server, '/world-link/handshake', { body: { authorized: true, protocolVersion: 1 } });
-      expect(duplicate.status).toBe(409); // explicit close/authorize required
+      expect(duplicate.status).toBe(409); // live link must not be silently replaced
     }, { lostAfterMs: 60 });
   });
   it('server close releases the authorized session (normal close)', async () => {
