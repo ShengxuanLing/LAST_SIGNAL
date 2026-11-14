@@ -1,7 +1,7 @@
 # C2 Purchase Transaction — Report
 
 ## Commit
-`24f0a80` on `feat/ai-native-world-integration` (D:\Project\LAST_SIGNAL)
+`3f97990` on `feat/ai-native-world-integration` (D:\Project\LAST_SIGNAL)
 
 ## Intent
 Close the gap left by 1d5a8d7: the economy adapter pre-deducted on a `PlayerData`
