@@ -201,6 +201,12 @@ HUD 左下常驻：`ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL`。800x
 - **F-08**：`restoreCheckpoint` 先 `cloneCheckpoint(run)` 再赋值，`c2-parity.spec.ts` 负向断言「恢复后改输入帧不会改活玩家 HP/坐标」；`captureCheckpoint` 记录并恢复 core `tick/rngState/timers/nextProjectileId`，通过 `coreState` 校验。
 - **parity harness（H1）**：永久 `src/world/sim/parity.test.ts` 用独立 legacy 公式与纯规则逐项对照；永久 `tests/c2-parity.spec.ts`（B1–B4/B6/H2/H3/H10 等）通过正常 `stepFrame` 受控意图队列产生 Rendered canonical/events；`scripts/c2-node-parity.ts` 8/8，新增 `scripts/c2-kill-parity.ts` 13/13（真实击杀 drone+hunter 后比较奖励/事件/后续射击）。`npm run game:sim:parity` 可复现。
 - **本轮事务化修复**：core 拥有击杀奖励（XP/货币/等级）与击杀掉落 RNG；`killEnemy`/`killBoss` 只做表现/结算回调；B4 同帧两次致命 hit 在首次死亡后丢弃、blocked hit 不发 hurt 事实；`registerTarget` 深拷贝，Enemy/Boss 的 target 只读、移动通过 `enqueueTargetMove` tick 命令提交，删除可写 setter 与 `hit()`；Boss target 半径恢复 `getRadius()+1`；`resetProjectilesForTest`/`clearEnemiesForTest` 严格 dev/test；非 Boss `enemy-hit` 消费 `hitFlash`。真实击杀 Node/Rendered kill parity 13/13。
+
+- **第三轮事务化修复（0df1514 之后）**：`World.sim` 改为私有 `_sim`；对外仅暴露深拷贝冻结快照（`get sim()`、`get playerDataSnapshot()`）；`Enemy`/`Boss` 删除全部可写 `wx/wy/_hp` setter 与 legacy `hit()`，getter 只读 core target；`registerTarget` 深拷贝；外部对快照的写入不再改变核心状态。`World.projectiles` 保持只读核心副本（setter no-op，`resetProjectilesForTest`/`clearEnemiesForTest`/`setPlayerPositionForTest` 严格 dev/test，生产 preview 抛错）。
+- **命令事务**：常规玩法写入（弹丸发射、Boss 召唤/激光、房间敌人生成、传送门传送、掉落拾取/治疗/货币/XP/升级）改为 `enqueueCommand`，在下一 core tick 提交并产生有序 `SimEvent`；`paused`/`stepFrame(0)` 不改变 canonical；仅 World 构造/存档恢复/新局可 owner 初始化；普通交互传送走命令并验证走格。命令队列计入 `pendingCommands`/canonical，重试与消费不重复。
+- **击杀掉落**：击杀按 C1 顺序先消费两次掉落 roll 再加 XP；currency/heal 生成可见 `loot`，由 core `stepLoot` 磁吸/拾取，拾取时提交资源/HP 与 `loot-collected`；`killEnemy`/`killBoss` 不再直写 XP/货币/掉 RNG。资源房掉落同样经 core 命令。Phaser 只渲染/回调。核心 B11 回归：可见掉落、未拾取不结算、靠近拾取才结算；Node/Rendered kill parity 13/13 已含 canonical 掉落/货币/后续射击一致。
+- **RNG**：core 唯一玩法 RNG `RNG(seed*7919+1)`（crit→击杀掉落两次 roll→下一发 crit）；`World.rng` 仅留存档兼容，不再消费于房间/资源/传送门；视觉随机不进 canonical。New core H2 测试用独立 RNG 参考序列对照。
+- **验收**：`npm test` 397、全量 Playwright 44/44、冻结生产 P1 9/9、Node/Rendered parity 8/8、kill parity 13/13。日志 `reports/ai-native-02/c2-round3/logs/`。C3-b 继续冻结。
 - **范围（本轮已扩大）**：core 已覆盖全部 enemy kind/Boss 的弹丸碰撞、HP/位置、XP/货币奖励、升级材料化与击杀掉落 RNG；非 drone FSM 决策仍 legacy，但移动通过 `enqueueTargetMove` 命令在 tick 提交，不再直接写 target；portal/房间生成/资源掉落种类/存档策略/视觉仍 adapter。`Player.reset` 仅作为 World owner 初始化/房间切换边界，普通 adapter 不调用。**正式 World 仍无 Signal**；C3 真实外部 Agent 战斗仍是 **P2 完成条件**（不是 P3），HUD/菜单持续 `EXTERNAL NOT CONNECTED`。
 
 ---

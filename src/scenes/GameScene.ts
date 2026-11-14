@@ -484,6 +484,8 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  markCheckpointDirty(): void { this.checkpointDirty = true; }
+
   saveCheckpoint(): boolean {
     if (this.runFinished) return false;
     const checkpoint = this.world.captureCheckpoint(this.runId, this.seed, this.runStats());
@@ -524,7 +526,11 @@ export class GameScene extends Phaser.Scene {
       this.world.player.control.resume();
       this.world.player.clearHeldInput();
       this.refreshHud();
+      // Commit any level-up/loot commands queued while the overlay was open.
       this.world.resetSimulationAccumulator();
+      this.world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+      this.refreshHud();
+      if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
       this.cameras.main.setAlpha(1);
     }
   }

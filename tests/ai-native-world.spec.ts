@@ -639,9 +639,12 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       if (!cp) return { available: false };
       (window as any).__capturedFrame = cp;
       (window as any).__capturedJson = JSON.stringify(cp);
-      // Mutate the live run the same way play would (currency / hp).
-      gs.world.player.data.currency += 7;
-      gs.world.player.data.hp = Math.max(1, gs.world.player.data.hp - 5);
+      // Mutate the live run the same way play would (currency / hp) through core
+      // transactions, so this remains valid on a production preview.
+      gs.world.enqueueCurrency(7);
+      gs.world.enqueueHeal(-5);
+      gs.world.resetSimulationAccumulator();
+      gs.world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
       return { available: true };
     });
     expect(captured.available, 'start-room checkpoint frame captured in memory').toBe(true);
@@ -781,9 +784,11 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     await page.evaluate(() => {
       const g: any = (window as any).__game;
       const gs: any = g.scene.getScene('GameScene');
-      gs.world.player.data.weapons.push({
+      const upgraded = JSON.parse(JSON.stringify(gs.world.player.data));
+      upgraded.weapons.push({
         key: 'scatter', level: 1, ammo: 6, magazine: 6, reloading: false, reloadTimer: 0
       });
+      gs.world.ownerSetPlayerData(upgraded);
     });
 
     await enableAiViaPause(page);
@@ -1054,7 +1059,9 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       w.enqueueTargetMove(boss._id, other.gx + 2, other.gy + 2);
       w.stepFrame(1000 / 60 + 1e-6, neutral);
       const bossFar = !!w.observationView().boss;
-      w.clearEnemiesForTest();
+      for (const e of w.enemies) { if (e.sprite.scene) e.sprite.destroy(); }
+      w.enemies = [];
+      if (w.boss) { if (w.boss.sprite.scene) w.boss.sprite.destroy(); w.boss = null; }
 
       // Portal position obeys the same bounds; destination never leaves the DTO.
       const portal = w.portal;

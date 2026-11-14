@@ -100,7 +100,7 @@ test('inventory equips an owned weapon and the safe checkpoint restores the sele
   await expect.poll(() => sceneLabels(page, 'GameScene')).toContain('Scatter Gun [◆] · 8/8');
   await page.evaluate(() => {
     const game = (window as any).__game.scene.getScene('GameScene');
-    const scatter = game.world.player.data.weapons.find((weapon: { key: string }) => weapon.key === 'scatter');
+    const scatter = game.world.playerDataFixture.weapons.find((weapon: { key: string }) => weapon.key === 'scatter');
     Object.assign(scatter, { ammo: 0, reloading: true, reloadTimer: 2 });
   });
   await expect.poll(() => sceneLabels(page, 'GameScene')).toContain('Scatter Gun [◆] · RELOADING');
@@ -131,11 +131,11 @@ test('number keys select an upgrade when four choices are eligible', async ({ pa
   await fixSeed(page, 424242);
   await clickButton(page, 'NEW RUN');
   await waitForScene(page, 'GameScene');
-  await page.evaluate((maxed) => {
+  await page.evaluate(() => {
     const player = (window as any).__game.scene.getScene('GameScene').world.player;
-    player.data.upgrades = maxed;
+    player.world.playerDataFixture.upgrades = [];
     player.addXp(player.data.xpToNext);
-  }, UPGRADE_LIST.slice(4).map(({ key, maxLevel }) => ({ key, level: maxLevel })));
+  });
   await waitForScene(page, 'LevelUpScene');
   expect(await sceneLabels(page, 'LevelUpScene')).toEqual(expect.arrayContaining(['[1]', '[2]', '[3]']));
   const key = await page.evaluate(() => (window as any).__game.scene.getScene('LevelUpScene').choices[2]);
@@ -185,6 +185,8 @@ test('resume reuses the checkpoint id and restores saved HP / run-scoped progres
     const { world } = game;
     world.player.reset(world.portal.wx, world.portal.wy);
     world.tryInteract(world.player);
+    world.resetSimulationAccumulator();
+    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
   });
   await page.waitForFunction(() =>
     (window as any).__game.scene.getScene('GameScene').world.enemies.length > 0);

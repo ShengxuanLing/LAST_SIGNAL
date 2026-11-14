@@ -145,13 +145,13 @@ class SupplyTerminal {
     const purchased = buySupply(before, supply);
     if (!purchased) return;
 
-    player.data = purchased;
+    this.scene.world.ownerSetPlayerData(purchased);
     if (this.scene.saveCheckpoint()) {
       this.checkpointPending = false;
       feedback.textContent = `Purchased ${supply.name}.`;
       audio.ui();
     } else {
-      player.data = before;
+      this.scene.world.ownerSetPlayerData(before);
       feedback.textContent = 'Purchase could not be saved. Your credits were kept.';
     }
     this.renderStock(roomId, index);

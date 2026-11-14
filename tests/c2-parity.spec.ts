@@ -331,23 +331,26 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       }
       w.resetSimulationAccumulator();
       w.stepFrame(1000 / 60 + 1e-6, fireAt({ x: p.wx + 5, y: p.wy }));
-      const playerBullet = w.sim.projectiles.find((x: any) => x.source === 'player');
+      const playerBullet = w.simFixture.projectiles.find((x: any) => x.source === 'player');
       const beforeVel = playerBullet ? { ...playerBullet.vel } : null;
-      const enemyBefore = w.sim.projectiles.filter((x: any) => x.side === 'enemy').length;
+      const enemyBefore = w.simFixture.projectiles.filter((x: any) => x.side === 'enemy').length;
       if (w.boss) w.boss.fireLaser(p);
+      // The laser is a command; it commits on the next tick.
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
       const afterVel = playerBullet ? { ...playerBullet.vel } : null;
-      const enemyAfter = w.sim.projectiles.filter((x: any) => x.side === 'enemy').length;
-      const laserOk = enemyAfter > enemyBefore && w.sim.projectiles.filter((x: any) => x.side === 'enemy').every((x: any) => Math.hypot(x.vel.x, x.vel.y) > 0);
+      const enemyAfter = w.simFixture.projectiles.filter((x: any) => x.side === 'enemy').length;
+      const laserOk = enemyAfter > enemyBefore && w.simFixture.projectiles.filter((x: any) => x.side === 'enemy').every((x: any) => Math.hypot(x.vel.x, x.vel.y) > 0);
 
       // B3: compatibility getter is a copy; setter must not clear core.
-      const coreCount = w.sim.projectiles.length;
+      const coreCount = w.simFixture.projectiles.length;
       const view = w.projectiles;
-      const viewIsCore = view.some((v: any) => w.sim.projectiles.includes(v.data));
+      const viewIsCore = view.some((v: any) => w.simFixture.projectiles.includes(v.data));
       w.projectiles = [];
-      const coreAfterSetter = w.sim.projectiles.length;
+      const coreAfterSetter = w.simFixture.projectiles.length;
 
       // B4: legacy Player.hurt queues; core commits/event on next tick.
-      p.data.hp = 100; p.invuln = 0;
+      p.world.playerDataFixture.hp = 100; w.simFixture.player.invuln = 0;
       const hpBefore = w.sim.player.data.hp;
       const queued = p.hurt(10, p.x + 1, p.y);
       const hpAfterCall = w.sim.player.data.hp;
@@ -435,14 +438,14 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       w.clearEnemiesForTest();
       const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
       // Blocked hit: invulnerable player must not produce a hurt fact.
-      p.invuln = 999;
+      w.simFixture.player.invuln = 999;
       p.hurt(20, p.wx + 1, p.wy);
       w.resetSimulationAccumulator();
       const blockedEvents = w.stepFrame(1000 / 60 + 1e-6, neutral);
       const blockedHurt = blockedEvents.filter((e: any) => e.type === 'player-hurt').length;
       // Two lethal queued hits in one tick: only the first hurts/deaths.
-      p.invuln = 0;
-      p.data.hp = 10;
+      w.simFixture.player.invuln = 0;
+      p.world.playerDataFixture.hp = 10;
       p.hurt(999, p.wx + 1, p.wy);
       p.hurt(999, p.wx + 1, p.wy);
       const pending = w.sim.pendingPlayerHits.length;
@@ -479,7 +482,7 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       for (let i = 0; i < 40; i++) w.stepFrame(1000 / 60 + 1e-6, neutral);
       const frame = w.captureCheckpoint('h3-test', w.map.seed, { kills: 0, items: 0, damage: 0, elapsedSeconds: 0 });
       const before = { tick: w.sim.tick, rng: w.sim.rngState, pid: w.sim.nextProjectileId };
-      w.sim.tick = 9999; w.sim.rngState = 1; w.sim.nextProjectileId = 1;
+      w.simFixture.tick = 9999; w.simFixture.rngState = 1; w.simFixture.nextProjectileId = 1;
       const ok = w.restoreCheckpoint(frame as any);
       return { ok, coreCaptured: !!(frame as any)?.coreState, before, after: { tick: w.sim.tick, rng: w.sim.rngState, pid: w.sim.nextProjectileId } };
     });

@@ -30,7 +30,7 @@ describe('C2 pure core contract', () => {
 describe('C2 single-authority adapters', () => {
   it('Player delegates all mutable state to World.sim and only samples intents', () => {
     const src = read('src/entities/Player.ts');
-    expect(src).toContain('this.world.sim');
+    expect(src).toContain('playerDataSnapshot');
     expect(src).toContain('sampleIntent()');
     expect(src).toContain('syncVisual(');
     expect(src).toContain('enqueuePlayerHit(');
@@ -80,8 +80,19 @@ describe('C2 single-authority adapters', () => {
     expect(world).toContain('assertDevTest');
     expect(world).toContain('enemy.data.hitFlash = event.hit.hitFlash');
     expect(world).not.toContain('this.player.addXp(e.data.stats.xpValue)');
-    expect(read('src/scenes/LevelUpScene.ts')).toContain('applyUpgradeChoice(');
+    expect(read('src/scenes/LevelUpScene.ts')).toContain('enqueueApplyUpgrade(');
     expect(read('src/entities/Player.ts')).toContain('Owner-only initialization');
+    const player = read('src/entities/Player.ts');
+    expect(player).not.toContain('set data(');
+    expect(player).not.toContain('set wx(');
+    expect(player).not.toContain('set wy(');
+    const worldSrc = read('src/world/World.ts');
+    expect(worldSrc).toContain('private _sim!: SimulationState');
+    expect(worldSrc).toContain('get sim(): SimulationState');
+    expect(worldSrc).toContain('get simFixture(): SimulationState');
+    expect(worldSrc).toContain('ownerSetPlayerData(');
+    expect(worldSrc).toContain('enqueueSpawnLoot(');
+    expect(worldSrc).toContain('enqueueTeleport(');
   });
 
   it('World owns SimulationState, fixed accumulator, typed events and legacy-only update', () => {

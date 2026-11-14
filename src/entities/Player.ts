@@ -50,25 +50,15 @@ export class Player {
   private _aimYaw = 0;
   private whaleEffects?: WhaleCharacterEffects;
 
-  /** C2: player state is owned by World.sim.player after construction. */
-  get data(): PlayerData { return this.world.sim ? this.world.sim.player.data : this._data; }
-  set data(value: PlayerData) {
-    if (this.world.sim) this.world.sim.player.data = value; else this._data = value;
-  }
-  get wx(): number { return this.world.sim ? this.world.sim.player.x : this._wx; }
-  set wx(value: number) { if (this.world.sim) this.world.sim.player.x = value; else this._wx = value; }
-  get wy(): number { return this.world.sim ? this.world.sim.player.y : this._wy; }
-  set wy(value: number) { if (this.world.sim) this.world.sim.player.y = value; else this._wy = value; }
-  get fireTimer(): number { return this.world.sim ? this.world.sim.player.fireTimer : this._fireTimer; }
-  set fireTimer(v: number) { if (this.world.sim) this.world.sim.player.fireTimer = v; else this._fireTimer = v; }
-  get dashTimer(): number { return this.world.sim ? this.world.sim.player.dashTimer : this._dashTimer; }
-  set dashTimer(v: number) { if (this.world.sim) this.world.sim.player.dashTimer = v; else this._dashTimer = v; }
-  get invuln(): number { return this.world.sim ? this.world.sim.player.invuln : this._invuln; }
-  set invuln(v: number) { if (this.world.sim) this.world.sim.player.invuln = v; else this._invuln = v; }
-  get hurtTimer(): number { return this.world.sim ? this.world.sim.player.hurtTimer : this._hurtTimer; }
-  set hurtTimer(v: number) { if (this.world.sim) this.world.sim.player.hurtTimer = v; else this._hurtTimer = v; }
-  get aimYaw(): number { return this.world.sim ? this.world.sim.player.aimYaw : this._aimYaw; }
-  set aimYaw(v: number) { if (this.world.sim) this.world.sim.player.aimYaw = v; else this._aimYaw = v; }
+  /** C2: read-only frozen snapshot; writes go through World core transactions. */
+  get data(): PlayerData { return this.world.hasSimulation ? this.world.playerDataSnapshot : this._data; }
+  get wx(): number { return this.world.hasSimulation ? this.world.playerX : this._wx; }
+  get wy(): number { return this.world.hasSimulation ? this.world.playerY : this._wy; }
+  get fireTimer(): number { return this.world.hasSimulation ? this.world.playerFireTimer : this._fireTimer; }
+  get dashTimer(): number { return this.world.hasSimulation ? this.world.playerDashTimer : this._dashTimer; }
+  get invuln(): number { return this.world.hasSimulation ? this.world.playerInvuln : this._invuln; }
+  get hurtTimer(): number { return this.world.hasSimulation ? this.world.playerHurtTimer : this._hurtTimer; }
+  get aimYaw(): number { return this.world.hasSimulation ? this.world.playerAimYaw : this._aimYaw; }
 
   constructor(public world: World, x: number, y: number, private save: ReturnType<SaveSystem['load']>) {
     const stats = basePlayerData();
@@ -148,8 +138,7 @@ export class Player {
           if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
           const nx = this.wx + dx, ny = this.wy + dy;
           if (this.world.isWalkable(nx, ny, this.getRadius())) {
-            this.wx = nx;
-            this.wy = ny;
+            this.world.ownerMovePlayer(nx, ny);
             this.project();
             return;
           }
@@ -166,20 +155,16 @@ export class Player {
   /** Owner-only initialization/transition boundary (World room/checkpoint).
    *  Adapters must not call this to write ordinary gameplay state. */
   reset(x: number, y: number): void {
-    this.wx = x;
-    this.wy = y;
+    // Owner-only initialization/transition boundary; core validates and commits.
+    this.world.ownerResetPlayer(x, y);
     this.project();
-    this.ensureWalkable();
-    this.data.hp = this.data.maxHp;
-    this.invuln = 1.0;
-    this.fireTimer = 0;
   }
 
   get weapon() { return WEAPONS[this.data.weaponKey] ?? WEAPONS.pulse; }
 
   equipWeapon(key: string): boolean {
     if (key === this.data.weaponKey || !this.data.weapons.some((weapon) => weapon.key === key)) return false;
-    this.data.weaponKey = key;
+    this.world.equipWeapon(key);
     return true;
   }
 

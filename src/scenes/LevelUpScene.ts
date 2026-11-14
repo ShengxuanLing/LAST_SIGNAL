@@ -160,9 +160,9 @@ export class LevelUpScene extends Phaser.Scene {
     const prog = this.player.upgrades.find((u) => u.key === key);
     const newLevel = (prog?.level ?? 0) + 1;
     const parent = this.scene.get<GameScene>('GameScene');
-    // Core owns the materialized upgrade state; never mutate player.data here.
-    parent?.world.applyUpgradeChoice(key, newLevel);
-    parent?.saveCheckpoint();
+    // Enqueue the core command; it commits on the next resumed core tick.
+    parent?.world.enqueueApplyUpgrade(key, newLevel);
+    parent?.markCheckpointDirty();
     // Hand control back to the parent: it (re)opens the next pending level-up or
     // resumes the game. We must not set parent.paused/alpha directly here.
     this.time.delayedCall(120, () => {

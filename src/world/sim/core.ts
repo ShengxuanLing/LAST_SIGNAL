@@ -70,8 +70,23 @@ export interface SimTarget {
   currencyValue: number;
 }
 
+export type SimLootKind = 'health' | 'currency' | 'upgrade' | 'weapon' | 'ability' | 'restore';
+
+export interface SimLoot {
+  id: number;
+  x: number;
+  y: number;
+  kind: SimLootKind;
+  key: string;
+  amount: number;
+  bob: number;
+}
+
 export type SimCommand =
   | { type: 'move-target'; targetId: number; x: number; y: number }
+  | { type: 'spawn-loot'; x: number; y: number; kind: SimLootKind; key: string; amount: number; bob?: number }
+  | { type: 'spawn-enemy-projectile'; ownerId: number; x: number; y: number; damage: number; vel: Vec2; lifetime?: number }
+  | { type: 'teleport-player'; x: number; y: number; healToFull: boolean }
   | { type: 'set-target-hp'; targetId: number; hp: number }
   | { type: 'heal-player'; amount: number }
   | { type: 'add-currency'; amount: number }
@@ -108,6 +123,8 @@ export interface SimulationState {
   projectiles: SimProjectile[];
   pendingPlayerHits: Array<{ damage: number; fromX: number; fromY: number }>;
   pendingCommands: SimCommand[];
+  loot: SimLoot[];
+  nextLootId: number;
   nextProjectileId: number;
 }
 
@@ -133,6 +150,8 @@ export type SimEvent =
   | { type: 'xp-gained'; amount: number; xp: number; level: number }
   | { type: 'player-levelup'; level: number }
   | { type: 'player-upgraded'; key: string; level: number }
+  | { type: 'loot-dropped'; loot: SimLoot }
+  | { type: 'loot-collected'; id: number; kind: SimLootKind; key: string; amount: number; x: number; y: number }
   | { type: 'projectile-wall'; x: number; y: number };
 
 export interface CreateSimulationInput {
@@ -178,6 +197,8 @@ export function createSimulationState(input: CreateSimulationInput): SimulationS
     projectiles: [],
     pendingPlayerHits: [],
     pendingCommands: [],
+    loot: [],
+    nextLootId: 1,
     nextProjectileId: input.nextProjectileId ?? 1
   };
 }
@@ -201,6 +222,21 @@ export function registerTarget(state: SimulationState, target: SimTarget): SimTa
 
 export function enqueueCommand(state: SimulationState, command: SimCommand): void {
   state.pendingCommands.push(command);
+}
+
+export function spawnCoreLoot(
+  state: SimulationState,
+  x: number, y: number, kind: SimLootKind, key: string, amount: number, bob = 0
+): SimLoot {
+  const loot: SimLoot = { id: state.nextLootId++, x, y, kind, key, amount, bob };
+  state.loot.push(loot);
+  return loot;
+}
+
+export function enqueueSpawnLoot(
+  state: SimulationState, x: number, y: number, kind: SimLootKind, key: string, amount: number, bob = 0
+): void {
+  state.pendingCommands.push({ type: 'spawn-loot', x, y, kind, key, amount, bob });
 }
 
 export function enqueueTargetMove(state: SimulationState, targetId: number, x: number, y: number): void {
@@ -260,23 +296,32 @@ const KILL_HEALTH_AMOUNT = 30;
 /** C1 kill-reward order: two loot rolls, then XP. Boss uses no RNG (C1 used
  *  an unseeded visual RNG only for cosmetic loot positions). */
 function awardEnemyKill(
-  state: SimulationState, xpValue: number, isBoss: boolean, rng: RNG, events: SimEvent[]
+  state: SimulationState, xpValue: number, isBoss: boolean, _rng: RNG, events: SimEvent[],
+  x: number, y: number
 ): void {
   if (isBoss) {
     grantXp(state, xpValue, events);
-    const currency = addCurrency(state, 120);
-    events.push({ type: 'currency-gained', amount: 120, currency });
+    // C1 boss loot was 12 visible currency drops. Use a deterministic ring so the
+    // gameplay RNG stream stays exactly crit -> regular kill loot -> next crit.
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const loot = spawnCoreLoot(state, x + Math.cos(a) * 1.5, y + Math.sin(a) * 1.5,
+        'currency', 'currency', 10, a);
+      events.push({ type: 'loot-dropped', loot });
+    }
     return;
   }
-  const currencyRoll = rng.float();
-  const healthRoll = rng.float();
+  // C1 order: roll currency, roll health, then award XP. Currency/health are
+  // only settled when the visible loot is collected by stepLoot.
+  const currencyRoll = _rng.float();
+  const healthRoll = _rng.float();
   if (currencyRoll < 0.6) {
-    const currency = addCurrency(state, KILL_CURRENCY_AMOUNT);
-    events.push({ type: 'currency-gained', amount: KILL_CURRENCY_AMOUNT, currency });
+    const loot = spawnCoreLoot(state, x, y, 'currency', 'currency', KILL_CURRENCY_AMOUNT);
+    events.push({ type: 'loot-dropped', loot });
   }
   if (healthRoll < 0.25) {
-    const hp = healPlayer(state, KILL_HEALTH_AMOUNT);
-    events.push({ type: 'player-healed', amount: KILL_HEALTH_AMOUNT, hp });
+    const loot = spawnCoreLoot(state, x, y, 'health', 'health', KILL_HEALTH_AMOUNT);
+    events.push({ type: 'loot-dropped', loot });
   }
   grantXp(state, xpValue, events);
 }
@@ -295,6 +340,30 @@ function processCommands(state: SimulationState, events: SimEvent[]): void {
       case 'set-target-hp': {
         const target = state.targets.find((t) => t.id === command.targetId);
         if (target) target.hp = command.hp;
+        break;
+      }
+      case 'spawn-loot': {
+        const loot = spawnCoreLoot(state, command.x, command.y, command.kind, command.key, command.amount, command.bob ?? 0);
+        events.push({ type: 'loot-dropped', loot });
+        break;
+      }
+      case 'teleport-player': {
+        const recovered = ensureWalkableFromState(state, { x: command.x, y: command.y });
+        state.player.x = recovered.x;
+        state.player.y = recovered.y;
+        if (command.healToFull) {
+          state.player.data.hp = state.player.data.maxHp;
+          state.player.invuln = 1.0;
+        }
+        state.player.fireTimer = 0;
+        events.push({ type: 'player-moved', position: recovered, velocity: { x: 0, y: 0 }, dashTimer: state.player.dashTimer, dashStarted: false });
+        break;
+      }
+      case 'spawn-enemy-projectile': {
+        const projectile = spawnEnemyProjectile(
+          state, command.ownerId, command.x, command.y, command.damage, command.vel, command.lifetime
+        );
+        events.push({ type: 'projectile-spawned', projectile });
         break;
       }
       case 'heal-player': {
@@ -610,6 +679,40 @@ function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number
   if (p.data.hp <= 0) events.push({ type: 'player-death' });
 }
 
+function stepLoot(state: SimulationState, dt: number, events: SimEvent[]): void {
+  const p = state.player;
+  const remaining: SimLoot[] = [];
+  const pickupRadius = p.data.pickupRange;
+  for (const loot of state.loot) {
+    loot.bob += dt * 4;
+    const dx = p.x - loot.x, dy = p.y - loot.y;
+    const d = Math.hypot(dx, dy);
+    if (d > 0 && d < pickupRadius) {
+      const pull = 120 * (1 - d / pickupRadius);
+      loot.x += (dx / d) * pull * dt;
+      loot.y += (dy / d) * pull * dt;
+    }
+    // Preserve the legacy C1 pickup threshold (player radius + 12 world units).
+    if (Math.hypot(p.x - loot.x, p.y - loot.y) < PLAYER_RADIUS + 12) {
+      if (loot.kind === 'health') {
+        const hp = healPlayer(state, 30);
+        events.push({ type: 'player-healed', amount: 30, hp });
+      } else if (loot.kind === 'restore') {
+        const hp = healPlayer(state, p.data.maxHp);
+        events.push({ type: 'player-healed', amount: p.data.maxHp, hp });
+      } else if (loot.kind === 'currency') {
+        const amount = loot.amount || 10;
+        const currency = addCurrency(state, amount);
+        events.push({ type: 'currency-gained', amount, currency });
+      }
+      events.push({ type: 'loot-collected', id: loot.id, kind: loot.kind, key: loot.key, amount: loot.amount, x: loot.x, y: loot.y });
+      continue;
+    }
+    remaining.push(loot);
+  }
+  state.loot = remaining;
+}
+
 function stepProjectiles(state: SimulationState, dt: number, rng: RNG, events: SimEvent[]): void {
   const tickDt = dt;
   const remaining: SimProjectile[] = [];
@@ -652,7 +755,7 @@ function stepProjectiles(state: SimulationState, dt: number, rng: RNG, events: S
         drone.data.hitFlash = hit.hitFlash;
         if (drone.hp <= 0) {
           events.push({ type: 'enemy-died', enemyId: drone.id, x: drone.x, y: drone.y });
-          awardEnemyKill(state, drone.data.stats.xpValue, false, rng, events);
+          awardEnemyKill(state, drone.data.stats.xpValue, false, rng, events, drone.x, drone.y);
         }
         if (projectile.pierce > 0) {
           projectile.pierce--;
@@ -692,7 +795,7 @@ function stepProjectiles(state: SimulationState, dt: number, rng: RNG, events: S
         events.push({ type: 'enemy-hit', enemyId: target.id, damage: projectile.damage, crit: projectile.crit, hit });
         if (target.hp <= 0) {
           events.push({ type: 'enemy-died', enemyId: target.id, x: target.x, y: target.y });
-          awardEnemyKill(state, target.xpValue, target.isBoss, rng, events);
+          awardEnemyKill(state, target.xpValue, target.isBoss, rng, events, target.x, target.y);
         }
         if (projectile.pierce > 0) {
           projectile.pierce--;
@@ -731,6 +834,7 @@ export function stepSimulationTicks(
     stepPlayer(state, intent, rng, events);
     stepDrones(state, dt, events);
     stepProjectiles(state, dt, rng, events);
+    stepLoot(state, dt, events);
     state.tick++;
   }
   state.rngState = rng.snapshot();
@@ -762,6 +866,8 @@ export interface CanonicalSimulationState {
   projectiles: SimProjectile[];
   pendingPlayerHits: Array<{ damage: number; fromX: number; fromY: number }>;
   pendingCommands: SimCommand[];
+  loot: SimLoot[];
+  nextLootId: number;
   nextProjectileId: number;
 }
 
@@ -785,6 +891,8 @@ export function canonicalSimulationState(state: SimulationState): string {
     projectiles: state.projectiles,
     pendingPlayerHits: state.pendingPlayerHits,
     pendingCommands: state.pendingCommands,
+    loot: state.loot,
+    nextLootId: state.nextLootId,
     nextProjectileId: state.nextProjectileId
   } as CanonicalSimulationState);
 }

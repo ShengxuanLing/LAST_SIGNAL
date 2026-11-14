@@ -24,6 +24,8 @@ test('earns and spends run credits, with purchases restored from the checkpoint'
     const { world } = (window as any).__game.scene.getScene('GameScene');
     world.player.reset(world.portal.wx, world.portal.wy);
     world.tryInteract(world.player);
+    world.resetSimulationAccumulator();
+    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
   });
   await expect(page.getByText('Supply terminal · clear remaining threats')).toBeVisible();
   await page.keyboard.press('g');
@@ -32,10 +34,9 @@ test('earns and spends run credits, with purchases restored from the checkpoint'
 
   const roomReward = await page.evaluate(() => {
     const { world } = (window as any).__game.scene.getScene('GameScene');
-    for (const entry of world.loot) entry.spr.destroy();
-    world.loot = [];
-    world.player.data.currency = 0;
-    world.player.data.hp = 25;
+    world.clearLootForTest();
+    world.playerDataFixture.currency = 0;
+    world.playerDataFixture.hp = 25;
     world.spawnLoot(world.player.x, world.player.y, 'currency', 'currency', 82);
     for (const enemy of world.enemies) enemy.sprite.destroy();
     world.enemies = [];

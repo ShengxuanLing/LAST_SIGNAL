@@ -140,15 +140,10 @@ export class Boss {
     const a = Math.atan2(player.y - this.y, player.x - this.x);
     for (let i = -1; i <= 1; i++) {
       const spread = a + i * 0.25;
-      const proj = this.world.spawnEnemyProjectile(this._id, this.x, this.y, 8, {
+      this.world.spawnEnemyProjectile(this._id, this.x, this.y, 8, {
         x: Math.cos(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX),
         y: Math.sin(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX)
       });
-      // Explicit returned handle; never read/mutate the compatibility view.
-      proj.vel = {
-        x: Math.cos(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX),
-        y: Math.sin(spread) * toTilesPerSecond(BOSS_LASER_SPEED_PX)
-      };
     }
     audio.hurt();
   }
@@ -157,23 +152,22 @@ export class Boss {
     const n = 12;
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2;
-      const p = this.world.spawnEnemyProjectile(this._id, this.x, this.y, 8);
-      p.vel = { x: Math.cos(a) * toTilesPerSecond(BOSS_SHOCKWAVE_SPEED_PX), y: Math.sin(a) * toTilesPerSecond(BOSS_SHOCKWAVE_SPEED_PX) };
-      p.lifetime = 3;
+      this.world.spawnEnemyProjectile(this._id, this.x, this.y, 8, {
+        x: Math.cos(a) * toTilesPerSecond(BOSS_SHOCKWAVE_SPEED_PX),
+        y: Math.sin(a) * toTilesPerSecond(BOSS_SHOCKWAVE_SPEED_PX)
+      }, 3);
     }
     audio.bossroar();
     this.world.addShake(12);
   }
 
   private summonDrones(): void {
+    // Deterministic ring; the spawn is queued and committed by the next tick.
     for (let i = 0; i < 3; i++) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = (i / 3) * Math.PI * 2 + this.phase;
       const ex = this.x + Math.cos(angle) * 6;
       const ey = this.y + Math.sin(angle) * 6;
-      if (this.world.isWalkable(ex, ey)) {
-        const e = this.world.spawnEnemy('drone', ex, ey, this.spawnRoom, 3);
-        e._id = this._id + 100 + i;
-      }
+      if (this.world.isWalkable(ex, ey)) this.world.enqueueSpawnEnemy('drone', ex, ey, this.spawnRoom, 3);
     }
     audio.wave();
   }

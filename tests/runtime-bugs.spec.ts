@@ -124,7 +124,7 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
     if (!chosen) return { found: false };
     const p = w.player;
     p.reset(chosen.floor.x, chosen.floor.y);
-    p.data.hp = p.data.maxHp;
+    p.world.playerDataFixture.hp = p.data.maxHp;
     p.invuln = 0;
     const before = { x: p.wx, y: p.wy };
     // Source on the floor side pushes the player toward the wall at +x.
@@ -147,8 +147,7 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
     const p = w.player;
-    p.wx = wallX;
-    p.wy = wallY;
+    w.setPlayerPositionForTest(wallX, wallY);
     p.project();
     return { walkableBefore: w.isWalkable(p.wx, p.wy, p.getRadius()) };
   }, { wallX: knockback.wall.x, wallY: knockback.wall.y });
@@ -212,7 +211,7 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
     const g: any = (window as any).__game;
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const pl = gs.world.player;
-    pl.data.xp = 0; pl.data.xpToNext = 30; pl.addXp(30);
+    pl.world.playerDataFixture.xp = 0; pl.world.playerDataFixture.xpToNext = 30; pl.addXp(30);
   });
   await page.waitForTimeout(700);
   const levelUp = await page.evaluate(() => {
@@ -284,6 +283,8 @@ test('cleared room always offers an exit portal, even when every room is visited
     const w = gs.world;
     w.player.reset(w.portal.wx, w.portal.wy);
     w.tryInteract(w.player);
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
   });
   await page.waitForTimeout(250);
   const entered = await page.evaluate(() => {
@@ -343,6 +344,8 @@ test('cleared room always offers an exit portal, even when every room is visited
     const w = gs.world;
     w.player.reset(w.portal.wx, w.portal.wy);
     w.tryInteract(w.player);
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
     return { room: w.currentRoom()?.id, target };
   }, { target: fallback.target });
   expect(exit.room, 'player can use fallback portal to leave the room').toBe(exit.target);

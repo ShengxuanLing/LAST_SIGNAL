@@ -13,7 +13,7 @@ import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, Vec2 } from '../../types';
 import {
   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
-  createSimulationState, enqueuePlayerHit, enqueueTargetHp, enqueueTargetMove,
+  createSimulationState, enqueuePlayerHit, enqueueSpawnLoot, enqueueTargetHp, enqueueTargetMove,
   isWalkableFromState, registerDrone, registerTarget, stepSimulationTicks,
   SIM_TUNING, type SimEvent, type SimulationIntent, type SimTarget, type SimulationState
 } from './core';
@@ -230,6 +230,26 @@ describe('C2 fixed-tick authoritative core', () => {
     enqueueTargetHp(state, 99, 3);
     stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
     expect(stored.hp).toBe(3);
+  });
+
+  it('B11: core loot is visible, unpicked loot does not settle, pickup commits currency', () => {
+    const { state, drone } = makeState();
+    state.drones = [];
+    const neutralIntent = neutral({ x: 0, y: 0 });
+    // Spawn loot far outside the pickup threshold: it must remain unsettled.
+    enqueueSpawnLoot(state, state.player.x + 20, state.player.y, 'currency', 'currency', 7);
+    const ev1 = stepSimulationTicks(state, 1, neutralIntent);
+    expect(state.loot.length).toBe(1);
+    expect(state.player.data.currency).toBe(0);
+    expect(ev1.some((e) => e.type === 'loot-collected')).toBe(false);
+    // Move the player onto the loot through the core state; next tick settles it.
+    state.player.x = state.loot[0].x;
+    state.player.y = state.loot[0].y;
+    const ev2 = stepSimulationTicks(state, 1, neutralIntent);
+    expect(ev2.some((e) => e.type === 'loot-collected')).toBe(true);
+    expect(state.player.data.currency).toBe(7);
+    expect(state.loot.length).toBe(0);
+    void drone;
   });
 
   it('H2: kill loot rolls and the next shot share the controlled C1 RNG order', () => {

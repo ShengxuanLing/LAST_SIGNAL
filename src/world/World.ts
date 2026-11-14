@@ -10,7 +10,7 @@ import { Enemy } from '../entities/Enemy';
 import { Boss } from '../entities/Boss';
 import { RoomDepth } from '../world/roomdepth';
 import { WorldRenderer } from '../world/WorldRenderer';
-import type { RunCheckpoint, SaveData } from '../types';
+import type { PlayerData, RunCheckpoint, SaveData } from '../types';
 import { audio } from '../systems/AudioSystem';
 import type { ControllerActorView, LocalControllerView } from '../ai-native/localController';
 import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
@@ -19,10 +19,10 @@ import { cloneCheckpoint } from '../systems/RunCheckpoint';
 import {
   addCurrency as addCoreCurrency, addPlayerXp as addCorePlayerXp, createSimulationState,
   applyUpgradeToPlayer as applyCoreUpgrade, enqueueCommand, enqueuePlayerHit,
-  enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove,
+  enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState,
   healPlayer as healCorePlayer, registerDrone, registerTarget,
   spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
-  type SimulationIntent, type SimulationState, type SimEvent, type SimProjectile, type SimTarget
+  type SimulationIntent, type SimulationState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
 } from './sim/core';
 
 export interface WorldCallbacks {
@@ -45,7 +45,10 @@ export class World {
   player: Player;
   enemies: Enemy[] = [];
   /** C2: first-slice authority for player/drone/core projectiles. */
-  sim!: SimulationState;
+  private _sim!: SimulationState;
+  private simVersion = 0;
+  private simSnapshotCache: SimulationState | null = null;
+  private playerDataSnapshotCache: any = null;
   private simAccumulatorMs = 0;
   private coreProjectileViews = new Map<number, { spr: Phaser.GameObjects.Sprite; data: SimProjectile }>();
 
@@ -78,7 +81,30 @@ export class World {
     World.assertDevTest();
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
-    if (this.sim) this.sim.projectiles = [];
+    if (this._sim) this._sim.projectiles = [];
+  }
+
+  /** Read-only loot view over core loot; external code cannot clear core state. */
+  get loot(): Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> {
+    return [...this.coreLootViews.values()];
+  }
+  set loot(_value: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }>) {
+    // Compatibility setter is intentionally non-authoritative.
+  }
+
+  setPlayerPositionForTest(x: number, y: number): void {
+    World.assertDevTest();
+    this._sim.player.x = x;
+    this._sim.player.y = y;
+    this.bumpSimVersion();
+  }
+
+  clearLootForTest(): void {
+    World.assertDevTest();
+    for (const view of this.coreLootViews.values()) if (view.spr.scene) view.spr.destroy();
+    this.coreLootViews.clear();
+    this._sim.loot = [];
+    this.bumpSimVersion();
   }
 
   /** Explicit dev/test enemy cleanup; keeps adapter and core in sync. */
@@ -86,16 +112,16 @@ export class World {
     World.assertDevTest();
     for (const e of this.enemies) if (e.sprite.scene) e.sprite.destroy();
     this.enemies = [];
-    if (this.sim) {
-      this.sim.drones = [];
-      this.sim.targets = [];
+    if (this._sim) {
+      this._sim.drones = [];
+      this._sim.targets = [];
     }
     if (this.boss) {
       if (this.boss.sprite.scene) this.boss.sprite.destroy();
       this.boss = null;
     }
   }
-  loot: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> = [];
+  private coreLootViews = new Map<number, { spr: Phaser.GameObjects.Sprite; data: LootDrop }>();
   fx: HitFx[] = [];
   private damageTexts: Phaser.GameObjects.Text[] = [];
   private fxGraphics: Phaser.GameObjects.Graphics;
@@ -106,6 +132,7 @@ export class World {
   private callbacks: WorldCallbacks;
   private rng: RNG;
   private enemyIdCounter = 1;
+  private worldSpawns: Array<{ kind: EnemyKind; x: number; y: number; room: number; depth: number; boss?: Room }> = [];
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
   private currentRoomId = -1;
   private enteredRooms = new Set<number>();
@@ -115,6 +142,52 @@ export class World {
   private _maxX = 0;
   private _maxY = 0;
   private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number; wx: number; wy: number } | null = null;
+
+  /** Deep, frozen read-only snapshot. External adapters must never mutate this. */
+  get sim(): SimulationState {
+    if (!this.simSnapshotCache) {
+      this.simSnapshotCache = deepFreeze(JSON.parse(JSON.stringify(this._sim)) as SimulationState);
+    }
+    return this.simSnapshotCache;
+  }
+
+  /** Explicit dev/test fixture access to live core state; production throws. */
+  get simFixture(): SimulationState {
+    World.assertDevTest();
+    this.bumpSimVersion();
+    return this._sim;
+  }
+
+  /** Deep, frozen player data snapshot for HUD/read-only adapters. */
+  get playerDataSnapshot(): any {
+    if (!this.playerDataSnapshotCache) {
+      this.playerDataSnapshotCache = deepFreeze(JSON.parse(JSON.stringify(this._sim.player.data)));
+    }
+    return this.playerDataSnapshotCache;
+  }
+
+  /** Explicit dev/test fixture access to live player data; production throws. */
+  get playerDataFixture(): any {
+    World.assertDevTest();
+    this.bumpSimVersion();
+    return this._sim.player.data;
+  }
+
+  get hasSimulation(): boolean { return !!this._sim; }
+
+  get playerX(): number { return this._sim.player.x; }
+  get playerY(): number { return this._sim.player.y; }
+  get playerFireTimer(): number { return this._sim.player.fireTimer; }
+  get playerDashTimer(): number { return this._sim.player.dashTimer; }
+  get playerInvuln(): number { return this._sim.player.invuln; }
+  get playerHurtTimer(): number { return this._sim.player.hurtTimer; }
+  get playerAimYaw(): number { return this._sim.player.aimYaw; }
+
+  private bumpSimVersion(): void {
+    this.simVersion++;
+    this.simSnapshotCache = null;
+    this.playerDataSnapshotCache = null;
+  }
 
   constructor(scene: Phaser.Scene, map: MapData, save: SaveData, callbacks: WorldCallbacks) {
     this.scene = scene;
@@ -131,7 +204,7 @@ export class World {
     this.player.id = 0;
     // C2: create the single first-slice authority. Player.data is the same
     // object reference; Player getters/setters read and write this state.
-    this.sim = createSimulationState({
+    this._sim = createSimulationState({
       seed: map.seed,
       map,
       playerData: this.player.data,
@@ -364,7 +437,7 @@ export class World {
     const r = this.map.rooms[room.id];
     this.enteredRooms.add(room.id);
     if (!r.spawned) {
-      if (r.kind === 'boss') this.spawnBoss(r);
+      if (r.kind === 'boss') this.enqueueSpawnBoss(r);
       else this.spawnForRoom(r);
       if (r.kind === 'resource' || r.kind === 'shop') this.spawnResourceLoot(r);
       this.callbacks.onRoomEntered(room);
@@ -384,7 +457,7 @@ export class World {
         this.portal = null;
         return;
       }
-      target = this.rng.pick(neighbors);
+      target = neighbors[0];
     }
     const tr = this.map.rooms[target];
     const targetCenter = { x: tr.gx + tr.w / 2, y: tr.gy + tr.h / 2 };
@@ -493,7 +566,10 @@ export class World {
       this.enteredRooms.delete(this.portal.targetRoom);
       this.portal.spr.destroy();
       this.portal = null;
-      player.reset(landing.x, landing.y);
+      // Ordinary transition is a command committed by the next core tick with
+      // a validated walkable landing; updateRoom() enters the destination and
+      // queues its spawn/portal on that tick.
+      this.enqueueTeleport(landing.x, landing.y, true);
       audio.wave();
     }
   }
@@ -513,14 +589,12 @@ export class World {
   }
 
   private pickEnemyForRoom(r: Room, depth: number): EnemyKind {
-    const pool: EnemyKind[] = [];
-    if (r.kind === 'elite') pool.push('sentinel', 'hunter', 'stalker', 'drone');
-    else {
-      const roll = (r.id * 53 + depth * 11) % 4;
-      const all: EnemyKind[] = ['drone', 'stalker', 'hunter', 'sentinel'];
-      pool.push(all[roll], all[(roll + 1) % 4]);
+    if (r.kind === 'elite') {
+      const elite = ['sentinel', 'hunter', 'stalker'] as const;
+      return elite[r.id % elite.length];
     }
-    return this.rng.pick(pool);
+    const all: EnemyKind[] = ['drone', 'stalker', 'hunter', 'sentinel'];
+    return all[(r.id * 53 + depth * 11) % 4];
   }
 
   private spawnResourceLoot(r: Room): void {
@@ -528,7 +602,7 @@ export class World {
     for (let i = 0; i < n; i++) {
       const x = r.gx + 2 + (i + 1) * 2;
       const y = r.gy + 2 + (i % 2) * 2;
-      const kind = this.rng.int(0, 1) === 0 ? 'currency' : 'health';
+      const kind = (r.id + i) % 2 === 0 ? 'currency' : 'health';
       this.spawnLoot(x, y, kind, kind, kind === 'currency' ? 10 : 0);
     }
   }
@@ -541,13 +615,13 @@ export class World {
     e.initHp();
     this.enemies.push(e);
     if (kind === 'drone') {
-      const drone = registerDrone(this.sim, {
+      const drone = registerDrone(this._sim, {
         id: e._id, x: e.x, y: e.y, hp: e._hp, data: e.data,
         attackTimer: e.attackTimer, wanderTimer: e.wanderTimer
       });
       e.attachSimDrone(drone);
     } else {
-      const target = registerTarget(this.sim, {
+      const target = registerTarget(this._sim, {
         id: e._id, kind, x: e.x, y: e.y, hp: e._hp, maxHp: e.data.stats.maxHp,
         armor: e.data.stats.armor, radius: e.getRadius(), isBoss: false,
         xpValue: e.data.stats.xpValue, currencyValue: e.data.stats.currencyValue
@@ -563,7 +637,7 @@ export class World {
     this.boss = new Boss(this, landing.x, landing.y, r.id, depth);
     this.boss._id = this.enemyIdCounter++;
     this.boss.initHp();
-    const target = registerTarget(this.sim, {
+    const target = registerTarget(this._sim, {
       id: this.boss._id, kind: 'boss_warden', x: this.boss.x, y: this.boss.y,
       hp: this.boss._hp, maxHp: this.boss.maxHp(),
       armor: ENEMY_STATS.boss_warden.armor, radius: this.boss.getRadius() + 1, isBoss: true,
@@ -576,49 +650,124 @@ export class World {
 
   /** Legal adapter commands: committed by the next core tick, never written live. */
   enqueueTargetMove(targetId: number, x: number, y: number): void {
-    enqueueCoreTargetMove(this.sim, targetId, x, y);
+    enqueueCoreTargetMove(this._sim, targetId, x, y);
+    this.bumpSimVersion();
   }
 
   enqueueTargetHp(targetId: number, hp: number): void {
-    enqueueCoreTargetHp(this.sim, targetId, hp);
+    enqueueCoreTargetHp(this._sim, targetId, hp);
+    this.bumpSimVersion();
   }
 
   enqueueHeal(amount: number): void {
-    enqueueCommand(this.sim, { type: 'heal-player', amount });
+    enqueueCommand(this._sim, { type: 'heal-player', amount });
+    this.bumpSimVersion();
   }
 
   enqueueCurrency(amount: number): void {
-    enqueueCommand(this.sim, { type: 'add-currency', amount });
+    enqueueCommand(this._sim, { type: 'add-currency', amount });
+    this.bumpSimVersion();
+  }
+
+  enqueueApplyUpgrade(key: string, level: number): void {
+    enqueueCommand(this._sim, { type: 'apply-upgrade', key, level });
+    this.bumpSimVersion();
+  }
+
+  enqueueAddXp(base: number): void {
+    enqueueCommand(this._sim, { type: 'add-xp', base });
+    this.bumpSimVersion();
+  }
+
+  enqueueSpawnLoot(x: number, y: number, kind: SimLootKind, key: string, amount: number, bob = 0): void {
+    enqueueCommand(this._sim, { type: 'spawn-loot', x, y, kind, key, amount, bob });
+    this.bumpSimVersion();
+  }
+
+  /** Owner-only reset/transition; validates a legal landing cell before commit. */
+  ownerResetPlayer(x: number, y: number): void {
+    const recovered = ensureWalkableFromState(this._sim, { x, y });
+    this._sim.player.x = recovered.x;
+    this._sim.player.y = recovered.y;
+    this._sim.player.data.hp = this._sim.player.data.maxHp;
+    this._sim.player.invuln = 1.0;
+    this._sim.player.fireTimer = 0;
+    this.bumpSimVersion();
+  }
+
+  /** Owner-only move used by the reset path; ordinary movement is core-stepped. */
+  ownerMovePlayer(x: number, y: number): void {
+    this._sim.player.x = x;
+    this._sim.player.y = y;
+    this.bumpSimVersion();
+  }
+  /** Owner/shop transaction: replaces canonical player data atomically. */
+  ownerSetPlayerData(data: PlayerData): void {
+    this._sim.player.data = JSON.parse(JSON.stringify(data)) as PlayerData;
+    this.bumpSimVersion();
+  }
+
+  /** Core-owned equip transaction; UI calls this instead of writing player.data. */
+  equipWeapon(key: string): boolean {
+    if (!this._sim.player.data.weapons.some((w) => w.key === key)) return false;
+    this._sim.player.data.weaponKey = key;
+    this.bumpSimVersion();
+    return true;
   }
 
   /** Core-owned XP transaction used by legacy/test callers; emits level callbacks. */
   addPlayerXp(base: number): number {
-    const { gained, levels } = addCorePlayerXp(this.sim, base);
+    const { gained, levels } = addCorePlayerXp(this._sim, base);
     for (const level of levels) this.onLevelUp(level);
+    this.bumpSimVersion();
     return gained;
   }
 
-  /** Core-owned immediate heal transaction for non-tick adapter callers. */
+  /** Core-owned immediate heal transaction for test/owner callers. */
   healPlayer(amount: number): number {
-    return healCorePlayer(this.sim, amount);
+    const hp = healCorePlayer(this._sim, amount);
+    this.bumpSimVersion();
+    return hp;
   }
 
-  /** Core-owned immediate currency transaction for non-tick adapter callers. */
+  /** Core-owned immediate currency transaction for test/owner callers. */
   addCurrency(amount: number): number {
-    return addCoreCurrency(this.sim, amount);
+    const currency = addCoreCurrency(this._sim, amount);
+    this.bumpSimVersion();
+    return currency;
   }
 
-  /** Core-owned upgrade transaction; the level-up UI must call this, not mutate data. */
-  applyUpgradeChoice(key: string, level: number): boolean {
-    return applyCoreUpgrade(this.sim, key, level);
+  /** Queues an enemy/Boss spawn; committed at the start of the next core tick. */
+  enqueueSpawnEnemy(kind: EnemyKind, x: number, y: number, room: number, depth: number): void {
+    this.worldSpawns.push({ kind, x, y, room, depth });
+    this.bumpSimVersion();
   }
 
-  spawnEnemyProjectile(ownerId: number, x: number, y: number, damage: number, vel: Vec2 = { x: 0, y: 0 }): SimProjectile {
-    const projectile = spawnCoreEnemyProjectile(this.sim, ownerId, x, y, damage, vel);
-    // Expose the new core entry to legacy presentation callers immediately; the
-    // next stepFrame keeps its position in sync. No gameplay rule is duplicated.
-    this.syncCoreEntities(0);
-    return projectile;
+  enqueueSpawnBoss(room: Room): void {
+    this.worldSpawns.push({ kind: 'boss_warden', x: 0, y: 0, room: room.id, depth: this.roomDepth.of(room.id), boss: room });
+    this.bumpSimVersion();
+  }
+
+  private processWorldSpawns(): void {
+    if (this.worldSpawns.length === 0) return;
+    const queue = this.worldSpawns;
+    this.worldSpawns = [];
+    for (const entry of queue) {
+      if (entry.boss) this.spawnBoss(entry.boss);
+      else this.spawnEnemy(entry.kind, entry.x, entry.y, entry.room, entry.depth);
+    }
+  }
+
+  /** Queues a validated room teleport; committed by the next core tick. */
+  enqueueTeleport(x: number, y: number, healToFull = true): void {
+    enqueueCommand(this._sim, { type: 'teleport-player', x, y, healToFull });
+    this.bumpSimVersion();
+  }
+
+  /** Queues a legacy ranged attack; core commits it on the next tick. */
+  spawnEnemyProjectile(ownerId: number, x: number, y: number, damage: number, vel: Vec2 = { x: 0, y: 0 }, lifetime?: number): void {
+    enqueueCommand(this._sim, { type: 'spawn-enemy-projectile', ownerId, x, y, damage, vel, lifetime });
+    this.bumpSimVersion();
   }
 
   /** Explicit sprite cleanup helper used by compatibility tests. */
@@ -632,13 +781,9 @@ export class World {
     return map[kind] ?? 'proj_pulse';
   }
 
-  spawnLoot(x: number, y: number, kind: ItemKind, key: string, amount: number, bob = Math.random() * Math.PI * 2): void {
-    const drop: LootDrop = { x, y, kind, key, amount, bob };
-    const color = kind === 'health' ? 0xff3355 : kind === 'currency' ? 0xffd233 : 0x33e0ff;
-    const s = this.worldToScreen(x, y);
-    const spr = this.scene.add.sprite(s.x, s.y, 'icon_' + (kind === 'currency' ? 'currency' : kind === 'health' ? 'health' : 'upgrade'));
-    spr.setDepth(70);
-    this.loot.push({ spr, data: drop });
+  /** Queues a visible loot drop; core owns the data and the pickup transaction. */
+  spawnLoot(x: number, y: number, kind: ItemKind, key: string, amount: number, bob = 0): void {
+    this.enqueueSpawnLoot(x, y, kind as SimLootKind, key, amount, bob);
   }
 
   // ---------- FX ----------
@@ -682,11 +827,14 @@ export class World {
     }
     let events: SimEvent[] = [];
     if (ticks > 0) {
-      events = stepSimulationTicks(this.sim, ticks, intent);
+      // World-level spawns and ordinary room spawns commit at the tick boundary.
+      this.processWorldSpawns();
+      events = stepSimulationTicks(this._sim, ticks, intent);
       this.applySimEvents(events);
+      this.bumpSimVersion();
     }
     this.syncCoreEntities(delta / 1000);
-    this.updateLegacy(delta / 1000);
+    if (ticks > 0) this.updateLegacy(delta / 1000);
     return events;
   }
 
@@ -694,7 +842,7 @@ export class World {
 
   /** Legacy melee/attack adapter: queue a player hit; core commits it next tick. */
   enqueuePlayerHit(damage: number, fromX: number, fromY: number): void {
-    enqueuePlayerHit(this.sim, damage, fromX, fromY);
+    enqueuePlayerHit(this._sim, damage, fromX, fromY);
   }
 
   /**
@@ -704,7 +852,7 @@ export class World {
   stepSimulationTicksForTest(ticks: number, intent: SimulationIntent): SimEvent[] {
     const env = (import.meta as any).env ?? {};
     if (!(env.DEV === true || env.MODE === 'test')) throw new Error('dev/test only');
-    const events = stepSimulationTicks(this.sim, Math.max(0, Math.floor(ticks)), intent);
+    const events = stepSimulationTicks(this._sim, Math.max(0, Math.floor(ticks)), intent);
     this.applySimEvents(events);
     this.syncCoreEntities(0);
     return events;
@@ -771,6 +919,14 @@ export class World {
         case 'player-upgraded':
           this.player.syncVisual();
           break;
+        case 'loot-dropped':
+          this.syncCoreLoot();
+          break;
+        case 'loot-collected':
+          this.syncCoreLoot();
+          this.callbacks.onStats({ enemies: 0, items: 1, dmg: 0 });
+          this.addHitFx(event.x, event.y, event.kind === 'health' ? 0xff3355 : 0xffd233);
+          break;
         case 'projectile-wall':
           this.addHitFx(event.x, event.y, 0x88aacc);
           break;
@@ -780,12 +936,13 @@ export class World {
 
   private syncCoreEntities(dt: number): void {
     this.player.syncVisual(dt);
-    for (const drone of this.sim.drones) {
+    this.syncCoreLoot();
+    for (const drone of this._sim.drones) {
       const enemy = this.enemies.find((e) => e._id === drone.id);
       if (enemy) enemy.applyVisual();
     }
     const alive = new Set<number>();
-    for (const projectile of this.sim.projectiles) {
+    for (const projectile of this._sim.projectiles) {
       alive.add(projectile.id);
       let view = this.coreProjectileViews.get(projectile.id);
       if (!view) {
@@ -816,7 +973,6 @@ export class World {
       e.applyVisual();
     }
     if (this.boss) this.boss.update(dt, this.player);
-    this.updateLoot(dt);
     this.updateFx(dt);
     this.updateRoom();
     this.updateCamera(dt);
@@ -824,43 +980,28 @@ export class World {
     this.shakeAmount = Math.max(0, this.shakeAmount - dt * 10);
   }
 
-  private updateLoot(dt: number): void {
-    const remaining: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> = [];
-    for (const l of this.loot) {
-      l.data.bob += dt * 4;
-      const dx = this.player.x - l.data.x, dy = this.player.y - l.data.y;
-      const d = Math.hypot(dx, dy);
-      // magnet
-      if (d > 0 && d < this.player.data.pickupRange) {
-        const pull = 120 * (1 - d / this.player.data.pickupRange);
-        l.data.x += (dx / d) * pull * dt;
-        l.data.y += (dy / d) * pull * dt;
-        const s = this.worldToScreen(l.data.x, l.data.y);
-        l.spr.setPosition(s.x, s.y);
+  private syncCoreLoot(): void {
+    const alive = new Set<number>();
+    for (const loot of this._sim.loot) {
+      alive.add(loot.id);
+      let view = this.coreLootViews.get(loot.id);
+      if (!view) {
+        const s = this.worldToScreen(loot.x, loot.y);
+        const kind = loot.kind as ItemKind;
+        const spr = this.scene.add.sprite(s.x, s.y, 'icon_' + (kind === 'currency' ? 'currency' : kind === 'health' ? 'health' : 'upgrade'));
+        spr.setDepth(70);
+        view = { spr, data: { x: loot.x, y: loot.y, kind, key: loot.key, amount: loot.amount, bob: loot.bob } };
+        this.coreLootViews.set(loot.id, view);
       }
-      if (d < this.player.getRadius() + 12) {
-        // Collected drops must remove their display sprite too, otherwise the
-        // icon stays on screen forever after the item was already banked.
-        l.spr.destroy();
-        this.collectLoot(l.data);
-        continue;
-      }
-      remaining.push(l);
+      view.data = { x: loot.x, y: loot.y, kind: loot.kind as ItemKind, key: loot.key, amount: loot.amount, bob: loot.bob };
+      const screen = this.worldToScreen(loot.x, loot.y);
+      view.spr.setPosition(screen.x, screen.y);
     }
-    this.loot = remaining;
-  }
-
-  private collectLoot(drop: LootDrop): void {
-    // Loot is collected by the adapter, but the canonical player write is a
-    // core command committed on the next tick.
-    switch (drop.kind) {
-      case 'health': this.healPlayer(30); break;
-      case 'currency': this.addCurrency(drop.amount || 10); break;
-      case 'restore': this.healPlayer(this.player.data.maxHp); break;
+    for (const [id, view] of this.coreLootViews) {
+      if (alive.has(id)) continue;
+      if (view.spr.scene) view.spr.destroy();
+      this.coreLootViews.delete(id);
     }
-    this.callbacks.onStats({ enemies: 0, items: 1, dmg: 0 });
-    // spawn a pickup visual flash
-    this.addHitFx(drop.x, drop.y, drop.kind === 'health' ? 0xff3355 : 0xffd233);
   }
 
   private updateFx(dt: number): void {
@@ -938,15 +1079,15 @@ export class World {
       portalTarget: this.currentRoomId === room.id ? this.portal?.targetRoom ?? null : null,
       rngState: this.rng.snapshot(),
       player: this.player.data,
-      loot: this.loot.map(({ data }) => data),
+      loot: this._sim.loot.map((l) => ({ x: l.x, y: l.y, kind: l.kind as ItemKind, key: l.key, amount: l.amount, bob: l.bob })),
       coreState: {
-        tick: this.sim.tick,
-        rngState: this.sim.rngState,
+        tick: this._sim.tick,
+        rngState: this._sim.rngState,
         playerTimers: {
-          dashTimer: this.sim.player.dashTimer, invuln: this.sim.player.invuln,
-          hurtTimer: this.sim.player.hurtTimer, fireTimer: this.sim.player.fireTimer, aimYaw: this.sim.player.aimYaw
+          dashTimer: this._sim.player.dashTimer, invuln: this._sim.player.invuln,
+          hurtTimer: this._sim.player.hurtTimer, fireTimer: this._sim.player.fireTimer, aimYaw: this._sim.player.aimYaw
         },
-        nextProjectileId: this.sim.nextProjectileId
+        nextProjectileId: this._sim.nextProjectileId
       }
     });
   }
@@ -962,7 +1103,7 @@ export class World {
     }
     // F-08: deep copy the incoming frame before assigning it to the live state.
     const frame = cloneCheckpoint(run);
-    this.player.data = frame.player;
+    this.ownerSetPlayerData(frame.player);
     // Capture the checkpoint's HP *before* reset(): reset() heals to full, but a
     // resumed run must keep exactly the HP it had when the checkpoint was saved.
     const restoredHp = this.player.data.hp;
@@ -970,35 +1111,39 @@ export class World {
     const inside = x >= room.gx && x < room.gx + room.w && y >= room.gy && y < room.gy + room.h;
     const position = inside && this.isWalkable(x, y) ? run.position : this.findWalkableInRoom(room);
     this.player.reset(position.x, position.y);
-    this.player.data.hp = restoredHp;
+    this._sim.player.data.hp = restoredHp;
+    this.bumpSimVersion();
     this.currentRoomId = room.id;
     this.placePortal(room, run.portalTarget);
     this.rng.restore(run.rngState);
-    this.sim.tick = 0;
-    this.sim.drones = [];
-    this.sim.targets = [];
-    this.sim.projectiles = [];
-    this.sim.pendingPlayerHits = [];
-    this.sim.player.dashTimer = 0; this.sim.player.invuln = 0; this.sim.player.hurtTimer = 0;
-    this.sim.player.fireTimer = 0; this.sim.player.aimYaw = 0;
+    this._sim.tick = 0;
+    this._sim.drones = [];
+    this._sim.targets = [];
+    this._sim.projectiles = [];
+    this._sim.pendingPlayerHits = [];
+    this._sim.loot = [];
+    this._sim.player.dashTimer = 0; this._sim.player.invuln = 0; this._sim.player.hurtTimer = 0;
+    this._sim.player.fireTimer = 0; this._sim.player.aimYaw = 0;
     if (run.coreState) {
       // Restore the authoritative fixed-tick core contract so the resumed run
       // keeps the exact tick / RNG / timer / projectile-id sequence it had at
       // save time. Without this the core would silently re-randomise.
-      this.sim.tick = run.coreState.tick;
-      this.sim.rngState = run.coreState.rngState;
+      this._sim.tick = run.coreState.tick;
+      this._sim.rngState = run.coreState.rngState;
       const t = run.coreState.playerTimers;
-      this.sim.player.dashTimer = t.dashTimer; this.sim.player.invuln = t.invuln;
-      this.sim.player.hurtTimer = t.hurtTimer; this.sim.player.fireTimer = t.fireTimer; this.sim.player.aimYaw = t.aimYaw;
-      this.sim.nextProjectileId = run.coreState.nextProjectileId;
+      this._sim.player.dashTimer = t.dashTimer; this._sim.player.invuln = t.invuln;
+      this._sim.player.hurtTimer = t.hurtTimer; this._sim.player.fireTimer = t.fireTimer; this._sim.player.aimYaw = t.aimYaw;
+      this._sim.nextProjectileId = run.coreState.nextProjectileId;
     } else {
       // Legacy frame: re-derive the core RNG from the map seed so a restored
       // run still produces a deterministic core stream.
-      this.sim.rngState = new RNG(run.seed * 7919 + 1).snapshot();
+      this._sim.rngState = new RNG(run.seed * 7919 + 1).snapshot();
     }
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
-    for (const drop of run.loot) this.spawnLoot(drop.x, drop.y, drop.kind, drop.key, drop.amount, drop.bob);
+    this._sim.loot = run.loot.map((drop, i) => ({ id: i + 1, x: drop.x, y: drop.y, kind: drop.kind as SimLootKind, key: drop.key, amount: drop.amount, bob: drop.bob }));
+    this._sim.nextLootId = run.loot.length + 1;
+    this.bumpSimVersion();
     return true;
   }
 
@@ -1007,9 +1152,9 @@ export class World {
     this.enemies = [];
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
-    this.sim.drones = [];
-    this.sim.targets = [];
-    this.sim.projectiles = [];
+    this._sim.drones = [];
+    this._sim.targets = [];
+    this._sim.projectiles = [];
     for (const l of this.loot) l.spr.destroy();
     this.loot = [];
     this.boss = null;
@@ -1018,4 +1163,12 @@ export class World {
   statsSnapshot(): { enemies: number; items: number; dmg: number } {
     return { enemies: 0, items: 0, dmg: 0 };
   }
+}
+
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === 'object') {
+    for (const key of Object.keys(value as any)) deepFreeze((value as any)[key]);
+    Object.freeze(value as any);
+  }
+  return value;
 }
