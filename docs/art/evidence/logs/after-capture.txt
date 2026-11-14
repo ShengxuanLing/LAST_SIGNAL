@@ -1,0 +1,29 @@
+﻿
+Running 15 tests using 1 worker
+
+
+node.exe : (node:31388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:31388) Wa... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning was created)
+[1/15] [chromium] › scripts\art02\capture.spec.ts:38:3 › Demo A lab off
+[2/15] [chromium] › scripts\art02\capture.spec.ts:45:3 › Demo A corridor off
+[3/15] [chromium] › scripts\art02\capture.spec.ts:38:3 › Demo A lab high
+[4/15] [chromium] › scripts\art02\capture.spec.ts:45:3 › Demo A corridor high
+[5/15] [chromium] › scripts\art02\capture.spec.ts:58:1 › Demo B signal sequence
+[6/15] [chromium] › scripts\art02\capture.spec.ts:115:1 › Demo B guard watching
+[7/15] [chromium] › scripts\art02\capture.spec.ts:130:1 › perf sampling
+[8/15] [chromium] › scripts\art02\capture.spec.ts:167:3 › resolution 1920x1080
+[9/15] [chromium] › scripts\art02\capture.spec.ts:167:3 › resolution 1366x768
+[10/15] [chromium] › scripts\art02\capture.spec.ts:167:3 › resolution 1280x720
+[11/15] [chromium] › scripts\art02\capture.spec.ts:167:3 › resolution 1024x768
+[12/15] [chromium] › scripts\art02\capture.spec.ts:167:3 › resolution 800x600
+[13/15] [chromium] › scripts\art02\capture.spec.ts:175:3 › tier low
+[14/15] [chromium] › scripts\art02\capture.spec.ts:175:3 › tier medium
+[15/15] [chromium] › scripts\art02\capture.spec.ts:175:3 › tier high
+  15 passed (1.6m)
+exit=0
