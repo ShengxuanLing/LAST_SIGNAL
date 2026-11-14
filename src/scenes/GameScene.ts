@@ -72,6 +72,8 @@ export class GameScene extends Phaser.Scene {
   private levelUpActive = false;
   /** C3-b: rendered external-agent link (null until the human authorizes). */
   private externalLink: ExternalLinkController | null = null;
+  /** Last REAL bridge error from a HUMAN authorize attempt (UI feedback). */
+  private lastExternalLinkError: { code: string; messageKey: string } | null = null;
 
   seed = 0;
 
@@ -692,11 +694,19 @@ export class GameScene extends Phaser.Scene {
     });
     const ok = await this.externalLink.authorizeHuman();
     if (!ok) {
+      this.lastExternalLinkError = this.externalLink?.lastError
+        ?? { code: 'E_LINK_UNAVAILABLE', messageKey: 'world.bridge_unreachable' };
       this.externalLink = null;
       return false;
     }
+    this.lastExternalLinkError = null;
     this.refreshHud();
     return true;
+  }
+
+  /** Real error from the last human authorize attempt (never a token). */
+  getExternalLinkError(): { code: string; messageKey: string } | null {
+    return this.lastExternalLinkError;
   }
 
   /** C3-b: the human took over -> cancel every pending external intent. */

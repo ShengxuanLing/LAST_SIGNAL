@@ -13,6 +13,8 @@ export class PauseScene extends Phaser.Scene {
   private externalStatusText: Phaser.GameObjects.Text | null = null;
   private controlText: Phaser.GameObjects.Text | null = null;
   private lastExternalSig = '';
+  /** Native DOM form for the loopback bridge URL + masked token. */
+  private externalLinkForm: HTMLElement | null = null;
 
   constructor() { super('PauseScene'); }
 
@@ -93,6 +95,7 @@ export class PauseScene extends Phaser.Scene {
       this.externalStatusText = null;
       this.controlText = null;
       this.lastExternalSig = '';
+      this.closeExternalLinkForm();
     });
 
     if (mode === 'inventory') {
@@ -315,14 +318,167 @@ export class PauseScene extends Phaser.Scene {
     });
     const hint = this.add.text(0, 175, 'ESC RESUME', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(0.5);
     const back = this.add.text(0, 140, 'BACK', { fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', backgroundColor: '#0d1822' }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    wrap.add([reset, hint, back]);
+    // Native input entry: a normal player can configure the local bridge
+    // WITHOUT opening the browser console. The token is masked, never saved,
+    // never logged and cleared from the DOM immediately after submission.
+    const linkSetup = this.add.text(0, 210, 'EXTERNAL LINK SETUP', {
+      fontFamily: 'monospace', fontSize: '14px', color: '#eafaff', backgroundColor: '#274a55'
+    }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
+    linkSetup.on('pointerdown', () => {
+      audio.ui();
+      this.openExternalLinkForm();
+    });
+    wrap.add([reset, hint, back, linkSetup]);
     back.on('pointerdown', () => {
       audio.ui();
+      this.closeExternalLinkForm();
       blocker.destroy();
       panel.destroy();
       wrap.destroy();
       this.scene.restart({ mode: 'pause' });
     });
+  }
+
+  /** Tear down the DOM form (idempotent). */
+  private closeExternalLinkForm(): void {
+    if (this.externalLinkForm && this.externalLinkForm.parentNode) {
+      this.externalLinkForm.parentNode.removeChild(this.externalLinkForm);
+    }
+    this.externalLinkForm = null;
+  }
+
+  /**
+   * Minimal native DOM form (no framework). It is appended to <body> and only
+   * lives while the Settings panel is open. Typing is isolated from Phaser's
+   * window keyboard listeners so W/A/S/D/SPACE/ESC cannot take over or close
+   * the pause menu while the player enters a URL/token.
+   */
+  private openExternalLinkForm(): void {
+    if (this.externalLinkForm) return;
+    const parent = this.scene.get<GameScene>('GameScene');
+    const existing = (globalThis as unknown as { __externalLinkConfig?: { bridgeUrl?: string; token?: string } })
+      .__externalLinkConfig;
+
+    const root = document.createElement('div');
+    root.setAttribute('data-testid', 'external-link-form');
+    root.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:2147483000',
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'background:rgba(4,6,11,0.82)', 'font-family:ui-monospace,SFMono-Regular,Menlo,monospace',
+      'color:#eafaff', 'padding:16px', 'box-sizing:border-box'
+    ].join(';');
+    const panel = document.createElement('form');
+    panel.style.cssText = [
+      'width:min(560px,94vw)', 'max-height:90vh', 'overflow:auto',
+      'background:#0d1822', 'border:2px solid #33e0ff', 'border-radius:6px',
+      'padding:18px 20px', 'box-sizing:border-box', 'display:flex',
+      'flex-direction:column', 'gap:10px', 'box-shadow:0 0 24px rgba(51,224,255,0.25)'
+    ].join(';');
+
+    const title = document.createElement('div');
+    title.textContent = 'EXTERNAL AGENT LINK';
+    title.style.cssText = 'font-size:18px;font-weight:700;letter-spacing:2px;color:#33e0ff';
+    const note = document.createElement('div');
+    note.textContent = 'Local bridge only. The token is masked, never saved and never logged. You must click AUTHORIZE.';
+    note.style.cssText = 'font-size:12px;line-height:1.5;color:#8fb8c8';
+
+    const label = (text: string): HTMLLabelElement => {
+      const l = document.createElement('label');
+      l.textContent = text;
+      l.style.cssText = 'font-size:12px;color:#8fb8c8;display:block;margin-top:4px';
+      return l;
+    };
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.name = 'bridgeUrl';
+    urlInput.placeholder = 'http://127.0.0.1:8787';
+    urlInput.autocomplete = 'off';
+    urlInput.spellcheck = false;
+    urlInput.value = existing?.bridgeUrl ?? 'http://127.0.0.1:8787';
+    urlInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+
+    const tokenInput = document.createElement('input');
+    tokenInput.type = 'password';
+    tokenInput.name = 'token';
+    tokenInput.placeholder = 'bridge token (masked)';
+    tokenInput.autocomplete = 'new-password';
+    tokenInput.spellcheck = false;
+    tokenInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    status.setAttribute('data-testid', 'external-link-status');
+    status.style.cssText = 'font-size:12px;line-height:1.4;color:#8fb8c8;min-height:16px';
+
+    const authorize = document.createElement('button');
+    authorize.type = 'submit';
+    authorize.textContent = 'AUTHORIZE';
+    authorize.style.cssText = 'padding:10px 14px;font:inherit;font-weight:700;letter-spacing:2px;color:#04060b;background:#33e0ff;border:0;border-radius:4px;cursor:pointer';
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'CANCEL';
+    cancel.style.cssText = 'padding:10px 14px;font:inherit;color:#eafaff;background:#274a55;border:0;border-radius:4px;cursor:pointer';
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap';
+    row.append(cancel, authorize);
+
+    panel.append(title, note, label('BRIDGE URL'), urlInput, label('TOKEN'), tokenInput, status, row);
+    root.append(panel);
+    // Bubble-phase stop: the input still receives typing, but Phaser's window
+    // keyboard listeners never see it (no takeover, no ESC close).
+    for (const type of ['keydown', 'keyup', 'keypress']) {
+      root.addEventListener(type, (event) => event.stopPropagation());
+    }
+    for (const type of ['pointerdown', 'pointerup', 'click']) {
+      root.addEventListener(type, (event) => event.stopPropagation());
+    }
+    root.addEventListener('submit', (event) => event.preventDefault());
+
+    const setStatus = (text: string, color: string): void => {
+      status.textContent = text;
+      status.style.color = color;
+    };
+
+    cancel.addEventListener('click', () => {
+      this.closeExternalLinkForm();
+    });
+
+    panel.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const bridgeUrl = urlInput.value.trim();
+      const token = tokenInput.value;
+      if (!/^http:\/\/(127\.0\.0\.1|localhost):\d{1,5}$/.test(bridgeUrl)) {
+        setStatus('BRIDGE URL must be a local http://127.0.0.1:PORT or http://localhost:PORT', '#ff8a3c');
+        return;
+      }
+      if (token.length < 16) {
+        setStatus('TOKEN is empty or too short', '#ff8a3c');
+        return;
+      }
+      // Clear the secret from the DOM immediately; it lives only in memory.
+      tokenInput.value = '';
+      (globalThis as unknown as { __externalLinkConfig?: { bridgeUrl: string; token: string } })
+        .__externalLinkConfig = { bridgeUrl, token };
+      setStatus('AUTHORIZING…', '#ffd233');
+      void parent.authorizeExternalAgent(bridgeUrl, token).then((ok) => {
+        if (ok) {
+          this.lastExternalSig = '';
+          this.refreshExternalLabels();
+          setStatus('CONNECTED · external agent link is live', '#7ff0ff');
+          this.closeExternalLinkForm();
+        } else {
+          const error = parent.getExternalLinkError();
+          setStatus(
+            `FAILED · ${error ? `${error.code} ${error.messageKey}` : 'world.bridge_unreachable'} — control stays human`,
+            '#ff8a3c'
+          );
+        }
+      });
+    });
+
+    document.body.append(root);
+    this.externalLinkForm = root;
+    urlInput.focus();
   }
 
   private _button(cx: number, y: number, label: string, cb: () => void, color: number): void {

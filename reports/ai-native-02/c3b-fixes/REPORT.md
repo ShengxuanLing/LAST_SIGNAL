@@ -89,7 +89,8 @@ Reviewer/Tester 新发现：`SIGKILL` agent 后 8s 仍 `external/CONNECTED`；`w
 | `--world` MCP smoke / 集成（两种二进制） | PASS |
 | Agent lease smoke（stale-list） | PASS |
 | C3b 定向 repeat ×3（9 用例） | PASS **27/27** |
-| 全量 E2E（五视口 + C2 回归） | PASS **62/62** |
+| 连接表单（UI 小提交） | PASS **3/3**（遮蔽/输入隔离/真实错误/五视口） |
+| 全量 E2E（五视口 + C2 回归） | PASS **62/62**（C3b 修复提交）/ **65/65**（含 UI 表单） |
 | C2 parity（room/node/kill/loot） | PASS |
 
 ## 7. 正式逐轮实跑方法（给 Lead）
@@ -114,6 +115,6 @@ Reviewer/Tester 新发现：`SIGKILL` agent 后 8s 仍 `external/CONNECTED`；`w
 
 - **C3-c（Headless same-core / MCP 实跑）仍暂停**；仓库里未完成的 C3c WIP 未纳入本提交。
 - **真实 LLM / 外部 Agent 实跑仍未做**；本轮只证明接口、时长、竞态、裁剪、租约与硬断线。
-- **游戏内连接输入 UI 仍是后续小提交**：常规演示目前仍需宿主页/控制台注入配置（已写入限制）。
+- **游戏内连接输入 UI 已实现（独立小提交）**：Pause → SETTINGS → **EXTERNAL LINK SETUP** 打开原生 DOM 表单（bridge URL + `type=password` 遮蔽 token），点 AUTHORIZE；token 不保存/不日志/不截图、提交后立即从 DOM 清空；键盘输入被隔离（W/A/S/D/SPACE/ESC 不会触发 Phaser 接管或关闭暂停菜单）；失败显示真实 `code + messageKey`（不是泛化 toast）。五视口适配已测。
 - 人类授权仍是“同源脚本可持 token 绕过点击”的本地信任模型；无 per-agent 撤销/审计。
 - C2 维持放行；未回退其核心。
