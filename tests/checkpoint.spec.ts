@@ -58,6 +58,16 @@ async function pickFirstCard(page: Page) {
   });
 }
 
+// Legal sync point: commands queued while a pause-like overlay is open commit
+// on a normal core tick. The inventory overlay itself never steps the sim.
+async function commitTick(page: Page) {
+  await page.evaluate(() => {
+    const w = (window as any).__game.scene.getScene('GameScene').world;
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+  });
+}
+
 test('inventory equips an owned weapon and the safe checkpoint restores the selection', async ({ page }) => {
   await page.goto('/');
   await waitForScene(page, 'MainMenuScene');
@@ -102,9 +112,11 @@ test('inventory equips an owned weapon and the safe checkpoint restores the sele
   await page.keyboard.press('e');
   expect((await inventory()).weapon).toBe('scatter');
   await page.keyboard.press('3');
+  await commitTick(page); // equip-plasma commits on the normal tick
   await expect.poll(async () => (await inventory()).weapon).toBe('plasma');
   await expect.poll(() => sceneLabels(page, 'PauseScene')).toContain(WEAPONS.plasma.description);
   await page.keyboard.press('2');
+  await commitTick(page); // equip-scatter commits on the normal tick
   await expect.poll(async () => (await inventory()).weapon).toBe('scatter');
 
   await page.keyboard.press('i');

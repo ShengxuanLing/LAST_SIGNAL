@@ -132,6 +132,8 @@ export class World {
   private rng: RNG;
   private enemyIdCounter = 1;
   private worldSpawns: Array<{ kind: EnemyKind; x: number; y: number; room: number; depth: number; boss?: Room }> = [];
+  /** Rooms whose generation command/spawn is queued but not yet committed. */
+  private pendingRoomEnters = new Set<number>();
   /** Latest committed supply receipts, keyed by transaction id (session-only). */
   private supplyReceipts = new Map<string, { transactionId: string; offerKey: string; roomId: number; ok: boolean; reason?: string; price: number; currency: number; hp: number; weaponKey: string }>();
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
@@ -187,7 +189,7 @@ export class World {
   /** Spawn/generation queue barrier: true while World-held enemy/Boss spawns
    *  have been requested but not yet committed by stepFrame. */
   hasPendingSpawns(): boolean {
-    return this.worldSpawns.length > 0;
+    return this.worldSpawns.length > 0 || this.pendingRoomEnters.size > 0;
   }
 
   /** Verifiable committed barrier: true while any core command or World-generated
@@ -450,10 +452,11 @@ export class World {
       this.currentRoomId = room.id;
       this.onEnterRoom(room);
     }
-    // clear when all enemies in room dead
+    // clear when all enemies in room dead — but only after the room's own
+    // generation has committed (spawned) and is no longer pending.
     const inRoom = this.enemies.filter((e) => e.data.spawnRoom === room.id && e.alive);
     const r = this.map.rooms[room.id];
-    if (r.spawned && inRoom.length === 0 && !r.cleared) {
+    if (r.spawned && !this.pendingRoomEnters.has(room.id) && inRoom.length === 0 && !r.cleared) {
       r.cleared = true;
       this.callbacks.onRoomCleared(room);
     }
@@ -463,16 +466,16 @@ export class World {
     const r = this.map.rooms[room.id];
     this.enteredRooms.add(room.id);
     const depth = this.roomDepth.of(r.id);
-    const isNew = !r.spawned;
+    // A room is only "spawned" once its generation command has actually
+    // committed. Until then it must not be eligible for the cleared check,
+    // otherwise updateRoom() clears it before any enemy exists.
+    const isNew = !r.spawned && !this.pendingRoomEnters.has(r.id);
 
     if (isNew && r.kind === 'boss') {
-        // Boss rooms: spawn Boss via command queue, place portal deterministically.
-        // No room-enter command needed — spawnBoss creates the core target via
-        // processWorldSpawns, and applySimEvents creates the Enemy sprite from
-        // enemy-spawned event... wait, no: spawnBoss creates Boss sprite directly.
-        // room-enter command would create a DUPLICATE enemy. Skip it for bosses.
+        // Boss rooms: spawn Boss via the world-spawn queue; the room becomes
+        // spawned when spawnBoss actually runs on the next tick.
         this.enqueueSpawnBoss(r);
-        r.spawned = true;
+        this.pendingRoomEnters.add(r.id);
         this.callbacks.onRoomEntered(room);
         this.placePortal(r);
     } else if (isNew) {
@@ -502,7 +505,7 @@ export class World {
         });
         this.enemyIdCounter += enemyCount;
         this.bumpSimVersion();
-        r.spawned = true;
+        this.pendingRoomEnters.add(r.id);
         this.callbacks.onRoomEntered(room);
         this.placePortal(r);
     } else {
@@ -521,6 +524,9 @@ export class World {
   }
 
   private roomResourceCount(r: Room, depth: number): number {
+    // C1: resource loot exists only in resource / shop rooms. Ordinary combat
+    // and start rooms never drop resource loot.
+    if (r.kind !== 'resource' && r.kind !== 'shop') return 0;
     return r.kind === 'shop' ? 3 : 2 + (depth % 3);
   }
 
@@ -723,6 +729,9 @@ export class World {
     this.boss = new Boss(this, landing.x, landing.y, r.id, depth);
     this.boss._id = this.enemyIdCounter++;
     this.boss.initHp();
+    // Boss room generation is now committed.
+    r.spawned = true;
+    this.pendingRoomEnters.delete(r.id);
     const target = registerTarget(this._sim, {
       id: this.boss._id, kind: 'boss_warden', x: this.boss.x, y: this.boss.y,
       hp: this.boss._hp, maxHp: this.boss.maxHp(),
@@ -810,6 +819,14 @@ export class World {
   /** Committed supply receipt for a transaction id, if already processed. */
   getSupplyReceipt(transactionId: string) {
     return this.supplyReceipts.get(transactionId);
+  }
+
+  /** Read-only: the weapon key queued by an equip-weapon command, if any. */
+  getPendingEquipWeapon(): string | null {
+    for (const command of this._sim.pendingCommands) {
+      if (command.type === 'equip-weapon') return command.key;
+    }
+    return null;
   }
 
   /** Queues an enemy/Boss spawn; committed at the start of the next core tick. */
@@ -1021,6 +1038,12 @@ export class World {
           break;
         case 'room-generated': {
           const room = this.map.rooms[event.roomId];
+          if (room) {
+            // The room's generation has now committed: enemies/loot exist.
+            // Only from here on may updateRoom() evaluate the cleared state.
+            room.spawned = true;
+            this.pendingRoomEnters.delete(room.id);
+          }
           if (room && event.portalTarget !== null && event.portalTarget !== undefined) {
             this.placePortalForTarget(room, event.portalTarget);
           }
@@ -1248,6 +1271,7 @@ export class World {
     this._sim.pendingCommands = [];
     this._sim.purchaseTransactions = [];
     this.worldSpawns = [];
+    this.pendingRoomEnters.clear();
     this._sim.loot = [];
     this._sim.player.dashTimer = 0; this._sim.player.invuln = 0; this._sim.player.hurtTimer = 0;
     this._sim.player.fireTimer = 0; this._sim.player.aimYaw = 0;

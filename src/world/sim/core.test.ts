@@ -585,4 +585,37 @@ describe('C2 fixed-tick authoritative core', () => {
     expect(pulse.level).toBe(1);
     expect(state.player.data.currency).toBe(100 - supplyPrice('calibration'));
   });
+
+  it('B25: loot magnet uses pixel->tile units; far 20/40/85 tiles never auto-collect', () => {
+    const { state } = makeState();
+    state.drones = [];
+    state.targets = [];
+    const neutralIntent = neutral({ x: 0, y: 0 });
+    const near = (offset: number, amount: number) => {
+      enqueueSpawnLoot(state, state.player.x + offset, state.player.y, 'currency', 'currency', amount);
+    };
+    for (const offset of [20, 40, 85]) {
+      state.loot = [];
+      const before = state.player.data.currency;
+      near(offset, 10);
+      stepSimulationTicks(state, 120, neutralIntent);
+      expect(state.loot.length, `loot at ${offset} tiles stays`).toBe(1);
+      expect(state.player.data.currency, `loot at ${offset} tiles not collected`).toBe(before);
+    }
+    // Near loot is collected by the local magnet/pickup.
+    state.loot = [];
+    const beforeNear = state.player.data.currency;
+    near(1, 7);
+    stepSimulationTicks(state, 5, neutralIntent);
+    expect(state.loot.length).toBe(0);
+    expect(state.player.data.currency).toBe(beforeNear + 7);
+    // Upgrade direction: a larger pixel range reaches and collects farther loot.
+    state.loot = [];
+    const beforeLarge = state.player.data.currency;
+    state.player.data.pickupRange = 40 * GAME.PIXEL_TO_TILE;
+    near(30, 5);
+    stepSimulationTicks(state, 300, neutralIntent);
+    expect(state.loot.length).toBe(0);
+    expect(state.player.data.currency).toBe(beforeLarge + 5);
+  });
 });

@@ -248,8 +248,8 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
     expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
   });
 
-  test('B11: loot magnet/pickup range: far loot stays, near loot collects', async ({ page }) => {
-    test.setTimeout(120000);
+  test('B11: loot magnet uses pixel->tile units; far 20/40/85 tiles stay, near loot collects', async ({ page }) => {
+    test.setTimeout(180000);
     const errors: string[] = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
@@ -262,8 +262,8 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       const gs: any = g.scene.getScene('GameScene');
       const w = gs.world;
       const p = { x: w.player.wx, y: w.player.wy };
-      const room = w.currentRoom();
       const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+      const PX = 64; // GAME.PIXEL_TO_TILE: pickupRange is configured in pixels.
       const walk = (dx: number): { x: number; y: number } | null => {
         for (const d of [dx, dx * 1.5, dx * 2]) {
           const x = p.x + d, y = p.y;
@@ -271,11 +271,12 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
         }
         return null;
       };
-      const spot = walk(20) || walk(-20) || { x: p.x + 20, y: p.y };
+      const farSpots = [walk(20) || { x: p.x + 20, y: p.y }, { x: p.x + 40, y: p.y }, { x: p.x + 85, y: p.y }];
       const nearSpot = { x: p.x + 1, y: p.y };
       const diagSpot = { x: p.x + 14, y: p.y + 14 };
+      const runTicks = (n: number) => { for (let i = 0; i < n; i++) w.stepFrame(1000 / 60 + 1e-6, neutral); };
 
-      // Far loot (20 grids): isolate room's existing loot first, then verify far drop.
+      // Isolate: clear room loot, reset currency/HP, commit.
       w.clearLootForTest();
       const resetData = JSON.parse(JSON.stringify(w.sim.player.data));
       resetData.currency = 0;
@@ -283,37 +284,36 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       w.enqueueSetPlayerData(resetData);
       w.resetSimulationAccumulator();
       w.stepFrame(1000 / 60 + 1e-6, neutral);
-      w.enqueueSpawnLoot(spot.x, spot.y, 'currency', 'currency', 10);
-      w.resetSimulationAccumulator();
-      w.stepFrame(1000 / 60 + 1e-6, neutral);
-      const farAtDrop = { loot: w.sim.loot.length, currency: w.sim.player.data.currency, hp: w.sim.player.data.hp };
 
-      // Magnet pulls it in without player movement.
-      let farCollected = false;
-      for (let i = 0; i < 40; i++) {
+      // Far loot at 20/40/85 tiles must NOT be collected during normal running.
+      const farProbes: Array<{ loot: number; currencyAtDrop: number; currencyAfter: number }> = [];
+      for (const spot of farSpots) {
+        w.enqueueSpawnLoot(spot.x, spot.y, 'currency', 'currency', 10);
+        w.resetSimulationAccumulator();
         w.stepFrame(1000 / 60 + 1e-6, neutral);
-        if (w.sim.loot.length === 0) { farCollected = true; break; }
+        const currencyAtDrop = w.sim.player.data.currency;
+        runTicks(120);
+        farProbes.push({ loot: w.sim.loot.length, currencyAtDrop, currencyAfter: w.sim.player.data.currency });
+        w.clearLootForTest();
       }
-      const farAfter = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
 
-      // Near loot: collected on the next tick.
+      // Near loot is collected without player movement.
       w.enqueueSpawnLoot(nearSpot.x, nearSpot.y, 'currency', 'currency', 7);
       w.resetSimulationAccumulator();
       w.stepFrame(1000 / 60 + 1e-6, neutral);
+      runTicks(4);
       const nearAfter = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
 
-      // Diagonal loot: present at drop, collected by magnet.
+      // Diagonal ~19.8 tiles stays put.
       w.enqueueSpawnLoot(diagSpot.x, diagSpot.y, 'currency', 'currency', 5);
       w.resetSimulationAccumulator();
       w.stepFrame(1000 / 60 + 1e-6, neutral);
       const diagAtDrop = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
-      let diagCollected = false;
-      for (let i = 0; i < 60; i++) {
-        w.stepFrame(1000 / 60 + 1e-6, neutral);
-        if (w.sim.loot.length === 0) { diagCollected = true; break; }
-      }
+      runTicks(120);
+      const diagCollected = w.sim.loot.length === 0;
+      w.clearLootForTest();
 
-      // Small pickup range does not collect far loot.
+      // Small pickupRange (2px magnet) never collects far loot.
       const data = JSON.parse(JSON.stringify(w.sim.player.data));
       data.pickupRange = 2;
       w.enqueueSetPlayerData(data);
@@ -322,38 +322,40 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       w.enqueueSpawnLoot(p.x + 20, p.y, 'currency', 'currency', 5);
       w.resetSimulationAccumulator();
       w.stepFrame(1000 / 60 + 1e-6, neutral);
-      const smallRange = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
-      let smallCollected = false;
-      for (let i = 0; i < 30; i++) { w.stepFrame(1000 / 60 + 1e-6, neutral); if (w.sim.loot.length === 0) { smallCollected = true; break; } }
+      const smallRange = { loot: w.sim.loot.length, currencyBefore: w.sim.player.data.currency };
+      runTicks(30);
+      const smallCollected = w.sim.loot.length === 0;
+      w.clearLootForTest();
 
-      // Large pickup range collects far loot.
+      // Large pickupRange (40 tiles of magnet) reaches and collects far loot.
       const data2 = JSON.parse(JSON.stringify(w.sim.player.data));
-      data2.pickupRange = 200;
+      data2.pickupRange = 40 * PX;
       w.enqueueSetPlayerData(data2);
       w.resetSimulationAccumulator();
       w.stepFrame(1000 / 60 + 1e-6, neutral);
       w.enqueueSpawnLoot(p.x + 30, p.y, 'currency', 'currency', 5);
       w.resetSimulationAccumulator();
       w.stepFrame(1000 / 60 + 1e-6, neutral);
-      let largeCollected = false;
-      for (let i = 0; i < 40; i++) { w.stepFrame(1000 / 60 + 1e-6, neutral); if (w.sim.loot.length === 0) { largeCollected = true; break; } }
+      runTicks(300);
+      const largeCollected = w.sim.loot.length === 0;
       const largeRange = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
 
-      return { farAtDrop, farCollected, farAfter, nearAfter, diagAtDrop, diagCollected, smallRange, smallCollected, largeRange, largeCollected };
+      return { farProbes, nearAfter, diagAtDrop, diagCollected, smallRange, smallCollected, largeRange, largeCollected };
     });
-    expect(result.farAtDrop.loot, 'far loot is visible at drop').toBe(1);
-    expect(result.farAtDrop.currency, 'far loot currency unchanged at drop').toBe(0);
-    expect(result.farCollected, 'far loot collected by magnet without moving').toBe(true);
-    expect(result.farAfter.currency, 'far loot currency changed after magnet pickup').toBe(10);
-    expect(result.nearAfter.loot, 'near loot collected next tick').toBe(0);
-    expect(result.nearAfter.currency, 'near loot currency changed').toBe(17);
+
+    [20, 40, 85].forEach((tiles, idx) => {
+      expect(result.farProbes[idx].loot, `far loot ${tiles} tiles stays after 120 ticks`).toBe(1);
+      expect(result.farProbes[idx].currencyAfter, `far loot ${tiles} tiles not collected`).toBe(result.farProbes[idx].currencyAtDrop);
+    });
+    expect(result.nearAfter.loot, 'near loot collected').toBe(0);
+    expect(result.nearAfter.currency, 'near loot currency changed').toBe(7);
     expect(result.diagAtDrop.loot, 'diagonal loot visible at drop').toBe(1);
-    expect(result.diagCollected, 'diagonal loot collected by magnet').toBe(true);
+    expect(result.diagCollected, 'diagonal far loot not collected').toBe(false);
     expect(result.smallRange.loot, 'small pickup range: far loot not collected').toBe(1);
-    expect(result.smallRange.currency, 'small pickup range: currency unchanged').toBe(22);
     expect(result.smallCollected, 'small pickup range: never collected').toBe(false);
-    expect(result.largeRange.loot, 'large pickup range: far loot collected (both loots)').toBe(0);
-    expect(result.largeRange.currency, 'large pickup range: currency changed (both loots)').toBe(result.smallRange.currency + 10);
+    expect(result.largeRange.loot, 'large magnet: far loot collected').toBe(0);
+    expect(result.largeCollected, 'large magnet: collected within 300 ticks').toBe(true);
+    expect(result.largeRange.currency, 'large magnet: currency gained').toBe(result.smallRange.currencyBefore + 5);
     expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
   });
 

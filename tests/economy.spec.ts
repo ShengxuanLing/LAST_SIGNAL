@@ -38,37 +38,67 @@ test('earns and spends run credits, with purchases restored from the checkpoint'
 
   const roomReward = await page.evaluate(() => {
     const { world } = (window as any).__game.scene.getScene('GameScene');
+    // Known baseline, then grant 82 credits through a real loot drop.
+    world.clearLootForTest();
+    world.playerDataFixture.currency = 0;
+    world.playerDataFixture.hp = 25;
+    world.enqueueSpawnLoot(world.player.x, world.player.y, 'currency', 'currency', 82);
+    // Actually clear the room in the authoritative core (no premature reward).
+    world.simFixture.drones = [];
+    world.simFixture.targets = [];
+    for (const enemy of world.enemies) if (enemy.sprite?.scene) enemy.sprite.destroy();
+    world.enemies = [];
+    if (world.boss) { if (world.boss.sprite?.scene) world.boss.sprite.destroy(); world.boss = null; }
+    world.resetSimulationAccumulator();
+    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
     return world.currentRoom().kind === 'elite' ? 24 : 12;
   });
   await expect(page.getByText(`+${roomReward} credits · room cleared`)).toBeVisible();
-  await expect.poll(async () => (await checkpoint(page)).run?.player.currency).toBeGreaterThan(0);
+  await expect.poll(async () => (await checkpoint(page)).run?.player.currency).toBe(82 + roomReward);
   await page.keyboard.press('g');
   await expect(terminal).toBeVisible();
 
   const repair = terminal.getByRole('button', { name: 'Buy Repair kit for 16 credits' });
   const calibration = terminal.getByRole('button', { name: 'Buy Weapon calibration for 28 credits' });
   const weapon = terminal.getByRole('button', { name: /Buy .* for 40 credits/ });
-  await page.evaluate(() => {
-    const original = Storage.prototype.setItem;
-    Storage.prototype.setItem = () => { throw new Error('Storage unavailable for the test'); };
-    window.addEventListener('restore-test-storage', () => { Storage.prototype.setItem = original; }, { once: true });
-  });
-  await repair.click();
-  await expect(terminal.getByText('Purchase could not be saved. Your credits were kept.')).toBeVisible();
-  await expect(terminal.getByText(`${82 + roomReward} run credits`)).toBeVisible();
-  await page.evaluate(() => window.dispatchEvent(new Event('restore-test-storage')));
 
+  // Purchase is queued in the paused dialog and commits on the resume tick;
+  // success is shown only after the checkpoint save.
   await repair.click();
+  await expect(terminal.getByText(/Close the terminal to complete your purchase/)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(terminal).toBeHidden();
+  await expect(page.locator('#supply-reward')).toContainText('Purchased Repair kit.');
   await expect.poll(async () => (await checkpoint(page)).run.player.hp).toBe(60);
+  await expect.poll(async () => (await checkpoint(page)).run.player.currency).toBe(82 + roomReward - 16);
+
+  await page.getByRole('button', { name: /Supply terminal/ }).click();
+  await expect(terminal).toBeVisible();
   await weapon.click();
+  await expect(terminal.getByText(/Close the terminal to complete your purchase/)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(terminal).toBeHidden();
+  await expect(page.locator('#supply-reward')).toContainText('Purchased');
+  await page.getByRole('button', { name: /Supply terminal/ }).click();
+  await expect(terminal).toBeVisible();
   await expect(weapon).toBeDisabled();
   await expect(terminal.getByText(/Already owned/)).toBeVisible();
+
   await calibration.click();
+  await expect(terminal.getByText(/Close the terminal to complete your purchase/)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(terminal).toBeHidden();
+  // Closing resumes the scene; the calibration command commits on the next
+  // normal tick and only then is the checkpoint saved.
+  await expect.poll(async () => (await checkpoint(page)).run?.player.currency).toBe(82 + roomReward - 16 - 40 - 28);
   const after = await checkpoint(page);
   expect(after.run.player.currency).toBe(82 + roomReward - 16 - 40 - 28);
   expect(after.run.player.weapons).toHaveLength(2);
   expect(after.run.player.weapons.find((entry: any) => entry.key === after.run.player.weaponKey)?.level).toBe(2);
   expect(after.permanent).toMatchObject({ cores: 0, unlockedWeapons: ['pulse'] });
+
+  await page.getByRole('button', { name: /Supply terminal/ }).click();
+  await expect(terminal).toBeVisible();
   await expect(calibration).toBeDisabled();
   await expect(terminal.getByText(/Not enough credits/).first()).toBeVisible();
   await page.keyboard.press('Escape');

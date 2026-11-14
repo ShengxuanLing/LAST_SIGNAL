@@ -26,7 +26,11 @@ const pickEnemy = (roomKind: string, roomId: number, depth: number, rng: RNG): s
 const enemyCount = (kind: string, depth: number): number =>
   kind === 'start' ? 0 : kind === 'elite' ? 4 + depth : kind === 'shop' ? 1 : 2 + depth;
 
-const resourceCount = (kind: string, depth: number): number => kind === 'shop' ? 3 : 2 + (depth % 3);
+const resourceCount = (kind: string, depth: number): number => {
+  // C1: resource loot exists only in resource / shop rooms.
+  if (kind !== 'resource' && kind !== 'shop') return 0;
+  return kind === 'shop' ? 3 : 2 + (depth % 3);
+};
 
 function main() {
 const seeds: number[] = [];

@@ -630,7 +630,13 @@ export class GameScene extends Phaser.Scene {
     this.world.player.control.resume();
     this.world.player.clearHeldInput();
     this.fireHeld = false;
+    // Commands queued while the overlay was open (equip / upgrade / supply
+    // purchase) commit on the first normal tick after resume. The tick is the
+    // only commit path — no out-of-band flush.
+    this.world.resetSimulationAccumulator();
+    this.world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
     this.refreshHud();
+    if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
   }
 
   /** Dev entry for the real World, used by the Pause menu button. */

@@ -444,7 +444,13 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       case 'apply-upgrade': {
         const def = UPGRADES[command.key];
         if (!def) break;
+        // The core owns BOTH the effect and the recorded upgrade progress, so
+        // the committed state and the saved checkpoint stay in sync.
         applyUpgrade(def, state.player.data, command.level);
+        const data = state.player.data;
+        const prog = data.upgrades.find((u) => u.key === command.key);
+        if (prog) prog.level = command.level;
+        else data.upgrades.push({ key: command.key, level: command.level });
         events.push({ type: 'player-upgraded', key: command.key, level: command.level });
         break;
       }
@@ -810,7 +816,10 @@ function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number
 function stepLoot(state: SimulationState, dt: number, events: SimEvent[]): void {
   const p = state.player;
   const remaining: SimLoot[] = [];
-  const pickupRadius = p.data.pickupRange ?? 3;
+  // `pickupRange` is configured in PIXELS; loot/player positions are grid tiles.
+  // Convert with the game's real scale so the magnet is a bounded local pull,
+  // not a map-wide vacuum (the C1 code compared pixels against tile distance).
+  const pickupRadius = (p.data.pickupRange ?? 3) / GAME.PIXEL_TO_TILE;
   for (const loot of state.loot) {
     loot.bob += dt * 4;
     const dx = p.x - loot.x, dy = p.y - loot.y;

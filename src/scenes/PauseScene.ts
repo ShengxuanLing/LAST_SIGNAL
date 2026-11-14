@@ -7,7 +7,28 @@ import { audio } from '../systems/AudioSystem';
 import { GameScene } from './GameScene';
 
 export class PauseScene extends Phaser.Scene {
+  private inventoryRefresh: (() => void) | null = null;
+  private lastInventorySig = '';
+
   constructor() { super('PauseScene'); }
+
+  /** The inventory overlay is not itself paused, so it can observe the core
+   *  commit that happens on the resume tick and refresh its labels. */
+  update(): void {
+    if (!this.inventoryRefresh) return;
+    const sig = this.inventorySig();
+    if (sig !== this.lastInventorySig) {
+      this.lastInventorySig = sig;
+      this.inventoryRefresh();
+    }
+  }
+
+  private inventorySig(): string {
+    const parent = this.scene.get('GameScene') as GameScene | undefined;
+    const world = parent?.world;
+    if (!world) return '';
+    return `${world.player.data.weaponKey}|${world.getPendingEquipWeapon() ?? ''}`;
+  }
 
   create(config?: { mode?: 'pause' | 'inventory' }): void {
     const mode = config?.mode ?? 'pause';
@@ -37,6 +58,8 @@ export class PauseScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       this.input.keyboard?.off('keydown-ESC', closeFromKey);
       this.input.keyboard?.off('keydown-I', closeFromKey);
+      this.inventoryRefresh = null;
+      this.lastInventorySig = '';
     });
 
     if (mode === 'inventory') {
@@ -52,6 +75,11 @@ export class PauseScene extends Phaser.Scene {
         audio.ui();
         refreshWeapons();
       };
+      // The inventory overlay pauses the world, so an equip command commits on
+      // the first normal tick after the overlay closes. Until then the UI must
+      // show the requested selection as PENDING instead of pretending it is
+      // already equipped (the core state is unchanged until the commit).
+      const pendingEquip = () => parent.world.getPendingEquipWeapon();
       const shortcuts = ['ONE', 'TWO', 'THREE', 'FOUR'];
       const refreshWeaponRows = player.data.weapons.map((w, i) => {
         const def = WEAPONS[w.key];
@@ -76,9 +104,11 @@ export class PauseScene extends Phaser.Scene {
         }
         return () => {
           const active = player.data.weaponKey === w.key;
+          const queued = !active && pendingEquip() === w.key;
           name.setColor(active ? '#ffd233' : '#cfe8ef');
-          equip.setText(active ? 'EQUIPPED' : 'EQUIP')
-            .setColor(active ? '#7ff0ff' : '#eafaff')
+          const label = active ? 'EQUIPPED' : queued ? 'QUEUED' : 'EQUIP';
+          equip.setText(label)
+            .setColor(active ? '#7ff0ff' : queued ? '#ffd233' : '#eafaff')
             .setBackgroundColor(active ? '#00000000' : '#274a55');
           if (active) equip.disableInteractive();
           else equip.setInteractive({ useHandCursor: true });
@@ -89,6 +119,9 @@ export class PauseScene extends Phaser.Scene {
         description.setText(player.weapon.description);
       };
       refreshWeapons();
+      // Committed state may change on the resume tick; keep the labels in sync.
+      this.inventoryRefresh = refreshWeapons;
+      this.lastInventorySig = this.inventorySig();
       if (player.data.weapons.length > 1) {
         this.add.text(120, 355, `1–${Math.min(player.data.weapons.length, shortcuts.length)} EQUIP`, {
           fontFamily: 'monospace', fontSize: '13px', color: '#7ff0ff'

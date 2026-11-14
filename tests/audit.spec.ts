@@ -253,12 +253,14 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
 
   // 6) Loot is visible, then collected (and its sprite is removed).
   const beforeLoot = st.currency;
-  // Spawn + read visibility in ONE evaluate: pickupRange is expressed in grid
-  // units, so a drop is magnetised almost immediately on the next update tick.
+  // pickupRange is configured in pixels; give this probe a wide magnet so the
+  // +18-tile drop is visibly pulled in over the 600ms window instead of relying
+  // on the old (buggy) 90-tile base range.
   const lootVisible = await page.evaluate(() => {
     const g: any = (window as any).__game;
     const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
     const w = gs.world;
+    w.playerDataFixture.pickupRange = 40 * 64;
     w.spawnLoot(w.player.wx + 18, w.player.wy, 'currency', 'currency', 10);
     w.resetSimulationAccumulator();
     w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
