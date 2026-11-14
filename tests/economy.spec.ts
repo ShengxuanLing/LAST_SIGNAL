@@ -166,6 +166,9 @@ test('a failed checkpoint save keeps the purchase pending and completes once aft
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = () => { throw new Error('Storage unavailable for the test'); };
     window.addEventListener('restore-test-storage', () => { Storage.prototype.setItem = original; }, { once: true });
+    // Force the checkpoint dirty so the failed write's dirty-flag semantics are
+    // observable independently of prior state.
+    (window as any).__game.scene.getScene('GameScene').markCheckpointDirty();
   });
   const baseline = await page.evaluate(() => {
     const w = (window as any).__game.scene.getScene('GameScene').world;
@@ -183,6 +186,12 @@ test('a failed checkpoint save keeps the purchase pending and completes once aft
 
   await expect(page.locator('#supply-reward')).toContainText('could not be saved');
   await expect(page.locator('#supply-reward')).not.toContainText('Purchased');
+  const failedState = await page.evaluate(() => {
+    const gs = (window as any).__game.scene.getScene('GameScene');
+    return { dirty: !!gs.checkpointDirty, pending: gs.world.hasUncommittedCommands() };
+  });
+  expect(failedState.dirty, 'failed save keeps checkpointDirty').toBe(true);
+  expect(failedState.pending, 'committed purchase leaves no pending commands').toBe(false);
   const mid = await checkpoint(page);
   // In-memory commit deducted once; the failed save left the on-disk checkpoint untouched.
   const memAfter = await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.sim.player.data.currency);
@@ -194,6 +203,8 @@ test('a failed checkpoint save keeps the purchase pending and completes once aft
   await expect(page.locator('#supply-reward')).toContainText('Purchased Repair kit.');
   await expect.poll(async () => (await checkpoint(page)).run?.player.currency).toBe(baseline.currency - 16);
   await expect.poll(async () => (await checkpoint(page)).run?.player.hp).toBe(75);
+  const dirtyAfter = await page.evaluate(() => !!(window as any).__game.scene.getScene('GameScene').checkpointDirty);
+  expect(dirtyAfter, 'successful save clears checkpointDirty').toBe(false);
   const after = await checkpoint(page);
   expect(after.run.player.currency, 'no double deduction after retry').toBe(baseline.currency - 16);
   expect(after.run.player.hp).toBe(75);

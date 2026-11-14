@@ -496,8 +496,11 @@ export class GameScene extends Phaser.Scene {
     if (this.runFinished) return false;
     const checkpoint = this.world.captureCheckpoint(this.runId, this.seed, this.runStats());
     if (!checkpoint) return false;
-    this.checkpointDirty = false;
-    return saveSystem.writeCheckpoint(checkpoint, this.runId);
+    // Only clear the dirty flag once the write actually succeeded; a failed
+    // save must stay dirty so a later retry persists it.
+    const written = saveSystem.writeCheckpoint(checkpoint, this.runId);
+    if (written) this.checkpointDirty = false;
+    return written;
   }
 
   private onLevelUp(level: number): void {
