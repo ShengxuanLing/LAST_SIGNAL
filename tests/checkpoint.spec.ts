@@ -186,7 +186,8 @@ test('resume reuses the checkpoint id and restores saved HP / run-scoped progres
     world.player.reset(world.portal.wx, world.portal.wy);
     world.tryInteract(world.player);
     world.resetSimulationAccumulator();
-    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit teleport, enter room, queue spawn
+    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit enemy spawn
   });
   await page.waitForFunction(() =>
     (window as any).__game.scene.getScene('GameScene').world.enemies.length > 0);

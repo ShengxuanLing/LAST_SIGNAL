@@ -1,0 +1,239 @@
+{
+  "meta": {
+    "url": "http://localhost:5283/",
+    "fixture": false,
+    "startedUtc": "2026-11-13T20:12:06.604Z",
+    "endedUtc": "2026-11-13T20:12:22.820Z"
+  },
+  "steps": [
+    {
+      "name": "running",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "world": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "AI",
+        "authorityPaused": false,
+        "gamePaused": false,
+        "actionCount": 3,
+        "takeoverCount": 0,
+        "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+        "grid": {
+          "x": 25,
+          "y": 46
+        },
+        "hp": 100
+      }
+    },
+    {
+      "name": "A-inventory-open",
+      "detail": {
+        "active": [
+          "GameScene",
+          "PauseScene"
+        ],
+        "world": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "PAUSED",
+        "authorityPaused": true,
+        "gamePaused": true,
+        "actionCount": 3,
+        "takeoverCount": 0,
+        "txtControl": "CONTROL  PAUSED",
+        "grid": {
+          "x": 25,
+          "y": 46
+        },
+        "hp": 100
+      }
+    },
+    {
+      "name": "A-after-esc-200ms",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "world": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "AI",
+        "authorityPaused": false,
+        "gamePaused": false,
+        "actionCount": 4,
+        "takeoverCount": 0,
+        "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+        "grid": {
+          "x": 25,
+          "y": 46
+        },
+        "hp": 100
+      }
+    },
+    {
+      "name": "A-after-esc-400ms",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "world": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "AI",
+        "authorityPaused": false,
+        "gamePaused": false,
+        "actionCount": 5,
+        "takeoverCount": 0,
+        "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+        "grid": {
+          "x": 25,
+          "y": 46
+        },
+        "hp": 100
+      }
+    },
+    {
+      "name": "A-after-esc-800ms",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "world": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "AI",
+        "authorityPaused": false,
+        "gamePaused": false,
+        "actionCount": 8,
+        "takeoverCount": 0,
+        "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+        "grid": {
+          "x": 25.119,
+          "y": 46.356
+        },
+        "hp": 89
+      }
+    },
+    {
+      "name": "A-after-esc-1500ms",
+      "detail": {
+        "active": [
+          "GameScene",
+          "LevelUpScene"
+        ],
+        "world": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "PAUSED",
+        "authorityPaused": true,
+        "gamePaused": true,
+        "actionCount": 10,
+        "takeoverCount": 0,
+        "txtControl": "CONTROL  PAUSED",
+        "grid": {
+          "x": 25.344,
+          "y": 46.656
+        },
+        "hp": 78
+      }
+    },
+    {
+      "name": "A-ai-activity-after-close",
+      "detail": {
+        "actionCountBefore": 10,
+        "actionCountAfter": 10,
+        "mode": "PAUSED",
+        "txtControl": "CONTROL  PAUSED",
+        "gridBefore": {
+          "x": 25.344,
+          "y": 46.656
+        },
+        "gridAfter": {
+          "x": 25.344,
+          "y": 46.656
+        }
+      }
+    },
+    {
+      "name": "A-human-move-after-close",
+      "detail": {
+        "gridBefore": {
+          "x": 25.344,
+          "y": 46.656
+        },
+        "gridAfter": {
+          "x": 25.344,
+          "y": 46.656
+        },
+        "moved": false,
+        "owner": "human",
+        "mode": "PAUSED"
+      }
+    },
+    {
+      "name": "B-inventory-open",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "world": true,
+        "owner": "human",
+        "aiEnabled": false,
+        "mode": "HUMAN",
+        "authorityPaused": false,
+        "gamePaused": false,
+        "actionCount": 10,
+        "takeoverCount": 1,
+        "txtControl": "CONTROL  HUMAN",
+        "grid": {
+          "x": 25.344,
+          "y": 46.656
+        },
+        "hp": 78.59994000000009
+      }
+    },
+    {
+      "name": "B-after-close-button",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "world": true,
+        "owner": "human",
+        "aiEnabled": false,
+        "mode": "HUMAN",
+        "authorityPaused": false,
+        "gamePaused": false,
+        "actionCount": 10,
+        "takeoverCount": 1,
+        "txtControl": "CONTROL  HUMAN",
+        "grid": {
+          "x": 25.637,
+          "y": 46.89
+        },
+        "hp": 68.5332800000003
+      }
+    },
+    {
+      "name": "B-ai-activity-after-close",
+      "detail": {
+        "actionCountBefore": 10,
+        "actionCountAfter": 10,
+        "mode": "HUMAN",
+        "txtControl": "CONTROL  HUMAN",
+        "gridBefore": {
+          "x": 25.637,
+          "y": 46.89
+        },
+        "gridAfter": {
+          "x": 25.929,
+          "y": 47.124
+        }
+      }
+    }
+  ],
+  "errors": []
+}

@@ -33,6 +33,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { SAVE_KEY } from '../src/config/game';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const SEED = 424242;
@@ -780,15 +781,17 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       reason: 'overlay ownership regression uses i-frames refresh + a second weapon fixture',
       onlyIFramesRefreshed: true, injectedWeapon: 'scatter', actor: 'test-harness'
     });
-    // Fixture: an unowned second weapon makes the inventory EQUIP button active.
+    // Add a second owned weapon via a core command (production-safe), so the
+    // inventory EQUIP buttons are real player data. No dev fixture is used here.
     await page.evaluate(() => {
-      const g: any = (window as any).__game;
-      const gs: any = g.scene.getScene('GameScene');
-      const upgraded = JSON.parse(JSON.stringify(gs.world.player.data));
-      upgraded.weapons.push({
-        key: 'scatter', level: 1, ammo: 6, magazine: 6, reloading: false, reloadTimer: 0
-      });
-      gs.world.ownerSetPlayerData(upgraded);
+      const g = (window as any).__game;
+      const gs = g.scene.getScene('GameScene');
+      const w = gs.world;
+      const upgraded = JSON.parse(JSON.stringify(w.sim.player.data));
+      upgraded.weapons.push({ key: 'scatter', level: 1, ammo: 6, magazine: 6, reloading: false, reloadTimer: 0 });
+      w.enqueueSetPlayerData(upgraded);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
     });
 
     await enableAiViaPause(page);
@@ -810,6 +813,13 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
 
     // UI click ownership: EQUIP changes weapon, does NOT count as fire / takeover.
     await clickLogical(page, 420, 236);
+    await page.evaluate(() => {
+      const g = (window as any).__game;
+      const gs = g.scene.getScene('GameScene');
+      const w = gs.world;
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    });
     await page.waitForTimeout(400);
     st = await state(page);
     expect(st!.weaponKey, 'inventory equip still works').toBe('scatter');

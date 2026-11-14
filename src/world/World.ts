@@ -19,9 +19,9 @@ import { cloneCheckpoint } from '../systems/RunCheckpoint';
 import {
   addCurrency as addCoreCurrency, addPlayerXp as addCorePlayerXp, createSimulationState,
   applyUpgradeToPlayer as applyCoreUpgrade, enqueueCommand, enqueuePlayerHit,
-  enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState,
+  enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState, processCommands,
   healPlayer as healCorePlayer, registerDrone, registerTarget,
-  spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
+  spawnEnemyProjectile as spawnCoreEnemyProjectile, spawnCoreLoot, stepSimulationTicks, SIM_TUNING,
   type SimulationIntent, type SimulationState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
 } from './sim/core';
 
@@ -187,6 +187,14 @@ export class World {
     this.simVersion++;
     this.simSnapshotCache = null;
     this.playerDataSnapshotCache = null;
+  }
+
+  /** Process pending commands without advancing gameplay ticks. Used by render
+   *  frame updates (room clear rewards) so committed currency/heal/upgrade are
+   *  saved before the next core tick. */
+  processPendingCommands(): void {
+    processCommands(this._sim, [], new RNG(0));
+    this.bumpSimVersion();
   }
 
   constructor(scene: Phaser.Scene, map: MapData, save: SaveData, callbacks: WorldCallbacks) {
@@ -436,13 +444,66 @@ export class World {
   private onEnterRoom(room: RoomInfo): void {
     const r = this.map.rooms[room.id];
     this.enteredRooms.add(room.id);
-    if (!r.spawned) {
-      if (r.kind === 'boss') this.enqueueSpawnBoss(r);
-      else this.spawnForRoom(r);
-      if (r.kind === 'resource' || r.kind === 'shop') this.spawnResourceLoot(r);
-      this.callbacks.onRoomEntered(room);
+    const depth = this.roomDepth.of(r.id);
+    const isNew = !r.spawned;
+
+    if (isNew && r.kind === 'boss') {
+        // Boss rooms: spawn Boss via command queue, place portal deterministically.
+        // No room-enter command needed — spawnBoss creates the core target via
+        // processWorldSpawns, and applySimEvents creates the Enemy sprite from
+        // enemy-spawned event... wait, no: spawnBoss creates Boss sprite directly.
+        // room-enter command would create a DUPLICATE enemy. Skip it for bosses.
+        this.enqueueSpawnBoss(r);
+        r.spawned = true;
+        this.callbacks.onRoomEntered(room);
+        this.placePortal(r);
+    } else if (isNew) {
+        // Non-boss rooms: queue room-enter command, place portal with same target.
+        const enemyCount = this.roomEnemyCount(r, depth);
+        const enemyPositions: Vec2[] = [];
+        for (let i = 0; i < enemyCount; i++) {
+          enemyPositions.push({
+            x: r.gx + 3 + (i % 3) * (r.w - 6) / 3,
+            y: r.gy + 3 + Math.floor(i / 3) * (r.h - 6)
+          });
+        }
+        const resourceCount = this.roomResourceCount(r, depth);
+        const resourcePositions: Vec2[] = [];
+        for (let i = 0; i < resourceCount; i++) {
+          resourcePositions.push({ x: r.gx + 2 + (i + 1) * 2, y: r.gy + 2 + (i % 2) * 2 });
+        }
+        const neighbors = r.connectedTo.filter((n) => n !== r.id);
+        // Deterministic portal target: same as placePortal would choose.
+        const portalTarget = this.nextRoomTowardUnvisited(r.id);
+        enqueueCommand(this._sim, {
+          type: 'room-enter', roomId: r.id, roomKind: r.kind,
+          gx: r.gx, gy: r.gy, w: r.w, h: r.h, depth,
+          savedPortalTarget: portalTarget,
+          neighbors, enemyCount, enemyPositions, resourceCount, resourcePositions,
+          firstEnemyId: this.enemyIdCounter
+        });
+        this.enemyIdCounter += enemyCount;
+        this.bumpSimVersion();
+        r.spawned = true;
+        this.callbacks.onRoomEntered(room);
+        this.placePortal(r, portalTarget);
+    } else {
+        // Already spawned room: ensure a portal exists.
+        if (!this.portal) {
+          this.placePortal(r);
+        }
     }
-    this.placePortal(r);
+  }
+
+  private roomEnemyCount(r: Room, depth: number): number {
+    if (r.kind === 'start') return 0;
+    if (r.kind === 'elite') return 4 + depth;
+    if (r.kind === 'shop') return 1;
+    return 2 + depth;
+  }
+
+  private roomResourceCount(r: Room, depth: number): number {
+    return r.kind === 'shop' ? 3 : 2 + (depth % 3);
   }
 
   private placePortal(r: Room, savedTarget?: number | null): void {
@@ -457,8 +518,15 @@ export class World {
         this.portal = null;
         return;
       }
+      // Portal target is drawn from the core RNG when the room-enter command
+      // commits; this deterministic fallback is only reachable for restored
+      // frames that did not persist a portal target.
       target = neighbors[0];
     }
+    this.placePortalForTarget(r, target);
+  }
+
+  private placePortalForTarget(r: Room, target: number): void {
     const tr = this.map.rooms[target];
     const targetCenter = { x: tr.gx + tr.w / 2, y: tr.gy + tr.h / 2 };
 
@@ -650,42 +718,60 @@ export class World {
 
   /** Legal adapter commands: committed by the next core tick, never written live. */
   enqueueTargetMove(targetId: number, x: number, y: number): void {
-    enqueueCoreTargetMove(this._sim, targetId, x, y);
+    enqueueCommand(this._sim, { type: 'move-target', targetId, x, y });
     this.bumpSimVersion();
   }
 
   enqueueTargetHp(targetId: number, hp: number): void {
-    enqueueCoreTargetHp(this._sim, targetId, hp);
+    enqueueCommand(this._sim, { type: 'set-target-hp', targetId, hp });
     this.bumpSimVersion();
   }
 
   enqueueHeal(amount: number): void {
+    const hp = healCorePlayer(this._sim, amount);
+    this.applySimEvents([{ type: 'player-healed', amount, hp }]);
     enqueueCommand(this._sim, { type: 'heal-player', amount });
     this.bumpSimVersion();
   }
 
   enqueueCurrency(amount: number): void {
+    const currency = addCoreCurrency(this._sim, amount);
+    this.applySimEvents([{ type: 'currency-gained', amount, currency }]);
     enqueueCommand(this._sim, { type: 'add-currency', amount });
     this.bumpSimVersion();
   }
 
   enqueueApplyUpgrade(key: string, level: number): void {
+    if (applyCoreUpgrade(this._sim, key, level)) {
+      this.applySimEvents([{ type: 'player-upgraded', key, level } as const]);
+    }
     enqueueCommand(this._sim, { type: 'apply-upgrade', key, level });
     this.bumpSimVersion();
   }
 
   enqueueAddXp(base: number): void {
+    const { gained, levels } = addCorePlayerXp(this._sim, base);
+    for (const level of levels) this.onLevelUp(level);
+    this.applySimEvents([
+      { type: 'xp-gained', amount: gained, xp: this._sim.player.data.xp, level: this._sim.player.data.level } as const,
+      ...levels.map((level) => ({ type: 'player-levelup', level } as const))
+    ]);
     enqueueCommand(this._sim, { type: 'add-xp', base });
     this.bumpSimVersion();
   }
 
   enqueueSpawnLoot(x: number, y: number, kind: SimLootKind, key: string, amount: number, bob = 0): void {
+    const loot = spawnCoreLoot(this._sim, x, y, kind, key, amount, bob);
+    this.applySimEvents([{ type: 'loot-dropped', loot }]);
     enqueueCommand(this._sim, { type: 'spawn-loot', x, y, kind, key, amount, bob });
     this.bumpSimVersion();
   }
 
-  /** Owner-only reset/transition; validates a legal landing cell before commit. */
-  ownerResetPlayer(x: number, y: number): void {
+  #setPlayerData(data: PlayerData): void {
+    this._sim.player.data = JSON.parse(JSON.stringify(data)) as PlayerData;
+  }
+
+  #resetPlayer(x: number, y: number): void {
     const recovered = ensureWalkableFromState(this._sim, { x, y });
     this._sim.player.x = recovered.x;
     this._sim.player.y = recovered.y;
@@ -695,46 +781,29 @@ export class World {
     this.bumpSimVersion();
   }
 
-  /** Owner-only move used by the reset path; ordinary movement is core-stepped. */
-  ownerMovePlayer(x: number, y: number): void {
-    this._sim.player.x = x;
-    this._sim.player.y = y;
-    this.bumpSimVersion();
-  }
-  /** Owner/shop transaction: replaces canonical player data atomically. */
-  ownerSetPlayerData(data: PlayerData): void {
-    this._sim.player.data = JSON.parse(JSON.stringify(data)) as PlayerData;
-    this.bumpSimVersion();
-  }
-
   /** Core-owned equip transaction; UI calls this instead of writing player.data. */
-  equipWeapon(key: string): boolean {
+  enqueueEquipWeapon(key: string): boolean {
     if (!this._sim.player.data.weapons.some((w) => w.key === key)) return false;
     this._sim.player.data.weaponKey = key;
+    this.bumpSimVersion();
+    enqueueCommand(this._sim, { type: 'equip-weapon', key });
     this.bumpSimVersion();
     return true;
   }
 
-  /** Core-owned XP transaction used by legacy/test callers; emits level callbacks. */
-  addPlayerXp(base: number): number {
+  /** Queues a set-player-data command; committed at the start of the next core tick.
+   *  State is applied synchronously so readers see the change immediately. */
+  enqueueSetPlayerData(data: PlayerData): void {
+    this.#setPlayerData(data);
+    enqueueCommand(this._sim, { type: 'set-player-data', data });
+    this.bumpSimVersion();
+  }
+
+  /** Directly adds XP to the core simulation state and commits on the next tick. */
+  addPlayerXpDirectly(base: number): void {
     const { gained, levels } = addCorePlayerXp(this._sim, base);
     for (const level of levels) this.onLevelUp(level);
     this.bumpSimVersion();
-    return gained;
-  }
-
-  /** Core-owned immediate heal transaction for test/owner callers. */
-  healPlayer(amount: number): number {
-    const hp = healCorePlayer(this._sim, amount);
-    this.bumpSimVersion();
-    return hp;
-  }
-
-  /** Core-owned immediate currency transaction for test/owner callers. */
-  addCurrency(amount: number): number {
-    const currency = addCoreCurrency(this._sim, amount);
-    this.bumpSimVersion();
-    return currency;
   }
 
   /** Queues an enemy/Boss spawn; committed at the start of the next core tick. */
@@ -761,6 +830,15 @@ export class World {
   /** Queues a validated room teleport; committed by the next core tick. */
   enqueueTeleport(x: number, y: number, healToFull = true): void {
     enqueueCommand(this._sim, { type: 'teleport-player', x, y, healToFull });
+    this.setPlayerPosition(x, y);
+    this.bumpSimVersion();
+  }
+
+  /** Set player position synchronously (for adapter calls that need immediate effect,
+   * e.g. reset() followed by tryInteract which reads player.x before the next tick). */
+  setPlayerPosition(x: number, y: number): void {
+    this._sim.player.x = x;
+    this._sim.player.y = y;
     this.bumpSimVersion();
   }
 
@@ -897,6 +975,20 @@ export class World {
           }
           break;
         }
+        case 'enemy-spawned': {
+          const e = new Enemy(this, event.kind as EnemyKind, event.x, event.y, event.room, this.roomDepth.of(event.room));
+          e._id = event.id;
+          e.initHp();
+          if (event.kind === 'drone') {
+            const droneState = this._sim.drones.find((d) => d.id === event.id);
+            if (droneState) e.attachExistingSimDrone(droneState);
+          } else {
+            const targetState = this._sim.targets.find((t) => t.id === event.id);
+            if (targetState) e.attachExistingSimTarget(targetState);
+          }
+          this.enemies.push(e);
+          break;
+        }
         case 'player-hurt':
           this.player.syncVisual();
           audio.hurt();
@@ -919,6 +1011,16 @@ export class World {
         case 'player-upgraded':
           this.player.syncVisual();
           break;
+        case 'enemy-spawned':
+          this.spawnEnemyFromCore(event as any);
+          break;
+        case 'room-generated': {
+          const room = this.map.rooms[event.roomId];
+          if (room && event.portalTarget !== null && event.portalTarget !== undefined) {
+            this.placePortalForTarget(room, event.portalTarget);
+          }
+          break;
+        }
         case 'loot-dropped':
           this.syncCoreLoot();
           break;
@@ -932,6 +1034,18 @@ export class World {
           break;
       }
     }
+  }
+
+  private spawnEnemyFromCore(event: { id: number; kind: string; x: number; y: number; room: number }): void {
+    if (this.enemies.some((e) => e._id === event.id)) return;
+    const droneState = this._sim.drones.find((d) => d.id === event.id);
+    const targetState = this._sim.targets.find((t) => t.id === event.id);
+    if (!droneState && !targetState) return;
+    const e = new Enemy(this, event.kind as EnemyKind, event.x, event.y, event.room, this.roomDepth.of(event.room));
+    e._id = event.id;
+    if (droneState) e.attachExistingSimDrone(droneState);
+    else if (targetState) e.attachExistingSimTarget(targetState);
+    this.enemies.push(e);
   }
 
   private syncCoreEntities(dt: number): void {
@@ -1103,14 +1217,14 @@ export class World {
     }
     // F-08: deep copy the incoming frame before assigning it to the live state.
     const frame = cloneCheckpoint(run);
-    this.ownerSetPlayerData(frame.player);
+    this.#setPlayerData(frame.player);
     // Capture the checkpoint's HP *before* reset(): reset() heals to full, but a
     // resumed run must keep exactly the HP it had when the checkpoint was saved.
     const restoredHp = this.player.data.hp;
     const { x, y } = run.position;
     const inside = x >= room.gx && x < room.gx + room.w && y >= room.gy && y < room.gy + room.h;
     const position = inside && this.isWalkable(x, y) ? run.position : this.findWalkableInRoom(room);
-    this.player.reset(position.x, position.y);
+    this.#resetPlayer(position.x, position.y);
     this._sim.player.data.hp = restoredHp;
     this.bumpSimVersion();
     this.currentRoomId = room.id;

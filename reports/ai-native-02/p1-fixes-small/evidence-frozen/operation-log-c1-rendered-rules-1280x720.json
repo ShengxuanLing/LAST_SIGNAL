@@ -1,0 +1,84 @@
+[
+  {
+    "step": "c1-fixture",
+    "detail": {
+      "reason": "one spawned drone + real keyboard/mouse; no i-frames/HP fixture",
+      "setup": {
+        "enemyId": 1,
+        "enemyHp": 28,
+        "target": {
+          "x": 10,
+          "y": 45
+        },
+        "player": {
+          "x": 8,
+          "y": 45
+        },
+        "speed": 220
+      }
+    }
+  },
+  {
+    "step": "c1-rendered",
+    "detail": {
+      "weaponKey": "pulse",
+      "spec": {
+        "damage": 12,
+        "speed": 11.25,
+        "critBase": 0.1,
+        "critDamage": 1.5,
+        "critChance": 0.1,
+        "pierce": 0,
+        "lifetime": 0.7222222222222222,
+        "kind": "pulse",
+        "magazine": -1,
+        "shots": 1,
+        "spread": 0.02
+      },
+      "bullet": {
+        "damage": 12,
+        "crit": false,
+        "vel": {
+          "x": 9.985316850979032,
+          "y": 5.182272415220393
+        },
+        "lifetime": 0.7222222222222222,
+        "radius": 0.2,
+        "pos": {
+          "x": 8.57716928031546,
+          "y": 44.253703764213
+        }
+      },
+      "enemyHp": 0,
+      "lastHit": {
+        "blocked": false,
+        "hp": -2,
+        "position": {
+          "x": 10.399773980473386,
+          "y": 45.258889897402376
+        },
+        "hitFlash": 0.15,
+        "knockbackApplied": true
+      },
+      "stillInWorld": false,
+      "moveVelocity": {
+        "x": 3.4375,
+        "y": -3.4375
+      },
+      "droneStep": {
+        "position": {
+          "x": 9.979233830427422,
+          "y": 44.98912331134637
+        },
+        "state": "attack",
+        "stateTimer": 0.4,
+        "wanderTimer": 0.5000400000000004,
+        "patrolIndex": 1,
+        "targetId": 0,
+        "attackTimer": 1.00001,
+        "faceAngle": -2.6591106749868194,
+        "attack": null
+      }
+    }
+  }
+]

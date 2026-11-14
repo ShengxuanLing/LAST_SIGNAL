@@ -248,6 +248,108 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
     expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
   });
 
+  test('B11: loot magnet/pickup range: far loot stays, near loot collects', async ({ page }) => {
+    test.setTimeout(120000);
+    const errors: string[] = [];
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    await bootRun(page);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(350);
+
+    const result = await page.evaluate(async () => {
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const w = gs.world;
+      const p = { x: w.player.wx, y: w.player.wy };
+      const room = w.currentRoom();
+      const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+      const walk = (dx: number): { x: number; y: number } | null => {
+        for (const d of [dx, dx * 1.5, dx * 2]) {
+          const x = p.x + d, y = p.y;
+          if (w.isWalkable(x, y, 0.5)) return { x, y };
+        }
+        return null;
+      };
+      const spot = walk(20) || walk(-20) || { x: p.x + 20, y: p.y };
+      const nearSpot = { x: p.x + 1, y: p.y };
+      const diagSpot = { x: p.x + 14, y: p.y + 14 };
+
+      // Far loot (20 grids): present at drop, currency/HP unchanged at tick 0.
+      w.enqueueSpawnLoot(spot.x, spot.y, 'currency', 'currency', 10);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      const farAtDrop = { loot: w.sim.loot.length, currency: w.sim.player.data.currency, hp: w.sim.player.data.hp };
+
+      // Magnet pulls it in without player movement.
+      let farCollected = false;
+      for (let i = 0; i < 40; i++) {
+        w.stepFrame(1000 / 60 + 1e-6, neutral);
+        if (w.sim.loot.length === 0) { farCollected = true; break; }
+      }
+      const farAfter = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
+
+      // Near loot: collected on the next tick.
+      w.enqueueSpawnLoot(nearSpot.x, nearSpot.y, 'currency', 'currency', 7);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      const nearAfter = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
+
+      // Diagonal loot: present at drop, collected by magnet.
+      w.enqueueSpawnLoot(diagSpot.x, diagSpot.y, 'currency', 'currency', 5);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      const diagAtDrop = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
+      let diagCollected = false;
+      for (let i = 0; i < 60; i++) {
+        w.stepFrame(1000 / 60 + 1e-6, neutral);
+        if (w.sim.loot.length === 0) { diagCollected = true; break; }
+      }
+
+      // Small pickup range does not collect far loot.
+      const data = JSON.parse(JSON.stringify(w.sim.player.data));
+      data.pickupRange = 2;
+      w.enqueueSetPlayerData(data);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      w.enqueueSpawnLoot(p.x + 20, p.y, 'currency', 'currency', 5);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      const smallRange = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
+      let smallCollected = false;
+      for (let i = 0; i < 30; i++) { w.stepFrame(1000 / 60 + 1e-6, neutral); if (w.sim.loot.length === 0) { smallCollected = true; break; } }
+
+      // Large pickup range collects far loot.
+      const data2 = JSON.parse(JSON.stringify(w.sim.player.data));
+      data2.pickupRange = 200;
+      w.enqueueSetPlayerData(data2);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      w.enqueueSpawnLoot(p.x + 30, p.y, 'currency', 'currency', 5);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      let largeCollected = false;
+      for (let i = 0; i < 40; i++) { w.stepFrame(1000 / 60 + 1e-6, neutral); if (w.sim.loot.length === 0) { largeCollected = true; break; } }
+      const largeRange = { loot: w.sim.loot.length, currency: w.sim.player.data.currency };
+
+      return { farAtDrop, farCollected, farAfter, nearAfter, diagAtDrop, diagCollected, smallRange, smallCollected, largeRange, largeCollected };
+    });
+    expect(result.farAtDrop.loot, 'far loot is visible at drop').toBe(1);
+    expect(result.farAtDrop.currency, 'far loot currency unchanged at drop').toBe(0);
+    expect(result.farCollected, 'far loot collected by magnet without moving').toBe(true);
+    expect(result.farAfter.currency, 'far loot currency changed after magnet pickup').toBe(10);
+    expect(result.nearAfter.loot, 'near loot collected next tick').toBe(0);
+    expect(result.nearAfter.currency, 'near loot currency changed').toBe(17);
+    expect(result.diagAtDrop.loot, 'diagonal loot visible at drop').toBe(1);
+    expect(result.diagCollected, 'diagonal loot collected by magnet').toBe(true);
+    expect(result.smallRange.loot, 'small pickup range: far loot not collected').toBe(1);
+    expect(result.smallRange.currency, 'small pickup range: currency unchanged').toBe(22);
+    expect(result.smallCollected, 'small pickup range: never collected').toBe(false);
+    expect(result.largeRange.loot, 'large pickup range: far loot collected (both loots)').toBe(0);
+    expect(result.largeRange.currency, 'large pickup range: currency changed (both loots)').toBe(result.smallRange.currency + 10);
+    expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
+  });
+
   test('F-08: restoreCheckpoint uses a deep copy of the incoming frame', async ({ page }) => {
     test.setTimeout(90000);
     const errors: string[] = [];

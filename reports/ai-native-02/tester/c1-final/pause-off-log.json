@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "url": "http://localhost:5284/",
+    "fixture": false,
+    "startedUtc": "2026-11-13T20:39:14.219Z",
+    "endedUtc": "2026-11-13T20:39:24.589Z"
+  },
+  "steps": [
+    {
+      "name": "ai-running",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "AI",
+        "paused": false,
+        "takeoverCount": 0,
+        "takeoverReason": null,
+        "actionCount": 3,
+        "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+        "gamePaused": false,
+        "hp": 100
+      }
+    },
+    {
+      "name": "paused",
+      "detail": {
+        "mode": "PAUSED",
+        "onLabels": [
+          "AI CONTROL: ON · LOCAL DEMO",
+          "CONTROL  AI · LOCAL DETERMINISTIC DEMO",
+          "EXTERNAL AGENT  NOT CONNECTED",
+          "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL"
+        ],
+        "gridFrozen": true,
+        "actionCountSame": true
+      }
+    },
+    {
+      "name": "off-and-resume",
+      "detail": {
+        "offLabels": [
+          "AI CONTROL: OFF",
+          "CONTROL  HUMAN · HUMAN ONLY",
+          "EXTERNAL AGENT  NOT CONNECTED",
+          "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL"
+        ],
+        "disabled": {
+          "active": [
+            "GameScene",
+            "PauseScene"
+          ],
+          "owner": "human",
+          "aiEnabled": false,
+          "mode": "PAUSED",
+          "paused": true,
+          "takeoverCount": 1,
+          "takeoverReason": "pause-menu",
+          "actionCount": 3,
+          "txtControl": "CONTROL  PAUSED",
+          "gamePaused": true,
+          "hp": 100
+        },
+        "resumed": {
+          "active": [
+            "GameScene"
+          ],
+          "owner": "human",
+          "aiEnabled": false,
+          "mode": "HUMAN",
+          "paused": false,
+          "takeoverCount": 1,
+          "takeoverReason": "pause-menu",
+          "actionCount": 3,
+          "txtControl": "CONTROL  HUMAN",
+          "gamePaused": false,
+          "hp": 100
+        },
+        "later": {
+          "active": [
+            "GameScene"
+          ],
+          "owner": "human",
+          "aiEnabled": false,
+          "mode": "HUMAN",
+          "paused": false,
+          "takeoverCount": 1,
+          "takeoverReason": "pause-menu",
+          "actionCount": 3,
+          "txtControl": "CONTROL  HUMAN",
+          "gamePaused": false,
+          "hp": 78
+        }
+      }
+    }
+  ],
+  "verdict": {
+    "pauseWhileAiOn": true,
+    "frozenWhilePaused": true,
+    "disabledFromMenu": true,
+    "menuShowsOff": true,
+    "noSelfReclaim": true,
+    "pass": true
+  },
+  "errors": []
+}

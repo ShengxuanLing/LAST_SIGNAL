@@ -15,6 +15,7 @@
 import { GAME } from '../../config/game';
 import { WEAPONS } from '../../config/weapons';
 import { UPGRADES, applyUpgrade } from '../../config/upgrades';
+import { buildEnemyData } from '../../config/enemies';
 import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, ProjectileData, Tile, Vec2 } from '../../types';
 import type { GridPoint } from './rules';
@@ -87,11 +88,14 @@ export type SimCommand =
   | { type: 'spawn-loot'; x: number; y: number; kind: SimLootKind; key: string; amount: number; bob?: number }
   | { type: 'spawn-enemy-projectile'; ownerId: number; x: number; y: number; damage: number; vel: Vec2; lifetime?: number }
   | { type: 'teleport-player'; x: number; y: number; healToFull: boolean }
+  | { type: 'room-enter'; roomId: number; roomKind: string; gx: number; gy: number; w: number; h: number; depth: number; savedPortalTarget: number | null; neighbors: number[]; enemyCount: number; enemyPositions: Vec2[]; resourceCount: number; resourcePositions: Vec2[]; firstEnemyId: number }
   | { type: 'set-target-hp'; targetId: number; hp: number }
   | { type: 'heal-player'; amount: number }
   | { type: 'add-currency'; amount: number }
   | { type: 'add-xp'; base: number }
-  | { type: 'apply-upgrade'; key: string; level: number };
+  | { type: 'apply-upgrade'; key: string; level: number }
+  | { type: 'equip-weapon'; key: string }
+  | { type: 'set-player-data'; data: PlayerData };
 
 export interface SimProjectile {
   id: number;
@@ -152,6 +156,8 @@ export type SimEvent =
   | { type: 'player-upgraded'; key: string; level: number }
   | { type: 'loot-dropped'; loot: SimLoot }
   | { type: 'loot-collected'; id: number; kind: SimLootKind; key: string; amount: number; x: number; y: number }
+  | { type: 'enemy-spawned'; id: number; kind: string; x: number; y: number; room: number; isBoss: boolean }
+  | { type: 'room-generated'; roomId: number; portalTarget: number | null }
   | { type: 'projectile-wall'; x: number; y: number };
 
 export interface CreateSimulationInput {
@@ -222,6 +228,16 @@ export function registerTarget(state: SimulationState, target: SimTarget): SimTa
 
 export function enqueueCommand(state: SimulationState, command: SimCommand): void {
   state.pendingCommands.push(command);
+}
+
+export function enqueueCoreTargetMove(state: SimulationState, targetId: number, x: number, y: number): void {
+  const target = state.targets.find((t) => t.id === targetId && t.hp > 0);
+  if (target) { target.x = x; target.y = y; }
+}
+
+export function enqueueCoreTargetHp(state: SimulationState, targetId: number, hp: number): void {
+  const target = state.targets.find((t) => t.id === targetId);
+  if (target) target.hp = hp;
 }
 
 export function spawnCoreLoot(
@@ -326,7 +342,7 @@ function awardEnemyKill(
   grantXp(state, xpValue, events);
 }
 
-function processCommands(state: SimulationState, events: SimEvent[]): void {
+export function processCommands(state: SimulationState, events: SimEvent[], rngCandidate: RNG): void {
   if (state.pendingCommands.length === 0) return;
   const commands = state.pendingCommands;
   state.pendingCommands = [];
@@ -343,11 +359,12 @@ function processCommands(state: SimulationState, events: SimEvent[]): void {
         break;
       }
       case 'spawn-loot': {
-        const loot = spawnCoreLoot(state, command.x, command.y, command.kind, command.key, command.amount, command.bob ?? 0);
-        events.push({ type: 'loot-dropped', loot });
+        // Loot already created synchronously by enqueueSpawnLoot; event replay only.
         break;
       }
       case 'teleport-player': {
+        // State was changed synchronously by enqueueTeleport+setPlayerPosition (Player.reset)
+        // or needs to be changed now (tryInteract). Apply here — idempotent.
         const recovered = ensureWalkableFromState(state, { x: command.x, y: command.y });
         state.player.x = recovered.x;
         state.player.y = recovered.y;
@@ -359,6 +376,36 @@ function processCommands(state: SimulationState, events: SimEvent[]): void {
         events.push({ type: 'player-moved', position: recovered, velocity: { x: 0, y: 0 }, dashTimer: state.player.dashTimer, dashStarted: false });
         break;
       }
+      case 'room-enter': {
+        // Exact C1 order: enemy kinds, then resource-loot kinds, then portal.
+        const bounds = { gx: command.gx, gy: command.gy, w: command.w, h: command.h };
+        for (let i = 0; i < command.enemyCount; i++) {
+          const kind = pickEnemyKindForRoom(command.roomKind, command.roomId, command.depth, rngCandidate);
+          const id = command.firstEnemyId + i;
+          const pos = command.enemyPositions[i] ?? { x: command.gx + 3, y: command.gy + 3 };
+          const data = buildEnemyData(kind as any, command.roomId, command.depth, bounds);
+          if (kind === 'drone') {
+            state.drones.push({ id, x: pos.x, y: pos.y, hp: data.stats.maxHp, data, attackTimer: 0, wanderTimer: 1 });
+          } else {
+            state.targets.push({
+              id, kind, x: pos.x, y: pos.y, hp: data.stats.maxHp, maxHp: data.stats.maxHp,
+              armor: data.stats.armor, radius: 0.5, isBoss: false,
+              xpValue: data.stats.xpValue, currencyValue: data.stats.currencyValue
+            });
+          }
+          events.push({ type: 'enemy-spawned', id, kind, x: pos.x, y: pos.y, room: command.roomId, isBoss: false });
+        }
+        for (let i = 0; i < command.resourceCount; i++) {
+          const kind: SimLootKind = rngCandidate.int(0, 1) === 0 ? 'currency' : 'health';
+          const pos = command.resourcePositions[i] ?? { x: command.gx + 2, y: command.gy + 2 };
+          const loot = spawnCoreLoot(state, pos.x, pos.y, kind, kind, kind === 'currency' ? 10 : 0);
+          events.push({ type: 'loot-dropped', loot });
+        }
+        const portalTarget = command.savedPortalTarget
+          ?? (command.neighbors.length > 0 ? rngCandidate.pick(command.neighbors) : null);
+        events.push({ type: 'room-generated', roomId: command.roomId, portalTarget });
+        break;
+      }
       case 'spawn-enemy-projectile': {
         const projectile = spawnEnemyProjectile(
           state, command.ownerId, command.x, command.y, command.damage, command.vel, command.lifetime
@@ -367,23 +414,50 @@ function processCommands(state: SimulationState, events: SimEvent[]): void {
         break;
       }
       case 'heal-player': {
-        const hp = healPlayer(state, command.amount);
-        events.push({ type: 'player-healed', amount: command.amount, hp });
+        // State already changed synchronously by enqueueHeal; generate event only.
+        events.push({ type: 'player-healed', amount: command.amount, hp: state.player.data.hp });
         break;
       }
       case 'add-currency': {
-        const currency = addCurrency(state, command.amount);
-        events.push({ type: 'currency-gained', amount: command.amount, currency });
+        // State already changed synchronously by enqueueCurrency; generate event only.
+        events.push({ type: 'currency-gained', amount: command.amount, currency: state.player.data.currency });
         break;
       }
-      case 'add-xp':
-        grantXp(state, command.base, events);
-        break;
-      case 'apply-upgrade':
-        if (applyUpgradeToPlayer(state, command.key, command.level)) {
-          events.push({ type: 'player-upgraded', key: command.key, level: command.level });
+      case 'add-xp': {
+        // State already changed synchronously by enqueueAddXp; generate events only.
+        // Re-derive gained crits from command.base and current xpGain.
+        const gained = Math.round(command.base * state.player.data.xpGain);
+        events.push({ type: 'xp-gained', amount: gained, xp: state.player.data.xp, level: state.player.data.level });
+        // Simulate level-ups from pre-command XP to count levels gained.
+        const xpBefore = state.player.data.xp - gained;
+        let tempXp = xpBefore;
+        let tempLevel = state.player.data.level;
+        let tempXpToNext = state.player.data.xpToNext;
+        let levelCount = 0;
+        while (tempXp >= tempXpToNext) {
+          tempXp -= tempXpToNext;
+          tempLevel++;
+          tempXpToNext = Math.round(30 * Math.pow(tempLevel, 1.3));
+          levelCount++;
+        }
+        for (let i = 0; i < levelCount; i++) {
+          events.push({ type: 'player-levelup', level: state.player.data.level - levelCount + i + 1 });
         }
         break;
+      }
+      case 'apply-upgrade': {
+        // State already changed synchronously by enqueueApplyUpgrade; generate event only.
+        events.push({ type: 'player-upgraded', key: command.key, level: command.level });
+        break;
+      }
+      case 'equip-weapon': {
+        // State already changed synchronously by enqueueEquipWeapon; no event.
+        break;
+      }
+      case 'set-player-data': {
+        // State already changed synchronously by enqueueSetPlayerData; no event.
+        break;
+      }
     }
   }
 }
@@ -544,6 +618,15 @@ function stepPlayerFire(state: SimulationState, intent: SimulationIntent, rng: R
   state.projectiles.push(projectile);
   events.push({ type: 'player-fired', spec });
   events.push({ type: 'projectile-spawned', projectile });
+}
+
+
+/** C1 pickEnemyForRoom algorithm, consuming the shared core RNG. */
+function pickEnemyKindForRoom(roomKind: string, roomId: number, depth: number, rng: RNG): string {
+  if (roomKind === 'elite') return rng.pick(['sentinel', 'hunter', 'stalker', 'drone']);
+  const roll = (roomId * 53 + depth * 11) % 4;
+  const all = ['drone', 'stalker', 'hunter', 'sentinel'];
+  return rng.pick([all[roll], all[(roll + 1) % 4]]);
 }
 
 function applyPendingPlayerHits(state: SimulationState, events: SimEvent[]): void {
@@ -830,7 +913,7 @@ export function stepSimulationTicks(
   rng.restore(state.rngState);
   for (let i = 0; i < ticks; i++) {
     // Legal adapter/FSM commands are committed by the tick, before movement.
-    processCommands(state, events);
+    processCommands(state, events, rng);
     stepPlayer(state, intent, rng, events);
     stepDrones(state, dt, events);
     stepProjectiles(state, dt, rng, events);

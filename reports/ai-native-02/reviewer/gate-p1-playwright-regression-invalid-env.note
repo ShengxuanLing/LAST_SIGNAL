@@ -1,0 +1,1 @@
+NOTE: this run accidentally hit a leftover production preview server on 5307 (dev server failed with 'Port 5307 is already in use'); failures are environment-induced, not product regressions. See gate-p1-dev-5307.log and gate-p1-playwright-regression.log for the valid rerun.

@@ -47,6 +47,17 @@ export class Enemy {
     this.simDrone = state;
   }
 
+  /** Attach an already-created core state (room-enter command); no core writes. */
+  attachExistingSimDrone(state: SimDroneState): void {
+    this.simDrone = state;
+    this.simTarget = null;
+  }
+
+  attachExistingSimTarget(state: SimTarget): void {
+    this.simTarget = state;
+    this.simDrone = null;
+  }
+
   attachSimTarget(state: SimTarget): void {
     // Read-only authority reference: initial x/y/hp were passed to registerTarget.
     this.simTarget = state;

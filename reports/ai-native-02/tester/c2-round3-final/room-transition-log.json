@@ -1,0 +1,480 @@
+{
+  "meta": {
+    "url": "http://localhost:5289/",
+    "target": "6ac60b2",
+    "devOnly": "simFixture + enqueueTeleport",
+    "startedUtc": "2026-11-14T03:47:52.585Z"
+  },
+  "checks": [
+    {
+      "n": "room-transitions-happened",
+      "ok": true,
+      "d": 4
+    },
+    {
+      "n": "cross-room-no-deadlock",
+      "ok": true,
+      "d": {
+        "roomsSeen": [
+          3,
+          0
+        ],
+        "transitions": [
+          {
+            "from": 0,
+            "to": 3,
+            "tick": 53,
+            "after": 55
+          },
+          {
+            "from": 3,
+            "to": 0,
+            "tick": 55,
+            "after": 57
+          },
+          {
+            "from": 0,
+            "to": 3,
+            "tick": 57,
+            "after": 59
+          },
+          {
+            "from": 3,
+            "to": 0,
+            "tick": 59,
+            "after": 61
+          }
+        ]
+      }
+    },
+    {
+      "n": "portal-placed-after-enter",
+      "ok": true,
+      "d": [
+        {
+          "targetRoom": 5,
+          "wx": 31,
+          "wy": 44
+        },
+        {
+          "targetRoom": 3,
+          "wx": 12,
+          "wy": 46
+        },
+        {
+          "targetRoom": 5,
+          "wx": 31,
+          "wy": 44
+        },
+        {
+          "targetRoom": 3,
+          "wx": 12,
+          "wy": 46
+        }
+      ]
+    },
+    {
+      "n": "enemy-kind-sample",
+      "ok": true,
+      "d": [
+        "hunter"
+      ]
+    },
+    {
+      "n": "no-console-error",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "findings": [
+    {
+      "n": "on-enter-room-direct-spawn",
+      "d": {
+        "note": "entering a room creates core targets/drones directly in spawnForRoom (registerTarget/registerDrone) without a pending spawn command; source: World.spawnForRoom → spawnEnemy",
+        "transitions": [
+          {
+            "from": 0,
+            "to": 3,
+            "landing": {
+              "x": 19.5,
+              "y": 49.5
+            },
+            "before": {
+              "targets": 0,
+              "drones": 0,
+              "pending": 0,
+              "tick": 53,
+              "room": 0
+            },
+            "afterFirstTick": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 54,
+              "room": 3,
+              "kinds": [
+                "hunter",
+                "hunter",
+                "hunter"
+              ],
+              "pendingKinds": []
+            },
+            "ev1": [
+              "player-moved",
+              "player-moved"
+            ],
+            "ev2": [
+              "player-moved"
+            ],
+            "afterSecond": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 55
+            },
+            "portal": {
+              "targetRoom": 5,
+              "wx": 31,
+              "wy": 44
+            }
+          },
+          {
+            "from": 3,
+            "to": 0,
+            "landing": {
+              "x": 4.5,
+              "y": 49.5
+            },
+            "before": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 55,
+              "room": 3
+            },
+            "afterFirstTick": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 56,
+              "room": 0,
+              "kinds": [
+                "hunter",
+                "hunter",
+                "hunter"
+              ],
+              "pendingKinds": []
+            },
+            "ev1": [
+              "player-moved",
+              "player-moved"
+            ],
+            "ev2": [
+              "player-moved"
+            ],
+            "afterSecond": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 57
+            },
+            "portal": {
+              "targetRoom": 3,
+              "wx": 12,
+              "wy": 46
+            }
+          },
+          {
+            "from": 0,
+            "to": 3,
+            "landing": {
+              "x": 19.5,
+              "y": 49.5
+            },
+            "before": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 57,
+              "room": 0
+            },
+            "afterFirstTick": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 58,
+              "room": 3,
+              "kinds": [
+                "hunter",
+                "hunter",
+                "hunter"
+              ],
+              "pendingKinds": []
+            },
+            "ev1": [
+              "player-moved",
+              "player-moved"
+            ],
+            "ev2": [
+              "player-moved"
+            ],
+            "afterSecond": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 59
+            },
+            "portal": {
+              "targetRoom": 5,
+              "wx": 31,
+              "wy": 44
+            }
+          },
+          {
+            "from": 3,
+            "to": 0,
+            "landing": {
+              "x": 4.5,
+              "y": 49.5
+            },
+            "before": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 59,
+              "room": 3
+            },
+            "afterFirstTick": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 60,
+              "room": 0,
+              "kinds": [
+                "hunter",
+                "hunter",
+                "hunter"
+              ],
+              "pendingKinds": []
+            },
+            "ev1": [
+              "player-moved",
+              "player-moved"
+            ],
+            "ev2": [
+              "player-moved"
+            ],
+            "afterSecond": {
+              "targets": 3,
+              "drones": 0,
+              "pending": 0,
+              "tick": 61
+            },
+            "portal": {
+              "targetRoom": 3,
+              "wx": 12,
+              "wy": 46
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "flow": {
+    "transitions": [
+      {
+        "from": 0,
+        "to": 3,
+        "landing": {
+          "x": 19.5,
+          "y": 49.5
+        },
+        "before": {
+          "targets": 0,
+          "drones": 0,
+          "pending": 0,
+          "tick": 53,
+          "room": 0
+        },
+        "afterFirstTick": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 54,
+          "room": 3,
+          "kinds": [
+            "hunter",
+            "hunter",
+            "hunter"
+          ],
+          "pendingKinds": []
+        },
+        "ev1": [
+          "player-moved",
+          "player-moved"
+        ],
+        "ev2": [
+          "player-moved"
+        ],
+        "afterSecond": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 55
+        },
+        "portal": {
+          "targetRoom": 5,
+          "wx": 31,
+          "wy": 44
+        }
+      },
+      {
+        "from": 3,
+        "to": 0,
+        "landing": {
+          "x": 4.5,
+          "y": 49.5
+        },
+        "before": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 55,
+          "room": 3
+        },
+        "afterFirstTick": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 56,
+          "room": 0,
+          "kinds": [
+            "hunter",
+            "hunter",
+            "hunter"
+          ],
+          "pendingKinds": []
+        },
+        "ev1": [
+          "player-moved",
+          "player-moved"
+        ],
+        "ev2": [
+          "player-moved"
+        ],
+        "afterSecond": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 57
+        },
+        "portal": {
+          "targetRoom": 3,
+          "wx": 12,
+          "wy": 46
+        }
+      },
+      {
+        "from": 0,
+        "to": 3,
+        "landing": {
+          "x": 19.5,
+          "y": 49.5
+        },
+        "before": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 57,
+          "room": 0
+        },
+        "afterFirstTick": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 58,
+          "room": 3,
+          "kinds": [
+            "hunter",
+            "hunter",
+            "hunter"
+          ],
+          "pendingKinds": []
+        },
+        "ev1": [
+          "player-moved",
+          "player-moved"
+        ],
+        "ev2": [
+          "player-moved"
+        ],
+        "afterSecond": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 59
+        },
+        "portal": {
+          "targetRoom": 5,
+          "wx": 31,
+          "wy": 44
+        }
+      },
+      {
+        "from": 3,
+        "to": 0,
+        "landing": {
+          "x": 4.5,
+          "y": 49.5
+        },
+        "before": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 59,
+          "room": 3
+        },
+        "afterFirstTick": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 60,
+          "room": 0,
+          "kinds": [
+            "hunter",
+            "hunter",
+            "hunter"
+          ],
+          "pendingKinds": []
+        },
+        "ev1": [
+          "player-moved",
+          "player-moved"
+        ],
+        "ev2": [
+          "player-moved"
+        ],
+        "afterSecond": {
+          "targets": 3,
+          "drones": 0,
+          "pending": 0,
+          "tick": 61
+        },
+        "portal": {
+          "targetRoom": 3,
+          "wx": 12,
+          "wy": 46
+        }
+      }
+    ],
+    "roomsSeen": [
+      3,
+      0
+    ],
+    "kindsSeen": [
+      "hunter"
+    ],
+    "queuedResourceLoot": false
+  },
+  "errors": []
+}

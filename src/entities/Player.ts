@@ -131,19 +131,9 @@ export class Player {
 
   /** If knockback ever leaves the player inside a wall, recover to the nearest walkable cell. */
   private ensureWalkable(): void {
-    if (this.world.isWalkable(this.wx, this.wy, this.getRadius())) return;
-    for (let r = 1; r <= 6; r++) {
-      for (let dy = -r; dy <= r; dy++) {
-        for (let dx = -r; dx <= r; dx++) {
-          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
-          const nx = this.wx + dx, ny = this.wy + dy;
-          if (this.world.isWalkable(nx, ny, this.getRadius())) {
-            this.world.ownerMovePlayer(nx, ny);
-            this.project();
-            return;
-          }
-        }
-      }
+    // Core clamps player movement to walkable cells each tick; no core write here.
+    if (!this.world.isWalkable(this.wx, this.wy, this.getRadius())) {
+      this.world.enqueueTeleport(this.wx, this.wy, false);
     }
   }
 
@@ -152,11 +142,12 @@ export class Player {
     this.cursors = cursors;
   }
 
-  /** Owner-only initialization/transition boundary (World room/checkpoint).
-   *  Adapters must not call this to write ordinary gameplay state. */
+  /** Core command: resets position/HP/invuln; committed at the next core tick.
+   *  Position is also set synchronously so immediate readers (e.g. tryInteract)
+   *  see the new position before the command commits. */
   reset(x: number, y: number): void {
-    // Owner-only initialization/transition boundary; core validates and commits.
-    this.world.ownerResetPlayer(x, y);
+    this.world.enqueueTeleport(x, y, true);
+    this.world.setPlayerPosition(x, y);
     this.project();
   }
 
@@ -164,7 +155,7 @@ export class Player {
 
   equipWeapon(key: string): boolean {
     if (key === this.data.weaponKey || !this.data.weapons.some((weapon) => weapon.key === key)) return false;
-    this.world.equipWeapon(key);
+    this.world.enqueueEquipWeapon(key);
     return true;
   }
 
@@ -281,12 +272,12 @@ export class Player {
   }
 
   heal(amount: number): void {
-    // Core transaction owns the canonical HP write.
-    this.world.healPlayer(amount);
+    // Core transaction owns the canonical HP write, committed next tick.
+    this.world.enqueueHeal(amount);
   }
 
-  addXp(base: number): number {
-    // Core transaction owns XP/level writes and level-up callbacks.
-    return this.world.addPlayerXp(base);
+  addXp(base: number): void {
+    // Core transaction owns XP/level writes and level-up callbacks, committed next tick.
+    this.world.addPlayerXpDirectly(base);
   }
 }

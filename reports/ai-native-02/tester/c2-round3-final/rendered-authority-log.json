@@ -1,0 +1,451 @@
+{
+  "meta": {
+    "url": "http://localhost:5290/",
+    "normalFramePath": true,
+    "fixtures": [
+      "fixed seed",
+      "spawn enemies/boss",
+      "boss phase/attackTimer",
+      "enqueueTargetHp(boss,1)"
+    ],
+    "startedUtc": "2026-11-14T02:57:45.132Z",
+    "endedUtc": "2026-11-14T02:58:15.099Z"
+  },
+  "steps": [
+    {
+      "name": "start",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "tick": 69,
+        "paused": false,
+        "player": {
+          "x": 8,
+          "y": 45,
+          "hp": 100,
+          "xp": 0,
+          "level": 1,
+          "currency": 0
+        },
+        "targets": [],
+        "drones": [],
+        "enemies": [],
+        "projectiles": [],
+        "boss": null,
+        "damageDealt": 0,
+        "levelUp": false
+      }
+    },
+    {
+      "name": "raf-cadence",
+      "detail": {
+        "deltas": [
+          8,
+          7,
+          7,
+          8,
+          7
+        ],
+        "pass": true
+      }
+    },
+    {
+      "name": "pause",
+      "detail": {
+        "paused": true,
+        "frozenDelta": 0,
+        "resumeDelta": 26,
+        "pass": true
+      }
+    },
+    {
+      "name": "inventory",
+      "detail": {
+        "opened": true,
+        "frozenDelta": 0,
+        "resumeDelta": 27,
+        "pass": true
+      }
+    },
+    {
+      "name": "levelup",
+      "detail": {
+        "opened": true,
+        "frozenDelta": 0,
+        "resumeDelta": 59,
+        "closed": true,
+        "pass": true
+      }
+    },
+    {
+      "name": "kinds",
+      "detail": {
+        "hunter": {
+          "setup": {
+            "id": 1,
+            "kind": "hunter",
+            "pos": {
+              "x": 10,
+              "y": 45
+            },
+            "hp": 61,
+            "target": {
+              "x": 10,
+              "y": 45
+            },
+            "xp": 38,
+            "currency": 0,
+            "level": 7
+          },
+          "hitFlash": 0.10000999999999985,
+          "killed": true,
+          "hpAfter": 0,
+          "targetAfter": 0,
+          "xpGain": 18,
+          "currencyGain": 4,
+          "levelGain": 0,
+          "damageDealt": 65.34000000000002,
+          "pass": true
+        },
+        "stalker": {
+          "setup": {
+            "id": 2,
+            "kind": "stalker",
+            "pos": {
+              "x": 9.625001055392765,
+              "y": 45.000889687282225
+            },
+            "hp": 47,
+            "target": {
+              "x": 9.625001055392765,
+              "y": 45.000889687282225
+            },
+            "xp": 56,
+            "currency": 4,
+            "level": 7
+          },
+          "hitFlash": 0.13332999999999992,
+          "killed": true,
+          "hpAfter": 0,
+          "targetAfter": 0,
+          "xpGain": 12,
+          "currencyGain": 0,
+          "levelGain": 0,
+          "damageDealt": 123.42000000000004,
+          "pass": true
+        },
+        "sentinel": {
+          "setup": {
+            "id": 3,
+            "kind": "sentinel",
+            "pos": {
+              "x": 9.625001055392765,
+              "y": 45.000889687282225
+            },
+            "hp": 140,
+            "target": {
+              "x": 9.625001055392765,
+              "y": 45.000889687282225
+            },
+            "xp": 68,
+            "currency": 4,
+            "level": 7
+          },
+          "hitFlash": 0.1166699999999997,
+          "killed": true,
+          "hpAfter": 0,
+          "targetAfter": 0,
+          "xpGain": 24,
+          "currencyGain": 4,
+          "levelGain": 0,
+          "damageDealt": 290.4000000000001,
+          "pass": true
+        },
+        "drone": {
+          "setup": {
+            "id": 4,
+            "kind": "drone",
+            "pos": {
+              "x": 9.250002181168917,
+              "y": 45.00180856205428
+            },
+            "hp": 28,
+            "target": null,
+            "xp": 92,
+            "currency": 8,
+            "level": 7
+          },
+          "hitFlash": 0.11666666666666667,
+          "killed": true,
+          "hpAfter": 0,
+          "targetAfter": 0,
+          "xpGain": 8,
+          "currencyGain": 4,
+          "levelGain": 0,
+          "damageDealt": 319.44000000000005,
+          "pass": true
+        }
+      }
+    },
+    {
+      "name": "setter-migration",
+      "detail": {
+        "setup": {
+          "id": 5,
+          "coreX": 9.875002181168917,
+          "coreHp": 47,
+          "coreXAfterAssign": 9.875002181168917,
+          "coreHpAfterAssign": 47,
+          "enemyX": 9.875002181168917,
+          "enemyHp": 47,
+          "threw": false,
+          "hp": 72.51666666666607
+        },
+        "coreUnchanged": true,
+        "enemyGetterReadOnly": true,
+        "moved": true,
+        "playerHpBefore": 73.04999999999937,
+        "playerHpAfter": 46.8833333333326,
+        "attacked": true
+      }
+    },
+    {
+      "name": "boss",
+      "detail": {
+        "setup": {
+          "id": 6,
+          "x": 9,
+          "y": 44,
+          "hp": 2400
+        },
+        "hit": {
+          "hp": 2327.4000000000005,
+          "hitFlash": 0,
+          "hpDropped": true
+        },
+        "laser": {
+          "sides": {
+            "player": 1,
+            "enemy": 3
+          },
+          "idsUnique": true,
+          "playerProjectileAliveWithLaser": true
+        },
+        "death": {
+          "bossGone": true,
+          "active": [
+            "GameScene"
+          ],
+          "playerWon": true
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "start": {
+    "active": [
+      "GameScene"
+    ],
+    "tick": 69,
+    "paused": false,
+    "player": {
+      "x": 8,
+      "y": 45,
+      "hp": 100,
+      "xp": 0,
+      "level": 1,
+      "currency": 0
+    },
+    "targets": [],
+    "drones": [],
+    "enemies": [],
+    "projectiles": [],
+    "boss": null,
+    "damageDealt": 0,
+    "levelUp": false
+  },
+  "raf": {
+    "deltas": [
+      8,
+      7,
+      7,
+      8,
+      7
+    ],
+    "pass": true
+  },
+  "pause": {
+    "paused": true,
+    "frozenDelta": 0,
+    "resumeDelta": 26,
+    "pass": true
+  },
+  "inventory": {
+    "opened": true,
+    "frozenDelta": 0,
+    "resumeDelta": 27,
+    "pass": true
+  },
+  "levelup": {
+    "opened": true,
+    "frozenDelta": 0,
+    "resumeDelta": 59,
+    "closed": true,
+    "pass": true
+  },
+  "kinds": {
+    "hunter": {
+      "setup": {
+        "id": 1,
+        "kind": "hunter",
+        "pos": {
+          "x": 10,
+          "y": 45
+        },
+        "hp": 61,
+        "target": {
+          "x": 10,
+          "y": 45
+        },
+        "xp": 38,
+        "currency": 0,
+        "level": 7
+      },
+      "hitFlash": 0.10000999999999985,
+      "killed": true,
+      "hpAfter": 0,
+      "targetAfter": 0,
+      "xpGain": 18,
+      "currencyGain": 4,
+      "levelGain": 0,
+      "damageDealt": 65.34000000000002,
+      "pass": true
+    },
+    "stalker": {
+      "setup": {
+        "id": 2,
+        "kind": "stalker",
+        "pos": {
+          "x": 9.625001055392765,
+          "y": 45.000889687282225
+        },
+        "hp": 47,
+        "target": {
+          "x": 9.625001055392765,
+          "y": 45.000889687282225
+        },
+        "xp": 56,
+        "currency": 4,
+        "level": 7
+      },
+      "hitFlash": 0.13332999999999992,
+      "killed": true,
+      "hpAfter": 0,
+      "targetAfter": 0,
+      "xpGain": 12,
+      "currencyGain": 0,
+      "levelGain": 0,
+      "damageDealt": 123.42000000000004,
+      "pass": true
+    },
+    "sentinel": {
+      "setup": {
+        "id": 3,
+        "kind": "sentinel",
+        "pos": {
+          "x": 9.625001055392765,
+          "y": 45.000889687282225
+        },
+        "hp": 140,
+        "target": {
+          "x": 9.625001055392765,
+          "y": 45.000889687282225
+        },
+        "xp": 68,
+        "currency": 4,
+        "level": 7
+      },
+      "hitFlash": 0.1166699999999997,
+      "killed": true,
+      "hpAfter": 0,
+      "targetAfter": 0,
+      "xpGain": 24,
+      "currencyGain": 4,
+      "levelGain": 0,
+      "damageDealt": 290.4000000000001,
+      "pass": true
+    },
+    "drone": {
+      "setup": {
+        "id": 4,
+        "kind": "drone",
+        "pos": {
+          "x": 9.250002181168917,
+          "y": 45.00180856205428
+        },
+        "hp": 28,
+        "target": null,
+        "xp": 92,
+        "currency": 8,
+        "level": 7
+      },
+      "hitFlash": 0.11666666666666667,
+      "killed": true,
+      "hpAfter": 0,
+      "targetAfter": 0,
+      "xpGain": 8,
+      "currencyGain": 4,
+      "levelGain": 0,
+      "damageDealt": 319.44000000000005,
+      "pass": true
+    }
+  },
+  "setter": {
+    "setup": {
+      "id": 5,
+      "coreX": 9.875002181168917,
+      "coreHp": 47,
+      "coreXAfterAssign": 9.875002181168917,
+      "coreHpAfterAssign": 47,
+      "enemyX": 9.875002181168917,
+      "enemyHp": 47,
+      "threw": false,
+      "hp": 72.51666666666607
+    },
+    "coreUnchanged": true,
+    "enemyGetterReadOnly": true,
+    "moved": true,
+    "playerHpBefore": 73.04999999999937,
+    "playerHpAfter": 46.8833333333326,
+    "attacked": true
+  },
+  "boss": {
+    "setup": {
+      "id": 6,
+      "x": 9,
+      "y": 44,
+      "hp": 2400
+    },
+    "hit": {
+      "hp": 2327.4000000000005,
+      "hitFlash": 0,
+      "hpDropped": true
+    },
+    "laser": {
+      "sides": {
+        "player": 1,
+        "enemy": 3
+      },
+      "idsUnique": true,
+      "playerProjectileAliveWithLaser": true
+    },
+    "death": {
+      "bossGone": true,
+      "active": [
+        "GameScene"
+      ],
+      "playerWon": true
+    }
+  }
+}

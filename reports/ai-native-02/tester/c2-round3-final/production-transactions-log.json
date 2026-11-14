@@ -1,0 +1,818 @@
+{
+  "meta": {
+    "url": "http://localhost:5290/",
+    "target": "6ac60b2",
+    "production": true,
+    "fixtures": [
+      "fixed seed",
+      "explicit enqueue* commands",
+      "manual stepFrame while paused",
+      "enqueueTeleport pickup setup/movement"
+    ],
+    "endedUtc": "2026-11-14T02:56:09.745Z"
+  },
+  "checks": [
+    {
+      "name": "sim-is-deep-frozen",
+      "ok": true,
+      "detail": {
+        "frozen": true,
+        "nestedFrozen": true,
+        "nested": null,
+        "nestedErr": "Cannot add property 0, object is not extensible",
+        "fixture": {
+          "simFixture": "dev/test only",
+          "playerDataFixture": "dev/test only"
+        },
+        "before": {
+          "hp": 100,
+          "x": 8
+        },
+        "after": {
+          "hp": 95,
+          "x": 9
+        },
+        "ownerErr": null
+      }
+    },
+    {
+      "name": "nested-writes-no-core-change",
+      "ok": true,
+      "detail": {
+        "frozen": true,
+        "nestedFrozen": true,
+        "nested": null,
+        "nestedErr": "Cannot add property 0, object is not extensible",
+        "fixture": {
+          "simFixture": "dev/test only",
+          "playerDataFixture": "dev/test only"
+        },
+        "before": {
+          "hp": 100,
+          "x": 8
+        },
+        "after": {
+          "hp": 95,
+          "x": 9
+        },
+        "ownerErr": null
+      }
+    },
+    {
+      "name": "production-simFixture-dev-only",
+      "ok": true,
+      "detail": {
+        "simFixture": "dev/test only",
+        "playerDataFixture": "dev/test only"
+      }
+    },
+    {
+      "name": "production-playerDataFixture-dev-only",
+      "ok": true,
+      "detail": {
+        "simFixture": "dev/test only",
+        "playerDataFixture": "dev/test only"
+      }
+    },
+    {
+      "name": "public-owner-setter-writes-core",
+      "ok": true,
+      "detail": {
+        "frozen": true,
+        "nestedFrozen": true,
+        "nested": null,
+        "nestedErr": "Cannot add property 0, object is not extensible",
+        "fixture": {
+          "simFixture": "dev/test only",
+          "playerDataFixture": "dev/test only"
+        },
+        "before": {
+          "hp": 100,
+          "x": 8
+        },
+        "after": {
+          "hp": 95,
+          "x": 9
+        },
+        "ownerErr": null
+      }
+    },
+    {
+      "name": "paused-no-mutation-after-enqueue",
+      "ok": true,
+      "detail": {
+        "before": {
+          "tick": 59,
+          "paused": true,
+          "hp": 100,
+          "currency": 0,
+          "xp": 0,
+          "level": 1,
+          "upgrades": 0,
+          "speed": 220,
+          "px": 8,
+          "py": 45,
+          "pending": 0,
+          "loot": 0,
+          "lootViews": 0,
+          "drones": 0,
+          "targets": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "frozen": true,
+          "nestedFrozen": true
+        },
+        "queued": {
+          "pending": 6,
+          "hp": 100,
+          "currency": 0,
+          "xp": 0,
+          "upgrades": 0,
+          "loot": 0,
+          "drones": 0,
+          "targets": 0,
+          "projectiles": 0,
+          "px": 8,
+          "py": 45,
+          "tick": 59
+        }
+      }
+    },
+    {
+      "name": "stepFrame-zero-dt-no-op",
+      "ok": true,
+      "detail": {
+        "eventTypes": [],
+        "pending": 6,
+        "hp": 100,
+        "currency": 0,
+        "loot": 0,
+        "tick": 59
+      }
+    },
+    {
+      "name": "one-tick-commit-events",
+      "ok": true,
+      "detail": {
+        "eventTypes": [
+          "player-healed",
+          "currency-gained",
+          "xp-gained",
+          "player-upgraded",
+          "loot-dropped",
+          "projectile-spawned",
+          "player-moved",
+          "player-hurt"
+        ],
+        "pending": 0,
+        "hp": 95,
+        "currency": 50,
+        "xp": 5,
+        "upgrades": 1,
+        "loot": 1,
+        "lootViews": 1,
+        "projectiles": 0,
+        "enemies": 1,
+        "tick": 60
+      }
+    },
+    {
+      "name": "one-tick-values-changed-once",
+      "ok": true,
+      "detail": {
+        "before": {
+          "tick": 59,
+          "paused": true,
+          "hp": 100,
+          "currency": 0,
+          "xp": 0,
+          "level": 1,
+          "upgrades": 0,
+          "speed": 220,
+          "px": 8,
+          "py": 45,
+          "pending": 0,
+          "loot": 0,
+          "lootViews": 0,
+          "drones": 0,
+          "targets": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "frozen": true,
+          "nestedFrozen": true
+        },
+        "one": {
+          "eventTypes": [
+            "player-healed",
+            "currency-gained",
+            "xp-gained",
+            "player-upgraded",
+            "loot-dropped",
+            "projectile-spawned",
+            "player-moved",
+            "player-hurt"
+          ],
+          "pending": 0,
+          "hp": 95,
+          "currency": 50,
+          "xp": 5,
+          "upgrades": 1,
+          "loot": 1,
+          "lootViews": 1,
+          "projectiles": 0,
+          "enemies": 1,
+          "tick": 60
+        }
+      }
+    },
+    {
+      "name": "no-duplicate-reward-next-tick",
+      "ok": true,
+      "detail": {
+        "eventTypes": [
+          "player-moved"
+        ],
+        "currency": 50,
+        "hp": 95
+      }
+    },
+    {
+      "name": "pickup-fixture-found",
+      "ok": true,
+      "detail": {
+        "start": {
+          "x": 112,
+          "y": 40
+        },
+        "loot": {
+          "x": 5,
+          "y": 41
+        },
+        "near": {
+          "x": 6,
+          "y": 41
+        },
+        "d": 107.00467279516347,
+        "hp": 100,
+        "currency": 0,
+        "px": 8,
+        "py": 45
+      }
+    },
+    {
+      "name": "loot-visible-not-collected",
+      "ok": true,
+      "detail": {
+        "tick": 79,
+        "paused": false,
+        "hp": 80,
+        "currency": 0,
+        "xp": 0,
+        "level": 1,
+        "upgrades": 0,
+        "speed": 220,
+        "px": 112,
+        "py": 40,
+        "pending": 0,
+        "loot": 2,
+        "lootViews": 2,
+        "drones": 0,
+        "targets": 6,
+        "projectiles": 0,
+        "enemies": 6,
+        "frozen": true,
+        "nestedFrozen": true
+      }
+    },
+    {
+      "name": "unpicked-currency-hp-unchanged",
+      "ok": true,
+      "detail": {
+        "beforePickup": {
+          "tick": 79,
+          "paused": false,
+          "hp": 80,
+          "currency": 0,
+          "xp": 0,
+          "level": 1,
+          "upgrades": 0,
+          "speed": 220,
+          "px": 112,
+          "py": 40,
+          "pending": 0,
+          "loot": 2,
+          "lootViews": 2,
+          "drones": 0,
+          "targets": 6,
+          "projectiles": 0,
+          "enemies": 6,
+          "frozen": true,
+          "nestedFrozen": true
+        },
+        "setup": {
+          "start": {
+            "x": 112,
+            "y": 40
+          },
+          "loot": {
+            "x": 5,
+            "y": 41
+          },
+          "near": {
+            "x": 6,
+            "y": 41
+          },
+          "d": 107.00467279516347,
+          "hp": 100,
+          "currency": 0,
+          "px": 8,
+          "py": 45
+        }
+      }
+    },
+    {
+      "name": "moving-collects-loot",
+      "ok": true,
+      "detail": {
+        "beforePickup": {
+          "tick": 79,
+          "paused": false,
+          "hp": 80,
+          "currency": 0,
+          "xp": 0,
+          "level": 1,
+          "upgrades": 0,
+          "speed": 220,
+          "px": 112,
+          "py": 40,
+          "pending": 0,
+          "loot": 2,
+          "lootViews": 2,
+          "drones": 0,
+          "targets": 6,
+          "projectiles": 0,
+          "enemies": 6,
+          "frozen": true,
+          "nestedFrozen": true
+        },
+        "afterPickup": {
+          "tick": 106,
+          "paused": false,
+          "hp": 100,
+          "currency": 10,
+          "xp": 0,
+          "level": 1,
+          "upgrades": 0,
+          "speed": 220,
+          "px": 6,
+          "py": 41,
+          "pending": 0,
+          "loot": 0,
+          "lootViews": 0,
+          "drones": 0,
+          "targets": 6,
+          "projectiles": 0,
+          "enemies": 6,
+          "frozen": true,
+          "nestedFrozen": true
+        },
+        "moved": 106.00471687618433
+      }
+    },
+    {
+      "name": "kill-emits-loot-dropped-and-collected",
+      "ok": true,
+      "detail": {
+        "types": [
+          "player-moved",
+          "player-fired",
+          "projectile-spawned",
+          "enemy-hit",
+          "enemy-died",
+          "loot-dropped",
+          "xp-gained",
+          "currency-gained",
+          "loot-collected",
+          "player-healed"
+        ],
+        "ticks": [
+          [
+            "player-moved",
+            "player-fired",
+            "projectile-spawned"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved",
+            "enemy-hit",
+            "enemy-died",
+            "loot-dropped",
+            "loot-dropped",
+            "xp-gained",
+            "currency-gained",
+            "loot-collected",
+            "player-healed",
+            "loot-collected"
+          ]
+        ],
+        "maxLootViews": 0,
+        "currency": 4,
+        "xp": 18,
+        "loot": 0,
+        "pending": 0
+      }
+    },
+    {
+      "name": "kill-loot-dropped-event",
+      "ok": true,
+      "detail": {
+        "types": [
+          "player-moved",
+          "player-fired",
+          "projectile-spawned",
+          "enemy-hit",
+          "enemy-died",
+          "loot-dropped",
+          "xp-gained",
+          "currency-gained",
+          "loot-collected",
+          "player-healed"
+        ],
+        "ticks": [
+          [
+            "player-moved",
+            "player-fired",
+            "projectile-spawned"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved",
+            "enemy-hit",
+            "enemy-died",
+            "loot-dropped",
+            "loot-dropped",
+            "xp-gained",
+            "currency-gained",
+            "loot-collected",
+            "player-healed",
+            "loot-collected"
+          ]
+        ],
+        "maxLootViews": 0,
+        "currency": 4,
+        "xp": 18,
+        "loot": 0,
+        "pending": 0
+      }
+    },
+    {
+      "name": "kill-reward-only-at-collection",
+      "ok": true,
+      "detail": {
+        "ticks": [
+          [
+            "player-moved",
+            "player-fired",
+            "projectile-spawned"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved",
+            "enemy-hit",
+            "enemy-died",
+            "loot-dropped",
+            "loot-dropped",
+            "xp-gained",
+            "currency-gained",
+            "loot-collected",
+            "player-healed",
+            "loot-collected"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "kill-pending-consumed",
+      "ok": true,
+      "detail": {
+        "types": [
+          "player-moved",
+          "player-fired",
+          "projectile-spawned",
+          "enemy-hit",
+          "enemy-died",
+          "loot-dropped",
+          "xp-gained",
+          "currency-gained",
+          "loot-collected",
+          "player-healed"
+        ],
+        "ticks": [
+          [
+            "player-moved",
+            "player-fired",
+            "projectile-spawned"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved"
+          ],
+          [
+            "player-moved",
+            "enemy-hit",
+            "enemy-died",
+            "loot-dropped",
+            "loot-dropped",
+            "xp-gained",
+            "currency-gained",
+            "loot-collected",
+            "player-healed",
+            "loot-collected"
+          ]
+        ],
+        "maxLootViews": 0,
+        "currency": 4,
+        "xp": 18,
+        "loot": 0,
+        "pending": 0
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "public-owner-setter-gate-defect",
+      "detail": {
+        "note": "ownerSetPlayerData/ownerMovePlayer are public (not dev-gated) and immediately mutate live core; tests/ai-native-world.spec.ts uses ownerSetPlayerData as a fixture. Production P1 gate cannot be used as proof that core writes are transaction-only.",
+        "gate": {
+          "frozen": true,
+          "nestedFrozen": true,
+          "nested": null,
+          "nestedErr": "Cannot add property 0, object is not extensible",
+          "fixture": {
+            "simFixture": "dev/test only",
+            "playerDataFixture": "dev/test only"
+          },
+          "before": {
+            "hp": 100,
+            "x": 8
+          },
+          "after": {
+            "hp": 95,
+            "x": 9
+          },
+          "ownerErr": null
+        }
+      }
+    }
+  ],
+  "flows": {
+    "gate": {
+      "frozen": true,
+      "nestedFrozen": true,
+      "nested": null,
+      "nestedErr": "Cannot add property 0, object is not extensible",
+      "fixture": {
+        "simFixture": "dev/test only",
+        "playerDataFixture": "dev/test only"
+      },
+      "before": {
+        "hp": 100,
+        "x": 8
+      },
+      "after": {
+        "hp": 95,
+        "x": 9
+      },
+      "ownerErr": null
+    },
+    "queue": {
+      "before": {
+        "tick": 59,
+        "paused": true,
+        "hp": 100,
+        "currency": 0,
+        "xp": 0,
+        "level": 1,
+        "upgrades": 0,
+        "speed": 220,
+        "px": 8,
+        "py": 45,
+        "pending": 0,
+        "loot": 0,
+        "lootViews": 0,
+        "drones": 0,
+        "targets": 0,
+        "projectiles": 0,
+        "enemies": 0,
+        "frozen": true,
+        "nestedFrozen": true
+      },
+      "queued": {
+        "pending": 6,
+        "hp": 100,
+        "currency": 0,
+        "xp": 0,
+        "upgrades": 0,
+        "loot": 0,
+        "drones": 0,
+        "targets": 0,
+        "projectiles": 0,
+        "px": 8,
+        "py": 45,
+        "tick": 59
+      },
+      "zero": {
+        "eventTypes": [],
+        "pending": 6,
+        "hp": 100,
+        "currency": 0,
+        "loot": 0,
+        "tick": 59
+      },
+      "one": {
+        "eventTypes": [
+          "player-healed",
+          "currency-gained",
+          "xp-gained",
+          "player-upgraded",
+          "loot-dropped",
+          "projectile-spawned",
+          "player-moved",
+          "player-hurt"
+        ],
+        "pending": 0,
+        "hp": 95,
+        "currency": 50,
+        "xp": 5,
+        "upgrades": 1,
+        "loot": 1,
+        "lootViews": 1,
+        "projectiles": 0,
+        "enemies": 1,
+        "tick": 60
+      },
+      "two": {
+        "eventTypes": [
+          "player-moved"
+        ],
+        "currency": 50,
+        "hp": 95
+      }
+    },
+    "pickup": {
+      "setup": {
+        "start": {
+          "x": 112,
+          "y": 40
+        },
+        "loot": {
+          "x": 5,
+          "y": 41
+        },
+        "near": {
+          "x": 6,
+          "y": 41
+        },
+        "d": 107.00467279516347,
+        "hp": 100,
+        "currency": 0,
+        "px": 8,
+        "py": 45
+      },
+      "beforePickup": {
+        "tick": 79,
+        "paused": false,
+        "hp": 80,
+        "currency": 0,
+        "xp": 0,
+        "level": 1,
+        "upgrades": 0,
+        "speed": 220,
+        "px": 112,
+        "py": 40,
+        "pending": 0,
+        "loot": 2,
+        "lootViews": 2,
+        "drones": 0,
+        "targets": 6,
+        "projectiles": 0,
+        "enemies": 6,
+        "frozen": true,
+        "nestedFrozen": true
+      },
+      "afterPickup": {
+        "tick": 106,
+        "paused": false,
+        "hp": 100,
+        "currency": 10,
+        "xp": 0,
+        "level": 1,
+        "upgrades": 0,
+        "speed": 220,
+        "px": 6,
+        "py": 41,
+        "pending": 0,
+        "loot": 0,
+        "lootViews": 0,
+        "drones": 0,
+        "targets": 6,
+        "projectiles": 0,
+        "enemies": 6,
+        "frozen": true,
+        "nestedFrozen": true
+      }
+    },
+    "killLoot": {
+      "types": [
+        "player-moved",
+        "player-fired",
+        "projectile-spawned",
+        "enemy-hit",
+        "enemy-died",
+        "loot-dropped",
+        "xp-gained",
+        "currency-gained",
+        "loot-collected",
+        "player-healed"
+      ],
+      "ticks": [
+        [
+          "player-moved",
+          "player-fired",
+          "projectile-spawned"
+        ],
+        [
+          "player-moved"
+        ],
+        [
+          "player-moved"
+        ],
+        [
+          "player-moved"
+        ],
+        [
+          "player-moved"
+        ],
+        [
+          "player-moved",
+          "enemy-hit",
+          "enemy-died",
+          "loot-dropped",
+          "loot-dropped",
+          "xp-gained",
+          "currency-gained",
+          "loot-collected",
+          "player-healed",
+          "loot-collected"
+        ]
+      ],
+      "maxLootViews": 0,
+      "currency": 4,
+      "xp": 18,
+      "loot": 0,
+      "pending": 0
+    }
+  },
+  "errors": []
+}

@@ -1,0 +1,76 @@
+{
+  "meta": {
+    "prod": "http://localhost:5290/",
+    "dev": "http://localhost:5289/",
+    "target": "6ac60b2"
+  },
+  "checks": [
+    {
+      "n": "prod-simFixture-dev-only",
+      "ok": true,
+      "d": "dev/test only"
+    },
+    {
+      "n": "prod-playerDataFixture-dev-only",
+      "ok": true,
+      "d": "dev/test only"
+    },
+    {
+      "n": "prod-clearEnemies-dev-only",
+      "ok": true,
+      "d": "dev/test only"
+    },
+    {
+      "n": "prod-resetProjectiles-dev-only",
+      "ok": true,
+      "d": "dev/test only"
+    },
+    {
+      "n": "prod-stepTicksForTest-dev-only",
+      "ok": true,
+      "d": "dev/test only"
+    },
+    {
+      "n": "dev-simFixture-ok",
+      "ok": true,
+      "d": "ok"
+    },
+    {
+      "n": "dev-playerDataFixture-ok",
+      "ok": true,
+      "d": "ok"
+    },
+    {
+      "n": "dev-clearEnemies-ok",
+      "ok": true,
+      "d": "ok"
+    },
+    {
+      "n": "prod-ownerSetPlayerData-public-write",
+      "ok": true,
+      "d": 97
+    },
+    {
+      "n": "dev-ownerSetPlayerData-public-write",
+      "ok": true,
+      "d": 97
+    }
+  ],
+  "prod": {
+    "simFixture": "dev/test only",
+    "playerDataFixture": "dev/test only",
+    "clearEnemiesForTest": "dev/test only",
+    "resetProjectilesForTest": "dev/test only",
+    "stepSimulationTicksForTest": "dev/test only",
+    "ownerSetPlayerData": 97
+  },
+  "dev": {
+    "simFixture": "ok",
+    "playerDataFixture": "ok",
+    "clearEnemiesForTest": "ok",
+    "resetProjectilesForTest": "ok",
+    "stepSimulationTicksForTest": "ok",
+    "ownerSetPlayerData": 97
+  },
+  "errors": []
+}

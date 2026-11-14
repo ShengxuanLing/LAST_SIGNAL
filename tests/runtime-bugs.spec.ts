@@ -283,8 +283,10 @@ test('cleared room always offers an exit portal, even when every room is visited
     const w = gs.world;
     w.player.reset(w.portal.wx, w.portal.wy);
     w.tryInteract(w.player);
+    const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
     w.resetSimulationAccumulator();
-    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit teleport, enter room, queue spawn
+    w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit enemy spawn
   });
   await page.waitForTimeout(250);
   const entered = await page.evaluate(() => {
@@ -292,7 +294,9 @@ test('cleared room always offers an exit portal, even when every room is visited
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
     const room = w.currentRoom();
-    w.clearEnemiesForTest();
+    for (const e of w.enemies) { if (e.sprite && e.sprite.scene) e.sprite.destroy(); }
+    w.enemies = [];
+    if (w.boss) { if (w.boss.sprite && w.boss.sprite.scene) w.boss.sprite.destroy(); w.boss = null; }
     return { id: room?.id, kind: room?.kind };
   });
   await page.waitForTimeout(250);
@@ -342,7 +346,7 @@ test('cleared room always offers an exit portal, even when every room is visited
     const g: any = (window as any).__game;
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
-    w.player.reset(w.portal.wx, w.portal.wy);
+    w.enqueueTeleport(w.portal.wx, w.portal.wy, true);
     w.tryInteract(w.player);
     w.resetSimulationAccumulator();
     w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });

@@ -59,11 +59,10 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
     }
     if (!foundTile) throw new Error('boss room has no walkable tile');
 
-    // reset() restores hp/invuln from its own defaults, so apply ours afterwards.
-    pl.reset(best.x, best.y);
-    pl.data.hp = 1000;
-    pl.data.maxHp = 1000;
-    pl.invuln = 999;
+    // Teleport the player onto the walkable tile, committing on the next tick.
+    w.enqueueTeleport(best.x, best.y, true);
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
 
     // Re-enter the boss room (spawns the real Boss, portal and room HUD).
     w.currentRoomId = -1;

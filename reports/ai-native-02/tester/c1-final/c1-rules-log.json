@@ -1,0 +1,775 @@
+{
+  "meta": {
+    "url": "http://localhost:5284/",
+    "fixtures": [
+      "spawn drone x2",
+      "add scatter/plasma weapons and equip them"
+    ],
+    "notFixtures": [
+      "no invuln refresh",
+      "no HP writes",
+      "no coordinate writes",
+      "no addXp/hurt/spawnEnemy except the declared drones"
+    ],
+    "startedUtc": "2026-11-13T20:36:57.763Z",
+    "endedUtc": "2026-11-13T20:37:10.996Z"
+  },
+  "steps": [
+    {
+      "name": "new-run",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "hp": 100,
+        "grid": {
+          "x": 8,
+          "y": 45
+        },
+        "walkable": true,
+        "weaponKey": "pulse",
+        "magazine": -1,
+        "ammo": -1,
+        "spec": null,
+        "projectiles": [],
+        "enemyProjectiles": 0,
+        "lastProjectile": null,
+        "enemies": [],
+        "owner": "human",
+        "levelUp": false,
+        "gameOver": false
+      }
+    },
+    {
+      "name": "pulse-setup",
+      "detail": {
+        "enemyId": 1,
+        "enemyHp": 28,
+        "target": {
+          "x": 11,
+          "y": 45
+        },
+        "weaponKey": "pulse",
+        "player": {
+          "x": 8,
+          "y": 45
+        }
+      }
+    },
+    {
+      "name": "pulse-damage",
+      "detail": {
+        "weaponKey": "pulse",
+        "droneBefore": 28,
+        "duringProjectiles": 1,
+        "spec": {
+          "damage": 12,
+          "speed": 11.25,
+          "critBase": 0.1,
+          "critDamage": 1.5,
+          "critChance": 0.1,
+          "pierce": 0,
+          "lifetime": 0.7222222222222222,
+          "kind": "pulse",
+          "magazine": -1,
+          "shots": 1,
+          "spread": 0.02
+        },
+        "lastProjectile": {
+          "damage": 12,
+          "vel": {
+            "x": 11.249759735135584,
+            "y": -0.07352483745077415
+          },
+          "pierce": 0,
+          "lifetime": 0.7222222222222222,
+          "radius": 0.2
+        },
+        "drones": [],
+        "droneGone": true,
+        "pass": true
+      }
+    },
+    {
+      "name": "scatter-setup",
+      "detail": {
+        "weaponKey": "scatter",
+        "ammo": 8,
+        "magazine": 8
+      }
+    },
+    {
+      "name": "scatter",
+      "detail": {
+        "weaponKey": "scatter",
+        "spec": {
+          "damage": 6,
+          "speed": 8.75,
+          "critBase": 0.05,
+          "critDamage": 1.5,
+          "critChance": 0.1,
+          "pierce": 0,
+          "lifetime": 0.4642857142857143,
+          "kind": "scatter",
+          "magazine": 8,
+          "shots": 5,
+          "spread": 0.5
+        },
+        "count": 5,
+        "distinctAngles": 5,
+        "angleRange": 2.5,
+        "magazineBefore": 8,
+        "ammoAfter": 7,
+        "magazineAfter": 8,
+        "pass": true
+      }
+    },
+    {
+      "name": "plasma-setup",
+      "detail": {
+        "weaponKey": "plasma",
+        "pierceCount": 0
+      }
+    },
+    {
+      "name": "plasma",
+      "detail": {
+        "weaponKey": "plasma",
+        "pierceCount": 0,
+        "spec": {
+          "damage": 42,
+          "speed": 5.9375,
+          "critBase": 0.15,
+          "critDamage": 1.5,
+          "critChance": 0.1,
+          "pierce": 2,
+          "lifetime": 1.263157894736842,
+          "kind": "plasma",
+          "magazine": -1,
+          "shots": 1,
+          "spread": 0
+        },
+        "bullets": [
+          {
+            "pierce": 2,
+            "speed": 5.9375,
+            "damage": 42,
+            "lifetime": 1.0465178947368416
+          }
+        ],
+        "pass": true
+      }
+    },
+    {
+      "name": "wall-samples",
+      "detail": {
+        "samples": 16,
+        "allWalkable": true,
+        "maxStep": 0.5672233821983113,
+        "levelUps": 0,
+        "positions": [
+          {
+            "i": 0,
+            "grid": {
+              "x": 7.682303660768692,
+              "y": 44.942062977349245
+            },
+            "walkable": true,
+            "hp": 93
+          },
+          {
+            "i": 1,
+            "grid": {
+              "x": 8.083391160768695,
+              "y": 44.540975477349264
+            },
+            "walkable": true,
+            "hp": 93
+          },
+          {
+            "i": 2,
+            "grid": {
+              "x": 8.484444285768694,
+              "y": 44.13992235234928
+            },
+            "walkable": true,
+            "hp": 93
+          },
+          {
+            "i": 3,
+            "grid": {
+              "x": 8.885394285768694,
+              "y": 43.73897235234929
+            },
+            "walkable": true,
+            "hp": 93
+          },
+          {
+            "i": 4,
+            "grid": {
+              "x": 9.286447410768695,
+              "y": 43.33791922734931
+            },
+            "walkable": true,
+            "hp": 93
+          }
+        ],
+        "pass": true
+      }
+    },
+    {
+      "name": "drone-setup",
+      "detail": {
+        "enemyId": 2,
+        "enemyHp": 28,
+        "target": {
+          "x": 9.494631785768696,
+          "y": 40.53078797734941
+        },
+        "playerHp": 93
+      }
+    },
+    {
+      "name": "drone-fsm-ranged",
+      "detail": {
+        "setup": {
+          "enemyId": 2,
+          "enemyHp": 28,
+          "target": {
+            "x": 9.494631785768696,
+            "y": 40.53078797734941
+          },
+          "playerHp": 93
+        },
+        "states": [
+          "patrol",
+          "detect",
+          "attack"
+        ],
+        "sampledLastStep": true,
+        "hpDrop": true,
+        "playerHpBefore": 93,
+        "playerHpLast": 86,
+        "enemyProjectilesSeen": 1,
+        "samples": [
+          {
+            "i": 0,
+            "state": "patrol",
+            "lastDroneStep": {
+              "state": "patrol",
+              "attack": null,
+              "timer": -0.016659999999999855
+            },
+            "hp": 28,
+            "playerHp": 93,
+            "enemyProjectiles": 0,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 1,
+            "state": "detect",
+            "lastDroneStep": {
+              "state": "detect",
+              "attack": null,
+              "timer": 0.10000000000000003
+            },
+            "hp": 28,
+            "playerHp": 93,
+            "enemyProjectiles": 0,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 2,
+            "state": "attack",
+            "lastDroneStep": {
+              "state": "attack",
+              "attack": null,
+              "timer": 0.4
+            },
+            "hp": 28,
+            "playerHp": 93,
+            "enemyProjectiles": 1,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 3,
+            "state": "attack",
+            "lastDroneStep": {
+              "state": "attack",
+              "attack": null,
+              "timer": 0.4
+            },
+            "hp": 28,
+            "playerHp": 93,
+            "enemyProjectiles": 1,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 4,
+            "state": "attack",
+            "lastDroneStep": {
+              "state": "attack",
+              "attack": null,
+              "timer": 0.4
+            },
+            "hp": 28,
+            "playerHp": 93,
+            "enemyProjectiles": 1,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 5,
+            "state": "attack",
+            "lastDroneStep": {
+              "state": "attack",
+              "attack": null,
+              "timer": 0.4
+            },
+            "hp": 28,
+            "playerHp": 93,
+            "enemyProjectiles": 1,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 6,
+            "state": "attack",
+            "lastDroneStep": {
+              "state": "attack",
+              "attack": null,
+              "timer": 0.4
+            },
+            "hp": 28,
+            "playerHp": 86,
+            "enemyProjectiles": 0,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 7,
+            "state": "attack",
+            "lastDroneStep": {
+              "state": "attack",
+              "attack": null,
+              "timer": 0.4
+            },
+            "hp": 28,
+            "playerHp": 86,
+            "enemyProjectiles": 0,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 8,
+            "state": "attack",
+            "lastDroneStep": {
+              "state": "attack",
+              "attack": {
+                "kind": "ranged",
+                "damage": 7,
+                "angle": 0,
+                "velocity": {
+                  "x": 2.5,
+                  "y": 0
+                }
+              },
+              "timer": 0.4
+            },
+            "hp": 28,
+            "playerHp": 86,
+            "enemyProjectiles": 1,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          },
+          {
+            "i": 9,
+            "state": "attack",
+            "lastDroneStep": {
+              "state": "attack",
+              "attack": null,
+              "timer": 0.4
+            },
+            "hp": 28,
+            "playerHp": 86,
+            "enemyProjectiles": 1,
+            "grid": {
+              "x": 12.494631785768696,
+              "y": 40.53078797734941
+            },
+            "walkable": true
+          }
+        ],
+        "pass": true
+      }
+    }
+  ],
+  "pulse": {
+    "weaponKey": "pulse",
+    "droneBefore": 28,
+    "duringProjectiles": 1,
+    "spec": {
+      "damage": 12,
+      "speed": 11.25,
+      "critBase": 0.1,
+      "critDamage": 1.5,
+      "critChance": 0.1,
+      "pierce": 0,
+      "lifetime": 0.7222222222222222,
+      "kind": "pulse",
+      "magazine": -1,
+      "shots": 1,
+      "spread": 0.02
+    },
+    "lastProjectile": {
+      "damage": 12,
+      "vel": {
+        "x": 11.249759735135584,
+        "y": -0.07352483745077415
+      },
+      "pierce": 0,
+      "lifetime": 0.7222222222222222,
+      "radius": 0.2
+    },
+    "drones": [],
+    "droneGone": true,
+    "pass": true
+  },
+  "scatter": {
+    "weaponKey": "scatter",
+    "spec": {
+      "damage": 6,
+      "speed": 8.75,
+      "critBase": 0.05,
+      "critDamage": 1.5,
+      "critChance": 0.1,
+      "pierce": 0,
+      "lifetime": 0.4642857142857143,
+      "kind": "scatter",
+      "magazine": 8,
+      "shots": 5,
+      "spread": 0.5
+    },
+    "count": 5,
+    "distinctAngles": 5,
+    "angleRange": 2.5,
+    "magazineBefore": 8,
+    "ammoAfter": 7,
+    "magazineAfter": 8,
+    "pass": true
+  },
+  "plasma": {
+    "weaponKey": "plasma",
+    "pierceCount": 0,
+    "spec": {
+      "damage": 42,
+      "speed": 5.9375,
+      "critBase": 0.15,
+      "critDamage": 1.5,
+      "critChance": 0.1,
+      "pierce": 2,
+      "lifetime": 1.263157894736842,
+      "kind": "plasma",
+      "magazine": -1,
+      "shots": 1,
+      "spread": 0
+    },
+    "bullets": [
+      {
+        "pierce": 2,
+        "speed": 5.9375,
+        "damage": 42,
+        "lifetime": 1.0465178947368416
+      }
+    ],
+    "pass": true
+  },
+  "wall": {
+    "samples": 16,
+    "allWalkable": true,
+    "maxStep": 0.5672233821983113,
+    "levelUps": 0,
+    "positions": [
+      {
+        "i": 0,
+        "grid": {
+          "x": 7.682303660768692,
+          "y": 44.942062977349245
+        },
+        "walkable": true,
+        "hp": 93
+      },
+      {
+        "i": 1,
+        "grid": {
+          "x": 8.083391160768695,
+          "y": 44.540975477349264
+        },
+        "walkable": true,
+        "hp": 93
+      },
+      {
+        "i": 2,
+        "grid": {
+          "x": 8.484444285768694,
+          "y": 44.13992235234928
+        },
+        "walkable": true,
+        "hp": 93
+      },
+      {
+        "i": 3,
+        "grid": {
+          "x": 8.885394285768694,
+          "y": 43.73897235234929
+        },
+        "walkable": true,
+        "hp": 93
+      },
+      {
+        "i": 4,
+        "grid": {
+          "x": 9.286447410768695,
+          "y": 43.33791922734931
+        },
+        "walkable": true,
+        "hp": 93
+      }
+    ],
+    "pass": true
+  },
+  "drone": {
+    "setup": {
+      "enemyId": 2,
+      "enemyHp": 28,
+      "target": {
+        "x": 9.494631785768696,
+        "y": 40.53078797734941
+      },
+      "playerHp": 93
+    },
+    "states": [
+      "patrol",
+      "detect",
+      "attack"
+    ],
+    "sampledLastStep": true,
+    "hpDrop": true,
+    "playerHpBefore": 93,
+    "playerHpLast": 86,
+    "enemyProjectilesSeen": 1,
+    "samples": [
+      {
+        "i": 0,
+        "state": "patrol",
+        "lastDroneStep": {
+          "state": "patrol",
+          "attack": null,
+          "timer": -0.016659999999999855
+        },
+        "hp": 28,
+        "playerHp": 93,
+        "enemyProjectiles": 0,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 1,
+        "state": "detect",
+        "lastDroneStep": {
+          "state": "detect",
+          "attack": null,
+          "timer": 0.10000000000000003
+        },
+        "hp": 28,
+        "playerHp": 93,
+        "enemyProjectiles": 0,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 2,
+        "state": "attack",
+        "lastDroneStep": {
+          "state": "attack",
+          "attack": null,
+          "timer": 0.4
+        },
+        "hp": 28,
+        "playerHp": 93,
+        "enemyProjectiles": 1,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 3,
+        "state": "attack",
+        "lastDroneStep": {
+          "state": "attack",
+          "attack": null,
+          "timer": 0.4
+        },
+        "hp": 28,
+        "playerHp": 93,
+        "enemyProjectiles": 1,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 4,
+        "state": "attack",
+        "lastDroneStep": {
+          "state": "attack",
+          "attack": null,
+          "timer": 0.4
+        },
+        "hp": 28,
+        "playerHp": 93,
+        "enemyProjectiles": 1,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 5,
+        "state": "attack",
+        "lastDroneStep": {
+          "state": "attack",
+          "attack": null,
+          "timer": 0.4
+        },
+        "hp": 28,
+        "playerHp": 93,
+        "enemyProjectiles": 1,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 6,
+        "state": "attack",
+        "lastDroneStep": {
+          "state": "attack",
+          "attack": null,
+          "timer": 0.4
+        },
+        "hp": 28,
+        "playerHp": 86,
+        "enemyProjectiles": 0,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 7,
+        "state": "attack",
+        "lastDroneStep": {
+          "state": "attack",
+          "attack": null,
+          "timer": 0.4
+        },
+        "hp": 28,
+        "playerHp": 86,
+        "enemyProjectiles": 0,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 8,
+        "state": "attack",
+        "lastDroneStep": {
+          "state": "attack",
+          "attack": {
+            "kind": "ranged",
+            "damage": 7,
+            "angle": 0,
+            "velocity": {
+              "x": 2.5,
+              "y": 0
+            }
+          },
+          "timer": 0.4
+        },
+        "hp": 28,
+        "playerHp": 86,
+        "enemyProjectiles": 1,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      },
+      {
+        "i": 9,
+        "state": "attack",
+        "lastDroneStep": {
+          "state": "attack",
+          "attack": null,
+          "timer": 0.4
+        },
+        "hp": 28,
+        "playerHp": 86,
+        "enemyProjectiles": 1,
+        "grid": {
+          "x": 12.494631785768696,
+          "y": 40.53078797734941
+        },
+        "walkable": true
+      }
+    ],
+    "pass": true
+  },
+  "errors": []
+}

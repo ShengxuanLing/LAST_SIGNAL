@@ -64,7 +64,8 @@ class SupplyTerminal {
       payout += clearReward(room);
     }
     if (payout > 0) {
-      world.addCurrency(payout);
+      world.enqueueCurrency(payout);
+      world.processPendingCommands();
       this.checkpointPending = true;
       reward.textContent = `+${payout} credits · room cleared`;
       reward.hidden = false;
@@ -145,13 +146,13 @@ class SupplyTerminal {
     const purchased = buySupply(before, supply);
     if (!purchased) return;
 
-    this.scene.world.ownerSetPlayerData(purchased);
+    this.scene.world.enqueueSetPlayerData(purchased);
     if (this.scene.saveCheckpoint()) {
       this.checkpointPending = false;
       feedback.textContent = `Purchased ${supply.name}.`;
       audio.ui();
     } else {
-      this.scene.world.ownerSetPlayerData(before);
+      this.scene.world.enqueueSetPlayerData(before);
       feedback.textContent = 'Purchase could not be saved. Your credits were kept.';
     }
     this.renderStock(roomId, index);
