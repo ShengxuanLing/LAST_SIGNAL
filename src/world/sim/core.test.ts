@@ -10,6 +10,7 @@ import { WEAPONS } from '../../config/weapons';
 import { ENEMY_STATS } from '../../config/enemies';
 import { MapGenerator, assignRoles, guaranteeReachable } from '../MapGenerator';
 import { RNG } from '../../core/random';
+import { loanWeaponFor, supplyPrice, terminalRooms } from '../../config/supplies';
 import type { EnemyData, MapData, PlayerData, Vec2 } from '../../types';
 import {
   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
@@ -94,6 +95,36 @@ function makeState(): { state: SimulationState; player: Vec2; drone: Vec2 } {
     attackTimer: 0, wanderTimer: 1000
   });
   return { state, player, drone };
+}
+
+/** A state sitting inside a cleared terminal room with no live enemies. */
+function makeTerminalState(opts: { currency?: number; hp?: number } = {}): { state: SimulationState; roomId: number; loan: string } {
+  const { state } = makeState();
+  state.drones = [];
+  state.targets = [];
+  const rooms = state.map.rooms;
+  for (const room of rooms) { room.spawned = true; room.cleared = true; }
+  const terminals = [...terminalRooms(rooms)];
+  if (terminals.length === 0) throw new Error('no terminal room in real map');
+  const roomId = terminals[0];
+  const room = rooms[roomId];
+  let pos: Vec2 | null = null;
+  for (const row of state.map.tiles) {
+    for (const tile of row) {
+      if (tile.x < room.gx || tile.x >= room.gx + room.w) continue;
+      if (tile.y < room.gy || tile.y >= room.gy + room.h) continue;
+      if (!isWalkableFromState(state, tile.x, tile.y, 0.5)) continue;
+      pos = { x: tile.x, y: tile.y };
+      break;
+    }
+    if (pos) break;
+  }
+  if (!pos) throw new Error('no walkable tile in terminal room');
+  state.player.x = pos.x;
+  state.player.y = pos.y;
+  if (opts.currency !== undefined) state.player.data.currency = opts.currency;
+  if (opts.hp !== undefined) state.player.data.hp = opts.hp;
+  return { state, roomId, loan: loanWeaponFor(state.seed, roomId) };
 }
 
 describe('C2 fixed-tick authoritative core', () => {
@@ -356,7 +387,10 @@ describe('C2 fixed-tick authoritative core', () => {
     expect(state.tick).toBe(1);
   });
 
-  it('B16: set-player-data is one atomic command — currency + equipment change together', () => {
+  // NOTE: this is a fixture/Owner restore path, NOT a purchase-safety proof.
+  // Purchases are validated by the dedicated purchase-supply transaction tests
+  // (B17-B24); set-player-data wholesale replacement is dev/test-guarded in World.
+  it('B16: set-player-data (fixture/Owner restore) is one atomic command', () => {
     const { state } = makeState();
     const neutralIntent = neutral({ x: 0, y: 0 });
     const currencyBefore = state.player.data.currency;
@@ -406,5 +440,149 @@ describe('C2 fixed-tick authoritative core', () => {
     expect(crits[1]).toBe(shot2);
     // XP is a core transaction, not an adapter addXp side effect.
     expect(state.player.data.xp).toBeGreaterThan(0);
+  });
+
+  const purchaseResult = (events: SimEvent[]) =>
+    events.find((e): e is Extract<SimEvent, { type: 'supply-purchase-result' }> =>
+      e.type === 'supply-purchase-result');
+
+  it('B17: purchase commits atomically and deducts the fixed config price', () => {
+    const { state, roomId, loan } = makeTerminalState({ currency: 100 });
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-buy', offerKey: 'weapon', roomId });
+    // Zero tick: not committed, no receipt.
+    const ev0 = stepSimulationTicks(state, 0, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(ev0)).toBeUndefined();
+    expect(state.player.data.currency).toBe(100);
+    // One tick: committed once at the fixed price.
+    const ev1 = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    const receipt = purchaseResult(ev1);
+    expect(receipt?.ok).toBe(true);
+    expect(receipt?.price).toBe(supplyPrice('weapon'));
+    expect(state.player.data.currency).toBe(100 - supplyPrice('weapon'));
+    expect(state.player.data.weapons.some((w) => w.key === loan)).toBe(true);
+    expect(state.player.data.weaponKey).toBe(loan);
+  });
+
+  it('B18: pending reward + purchase is order-independent and both commit', () => {
+    // Order A: reward first, then purchase.
+    const a = makeTerminalState({ currency: 20, hp: 40 });
+    enqueueCommand(a.state, { type: 'add-currency', amount: 40 });
+    enqueueCommand(a.state, { type: 'purchase-supply', transactionId: 'tx-a', offerKey: 'repair', roomId: a.roomId });
+    const evA = stepSimulationTicks(a.state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(evA)?.ok).toBe(true);
+    // Order B: purchase first, then reward.
+    const b = makeTerminalState({ currency: 20, hp: 40 });
+    enqueueCommand(b.state, { type: 'purchase-supply', transactionId: 'tx-b', offerKey: 'repair', roomId: b.roomId });
+    enqueueCommand(b.state, { type: 'add-currency', amount: 40 });
+    const evB = stepSimulationTicks(b.state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(evB)?.ok).toBe(true);
+    // Same final currency and hp regardless of enqueue order.
+    expect(a.state.player.data.currency).toBe(20 + 40 - supplyPrice('repair'));
+    expect(b.state.player.data.currency).toBe(20 + 40 - supplyPrice('repair'));
+    expect(a.state.player.data.hp).toBe(b.state.player.data.hp);
+    expect(a.state.player.data.hp).toBe(40 + 35);
+  });
+
+  it('B19: heal + xp + purchase composite keeps every committed change', () => {
+    const { state, roomId } = makeTerminalState({ currency: 100, hp: 40 });
+    enqueueCommand(state, { type: 'heal-player', amount: 20 });
+    enqueueCommand(state, { type: 'add-xp', base: 10 });
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-composite', offerKey: 'repair', roomId });
+    const events = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(events)?.ok).toBe(true);
+    expect(state.player.data.currency).toBe(100 - supplyPrice('repair'));
+    expect(state.player.data.hp).toBe(40 + 20 + 35); // 95
+    expect(state.player.data.maxHp).toBeGreaterThan(95);
+    expect(state.player.data.xp).toBeGreaterThan(0);
+    expect(events.some((e) => e.type === 'xp-gained')).toBe(true);
+  });
+
+  it('B20: insufficient balance rejects atomically, then duplicate id stays rejected', () => {
+    const { state, roomId } = makeTerminalState({ currency: 5, hp: 40 });
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-poor', offerKey: 'weapon', roomId });
+    const ev1 = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    const rejected = purchaseResult(ev1);
+    expect(rejected?.ok).toBe(false);
+    expect(rejected?.reason).toBe('Not enough credits');
+    expect(state.player.data.currency).toBe(5);
+    expect(state.player.data.weapons).toHaveLength(1);
+    // Same transaction id must never re-apply, even if balance later rises.
+    state.player.data.currency = 100;
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-poor', offerKey: 'weapon', roomId });
+    const ev2 = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(ev2)?.reason).toBe('Duplicate transaction');
+    expect(state.player.data.currency).toBe(100);
+    expect(state.player.data.weapons).toHaveLength(1);
+  });
+
+  it('B21: duplicate transaction id deducts at most once', () => {
+    const { state, roomId } = makeTerminalState({ currency: 100 });
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-dup', offerKey: 'weapon', roomId });
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-dup', offerKey: 'weapon', roomId });
+    const events = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    const results = events.filter((e) => e.type === 'supply-purchase-result');
+    expect(results).toHaveLength(2);
+    expect((results[0] as any).ok).toBe(true);
+    expect((results[1] as any).reason).toBe('Duplicate transaction');
+    expect(state.player.data.currency).toBe(100 - supplyPrice('weapon'));
+    expect(state.player.data.weapons).toHaveLength(2); // pulse + loan
+  });
+
+  it('B22: unsafe room (not cleared / other rooms pending) rejects purchase', () => {
+    const { state, roomId } = makeTerminalState({ currency: 100 });
+    state.map.rooms[roomId].cleared = false;
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-unsafe', offerKey: 'weapon', roomId });
+    const ev = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(ev)?.reason).toBe('Room not cleared');
+    expect(state.player.data.currency).toBe(100);
+
+    state.map.rooms[roomId].cleared = true;
+    // Another spawned-but-uncleared room still blocks.
+    const other = state.map.rooms.find((r) => r.id !== roomId)!;
+    other.cleared = false;
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-unsafe-2', offerKey: 'weapon', roomId });
+    const ev2 = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(ev2)?.reason).toBe('Clear remaining rooms first');
+    expect(state.player.data.currency).toBe(100);
+  });
+
+  it('B22b: live core enemies reject purchase until threats are cleared', () => {
+    const { state, roomId } = makeTerminalState({ currency: 100 });
+    state.drones.push({
+      id: 99, x: state.player.x, y: state.player.y, hp: 10, data: droneData(),
+      attackTimer: 1000, wanderTimer: 1000
+    });
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-threat', offerKey: 'weapon', roomId });
+    const ev = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(ev)?.reason).toBe('Clear remaining threats');
+    expect(state.player.data.currency).toBe(100);
+
+    state.drones = [];
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-threat-ok', offerKey: 'weapon', roomId });
+    const ev2 = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(ev2)?.ok).toBe(true);
+  });
+
+  it('B23: unknown offer key rejects without mutation', () => {
+    const { state, roomId } = makeTerminalState({ currency: 100 });
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-bogus', offerKey: 'bogus', roomId });
+    const ev = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(ev)?.reason).toBe('Unknown offer');
+    expect(state.player.data.currency).toBe(100);
+    expect(state.player.data.weapons).toHaveLength(1);
+  });
+
+  it('B24: equipment change before calibration is honored at commit time', () => {
+    const { state, roomId } = makeTerminalState({ currency: 100 });
+    state.player.data.weapons.push({ key: 'scatter', level: 1, ammo: 8, magazine: 8, reloading: false, reloadTimer: 0 });
+    enqueueCommand(state, { type: 'equip-weapon', key: 'scatter' });
+    enqueueCommand(state, { type: 'purchase-supply', transactionId: 'tx-cal', offerKey: 'calibration', roomId });
+    const ev = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(purchaseResult(ev)?.ok).toBe(true);
+    const scatter = state.player.data.weapons.find((w) => w.key === 'scatter')!;
+    const pulse = state.player.data.weapons.find((w) => w.key === 'pulse')!;
+    expect(scatter.level).toBe(2);
+    expect(pulse.level).toBe(1);
+    expect(state.player.data.currency).toBe(100 - supplyPrice('calibration'));
   });
 });

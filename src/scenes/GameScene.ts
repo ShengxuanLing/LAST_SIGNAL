@@ -120,7 +120,13 @@ export class GameScene extends Phaser.Scene {
       this.scene.start('MainMenuScene', { notice: 'CHECKPOINT INCOMPATIBLE' });
       return;
     }
-    if (!checkpoint) this.world.updateRoom();
+    if (!checkpoint) {
+      this.world.updateRoom();
+      // Commit the initial room generation on one real tick so the first
+      // checkpoint reflects fully committed state; never flush outside a tick.
+      this.world.resetSimulationAccumulator();
+      this.world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    }
     const firstCheckpoint = this.world.captureCheckpoint(this.runId, this.seed, this.runStats());
     if (firstCheckpoint) {
       // First write replaces any existing on-disk checkpoint (expectedId ===

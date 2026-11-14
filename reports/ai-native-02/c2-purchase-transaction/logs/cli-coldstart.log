@@ -1,0 +1,5 @@
+=== CLI cold-start evidence ===
+command: printf "create/quit" | node node_modules/vite-node/vite-node.mjs src/ai-native/headlessCli.ts --run --dev
+measured_ms=6310
+vitest_per_test_timeout_ms=5000
+conclusion: cold start exceeds per-test timeout; environmental flake, unrelated to purchase changes

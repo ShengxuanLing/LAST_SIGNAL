@@ -121,3 +121,42 @@ describe('C2 single-authority adapters', () => {
     expect(src).not.toContain('world.update(dt)');
   });
 });
+
+describe('C2 purchase transaction and commit barrier', () => {
+  it('core owns an atomic purchase-supply command validated at commit time', () => {
+    const core = read('src/world/sim/core.ts');
+    // Stable offer key + transaction id + room only; price is never an argument.
+    expect(core).toMatch(/type: 'purchase-supply'; transactionId: string; offerKey: string; roomId: number/);
+    expect(core).toContain("'supply-purchase-result'");
+    expect(core).toContain('purchaseTransactions');
+    expect(core).toContain('supplyOfferPurchaseBlocker(');
+    expect(core).toContain('terminalRooms(');
+    expect(core).toContain('applySupply(');
+    // Dedup + commit-time safety checks.
+    expect(core).toContain('Duplicate transaction');
+    expect(core).toContain('Room not cleared');
+    expect(core).toContain('Clear remaining rooms first');
+    expect(core).toContain('Clear remaining threats');
+  });
+
+  it('World exposes a real spawn barrier and refuses uncommitted checkpoint capture', () => {
+    const world = read('src/world/World.ts');
+    expect(world).toContain('hasPendingSpawns()');
+    expect(world).toContain('worldSpawns.length > 0');
+    expect(world).toContain('hasUncommittedCommands()');
+    expect(world).toMatch(/hasUncommittedCommands\(\): boolean \{\s*return this\._sim\.pendingCommands\.length > 0 \|\| this\.hasPendingSpawns\(\)/);
+    expect(world).toMatch(/if \(this\.hasUncommittedCommands\(\)\) return null/);
+    expect(world).toContain('enqueuePurchaseSupply(');
+    expect(world).toContain('getSupplyReceipt(');
+  });
+
+  it('generic full-state write is fixture/Owner-guarded; UI buys via purchase-supply', () => {
+    const world = read('src/world/World.ts');
+    const setPlayerData = world.slice(world.indexOf('enqueueSetPlayerData('));
+    expect(setPlayerData.slice(0, 400)).toContain('assertDevTest()');
+    const economy = read('src/economy/main.ts');
+    expect(economy).toContain('enqueuePurchaseSupply(');
+    expect(economy).not.toContain('enqueueSetPlayerData(');
+    expect(economy).not.toContain('processPendingCommands(');
+  });
+});

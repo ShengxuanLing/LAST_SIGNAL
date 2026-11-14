@@ -16,6 +16,10 @@ import { GAME } from '../../config/game';
 import { WEAPONS } from '../../config/weapons';
 import { UPGRADES, applyUpgrade } from '../../config/upgrades';
 import { buildEnemyData } from '../../config/enemies';
+import {
+  applySupply, isSupplyOfferKey, roomAt, supplyOfferPurchaseBlocker,
+  supplyPrice, terminalRooms
+} from '../../config/supplies';
 import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, ProjectileData, Tile, Vec2 } from '../../types';
 import type { GridPoint } from './rules';
@@ -95,6 +99,7 @@ export type SimCommand =
   | { type: 'add-xp'; base: number }
   | { type: 'apply-upgrade'; key: string; level: number }
   | { type: 'equip-weapon'; key: string }
+  | { type: 'purchase-supply'; transactionId: string; offerKey: string; roomId: number }
   | { type: 'set-player-data'; data: PlayerData };
 
 export interface SimProjectile {
@@ -127,6 +132,8 @@ export interface SimulationState {
   projectiles: SimProjectile[];
   pendingPlayerHits: Array<{ damage: number; fromX: number; fromY: number }>;
   pendingCommands: SimCommand[];
+  /** Recently committed supply transactions (session dedup ledger, not persisted). */
+  purchaseTransactions: string[];
   loot: SimLoot[];
   nextLootId: number;
   nextProjectileId: number;
@@ -155,6 +162,7 @@ export type SimEvent =
   | { type: 'player-levelup'; level: number }
   | { type: 'player-upgraded'; key: string; level: number }
   | { type: 'player-equipped'; key: string }
+  | { type: 'supply-purchase-result'; transactionId: string; offerKey: string; roomId: number; ok: boolean; reason?: string; price: number; currency: number; hp: number; weaponKey: string }
   | { type: 'player-reset'; data: PlayerData }
   | { type: 'loot-dropped'; loot: SimLoot }
   | { type: 'loot-collected'; id: number; kind: SimLootKind; key: string; amount: number; x: number; y: number }
@@ -205,6 +213,7 @@ export function createSimulationState(input: CreateSimulationInput): SimulationS
     projectiles: [],
     pendingPlayerHits: [],
     pendingCommands: [],
+    purchaseTransactions: [],
     loot: [],
     nextLootId: 1,
     nextProjectileId: input.nextProjectileId ?? 1
@@ -444,6 +453,48 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
           state.player.data.weaponKey = command.key;
           events.push({ type: 'player-equipped', key: command.key });
         }
+        break;
+      }
+      case 'purchase-supply': {
+        const tx = command.transactionId;
+        const key = command.offerKey;
+        const price = isSupplyOfferKey(key) ? supplyPrice(key) : 0;
+        const reject = (reason: string): void => {
+          if (!state.purchaseTransactions.includes(tx)) state.purchaseTransactions.push(tx);
+          events.push({
+            type: 'supply-purchase-result', transactionId: tx, offerKey: key,
+            roomId: command.roomId, ok: false, reason, price,
+            currency: state.player.data.currency, hp: state.player.data.hp,
+            weaponKey: state.player.data.weaponKey
+          });
+        };
+        // Idempotency: a transaction id commits at most once, ever.
+        if (state.purchaseTransactions.includes(tx)) { reject('Duplicate transaction'); break; }
+        if (!isSupplyOfferKey(key)) { reject('Unknown offer'); break; }
+        // Commit-time validation uses the real live state, not an adapter snapshot.
+        const playerRoom = roomAt(state.map.rooms, state.player.x, state.player.y);
+        if (!playerRoom || playerRoom.id !== command.roomId) { reject('Not in this terminal'); break; }
+        if (!terminalRooms(state.map.rooms).has(playerRoom.id)) { reject('Not a supply terminal'); break; }
+        if (!playerRoom.cleared) { reject('Room not cleared'); break; }
+        if (state.map.rooms.some((r) => r.spawned && !r.cleared)) { reject('Clear remaining rooms first'); break; }
+        if (state.player.data.hp <= 0) { reject('Player is down'); break; }
+        if (state.drones.some((d) => d.hp > 0) || state.targets.some((t) => t.hp > 0)) { reject('Clear remaining threats'); break; }
+        const blocker = supplyOfferPurchaseBlocker(key, state.player.data, state.seed, playerRoom.id);
+        if (blocker) { reject(blocker); break; }
+        // Atomic commit: deduct + apply on a candidate, then swap.
+        const candidate = JSON.parse(JSON.stringify(state.player.data)) as PlayerData;
+        candidate.currency -= price;
+        applySupply(key, candidate, state.seed, playerRoom.id);
+        state.player.data = candidate;
+        state.purchaseTransactions.push(tx);
+        if (state.purchaseTransactions.length > 256) {
+          state.purchaseTransactions.splice(0, state.purchaseTransactions.length - 256);
+        }
+        events.push({
+          type: 'supply-purchase-result', transactionId: tx, offerKey: key,
+          roomId: playerRoom.id, ok: true, price,
+          currency: candidate.currency, hp: candidate.hp, weaponKey: candidate.weaponKey
+        });
         break;
       }
       case 'set-player-data': {

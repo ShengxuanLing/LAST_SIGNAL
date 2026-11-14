@@ -132,6 +132,8 @@ export class World {
   private rng: RNG;
   private enemyIdCounter = 1;
   private worldSpawns: Array<{ kind: EnemyKind; x: number; y: number; room: number; depth: number; boss?: Room }> = [];
+  /** Latest committed supply receipts, keyed by transaction id (session-only). */
+  private supplyReceipts = new Map<string, { transactionId: string; offerKey: string; roomId: number; ok: boolean; reason?: string; price: number; currency: number; hp: number; weaponKey: string }>();
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
   private currentRoomId = -1;
   private enteredRooms = new Set<number>();
@@ -182,10 +184,16 @@ export class World {
   get playerHurtTimer(): number { return this._sim.player.hurtTimer; }
   get playerAimYaw(): number { return this._sim.player.aimYaw; }
 
-  /** Verifiable committed barrier: true while commands are enqueued but not yet
-   *  consumed by core.processCommands. Checkpoint must not capture while this is true. */
+  /** Spawn/generation queue barrier: true while World-held enemy/Boss spawns
+   *  have been requested but not yet committed by stepFrame. */
+  hasPendingSpawns(): boolean {
+    return this.worldSpawns.length > 0;
+  }
+
+  /** Verifiable committed barrier: true while any core command or World-generated
+   *  spawn is still enqueued but not committed. Checkpoint must not capture then. */
   hasUncommittedCommands(): boolean {
-    return this._sim.pendingCommands.length > 0;
+    return this._sim.pendingCommands.length > 0 || this.hasPendingSpawns();
   }
 
   private bumpSimVersion(): void {
@@ -783,11 +791,25 @@ export class World {
     return true;
   }
 
-  /** Queues a set-player-data command; committed at the start of the next core tick.
-   *  State is applied synchronously so readers see the change immediately. */
+  /** Fixture/Owner-only full-state write. Normal gameplay must use semantic
+   *  commands (purchase-supply / heal-player / add-currency / equip-weapon...).
+   *  Guarded by dev/test so a live Player cannot overwrite HP/currency wholesale. */
   enqueueSetPlayerData(data: PlayerData): void {
+    World.assertDevTest();
     enqueueCommand(this._sim, { type: 'set-player-data', data });
     this.bumpSimVersion();
+  }
+
+  /** Queues an atomic supply purchase; the core validates offer, room safety,
+   *  balance and eligibility at commit time and emits a receipt event. */
+  enqueuePurchaseSupply(transactionId: string, offerKey: string, roomId: number): void {
+    enqueueCommand(this._sim, { type: 'purchase-supply', transactionId, offerKey, roomId });
+    this.bumpSimVersion();
+  }
+
+  /** Committed supply receipt for a transaction id, if already processed. */
+  getSupplyReceipt(transactionId: string) {
+    return this.supplyReceipts.get(transactionId);
   }
 
   /** Queues an enemy/Boss spawn; committed at the start of the next core tick. */
@@ -984,6 +1006,14 @@ export class World {
           this.onLevelUp(event.level);
           break;
         case 'player-upgraded':
+          this.player.syncVisual();
+          break;
+        case 'supply-purchase-result':
+          this.supplyReceipts.set(event.transactionId, {
+            transactionId: event.transactionId, offerKey: event.offerKey, roomId: event.roomId,
+            ok: event.ok, reason: event.reason, price: event.price,
+            currency: event.currency, hp: event.hp, weaponKey: event.weaponKey
+          });
           this.player.syncVisual();
           break;
         case 'enemy-spawned':
@@ -1214,6 +1244,10 @@ export class World {
     this._sim.targets = [];
     this._sim.projectiles = [];
     this._sim.pendingPlayerHits = [];
+    // Restore must not inherit uncommitted commands/spawns from a prior live run.
+    this._sim.pendingCommands = [];
+    this._sim.purchaseTransactions = [];
+    this.worldSpawns = [];
     this._sim.loot = [];
     this._sim.player.dashTimer = 0; this._sim.player.invuln = 0; this._sim.player.hurtTimer = 0;
     this._sim.player.fireTimer = 0; this._sim.player.aimYaw = 0;
