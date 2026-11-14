@@ -1,0 +1,10 @@
+
+> last-signal@0.1.0 game:mcp:build
+> vite build --config vite.mcp.config.ts
+
+[36mvite v5.4.21 [32mbuilding SSR bundle for production...[36m[39m
+transforming...
+[32m✓[39m 19 modules transformed.
+rendering chunks...
+[2mdist-mcp/[22m[36mmcpServer.mjs  [39m[1m[2m301.22 kB[22m[1m[22m
+[32m✓ built in 826ms[39m

@@ -532,9 +532,11 @@ export class GameScene extends Phaser.Scene {
       this.world.player.control.resume();
       this.world.player.clearHeldInput();
       this.refreshHud();
-      // Commit any level-up/loot commands queued while the overlay was open.
+      // Commands queued while the overlay was open (upgrade/loot) commit on the
+      // next real frame tick; do not force a tick here. The accumulator is reset
+      // so a paused overlay does not bank time, and the queued command is
+      // reported as pending until the normal update commits it.
       this.world.resetSimulationAccumulator();
-      this.world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
       this.refreshHud();
       if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
       this.cameras.main.setAlpha(1);
@@ -631,10 +633,10 @@ export class GameScene extends Phaser.Scene {
     this.world.player.clearHeldInput();
     this.fireHeld = false;
     // Commands queued while the overlay was open (equip / upgrade / supply
-    // purchase) commit on the first normal tick after resume. The tick is the
-    // only commit path — no out-of-band flush.
+    // purchase) commit on the next real frame tick that accumulates a full
+    // tick; do not force a tick on resume. The accumulator is reset so the
+    // paused overlay banks no time, and the UI keeps QUEUED until commit.
     this.world.resetSimulationAccumulator();
-    this.world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
     this.refreshHud();
     if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
   }

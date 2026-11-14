@@ -256,6 +256,25 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   // pickupRange is configured in pixels; give this probe a wide magnet so the
   // +18-tile drop is visibly pulled in over the 600ms window instead of relying
   // on the old (buggy) 90-tile base range.
+  // Default pickupRange (90px ~ 1.4 tiles) must NOT vacuum a drop 18 tiles away
+  // during normal running; the wide-magnet fixture below is explicitly separate.
+  const defaultFar = await page.evaluate(() => {
+    const g: any = (window as any).__game;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const w = gs.world;
+    const before = w.sim.player.data.currency;
+    w.spawnLoot(w.player.wx + 18, w.player.wy, 'currency', 'currency', 10);
+    for (let i = 0; i < 90; i += 1) {
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    }
+    const result = { loot: w.loot.length, currency: w.sim.player.data.currency, before };
+    w.clearLootForTest();
+    return result;
+  });
+  expect(defaultFar.loot, 'default magnet keeps +18 tile loot on the ground').toBe(1);
+  expect(defaultFar.currency, 'default magnet does not collect +18 tile loot').toBe(defaultFar.before);
+
   const lootVisible = await page.evaluate(() => {
     const g: any = (window as any).__game;
     const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
