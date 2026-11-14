@@ -17,8 +17,8 @@ import { WEAPONS } from '../../config/weapons';
 import { UPGRADES, applyUpgrade } from '../../config/upgrades';
 import { buildEnemyData } from '../../config/enemies';
 import {
-  applySupply, isSupplyOfferKey, roomAt, supplyOfferPurchaseBlocker,
-  supplyPrice, terminalRooms
+  applySupply, isSupplyOfferKey, isValidTransactionId, PURCHASE_LEDGER_CAP,
+  roomAt, supplyOfferPurchaseBlocker, supplyPrice, terminalRooms
 } from '../../config/supplies';
 import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, ProjectileData, Tile, Vec2 } from '../../types';
@@ -466,7 +466,6 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
         const key = command.offerKey;
         const price = isSupplyOfferKey(key) ? supplyPrice(key) : 0;
         const reject = (reason: string): void => {
-          if (!state.purchaseTransactions.includes(tx)) state.purchaseTransactions.push(tx);
           events.push({
             type: 'supply-purchase-result', transactionId: tx, offerKey: key,
             roomId: command.roomId, ok: false, reason, price,
@@ -474,8 +473,14 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
             weaponKey: state.player.data.weaponKey
           });
         };
-        // Idempotency: a transaction id commits at most once, ever.
+        // Idempotency: a recorded transaction id never re-executes. A repeated
+        // id is a stable duplicate regardless of the supplied offer/room, and
+        // the original record is never overwritten.
         if (state.purchaseTransactions.includes(tx)) { reject('Duplicate transaction'); break; }
+        if (!isValidTransactionId(tx)) { reject('Invalid transaction id'); break; }
+        // Bounded hard quota: at the cap new transactions are rejected. Old
+        // records are NEVER evicted, so replay of an old id stays rejected.
+        if (state.purchaseTransactions.length >= PURCHASE_LEDGER_CAP) { reject('Supply ledger full'); break; }
         if (!isSupplyOfferKey(key)) { reject('Unknown offer'); break; }
         // Commit-time validation uses the real live state, not an adapter snapshot.
         const playerRoom = roomAt(state.map.rooms, state.player.x, state.player.y);
@@ -486,16 +491,15 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
         if (state.player.data.hp <= 0) { reject('Player is down'); break; }
         if (state.drones.some((d) => d.hp > 0) || state.targets.some((t) => t.hp > 0)) { reject('Clear remaining threats'); break; }
         const blocker = supplyOfferPurchaseBlocker(key, state.player.data, state.seed, playerRoom.id);
+        // Every processed transaction (success or rejection) consumes ledger
+        // capacity exactly once, so the ledger is strictly bounded by the cap.
+        state.purchaseTransactions.push(tx);
         if (blocker) { reject(blocker); break; }
         // Atomic commit: deduct + apply on a candidate, then swap.
         const candidate = JSON.parse(JSON.stringify(state.player.data)) as PlayerData;
         candidate.currency -= price;
         applySupply(key, candidate, state.seed, playerRoom.id);
         state.player.data = candidate;
-        state.purchaseTransactions.push(tx);
-        if (state.purchaseTransactions.length > 256) {
-          state.purchaseTransactions.splice(0, state.purchaseTransactions.length - 256);
-        }
         events.push({
           type: 'supply-purchase-result', transactionId: tx, offerKey: key,
           roomId: playerRoom.id, ok: true, price,
@@ -1003,6 +1007,7 @@ export interface CanonicalSimulationState {
   projectiles: SimProjectile[];
   pendingPlayerHits: Array<{ damage: number; fromX: number; fromY: number }>;
   pendingCommands: SimCommand[];
+  purchaseTransactions: string[];
   loot: SimLoot[];
   nextLootId: number;
   nextProjectileId: number;
@@ -1028,6 +1033,7 @@ export function canonicalSimulationState(state: SimulationState): string {
     projectiles: state.projectiles,
     pendingPlayerHits: state.pendingPlayerHits,
     pendingCommands: state.pendingCommands,
+    purchaseTransactions: state.purchaseTransactions,
     loot: state.loot,
     nextLootId: state.nextLootId,
     nextProjectileId: state.nextProjectileId

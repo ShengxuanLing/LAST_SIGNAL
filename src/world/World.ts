@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { MapData, Tile, Vec2, LootDrop, HitFx, EnemyStateName, Room } from '../types';
 import { ENEMY_STATS, EnemyKind } from '../config/enemies';
 import { GAME } from '../config/game';
+import { PURCHASE_LEDGER_CAP } from '../config/supplies';
 import { ItemKind } from '../types';
 import { IsoMath, isoToScreen, screenToIso } from '../core/iso';
 import { RNG } from '../core/random';
@@ -1031,6 +1032,13 @@ export class World {
             ok: event.ok, reason: event.reason, price: event.price,
             currency: event.currency, hp: event.hp, weaponKey: event.weaponKey
           });
+          // Receipts are a bounded UI cache, not the authority: drop the oldest
+          // entries once past the ledger cap. The core ledger stays authoritative.
+          while (this.supplyReceipts.size > PURCHASE_LEDGER_CAP) {
+            const oldest = this.supplyReceipts.keys().next().value as string | undefined;
+            if (oldest === undefined) break;
+            this.supplyReceipts.delete(oldest);
+          }
           this.player.syncVisual();
           break;
         case 'enemy-spawned':
@@ -1233,7 +1241,8 @@ export class World {
           dashTimer: this._sim.player.dashTimer, invuln: this._sim.player.invuln,
           hurtTimer: this._sim.player.hurtTimer, fireTimer: this._sim.player.fireTimer, aimYaw: this._sim.player.aimYaw
         },
-        nextProjectileId: this._sim.nextProjectileId
+        nextProjectileId: this._sim.nextProjectileId,
+        purchaseTransactions: [...this._sim.purchaseTransactions]
       }
     });
   }
@@ -1268,8 +1277,9 @@ export class World {
     this._sim.projectiles = [];
     this._sim.pendingPlayerHits = [];
     // Restore must not inherit uncommitted commands/spawns from a prior live run.
+    // The processed-purchase ledger is part of committed history: it is restored
+    // from the checkpoint below (and only cleared when the checkpoint lacks it).
     this._sim.pendingCommands = [];
-    this._sim.purchaseTransactions = [];
     this.worldSpawns = [];
     this.pendingRoomEnters.clear();
     this._sim.loot = [];
@@ -1285,6 +1295,9 @@ export class World {
       this._sim.player.dashTimer = t.dashTimer; this._sim.player.invuln = t.invuln;
       this._sim.player.hurtTimer = t.hurtTimer; this._sim.player.fireTimer = t.fireTimer; this._sim.player.aimYaw = t.aimYaw;
       this._sim.nextProjectileId = run.coreState.nextProjectileId;
+      this._sim.purchaseTransactions = Array.isArray(run.coreState.purchaseTransactions)
+        ? [...run.coreState.purchaseTransactions]
+        : [];
     } else {
       // Legacy frame: re-derive the core RNG from the map seed so a restored
       // run still produces a deterministic core stream.

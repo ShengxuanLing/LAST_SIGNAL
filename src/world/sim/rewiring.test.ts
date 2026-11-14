@@ -159,4 +159,18 @@ describe('C2 purchase transaction and commit barrier', () => {
     expect(economy).not.toContain('enqueueSetPlayerData(');
     expect(economy).not.toContain('processPendingCommands(');
   });
+
+  it('purchase ledger is hard-capped, canonical and checkpointed (no FIFO eviction)', () => {
+    const core = read('src/world/sim/core.ts');
+    expect(core).toContain('PURCHASE_LEDGER_CAP');
+    expect(core).toContain("'Supply ledger full'");
+    expect(core).toContain('purchaseTransactions: state.purchaseTransactions');
+    expect(core).not.toContain('purchaseTransactions.splice(');
+    const world = read('src/world/World.ts');
+    expect(world).toContain('purchaseTransactions: [...this._sim.purchaseTransactions]');
+    expect(world).toContain('run.coreState.purchaseTransactions');
+    const checkpoint = read('src/systems/RunCheckpoint.ts');
+    expect(checkpoint).toContain('PURCHASE_LEDGER_CAP');
+    expect(checkpoint).toContain('isValidTransactionId');
+  });
 });

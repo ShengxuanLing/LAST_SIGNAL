@@ -20,6 +20,17 @@ export const SUPPLY_PRICES: Readonly<Record<SupplyOfferKey, number>> = Object.fr
   weapon: 40
 });
 
+/** Hard cap for processed purchase transaction ids. At the cap new
+ *  transactions are rejected (never evicted), so replay cannot re-execute. */
+export const PURCHASE_LEDGER_CAP = 64;
+
+/** Transaction ids are opaque bounded strings. */
+export const TRANSACTION_ID_MAX_LENGTH = 128;
+
+export function isValidTransactionId(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0 && value.length <= TRANSACTION_ID_MAX_LENGTH;
+}
+
 export function isSupplyOfferKey(value: string): value is SupplyOfferKey {
   return value === 'repair' || value === 'calibration' || value === 'weapon';
 }

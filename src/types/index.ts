@@ -98,6 +98,8 @@ export interface CoreCheckpointState {
   rngState: number;
   playerTimers: { dashTimer: number; invuln: number; hurtTimer: number; fireTimer: number; aimYaw: number };
   nextProjectileId: number;
+  /** Processed supply transaction ids (bounded). Optional for old checkpoints. */
+  purchaseTransactions?: string[];
 }
 
 export interface RunCheckpoint {
