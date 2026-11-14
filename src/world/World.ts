@@ -17,11 +17,10 @@ import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/wor
 import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
 import {
-  addCurrency as addCoreCurrency, addPlayerXp as addCorePlayerXp, createSimulationState,
-  applyUpgradeToPlayer as applyCoreUpgrade, enqueueCommand, enqueuePlayerHit,
+  createSimulationState, enqueueCommand, enqueuePlayerHit,
   enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState, processCommands,
-  healPlayer as healCorePlayer, registerDrone, registerTarget,
-  spawnEnemyProjectile as spawnCoreEnemyProjectile, spawnCoreLoot, stepSimulationTicks, SIM_TUNING,
+  registerDrone, registerTarget,
+  spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
   type SimulationIntent, type SimulationState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
 } from './sim/core';
 
@@ -426,9 +425,22 @@ export class World {
   }
 
   updateRoom(): void {
-    const room = this.currentRoom();
+    let room = this.currentRoom();
+    let roomChanged = false;
+    if (!room && this.currentRoomId === -1) {
+      // After a teleport transition, currentRoomId is -1 until the room is
+      // re-resolved from the player's new position.
+      room = this.map.rooms.find((r) =>
+        this._sim.player.x >= r.gx && this._sim.player.x < r.gx + r.w &&
+        this._sim.player.y >= r.gy && this._sim.player.y < r.gy + r.h
+      ) as RoomInfo | null;
+      if (room) {
+        this.currentRoomId = room.id;
+        roomChanged = true;
+      }
+    }
     if (!room) return;
-    if (room.id !== this.currentRoomId) {
+    if (roomChanged || room.id !== this.currentRoomId) {
       this.currentRoomId = room.id;
       this.onEnterRoom(room);
     }
@@ -473,12 +485,12 @@ export class World {
           resourcePositions.push({ x: r.gx + 2 + (i + 1) * 2, y: r.gy + 2 + (i % 2) * 2 });
         }
         const neighbors = r.connectedTo.filter((n) => n !== r.id);
-        // Deterministic portal target: same as placePortal would choose.
-        const portalTarget = this.nextRoomTowardUnvisited(r.id);
+        // Portal target is drawn from the core RNG via the room-enter command
+        // (savedPortalTarget: null -> rng.pick(neighbors) in processCommands).
         enqueueCommand(this._sim, {
           type: 'room-enter', roomId: r.id, roomKind: r.kind,
           gx: r.gx, gy: r.gy, w: r.w, h: r.h, depth,
-          savedPortalTarget: portalTarget,
+          savedPortalTarget: null,
           neighbors, enemyCount, enemyPositions, resourceCount, resourcePositions,
           firstEnemyId: this.enemyIdCounter
         });
@@ -486,7 +498,7 @@ export class World {
         this.bumpSimVersion();
         r.spawned = true;
         this.callbacks.onRoomEntered(room);
-        this.placePortal(r, portalTarget);
+        this.placePortal(r);
     } else {
         // Already spawned room: ensure a portal exists.
         if (!this.portal) {
@@ -728,41 +740,26 @@ export class World {
   }
 
   enqueueHeal(amount: number): void {
-    const hp = healCorePlayer(this._sim, amount);
-    this.applySimEvents([{ type: 'player-healed', amount, hp }]);
     enqueueCommand(this._sim, { type: 'heal-player', amount });
     this.bumpSimVersion();
   }
 
   enqueueCurrency(amount: number): void {
-    const currency = addCoreCurrency(this._sim, amount);
-    this.applySimEvents([{ type: 'currency-gained', amount, currency }]);
     enqueueCommand(this._sim, { type: 'add-currency', amount });
     this.bumpSimVersion();
   }
 
   enqueueApplyUpgrade(key: string, level: number): void {
-    if (applyCoreUpgrade(this._sim, key, level)) {
-      this.applySimEvents([{ type: 'player-upgraded', key, level } as const]);
-    }
     enqueueCommand(this._sim, { type: 'apply-upgrade', key, level });
     this.bumpSimVersion();
   }
 
   enqueueAddXp(base: number): void {
-    const { gained, levels } = addCorePlayerXp(this._sim, base);
-    for (const level of levels) this.onLevelUp(level);
-    this.applySimEvents([
-      { type: 'xp-gained', amount: gained, xp: this._sim.player.data.xp, level: this._sim.player.data.level } as const,
-      ...levels.map((level) => ({ type: 'player-levelup', level } as const))
-    ]);
     enqueueCommand(this._sim, { type: 'add-xp', base });
     this.bumpSimVersion();
   }
 
   enqueueSpawnLoot(x: number, y: number, kind: SimLootKind, key: string, amount: number, bob = 0): void {
-    const loot = spawnCoreLoot(this._sim, x, y, kind, key, amount, bob);
-    this.applySimEvents([{ type: 'loot-dropped', loot }]);
     enqueueCommand(this._sim, { type: 'spawn-loot', x, y, kind, key, amount, bob });
     this.bumpSimVersion();
   }
@@ -783,9 +780,6 @@ export class World {
 
   /** Core-owned equip transaction; UI calls this instead of writing player.data. */
   enqueueEquipWeapon(key: string): boolean {
-    if (!this._sim.player.data.weapons.some((w) => w.key === key)) return false;
-    this._sim.player.data.weaponKey = key;
-    this.bumpSimVersion();
     enqueueCommand(this._sim, { type: 'equip-weapon', key });
     this.bumpSimVersion();
     return true;
@@ -794,15 +788,7 @@ export class World {
   /** Queues a set-player-data command; committed at the start of the next core tick.
    *  State is applied synchronously so readers see the change immediately. */
   enqueueSetPlayerData(data: PlayerData): void {
-    this.#setPlayerData(data);
     enqueueCommand(this._sim, { type: 'set-player-data', data });
-    this.bumpSimVersion();
-  }
-
-  /** Directly adds XP to the core simulation state and commits on the next tick. */
-  addPlayerXpDirectly(base: number): void {
-    const { gained, levels } = addCorePlayerXp(this._sim, base);
-    for (const level of levels) this.onLevelUp(level);
     this.bumpSimVersion();
   }
 
@@ -830,15 +816,6 @@ export class World {
   /** Queues a validated room teleport; committed by the next core tick. */
   enqueueTeleport(x: number, y: number, healToFull = true): void {
     enqueueCommand(this._sim, { type: 'teleport-player', x, y, healToFull });
-    this.setPlayerPosition(x, y);
-    this.bumpSimVersion();
-  }
-
-  /** Set player position synchronously (for adapter calls that need immediate effect,
-   * e.g. reset() followed by tryInteract which reads player.x before the next tick). */
-  setPlayerPosition(x: number, y: number): void {
-    this._sim.player.x = x;
-    this._sim.player.y = y;
     this.bumpSimVersion();
   }
 

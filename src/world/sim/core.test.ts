@@ -252,6 +252,41 @@ describe('C2 fixed-tick authoritative core', () => {
     void drone;
   });
 
+
+
+  it('B12: paused/zero-dt does not commit any state (command queue only)', () => {
+    const { state } = makeState();
+    const neutralIntent = neutral({ x: 0, y: 0 });
+    const hpBefore = state.player.data.hp;
+    const currencyBefore = state.player.data.currency;
+    const xBefore = state.player.x;
+    const yBefore = state.player.y;
+    const lootBefore = state.loot.length;
+    const targetsBefore = state.targets.length;
+    const dronesBefore = state.drones.length;
+    const tickBefore = state.tick;
+
+    // Queue commands but do not tick.
+    enqueueSpawnLoot(state, state.player.x + 1, state.player.y, 'currency', 'currency', 7);
+    enqueuePlayerHit(state, 5, 0, 0);
+
+    // Zero-tick frame: commands stay pending, no state mutation.
+    const ev0 = stepSimulationTicks(state, 0, neutralIntent);
+    expect(state.player.data.hp).toBe(hpBefore);
+    expect(state.player.data.currency).toBe(currencyBefore);
+    expect(state.player.x).toBe(xBefore);
+    expect(state.player.y).toBe(yBefore);
+    expect(state.loot.length).toBe(lootBefore);
+    expect(state.targets.length).toBe(targetsBefore);
+    expect(state.drones.length).toBe(dronesBefore);
+    expect(state.tick).toBe(tickBefore);
+    expect(ev0.length).toBe(0);
+
+    // One tick commits the queued commands.
+    const ev1 = stepSimulationTicks(state, 1, neutralIntent);
+    expect(state.tick).toBe(tickBefore + 1);
+  });
+
   it('H2: kill loot rolls and the next shot share the controlled C1 RNG order', () => {
     const { state, drone } = makeState();
     state.player.x = drone.x - 0.5;

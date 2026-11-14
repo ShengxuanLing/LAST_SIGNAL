@@ -275,7 +275,14 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       const nearSpot = { x: p.x + 1, y: p.y };
       const diagSpot = { x: p.x + 14, y: p.y + 14 };
 
-      // Far loot (20 grids): present at drop, currency/HP unchanged at tick 0.
+      // Far loot (20 grids): isolate room's existing loot first, then verify far drop.
+      w.clearLootForTest();
+      const resetData = JSON.parse(JSON.stringify(w.sim.player.data));
+      resetData.currency = 0;
+      resetData.hp = w.sim.player.data.maxHp;
+      w.enqueueSetPlayerData(resetData);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
       w.enqueueSpawnLoot(spot.x, spot.y, 'currency', 'currency', 10);
       w.resetSimulationAccumulator();
       w.stepFrame(1000 / 60 + 1e-6, neutral);

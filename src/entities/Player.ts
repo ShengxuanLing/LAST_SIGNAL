@@ -147,7 +147,6 @@ export class Player {
    *  see the new position before the command commits. */
   reset(x: number, y: number): void {
     this.world.enqueueTeleport(x, y, true);
-    this.world.setPlayerPosition(x, y);
     this.project();
   }
 
@@ -278,6 +277,6 @@ export class Player {
 
   addXp(base: number): void {
     // Core transaction owns XP/level writes and level-up callbacks, committed next tick.
-    this.world.addPlayerXpDirectly(base);
+    this.world.enqueueAddXp(base);
   }
 }

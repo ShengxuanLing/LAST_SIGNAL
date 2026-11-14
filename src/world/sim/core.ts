@@ -154,6 +154,8 @@ export type SimEvent =
   | { type: 'xp-gained'; amount: number; xp: number; level: number }
   | { type: 'player-levelup'; level: number }
   | { type: 'player-upgraded'; key: string; level: number }
+  | { type: 'player-equipped'; key: string }
+  | { type: 'player-reset'; data: PlayerData }
   | { type: 'loot-dropped'; loot: SimLoot }
   | { type: 'loot-collected'; id: number; kind: SimLootKind; key: string; amount: number; x: number; y: number }
   | { type: 'enemy-spawned'; id: number; kind: string; x: number; y: number; room: number; isBoss: boolean }
@@ -359,7 +361,8 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
         break;
       }
       case 'spawn-loot': {
-        // Loot already created synchronously by enqueueSpawnLoot; event replay only.
+        const loot = spawnCoreLoot(state, command.x, command.y, command.kind, command.key, command.amount, command.bob ?? 0);
+        events.push({ type: 'loot-dropped', loot });
         break;
       }
       case 'teleport-player': {
@@ -414,48 +417,39 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
         break;
       }
       case 'heal-player': {
-        // State already changed synchronously by enqueueHeal; generate event only.
-        events.push({ type: 'player-healed', amount: command.amount, hp: state.player.data.hp });
+        const hp = healPlayer(state, command.amount);
+        events.push({ type: 'player-healed', amount: command.amount, hp });
         break;
       }
       case 'add-currency': {
-        // State already changed synchronously by enqueueCurrency; generate event only.
-        events.push({ type: 'currency-gained', amount: command.amount, currency: state.player.data.currency });
+        const currency = addCurrency(state, command.amount);
+        events.push({ type: 'currency-gained', amount: command.amount, currency });
         break;
       }
       case 'add-xp': {
-        // State already changed synchronously by enqueueAddXp; generate events only.
-        // Re-derive gained crits from command.base and current xpGain.
-        const gained = Math.round(command.base * state.player.data.xpGain);
+        const { gained, levels } = addPlayerXp(state, command.base);
         events.push({ type: 'xp-gained', amount: gained, xp: state.player.data.xp, level: state.player.data.level });
-        // Simulate level-ups from pre-command XP to count levels gained.
-        const xpBefore = state.player.data.xp - gained;
-        let tempXp = xpBefore;
-        let tempLevel = state.player.data.level;
-        let tempXpToNext = state.player.data.xpToNext;
-        let levelCount = 0;
-        while (tempXp >= tempXpToNext) {
-          tempXp -= tempXpToNext;
-          tempLevel++;
-          tempXpToNext = Math.round(30 * Math.pow(tempLevel, 1.3));
-          levelCount++;
-        }
-        for (let i = 0; i < levelCount; i++) {
-          events.push({ type: 'player-levelup', level: state.player.data.level - levelCount + i + 1 });
-        }
+        for (const level of levels) events.push({ type: 'player-levelup', level });
         break;
       }
       case 'apply-upgrade': {
-        // State already changed synchronously by enqueueApplyUpgrade; generate event only.
+        const def = UPGRADES[command.key];
+        if (!def) break;
+        applyUpgrade(def, state.player.data, command.level);
         events.push({ type: 'player-upgraded', key: command.key, level: command.level });
         break;
       }
       case 'equip-weapon': {
-        // State already changed synchronously by enqueueEquipWeapon; no event.
+        if (state.player.data.weapons.some((w) => w.key === command.key)) {
+          state.player.data.weaponKey = command.key;
+          events.push({ type: 'player-equipped', key: command.key });
+        }
         break;
       }
       case 'set-player-data': {
-        // State already changed synchronously by enqueueSetPlayerData; no event.
+        // Restore player data & position from the checkpoint.
+        state.player.data = JSON.parse(JSON.stringify(command.data)) as PlayerData;
+        events.push({ type: 'player-reset', data: command.data });
         break;
       }
     }
@@ -765,7 +759,7 @@ function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number
 function stepLoot(state: SimulationState, dt: number, events: SimEvent[]): void {
   const p = state.player;
   const remaining: SimLoot[] = [];
-  const pickupRadius = p.data.pickupRange;
+  const pickupRadius = p.data.pickupRange ?? 3;
   for (const loot of state.loot) {
     loot.bob += dt * 4;
     const dx = p.x - loot.x, dy = p.y - loot.y;
@@ -775,8 +769,8 @@ function stepLoot(state: SimulationState, dt: number, events: SimEvent[]): void 
       loot.x += (dx / d) * pull * dt;
       loot.y += (dy / d) * pull * dt;
     }
-    // Preserve the legacy C1 pickup threshold (player radius + 12 world units).
-    if (Math.hypot(p.x - loot.x, p.y - loot.y) < PLAYER_RADIUS + 12) {
+    // C1 pickup threshold: player radius + 12 world units.
+    if (d < PLAYER_RADIUS + 12) {
       if (loot.kind === 'health') {
         const hp = healPlayer(state, 30);
         events.push({ type: 'player-healed', amount: 30, hp });

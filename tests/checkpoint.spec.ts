@@ -50,6 +50,12 @@ async function pickFirstCard(page: Page) {
   });
   expect(card, 'level-up card available').not.toBeNull();
   await page.mouse.click(Math.round(card!.x), Math.round(card!.y));
+  await page.evaluate(() => {
+    const g = (window as any).__game;
+    const w = g.scene.getScene('GameScene').world;
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit upgrade
+  });
 }
 
 test('inventory equips an owned weapon and the safe checkpoint restores the selection', async ({ page }) => {
@@ -79,6 +85,12 @@ test('inventory equips an owned weapon and the safe checkpoint restores the sele
     { label: 'EQUIP', y: 274, enabled: true }
   ]);
   await page.mouse.click(420, 242); // Equip Scatter Gun using its on-screen button.
+  await page.evaluate(() => {
+    const g = (window as any).__game;
+    const w = g.scene.getScene('GameScene').world;
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit equip-weapon
+  });
   await expect.poll(inventory).toEqual({
     weapon: 'scatter',
     buttons: [
@@ -135,6 +147,8 @@ test('number keys select an upgrade when four choices are eligible', async ({ pa
     const player = (window as any).__game.scene.getScene('GameScene').world.player;
     player.world.playerDataFixture.upgrades = [];
     player.addXp(player.data.xpToNext);
+    player.world.resetSimulationAccumulator();
+    player.world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit addXp
   });
   await waitForScene(page, 'LevelUpScene');
   expect(await sceneLabels(page, 'LevelUpScene')).toEqual(expect.arrayContaining(['[1]', '[2]', '[3]']));
@@ -184,9 +198,10 @@ test('resume reuses the checkpoint id and restores saved HP / run-scoped progres
     const game = (window as any).__game.scene.getScene('GameScene');
     const { world } = game;
     world.player.reset(world.portal.wx, world.portal.wy);
-    world.tryInteract(world.player);
     world.resetSimulationAccumulator();
-    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit teleport, enter room, queue spawn
+    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit teleport, player now at portal
+    world.tryInteract(world.player); // triggers room transition
+    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit room-enter, queue spawn
     world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit enemy spawn
   });
   await page.waitForFunction(() =>
@@ -198,10 +213,17 @@ test('resume reuses the checkpoint id and restores saved HP / run-scoped progres
     world.enemies = [];
     world.spawnLoot(world.player.x, world.player.y, 'currency', 'currency', 42);
     world.player.addXp(30);
+    world.resetSimulationAccumulator();
+    world.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit addXp command
   });
   await waitForScene(page, 'LevelUpScene');
   await pickFirstCard(page);
-
+  await page.evaluate(() => {
+    const g = (window as any).__game;
+    const w = g.scene.getScene('GameScene').world;
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // let checkpoint save
+  });
   await expect.poll(async () => (await readSave(page)).run?.player.upgrades.length).toBe(1);
   await expect.poll(async () => (await readSave(page)).run?.player.currency).toBeGreaterThanOrEqual(42);
 

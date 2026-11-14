@@ -282,10 +282,12 @@ test('cleared room always offers an exit portal, even when every room is visited
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
     w.player.reset(w.portal.wx, w.portal.wy);
-    w.tryInteract(w.player);
     const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
     w.resetSimulationAccumulator();
-    w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit teleport, enter room, queue spawn
+    w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit teleport, player now at portal
+    w.tryInteract(w.player);   // triggers room transition
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit room-enter, queue spawn
     w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit enemy spawn
   });
   await page.waitForTimeout(250);
@@ -347,9 +349,11 @@ test('cleared room always offers an exit portal, even when every room is visited
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
     w.enqueueTeleport(w.portal.wx, w.portal.wy, true);
-    w.tryInteract(w.player);
     w.resetSimulationAccumulator();
-    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit teleport to portal
+    w.tryInteract(w.player); // player now at portal, triggers room transition
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit room-enter teleport
     return { room: w.currentRoom()?.id, target };
   }, { target: fallback.target });
   expect(exit.room, 'player can use fallback portal to leave the room').toBe(exit.target);
