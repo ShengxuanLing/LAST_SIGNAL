@@ -1,0 +1,27 @@
+PASS reward+heal+xp+buy currency
+PASS reward+heal+xp+buy hp
+PASS reward+heal+xp+buy xp
+PASS reward+heal+xp+buy receipt ok
+PASS duplicate rejected
+PASS duplicate not re-executed
+PASS cap: new tx rejected
+PASS cap: ledger size unchanged
+PASS cap: no deduction
+PASS cap: oldest not evicted
+PASS cap: oldest still duplicate (no replay)
+PASS cap: oldest still no deduction
+PASS canonical: same ledger => equal
+PASS canonical: different ledger => different
+PASS restore: processed id retained
+PASS restore: retry duplicate rejected
+PASS restore: retry no deduct
+PASS checkpoint: old (no ledger) accepted
+PASS checkpoint: valid ledger accepted
+PASS checkpoint: oversized rejected
+PASS checkpoint: duplicate rejected
+PASS checkpoint: non-string rejected
+PASS insufficient rejected
+PASS id conflict stable duplicate
+PASS id conflict no change
+PASS not in terminal rejected
+PURCHASE_LEDGER_PASS failures=0
