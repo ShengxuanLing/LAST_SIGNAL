@@ -118,8 +118,9 @@ export class ExternalLinkClient {
   }
 
   /** Fetch the next external intent, if any. */
-  async nextIntent(): Promise<ExternalNextIntent | null> {
-    const url = `${this.options.bridgeUrl}/world-link/next-action?session=${encodeURIComponent(this.liveSession)}&epoch=${this.liveEpoch}`;
+  async nextIntent(afterActionId?: string): Promise<ExternalNextIntent | null> {
+    const after = afterActionId ? `&after=${encodeURIComponent(afterActionId)}` : '';
+    const url = `${this.options.bridgeUrl}/world-link/next-action?session=${encodeURIComponent(this.liveSession)}&epoch=${this.liveEpoch}${after}`;
     const response = await this.request(url, { method: 'GET' });
     if (!response || !response.ok) return null;
     const payload = (await response.json()) as { ok?: boolean; action?: ExternalNextIntent | null };
@@ -155,9 +156,20 @@ export class ExternalLinkClient {
   }
 
   async close(): Promise<boolean> {
-    if (this.closed) return true;
+    if (this.closed) {
+      this.forgetCredentials();
+      return true;
+    }
     this.closed = true;
-    return this.post('/world-link/close', { session: this.liveSession });
+    const ok = await this.post('/world-link/close', { session: this.liveSession });
+    // The token is not retained after the link is closed.
+    this.forgetCredentials();
+    return ok;
+  }
+
+  /** Drop the in-memory token (the socket/link is already gone). */
+  forgetCredentials(): void {
+    (this.options as { token: string }).token = '';
   }
 
   private async post(path: string, body: unknown): Promise<boolean> {

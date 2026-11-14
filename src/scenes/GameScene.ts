@@ -678,12 +678,22 @@ export class GameScene extends Phaser.Scene {
    * URL and token are injected by the host page, never hard-coded here.
    */
   async authorizeExternalAgent(bridgeUrl: string, token: string): Promise<boolean> {
+    // The page-level config is a one-shot injection aid, never a credential
+    // store. Remove it immediately after this authorization attempt; only the
+    // live link keeps the required credentials in memory.
+    const clearGlobalConfig = (): void => {
+      const g = globalThis as unknown as { __externalLinkConfig?: unknown };
+      if (g.__externalLinkConfig !== undefined) delete g.__externalLinkConfig;
+    };
+    clearGlobalConfig();
     if (!bridgeUrl || !token) return false;
     // A fresh HUMAN click may re-authorize a yielded/lost link. This is never
     // automatic: without the click the agent stays yielded.
     if (this.externalLink) {
       if (this.world.externalLink.snapshot().status === 'CONNECTED') return false;
-      this.externalLink.dispose();
+      // Wait for the old bridge session to actually close, otherwise the new
+      // handshake races the teardown and the bridge answers 409 duplicate.
+      await this.externalLink.dispose();
       this.externalLink = null;
     }
     this.externalLink = new ExternalLinkController({

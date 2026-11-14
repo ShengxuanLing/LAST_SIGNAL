@@ -201,6 +201,8 @@ test('human authorization links the rendered world to the bridge; actions commit
     });
     expect(takenOver.owner, 'human input takes control back').toBe('human');
     expect(takenOver.external, 'external link yielded').not.toBe('CONNECTED');
+    // The one-shot page config is cleared; only the live link held credentials.
+    expect(await page.evaluate(() => typeof (window as any).__externalLinkConfig)).toBe('undefined');
 
     expect(errors).toEqual([]);
   } finally {
@@ -232,6 +234,12 @@ test('takeover / overlay / agent disconnect yield the link; no automatic re-take
     const authorize = async (): Promise<void> => {
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
+      // The page-level config is cleared whenever the link degrades (including
+      // on pause). Re-inject AFTER the pause menu is open, exactly like the
+      // in-game form entering credentials while paused.
+      await page.evaluate(({ bridgeUrl, token }) => {
+        (window as any).__externalLinkConfig = { bridgeUrl, token };
+      }, { bridgeUrl: bridge.url, token: TOKEN });
       const pos = await page.evaluate(() => {
         const ps = (window as any).__game.scene.getScene('PauseScene');
         const t = ps.children.list.find((c: any) => c.type === 'Text' && (c.text || '').startsWith('AUTHORIZE EXTERNAL AGENT'));
@@ -643,6 +651,48 @@ test('Rendered effects: a real drone takes REAL damage from a ticks-long fire ac
       droneId: hpBefore!.id, hpBefore: hpBefore!.hp, lowestHp: lowest,
       executedTicks: fireReceipt.executedTicks
     }));
+    expect(errors).toEqual([]);
+  } finally {
+    await bridge.close();
+  }
+});
+
+test('a queued stop preempts the ACTIVE long action; other actions keep FIFO', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const gateway = new WorldGateway();
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  try {
+    const client = await setupLinkedRun(page, bridge);
+    const move120 = await client.submit('req_c3b000000000000000000060', [
+      { type: 'move', actionId: 'aid_c3b000000000000000000060', dir: { x: 1, y: 0 }, ticks: 120 }
+    ], 600);
+    expect(move120.ok).toBe(true);
+    await expect.poll(async () => (await receipt(page, 'aid_c3b000000000000000000060'))?.status ?? 'none',
+      { timeout: 20000 }).toBe('executing');
+    // STOP is queued while the 120-tick move is still running, followed by a
+    // normal FIFO action that must survive the preemption.
+    const queued = await client.submit('req_c3b000000000000000000061', [
+      { type: 'stop', actionId: 'aid_c3b000000000000000000061' },
+      { type: 'move', actionId: 'aid_c3b000000000000000000062', dir: { x: 0, y: 1 }, ticks: 20 }
+    ], 600);
+    expect(queued.ok, 'stop + fifo action accepted').toBe(true);
+
+    await expect.poll(async () => (await receipt(page, 'aid_c3b000000000000000000060'))?.status ?? 'none',
+      { timeout: 15000 }).toBe('cancelled');
+    const cancelled = await receipt(page, 'aid_c3b000000000000000000060');
+    expect(cancelled.executedTicks, 'preempted before 120 ticks').toBeLessThan(120);
+    expect(cancelled.completedTick - cancelled.startedTick).toBe(cancelled.executedTicks);
+
+    await expect.poll(async () => (await receipt(page, 'aid_c3b000000000000000000061'))?.status ?? 'none',
+      { timeout: 15000 }).toBe('applied');
+    const stopReceipt = await receipt(page, 'aid_c3b000000000000000000061');
+    expect(stopReceipt.executedTicks, 'stop is one real neutral tick').toBe(1);
+
+    await expect.poll(async () => (await receipt(page, 'aid_c3b000000000000000000062'))?.status ?? 'none',
+      { timeout: 20000 }).toBe('applied');
+    const after = await receipt(page, 'aid_c3b000000000000000000062');
+    expect(after.executedTicks, 'FIFO action after the stop is preserved').toBe(20);
     expect(errors).toEqual([]);
   } finally {
     await bridge.close();

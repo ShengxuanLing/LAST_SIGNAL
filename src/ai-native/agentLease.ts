@@ -44,6 +44,17 @@ export interface AgentLeaseExpiry {
   readonly leaseId: string;
 }
 
+/**
+ * Hard bounds so a long-lived bridge cannot grow without limit across many
+ * authorizations/sessions. Live leases are bounded by WORLD_LIMITS.MAX_SESSIONS
+ * upstream; these caps apply to historical (non-live) records.
+ */
+export const AGENT_LEASE_CAPS = Object.freeze({
+  MAX_LEASE_RECORDS: 256,
+  MAX_EXPIRED_SESSIONS: 1024,
+  MAX_VERSION_SESSIONS: 256
+});
+
 export class AgentLeaseRegistry {
   private readonly leases = new Map<string, AgentLease>();
   private readonly bySession = new Map<string, string>();
@@ -108,6 +119,7 @@ export class AgentLeaseRegistry {
     if (!lease) return false;
     this.leases.set(leaseId, { ...lease, status: 'released' });
     if (this.bySession.get(lease.sessionId) === leaseId) this.bySession.delete(lease.sessionId);
+    this.prune();
     return true;
   }
 
@@ -145,6 +157,7 @@ export class AgentLeaseRegistry {
       this.bySession.delete(sessionId);
     }
     this.expiredSessions.add(sessionId);
+    this.prune();
   }
 
   isExpiredSession(sessionId: string): boolean {
@@ -156,6 +169,42 @@ export class AgentLeaseRegistry {
     if (!id) return null;
     const lease = this.leases.get(id);
     return lease && lease.status === 'live' && nowMs <= lease.expiresAtMs ? lease : null;
+  }
+
+  /** Bounded history: drop the OLDEST non-live records beyond the caps. */
+  private prune(): void {
+    const { MAX_LEASE_RECORDS, MAX_EXPIRED_SESSIONS, MAX_VERSION_SESSIONS } = AGENT_LEASE_CAPS;
+    if (this.leases.size > MAX_LEASE_RECORDS) {
+      let excess = this.leases.size - MAX_LEASE_RECORDS;
+      for (const [id, lease] of [...this.leases.entries()]) {
+        if (excess <= 0) break;
+        if (lease.status === 'live') continue; // never evict a live lease
+        this.leases.delete(id);
+        excess -= 1;
+      }
+    }
+    while (this.expiredSessions.size > MAX_EXPIRED_SESSIONS) {
+      const oldest = this.expiredSessions.values().next().value as string | undefined;
+      if (oldest === undefined) break;
+      this.expiredSessions.delete(oldest);
+    }
+    while (this.versionBySession.size > MAX_VERSION_SESSIONS) {
+      const oldest = this.versionBySession.keys().next().value as string | undefined;
+      if (oldest === undefined) break;
+      this.versionBySession.delete(oldest);
+    }
+  }
+
+  /** Diagnostic sizes (Dev/tests only; no secrets). */
+  stats(): { leases: number; liveLeases: number; expiredSessions: number; versionSessions: number } {
+    let liveLeases = 0;
+    for (const lease of this.leases.values()) if (lease.status === 'live') liveLeases += 1;
+    return {
+      leases: this.leases.size,
+      liveLeases,
+      expiredSessions: this.expiredSessions.size,
+      versionSessions: this.versionBySession.size
+    };
   }
 
   dispose(): void {

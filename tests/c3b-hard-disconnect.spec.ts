@@ -44,12 +44,19 @@ async function bootAndAuthorize(page: Page, bridgeUrl: string, token: string): P
   expect(newRun).not.toBeNull();
   await page.mouse.click(newRun!.x, newRun!.y);
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'));
-  await authorizeViaMenu(page);
+  await authorizeViaMenu(page, bridgeUrl, token);
 }
 
-async function authorizeViaMenu(page: Page): Promise<void> {
+async function authorizeViaMenu(page: Page, bridgeUrl?: string, token?: string): Promise<void> {
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
+  if (bridgeUrl && token) {
+    // The page-level config is cleared whenever the link degrades (incl. the
+    // pause that opens this menu). Inject AFTER the menu is open.
+    await page.evaluate(({ bridgeUrl: url, token: t }) => {
+      (window as any).__externalLinkConfig = { bridgeUrl: url, token: t };
+    }, { bridgeUrl, token });
+  }
   const pos = await page.evaluate(() => {
     const ps = (window as any).__game.scene.getScene('PauseScene');
     const t = ps.children.list.find((c: any) => c.type === 'Text' && (c.text || '').startsWith('AUTHORIZE EXTERNAL AGENT'));
@@ -168,7 +175,7 @@ test('SIGKILL of the agent process expires the lease, yields the link and forbid
     expect((await linkState(page)).owner).toBe('human');
 
     // A fresh HUMAN authorization creates a usable new session.
-    await authorizeViaMenu(page);
+    await authorizeViaMenu(page, bridge.url, token);
     const renewed = await linkState(page);
     expect(renewed.owner).toBe('external');
     expect(renewed.session).toBeTruthy();

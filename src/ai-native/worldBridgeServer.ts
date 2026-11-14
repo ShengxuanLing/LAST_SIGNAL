@@ -26,6 +26,8 @@ export interface RunningWorldBridge {
   readonly url: string;
   readonly port: number;
   close(): Promise<void>;
+  /** Bounded lease-registry sizes (diagnostics/tests; no secrets). */
+  leaseStats(): ReturnType<AgentLeaseRegistry['stats']>;
 }
 
 type Json = Record<string, unknown>;
@@ -41,6 +43,8 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   // Independent AGENT lease. The browser heartbeat is NOT allowed to renew it.
   const leases = new AgentLeaseRegistry();
   const server: Server = createServer((req, res) => { void handle(req, res); });
+
+  const leaseStats = (): ReturnType<AgentLeaseRegistry['stats']> => leases.stats();
 
   const closeBridge = async (): Promise<void> => {
     clearInterval(reaper);
@@ -412,7 +416,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   });
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('world bridge failed to bind');
-  return { url: `http://127.0.0.1:${address.port}`, port: address.port, close: closeBridge };
+  return { url: `http://127.0.0.1:${address.port}`, port: address.port, close: closeBridge, leaseStats };
 }
 
 /**

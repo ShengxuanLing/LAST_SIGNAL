@@ -245,6 +245,26 @@ export class ExternalLinkState {
     return execution;
   }
 
+  /**
+   * STOP preemption: a queued `stop` cancels the ACTIVE action immediately
+   * (no need to wait for its remaining ticks). The cancelled receipt records
+   * exactly how many real core ticks were delivered. The stop itself is then a
+   * 1-tick neutral commit. Other queued actions keep their FIFO order.
+   */
+  preemptActive(currentTick: number, code = 'E_PREEMPTED'): ExternalCompletion | null {
+    if (!this.active) return null;
+    const execution = this.active;
+    const executedTicks = execution.durationTicks - execution.remainingTicks;
+    const receipt = this.record({
+      actionId: execution.actionId, requestId: execution.requestId,
+      status: 'cancelled', code,
+      startedTick: execution.startedTick, completedTick: currentTick,
+      executedTicks, durationTicks: execution.durationTicks
+    });
+    this.active = null;
+    return this.pushCompletion(execution.actionId, execution.requestId, execution.epoch, receipt);
+  }
+
   /** The intent the CURRENT core tick must run (only while an action is active). */
   activeIntent(): PlayerIntent | null {
     return this.active ? this.active.intent : null;

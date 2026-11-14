@@ -111,9 +111,17 @@ export class ExternalLinkController {
   private afterBusy = false;
   /** Last error from the bridge handshake, for a real UI error message. */
   private _lastError: { code: string; messageKey: string } | null = null;
+  /** Credentials live ONLY here while the connection is alive. */
+  private bridgeUrl: string;
+  private token: string;
+  /** In-flight teardown (yield+close). Re-authorize waits for it so the bridge
+   *  cannot see a half-closed old session and answer 409 duplicate handshake. */
+  private teardown: Promise<void> | null = null;
 
   constructor(private readonly options: ExternalLinkControllerOptions) {
     this.heartbeatMs = options.heartbeatMs ?? 1000;
+    this.bridgeUrl = options.bridgeUrl;
+    this.token = options.token;
   }
 
   get connected(): boolean { return this.client !== null; }
@@ -155,9 +163,13 @@ export class ExternalLinkController {
     }
     this.options.authorize();
     const generation = ++this.generation;
+    if (!this.bridgeUrl || !this.token) {
+      this._lastError = { code: 'E_PERMISSION', messageKey: 'world.authorization_required' };
+      return false;
+    }
     const client = new ExternalLinkClient({
-      bridgeUrl: this.options.bridgeUrl,
-      token: this.options.token,
+      bridgeUrl: this.bridgeUrl,
+      token: this.token,
       session: authorized.session,
       epoch: authorized.epoch,
       ...(this.options.fetchImpl ? { fetchImpl: this.options.fetchImpl } : {})
@@ -247,7 +259,31 @@ export class ExternalLinkController {
       const token = this.capture();
       if (!token || !this.live(token)) return;
       const world = this.options.world;
-      if (world.externalLink.hasActive) return; // one external action at a time
+      const active = world.externalLink.activeExecution;
+      if (active) {
+        // STOP PREEMPTION: a queued `stop` immediately cancels the ACTIVE
+        // action (no need to wait for its remaining ticks) and is then a real
+        // 1-tick neutral commit. Other queued actions keep their FIFO order.
+        const peek = await token.client.nextIntent(active.actionId);
+        if (!this.live(token)) return;
+        if (!peek || peek.action.type !== 'stop') return; // normal FIFO
+        world.externalLink.preemptActive(world.sim.tick, 'E_PREEMPTED');
+        if (!this.live(token)) return;
+        const stopIntent = intentFromExternalAction(peek.action);
+        const stopReceipt = world.enqueueExternalIntent({
+          actionId: peek.actionId,
+          requestId: peek.requestId,
+          intent: stopIntent,
+          applyByTick: peek.applyByTick,
+          ttlTicks: EXTERNAL_LINK_LIMITS.MAX_TTL_TICKS,
+          durationTicks: 1
+        });
+        if (!this.live(token)) return;
+        if (stopReceipt.status === 'queued') {
+          world.externalLink.beginExecution(world.sim.tick, token.epoch);
+        }
+        return;
+      }
       const next = await token.client.nextIntent();
       if (!this.live(token)) return; // late callback: never start a stale action
       if (!next) return;
@@ -285,15 +321,29 @@ export class ExternalLinkController {
       client.abortInFlight();
       // Close the bridge session too, so the next explicit HUMAN AUTHORIZE can
       // create a fresh session. Without the click nothing reconnects.
-      void client.yieldLink(reason).catch(() => undefined).finally(() => {
-        void client.close().catch(() => undefined);
-      });
+      const closed = client.yieldLink(reason).catch(() => undefined)
+        .then(() => client.close().catch(() => undefined))
+        .then(() => undefined)
+        .finally(() => {
+          client.forgetCredentials();
+          if (this.teardown === closed) this.teardown = null;
+        });
+      this.teardown = closed;
     }
+    // Credentials are dropped as soon as the live connection is gone.
+    this.forgetCredentials();
     this.emit();
   }
 
+  /** Remove credentials from this controller and from any global config. */
+  forgetCredentials(): void {
+    this.token = '';
+    this.bridgeUrl = '';
+    const g = globalThis as unknown as { __externalLinkConfig?: unknown };
+    if (g.__externalLinkConfig !== undefined) delete g.__externalLinkConfig;
+  }
+
   async dispose(reason: 'scene-exit' | 'disconnect' = 'scene-exit'): Promise<void> {
-    if (this.disposed) return;
     this.disposed = true;
     this.generation += 1;
     const world = this.options.world;
@@ -305,6 +355,9 @@ export class ExternalLinkController {
       client.abortInFlight();
       await client.close().catch(() => undefined);
     }
+    // Wait for any teardown started by an earlier degrade().
+    if (this.teardown) await this.teardown.catch(() => undefined);
+    this.forgetCredentials();
   }
 
   /** Perception-cropped observation (no full map, seed, RNG or hidden state). */
