@@ -188,14 +188,6 @@ export class World {
     this.playerDataSnapshotCache = null;
   }
 
-  /** Process pending commands without advancing gameplay ticks. Used by render
-   *  frame updates (room clear rewards) so committed currency/heal/upgrade are
-   *  saved before the next core tick. */
-  processPendingCommands(): void {
-    processCommands(this._sim, [], new RNG(0));
-    this.bumpSimVersion();
-  }
-
   constructor(scene: Phaser.Scene, map: MapData, save: SaveData, callbacks: WorldCallbacks) {
     this.scene = scene;
     this.map = map;

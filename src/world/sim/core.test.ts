@@ -287,6 +287,32 @@ describe('C2 fixed-tick authoritative core', () => {
     expect(state.tick).toBe(tickBefore + 1);
   });
 
+  it('B13: paused/zero-dt economic rewards do not commit; normal tick commits once with events and stable RNG', () => {
+    const { state } = makeState();
+    const neutralIntent = neutral({ x: 0, y: 0 });
+    const currencyBefore = state.player.data.currency;
+
+    // Queue a currency reward but do not tick.
+    enqueueSpawnLoot(state, state.player.x + 1, state.player.y, 'currency', 'currency', 7);
+
+    // Zero-tick: no state mutation, no events.
+    const ev0 = stepSimulationTicks(state, 0, neutralIntent);
+    expect(state.player.data.currency).toBe(currencyBefore);
+    expect(state.loot.length).toBe(0);
+    expect(ev0.some((e) => e.type === 'currency-gained')).toBe(false);
+
+    // One tick: commits once, emits currency-gained event.
+    const ev1 = stepSimulationTicks(state, 1, neutralIntent);
+    expect(state.player.data.currency).toBe(currencyBefore + 7);
+    expect(state.loot.length).toBe(0);
+    expect(ev1.some((e) => e.type === 'currency-gained')).toBe(true);
+
+    // Second tick with no new commands: no double commit, no new events.
+    const ev2 = stepSimulationTicks(state, 1, neutralIntent);
+    expect(state.player.data.currency).toBe(currencyBefore + 7);
+    expect(ev2.some((e) => e.type === 'currency-gained')).toBe(false);
+  });
+
   it('H2: kill loot rolls and the next shot share the controlled C1 RNG order', () => {
     const { state, drone } = makeState();
     state.player.x = drone.x - 0.5;
