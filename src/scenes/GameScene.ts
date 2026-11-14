@@ -7,6 +7,7 @@ import { UPGRADES } from '../config/upgrades';
 import { saveSystem, game } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { formatDuration } from '../core/formatDuration';
+import { ExternalLinkController, type ExternalLinkDegradeReason } from '../ai-native/externalLinkController';
 import { Player } from '../entities/Player';
 import type { RunCheckpoint } from '../types';
 
@@ -69,6 +70,8 @@ export class GameScene extends Phaser.Scene {
   // time so no upgrade is skipped and the scene is never launched twice.
   private pendingLevels: number[] = [];
   private levelUpActive = false;
+  /** C3-b: rendered external-agent link (null until the human authorizes). */
+  private externalLink: ExternalLinkController | null = null;
 
   seed = 0;
 
@@ -200,6 +203,10 @@ export class GameScene extends Phaser.Scene {
     this.world.player.control.onRunStart();
     // Scene exit must not leave an AI owner or held input behind.
     this.events.once('shutdown', () => {
+      // C3-b: scene exit cancels pending external intents and closes the link.
+      this.externalLink?.degrade('scene-exit');
+      void this.externalLink?.dispose('scene-exit');
+      this.externalLink = null;
       this.world.player.control.onSceneExit();
       this.world.player.clearHeldInput();
       this.fireHeld = false;
@@ -241,6 +248,8 @@ export class GameScene extends Phaser.Scene {
 
   /** One-key / one-click human reclaim, valid during overlays too. */
   private takeoverFromHumanInput(): void {
+    // C3-b: any human input cancels a pending external intent (YIELDED + epoch).
+    this.externalLink?.degrade('takeover');
     if (this.world.player.control.owner !== 'ai') return;
     this.world.player.control.humanTakeover('human-input');
     this.world.player.clearHeldInput();
@@ -369,10 +378,16 @@ export class GameScene extends Phaser.Scene {
     const ptr = this.input.activePointer;
     this.world.player.aimFromPointer(ptr);
     this.world.player.setFireHeld(this.fireHeld);
+    // C3-b: poll the bridge for the next external intent BEFORE the tick so it
+    // is executed by the same core tick path as every other controller.
+    void this.externalLink?.beforeFrame();
     const intent = this.world.player.sampleIntent();
     this.world.stepFrame(delta, intent);
     if (intent.interact) this.world.tryInteract(this.world.player);
     if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
+    // C3-b: after the tick, ACK any executed external intent with the real
+    // post-commit tick and push the post-commit observation.
+    void this.externalLink?.afterFrame();
 
     // camera follows player (Phaser 3.90: Camera.follow removed -> manual scroll lerp)
     const px = this.world.player.sprite.x, py = this.world.player.sprite.y;
@@ -437,7 +452,11 @@ export class GameScene extends Phaser.Scene {
     this.txtControl.setColor(control.owner === 'ai' ? '#7ff0ff' : control.paused ? '#ffd233' : '#8fb8c8');
     this.txtAiAction.setText(`AI ACTION  ${control.lastAiAction ?? '—'}${control.aiActionCount > 0 ? ` ×${control.aiActionCount}` : ''}`);
     this.txtAiTarget.setText(`AI TARGET  ${control.lastAiTarget ?? '—'}`);
-    this.txtAgentLink.setText(`${control.controllerLabel} DEMO · EXTERNAL NOT CONNECTED`);
+    // C3-b: the link label is the truth — it reflects the real connection state
+    // and the last action the core actually committed.
+    this.txtAgentLink.setText(control.externalAgentConnected
+      ? `EXTERNAL AGENT CONNECTED · LAST ${control.lastAiAction ?? '—'}`
+      : `${control.controllerLabel} DEMO · EXTERNAL NOT CONNECTED`);
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.timer.setText(formatDuration(Math.max(0, secs)));
     const settings = saveSystem.getSettings();
@@ -513,6 +532,8 @@ export class GameScene extends Phaser.Scene {
     const level = this.pendingLevels.shift();
     if (level === undefined) return;
     this.levelUpActive = true;
+    // C3-b: a level-up overlay cancels pending external intents.
+    this.externalLink?.degrade('level-up');
     audio.levelup();
     this.paused = true;
     this.world.player.control.pause();
@@ -574,6 +595,8 @@ export class GameScene extends Phaser.Scene {
   private onDeath(): void {
     if (this.runFinished) return;
     this.runFinished = true;
+    // C3-b: death cancels pending external intents.
+    this.externalLink?.degrade('death');
     this.pendingLevels = [];
     this.levelUpActive = false;
     // Death ends the run: hand ownership back to the human and drop AI state.
@@ -619,6 +642,9 @@ export class GameScene extends Phaser.Scene {
 
   private onPause(): void {
     if (this.paused) return;
+    // C3-b: pausing cancels pending external intents (they must not fire while
+    // the game is frozen) and the epoch is bumped.
+    this.externalLink?.degrade('pause');
     this.saveCheckpoint();
     this.paused = true;
     this.world.player.control.pause();
@@ -642,6 +668,40 @@ export class GameScene extends Phaser.Scene {
     this.world.resetSimulationAccumulator();
     this.refreshHud();
     if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
+  }
+
+  /**
+   * C3-b: authorize an external agent link. This is a HUMAN action (the pause
+   * menu button); an agent can never call it on the human's behalf. The bridge
+   * URL and token are injected by the host page, never hard-coded here.
+   */
+  async authorizeExternalAgent(bridgeUrl: string, token: string): Promise<boolean> {
+    if (!bridgeUrl || !token) return false;
+    // A fresh HUMAN click may re-authorize a yielded/lost link. This is never
+    // automatic: without the click the agent stays yielded.
+    if (this.externalLink) {
+      if (this.world.externalLink.snapshot().status === 'CONNECTED') return false;
+      this.externalLink.dispose();
+      this.externalLink = null;
+    }
+    this.externalLink = new ExternalLinkController({
+      world: this.world,
+      bridgeUrl,
+      token,
+      authorize: () => { /* the human click already happened */ }
+    });
+    const ok = await this.externalLink.authorizeHuman();
+    if (!ok) {
+      this.externalLink = null;
+      return false;
+    }
+    this.refreshHud();
+    return true;
+  }
+
+  /** C3-b: the human took over -> cancel every pending external intent. */
+  cancelExternalLink(reason: ExternalLinkDegradeReason = 'takeover'): void {
+    this.externalLink?.degrade(reason);
   }
 
   /** Dev entry for the real World, used by the Pause menu button. */
@@ -672,6 +732,8 @@ export class GameScene extends Phaser.Scene {
     // F-04: inventory is a pause-like overlay. Freeze authority and drop held
     // input exactly like onPause(); human takeover inside the overlay disables
     // the demo, so onResume() cannot silently hand control back to the AI.
+    // C3-b: the overlay also cancels pending external intents.
+    this.externalLink?.degrade('inventory');
     this.paused = true;
     this.world.player.control.pause();
     this.world.player.clearHeldInput();

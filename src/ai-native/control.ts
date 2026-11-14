@@ -14,7 +14,7 @@ import type { Vec2 } from '../types';
 import { screenVelocityToGridVelocity, gridDirectionToScreenDirection } from '../world/sim/rules';
 import { IsoMath } from '../core/iso';
 
-export type ControlOwner = 'human' | 'ai';
+export type ControlOwner = 'human' | 'ai' | 'external';
 
 /** One frame's worth of player intent. `move` is a screen-space direction. */
 export interface PlayerIntent {
@@ -83,7 +83,7 @@ export function screenDirectionTowardGrid(dx: number, dy: number, tileW = IsoMat
 // ControlAuthority — ownership / pause / takeover state machine.
 // ---------------------------------------------------------------------------
 
-export type ControlMode = 'HUMAN' | 'AI' | 'PAUSED';
+export type ControlMode = 'HUMAN' | 'AI' | 'EXTERNAL' | 'PAUSED';
 
 export interface ControlSnapshot {
   owner: ControlOwner;
@@ -92,9 +92,9 @@ export interface ControlSnapshot {
   mode: ControlMode;
   /** HUD label that never claims an external agent is attached. */
   modeLabel: string;
-  controllerLabel: 'LOCAL DETERMINISTIC';
+  controllerLabel: 'LOCAL DETERMINISTIC' | 'EXTERNAL AGENT';
   agentLinkLabel: string;
-  externalAgentConnected: false;
+  externalAgentConnected: boolean;
   takeoverCount: number;
   lastTakeoverReason: string | null;
   lastAiAction: string | null;
@@ -114,10 +114,48 @@ export class ControlAuthority {
   private _lastAiTargetId: number | null = null;
   private _aiActionCount = 0;
   private _lastAiActionAtSeconds: number | null = null;
+  /** C3-b: an external agent link is live (the human authorized it). */
+  private _externalConnected = false;
+  private _lastExternalAction: string | null = null;
 
   get owner(): ControlOwner { return this._owner; }
   get aiEnabled(): boolean { return this._aiEnabled; }
   get paused(): boolean { return this._paused; }
+  get externalConnected(): boolean { return this._externalConnected; }
+
+  /** C3-b: the human authorized an external agent link. The local demo is
+   *  disabled so the two controllers never fight over the same frame. */
+  enableExternal(): boolean {
+    if (this._externalConnected) return false;
+    this._aiEnabled = false;
+    this._externalConnected = true;
+    this._owner = 'external';
+    this._lastAiAction = null;
+    this._lastAiTarget = null;
+    this._lastAiTargetId = null;
+    return true;
+  }
+
+  /** C3-b: the external link ended (yield, disconnect, death, scene exit). */
+  disableExternal(reason = 'external-ended'): boolean {
+    const wasExternal = this._owner === 'external' || this._externalConnected;
+    this._externalConnected = false;
+    if (this._owner === 'external') this._owner = 'human';
+    this._lastExternalAction = null;
+    // The HUD last-action label must not keep a stale external decision once
+    // the link has yielded.
+    this._lastAiAction = null;
+    if (wasExternal) this._recordTakeover(reason);
+    return wasExternal;
+  }
+
+  /** C3-b: record the external action the core actually committed. */
+  noteExternalAction(action: string, appliedTick: number): void {
+    this._lastExternalAction = `${action} @${appliedTick}`;
+    this._lastAiAction = this._lastExternalAction;
+    this._lastAiActionAtSeconds = appliedTick;
+    this._aiActionCount++;
+  }
 
   /** Local demo takeover requested from the Pause menu. Ignored while paused:
    *  the flag flips and the AI starts acting only after resume(). */
@@ -148,12 +186,22 @@ export class ControlAuthority {
 
   resume(): void {
     this._paused = false;
-    this._owner = this._aiEnabled ? 'ai' : 'human';
+    this._owner = this._externalConnected ? 'external' : this._aiEnabled ? 'ai' : 'human';
   }
 
   /** Human input always wins. Takeover disables the local demo so it cannot
    *  immediately re-grab control from the player. */
   humanTakeover(reason = 'human-input'): boolean {
+    if (this._owner === 'external') {
+      this._externalConnected = false;
+      this._owner = 'human';
+      this._lastExternalAction = null;
+      this._lastAiAction = null;
+      this._lastAiTarget = null;
+      this._lastAiTargetId = null;
+      this._recordTakeover(reason);
+      return true;
+    }
     if (this._owner !== 'ai') return false;
     this._aiEnabled = false;
     this._owner = 'human';
@@ -169,6 +217,7 @@ export class ControlAuthority {
   onDeath(): void {
     this._paused = true;
     this._aiEnabled = false;
+    this._externalConnected = false;
     this._owner = 'human';
     this._lastAiAction = null;
     this._lastAiTarget = null;
@@ -178,12 +227,14 @@ export class ControlAuthority {
   onRunEnd(): void {
     this._paused = true;
     this._aiEnabled = false;
+    this._externalConnected = false;
     this._owner = 'human';
   }
 
   onRunStart(): void {
     this._owner = 'human';
     this._aiEnabled = false;
+    this._externalConnected = false;
     this._paused = false;
     this._takeoverCount = 0;
     this._lastTakeoverReason = null;
@@ -196,6 +247,7 @@ export class ControlAuthority {
 
   onSceneExit(): void {
     this._aiEnabled = false;
+    this._externalConnected = false;
     this._owner = 'human';
     this._paused = true;
     this._lastAiAction = null;
@@ -219,16 +271,21 @@ export class ControlAuthority {
   }
 
   snapshot(): ControlSnapshot {
-    const mode: ControlMode = this._paused ? 'PAUSED' : this._owner === 'ai' ? 'AI' : 'HUMAN';
+    const mode: ControlMode = this._paused ? 'PAUSED'
+      : this._owner === 'external' ? 'EXTERNAL'
+      : this._owner === 'ai' ? 'AI' : 'HUMAN';
+    const external = this._owner === 'external' || this._externalConnected;
     return {
       owner: this._owner,
       aiEnabled: this._aiEnabled,
       paused: this._paused,
       mode,
       modeLabel: mode === 'AI' ? 'AI · LOCAL DETERMINISTIC' : mode,
-      controllerLabel: 'LOCAL DETERMINISTIC',
-      agentLinkLabel: 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED',
-      externalAgentConnected: false,
+      controllerLabel: external ? 'EXTERNAL AGENT' : 'LOCAL DETERMINISTIC',
+      agentLinkLabel: external
+        ? 'EXTERNAL AGENT CONNECTED'
+        : 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED',
+      externalAgentConnected: external,
       takeoverCount: this._takeoverCount,
       lastTakeoverReason: this._lastTakeoverReason,
       lastAiAction: this._lastAiAction,

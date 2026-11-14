@@ -17,6 +17,8 @@ import type { ControllerActorView, LocalControllerView } from '../ai-native/loca
 import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
 import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
+import { ExternalLinkState, type ExternalActionReceipt } from '../ai-native/externalLink';
+import type { PlayerIntent } from '../ai-native/control';
 import {
   createSimulationState, enqueueCommand, enqueuePlayerHit,
   enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState, processCommands,
@@ -72,8 +74,8 @@ export class World {
   }
 
   private static assertDevTest(): void {
-    const env = (import.meta as any).env ?? {};
-    if (!(env.DEV === true || env.MODE === 'test')) throw new Error('dev/test only');
+    // Build-time constant: production builds cannot enable this facade.
+    if (!__LAST_SIGNAL_DEV_TEST__) throw new Error('dev/test only');
   }
 
   /** Explicit dev/test reset; not a general scene API. */
@@ -135,6 +137,8 @@ export class World {
   private worldSpawns: Array<{ kind: EnemyKind; x: number; y: number; room: number; depth: number; boss?: Room }> = [];
   /** Rooms whose generation command/spawn is queued but not yet committed. */
   private pendingRoomEnters = new Set<number>();
+  /** C3-b: external agent link state (authorization, pending intents, receipts). */
+  readonly externalLink = new ExternalLinkState();
   /** Latest committed supply receipts, keyed by transaction id (session-only). */
   private supplyReceipts = new Map<string, { transactionId: string; offerKey: string; roomId: number; ok: boolean; reason?: string; price: number; currency: number; hp: number; weaponKey: string }>();
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
@@ -178,6 +182,42 @@ export class World {
   }
 
   get hasSimulation(): boolean { return !!this._sim; }
+
+  /**
+   * C3-b: queue an external agent intent. It becomes a legal PlayerIntent and
+   * is executed by the existing core tick — never a direct state write.
+   * Returns the receipt: 'queued' means it will be applied by a later tick.
+   */
+  enqueueExternalIntent(command: {
+    actionId: string;
+    requestId: string;
+    intent: PlayerIntent;
+    applyByTick: number;
+    ttlTicks: number;
+  }): ExternalActionReceipt {
+    return this.externalLink.enqueueIntent(command, this._sim.tick);
+  }
+
+  /** The intent the next rendered frame should execute (external owner). */
+  takeExternalIntent(): PlayerIntent {
+    const command = this.externalLink.takeNextIntent();
+    return command ? command.intent : { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+  }
+
+  /** The core tick actually applied an external intent: the receipt is real. */
+  commitExternalIntent(actionId: string, appliedTick: number): ExternalActionReceipt | null {
+    return this.externalLink.commitApplied(actionId, appliedTick);
+  }
+
+  /** The external intent could not be executed. */
+  rejectExternalIntent(actionId: string, code: string, appliedTick: number): ExternalActionReceipt | null {
+    return this.externalLink.commitRejected(actionId, code, appliedTick);
+  }
+
+  /** Expire external intents whose apply-by tick has passed. */
+  expireExternalIntents(): void {
+    this.externalLink.expireOverdue(this._sim.tick);
+  }
 
   get playerX(): number { return this._sim.player.x; }
   get playerY(): number { return this._sim.player.y; }
@@ -943,8 +983,7 @@ export class World {
    * Node/Rendered parity evidence (parity drives stepFrame/accumulator).
    */
   stepSimulationTicksForTest(ticks: number, intent: SimulationIntent): SimEvent[] {
-    const env = (import.meta as any).env ?? {};
-    if (!(env.DEV === true || env.MODE === 'test')) throw new Error('dev/test only');
+    if (!__LAST_SIGNAL_DEV_TEST__) throw new Error('dev/test only');
     const events = stepSimulationTicks(this._sim, Math.max(0, Math.floor(ticks)), intent);
     this.applySimEvents(events);
     this.syncCoreEntities(0);

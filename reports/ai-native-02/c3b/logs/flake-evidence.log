@@ -1,0 +1,39 @@
+# C3-b gate transient flake evidence (kept, not hidden)
+
+## Default MCP client smoke (`src/ai-native/mcpClient.mts` "DEV advanced" step)
+
+At ~22:15, after many parallel E2E/vitest/build runs, three consecutive cold
+starts failed at the same pre-existing step:
+
+  FAIL | DEV advanced timeout failed | {"ok":false,"code":"E_RETRYABLE","messageKey":"another advanced action is already in flight"}
+
+Verification that this is NOT a C3-b regression:
+
+1. Rebuilt `dist-mcp/mcpServer.mjs` with the ORIGINAL `git show HEAD:vite.mcp.config.ts`
+   (single-entry `ssr: resolve(...)` config) and re-ran the same client:
+   SAME failure, same step, same E_RETRYABLE. The C3-b dual-entry config is not
+   the cause.
+2. Root cause is a pre-existing race in `src/ai-native/sessions.ts`:
+   `cancelAction()` sets `abort.aborted = true` synchronously but
+   `advancedInFlight.delete(actionId)` happens later in the background loop's
+   `finally`. A follow-up `game_execute_action` issued immediately after cancel
+   can arrive before the slot is released.
+3. Under lighter load, three consecutive independent cold starts all PASS:
+   PASS | run1 | MCP client done
+   PASS | run2 | MCP client done
+   PASS | run3 | MCP client done
+4. Final gate run `final_default_mcp_client.log`: PASS / MCP client done.
+
+No assertion was changed, no timeout was relaxed, and `sessions.ts` was NOT
+modified (C3-a semantics and the frozen unit suite stay intact).
+The C3-b unit suite (454 tests) and the full 55/55 E2E suite are unaffected.
+
+## Full E2E one-time failure (fixed in this round, not a flake)
+
+  FAIL | full_e2e | ai-native-world.spec.ts:772 F-04/F-05 | Expected "HUMAN", got "CONTROL  PAUSED"
+
+Cause: `PauseScene` instance fields (`controlText` / `externalStatusText`) kept
+references to destroyed Text objects after `scene.restart()`; `update()` touched
+them and broke the overlay's close tween.
+Fix: reset all three label fields in the scene `shutdown` handler.
+Re-verification: that spec 1/1 PASS, then full E2E 55/55 PASS twice.

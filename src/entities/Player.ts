@@ -204,6 +204,11 @@ export class Player {
       this.control.noteAiDecision(decision, this.world.clock);
       return decision.intent;
     }
+    if (owner === 'external') {
+      // C3-b: the external agent's intent is executed by the same legal path
+      // as every other controller. It is a PlayerIntent, never a direct write.
+      return this.world.takeExternalIntent();
+    }
     const interact = this._interactQueued;
     this._interactQueued = false;
     const aim = this.pendingAim;

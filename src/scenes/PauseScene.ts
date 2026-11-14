@@ -9,17 +9,45 @@ import { GameScene } from './GameScene';
 export class PauseScene extends Phaser.Scene {
   private inventoryRefresh: (() => void) | null = null;
   private lastInventorySig = '';
+  /** C3-b: live external-link status / owner labels rendered by this overlay. */
+  private externalStatusText: Phaser.GameObjects.Text | null = null;
+  private controlText: Phaser.GameObjects.Text | null = null;
+  private lastExternalSig = '';
 
   constructor() { super('PauseScene'); }
 
   /** The inventory overlay is not itself paused, so it can observe the core
    *  commit that happens on the resume tick and refresh its labels. */
   update(): void {
+    this.refreshExternalLabels();
     if (!this.inventoryRefresh) return;
     const sig = this.inventorySig();
     if (sig !== this.lastInventorySig) {
       this.lastInventorySig = sig;
       this.inventoryRefresh();
+    }
+  }
+
+  /** The overlay stays alive while paused, so the link/owner labels must
+   *  reflect the real state (a human AUTHORIZE click happens right here). */
+  private refreshExternalLabels(): void {
+    const world = this.scene.get<GameScene>('GameScene')?.world;
+    if (!world) return;
+    const status = world.externalLink.snapshot().status;
+    const owner = world.player.control.owner;
+    const sig = `${status}|${owner}`;
+    if (sig === this.lastExternalSig) return;
+    this.lastExternalSig = sig;
+    if (this.externalStatusText) {
+      this.externalStatusText.setText(status === 'CONNECTED' ? 'EXTERNAL AGENT  CONNECTED'
+        : status === 'LOST' ? 'EXTERNAL AGENT  LINK LOST'
+        : status === 'YIELDED' ? 'EXTERNAL AGENT  YIELDED'
+        : 'EXTERNAL AGENT  NOT CONNECTED');
+      this.externalStatusText.setColor(status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c');
+    }
+    if (this.controlText) {
+      const control = world.player.control;
+      this.controlText.setText(`CONTROL  ${owner.toUpperCase()} · ${owner === 'external' ? 'EXTERNAL AGENT' : control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`);
     }
   }
 
@@ -60,6 +88,11 @@ export class PauseScene extends Phaser.Scene {
       this.input.keyboard?.off('keydown-I', closeFromKey);
       this.inventoryRefresh = null;
       this.lastInventorySig = '';
+      // Scene instances are reused across restart(): clear references to
+      // destroyed Text objects, otherwise update() can touch a stale object.
+      this.externalStatusText = null;
+      this.controlText = null;
+      this.lastExternalSig = '';
     });
 
     if (mode === 'inventory') {
@@ -170,12 +203,46 @@ export class PauseScene extends Phaser.Scene {
         parent.toggleAiControl();
         this.scene.restart({ mode: 'pause' });
       }, 0x274a55);
-      this.add.text(GAME.WINDOW_W / 2, 585, `CONTROL  ${control.owner.toUpperCase()} · ${control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`, {
+      this.controlText = this.add.text(GAME.WINDOW_W / 2, 585, `CONTROL  ${control.owner.toUpperCase()} · ${control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`, {
         fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8'
       }).setOrigin(0.5);
-      this.add.text(GAME.WINDOW_W / 2, 605, 'EXTERNAL AGENT  NOT CONNECTED', {
-        fontFamily: 'monospace', fontSize: '12px', color: '#ff8a3c'
+      // C3-b: the human explicitly authorizes an external agent link. The
+      // bridge URL/token come from the host page configuration (never typed
+      // here, never logged, never part of the scene text).
+      const externalState = parent.world.externalLink.snapshot();
+      const externalLabel = externalState.status === 'CONNECTED' ? 'EXTERNAL AGENT  CONNECTED'
+        : externalState.status === 'LOST' ? 'EXTERNAL AGENT  LINK LOST'
+        : externalState.status === 'YIELDED' ? 'EXTERNAL AGENT  YIELDED'
+        : 'EXTERNAL AGENT  NOT CONNECTED';
+      this.externalStatusText = this.add.text(GAME.WINDOW_W / 2, 605, externalLabel, {
+        fontFamily: 'monospace', fontSize: '12px', color: externalState.status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c'
       }).setOrigin(0.5);
+      const authorizeExternal = this.add.text(GAME.WINDOW_W / 2, 622, 'AUTHORIZE EXTERNAL AGENT', {
+        fontFamily: 'monospace', fontSize: '12px', color: '#eafaff', backgroundColor: '#274a55'
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      authorizeExternal.on('pointerdown', () => {
+        audio.ui();
+        const config = (globalThis as unknown as {
+          __externalLinkConfig?: { bridgeUrl?: string; token?: string };
+        }).__externalLinkConfig;
+        const bridgeUrl = config?.bridgeUrl;
+        const token = config?.token;
+        if (!bridgeUrl || !token) {
+          this.add.text(GAME.WINDOW_W / 2, 638, 'NO BRIDGE CONFIGURED — CONTROL STAYS HUMAN', {
+            fontFamily: 'monospace', fontSize: '11px', color: '#ff8a3c'
+          }).setOrigin(0.5);
+          return;
+        }
+        void parent.authorizeExternalAgent(bridgeUrl, token).then((ok) => {
+          this.lastExternalSig = '';
+          this.refreshExternalLabels();
+          if (!ok) {
+            this.add.text(GAME.WINDOW_W / 2, 638, 'EXTERNAL LINK FAILED — CONTROL STAYS HUMAN', {
+              fontFamily: 'monospace', fontSize: '11px', color: '#ff8a3c'
+            }).setOrigin(0.5);
+          }
+        });
+      });
       this.add.text(GAME.WINDOW_W / 2, 625, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL', {
         fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
       }).setOrigin(0.5);

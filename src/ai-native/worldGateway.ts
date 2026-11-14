@@ -227,6 +227,15 @@ export class WorldGateway {
     return { ok: true, tick: parsed.value.tick };
   }
 
+  /** The latest committed observation of a session (agent-side read). */
+  latestObservation(sessionId: string, epoch: number): WorldObservationV1 | null | WorldGatewayError {
+    const s = this.sessions.get(sessionId);
+    if (!s) return this.err('E_SESSION_NOT_FOUND', 'world.session_unknown');
+    if (epoch !== s.epoch) return this.err('E_STALE_EPOCH', 'world.stale_epoch');
+    if (s.status !== 'connected') return this.err('E_PERMISSION', 'world.not_authorized');
+    return s.lastObservation;
+  }
+
   /** Queue-only: this never advances a tick and never claims applied. */
   submitActions(input: {
     sessionId: string;

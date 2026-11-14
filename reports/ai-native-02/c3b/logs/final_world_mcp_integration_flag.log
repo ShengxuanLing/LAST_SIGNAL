@@ -1,0 +1,7 @@
+PASS mcp_world_list_sessions | {"session":"ses_03e537e6351a599d2b3f5673","epoch":1}
+PASS mcp_world_observe | {"tick":12,"drones":1}
+PASS mcp_world_action | {"status":"queued","acceptedTick":12}
+PASS mcp_world_action_idempotent
+PASS mcp_world_action_mismatch_rejected
+PASS mcp_world_close
+WORLD_MCP_INTEGRATION_PASS list->observe->action->close binary=dist-mcp/mcpServer.mjs --world

@@ -1,7 +1,13 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // F-03 / C2 writer-boundary gate: an explicit build-time constant, not the
+  // runtime import.meta.env object. Only a normal `production` build removes
+  // the Phaser handle and the dev/test diagnostic facade.
+  define: {
+    __LAST_SIGNAL_DEV_TEST__: JSON.stringify(mode !== 'production')
+  },
   root: fileURLToPath(new URL('.', import.meta.url)),
   base: './',
   build: {
@@ -19,4 +25,4 @@ export default defineConfig({
     port: 5173,
     open: false
   }
-});
+}));
