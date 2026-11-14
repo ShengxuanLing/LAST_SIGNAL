@@ -64,7 +64,16 @@ type RegisterFn = (
 /** Bind the four official tools. An agent tool can never authorize a session. */
 export function registerWorldTools(server: McpServer, client: WorldClient, register: RegisterFn): void {
   const ensureAttached = async (): Promise<{ ok: true } | { ok: false; code: string; messageKey: string }> => {
-    if (client.sessionId) return { ok: true };
+    if (client.sessionId) {
+      // ALWAYS verify the remote lease/session. A locally cached sessionId
+      // must never be reported as attached after a hard disconnect.
+      const status = await client.status();
+      if (status.ok && status.attached) return { ok: true };
+      return { ok: false, code: status.code ?? 'E_SESSION_NOT_FOUND', messageKey: status.messageKey ?? 'world.session_closed' };
+    }
+    if (client.detached) {
+      return { ok: false, code: 'E_SESSION_NOT_FOUND', messageKey: 'world.session_closed' };
+    }
     const result = await client.handshake();
     if ('ok' in result && result.ok === true) return { ok: true };
     const failure = result as { code?: string; messageKey?: string };
@@ -77,7 +86,14 @@ export function registerWorldTools(server: McpServer, client: WorldClient, regis
     async () => {
       const attached = await ensureAttached();
       if (!attached.ok) return errPayload(attached.code, attached.messageKey);
-      return okPayload({ session: client.sessionId, epoch: client.currentEpoch, attached: true });
+      const status = await client.status();
+      return okPayload({
+        session: client.sessionId,
+        epoch: client.currentEpoch,
+        attached: status.attached === true,
+        linkStatus: status.status,
+        leaseStatus: status.leaseStatus ?? 'unknown'
+      });
     });
 
   register(server, 'world_observe',
@@ -101,10 +117,13 @@ export function registerWorldTools(server: McpServer, client: WorldClient, regis
     async (args) => {
       const attached = await ensureAttached();
       if (!attached.ok) return errPayload(attached.code, attached.messageKey);
+      // Default to the MAXIMUM protocol TTL: an action may request up to 120
+      // real core ticks, and the execution deadline must cover that duration
+      // plus bridge latency. The gateway still enforces the hard 600-tick cap.
       const result = await client.submit(
         args.requestId as string,
         args.actions as never,
-        args.ttlTicks as number | undefined
+        (args.ttlTicks as number | undefined) ?? WORLD_LIMITS.MAX_TTL_TICKS
       );
       if (!result.ok) return errPayload(result.code ?? 'E_SCHEMA', result.messageKey ?? 'world.action_failed');
       return okPayload({

@@ -3,10 +3,12 @@ import { fileURLToPath } from 'node:url';
 
 export default defineConfig(({ mode }) => ({
   // F-03 / C2 writer-boundary gate: an explicit build-time constant, not the
-  // runtime import.meta.env object. Only a normal `production` build removes
-  // the Phaser handle and the dev/test diagnostic facade.
+  // runtime import.meta.env object. ONLY the dev server (development) and the
+  // frozen evidence build (--mode test) expose the Phaser handle and the
+  // dev/test diagnostic facade. Any other custom mode is treated as a
+  // production deployment and must NOT expose debug/owner capabilities.
   define: {
-    __LAST_SIGNAL_DEV_TEST__: JSON.stringify(mode !== 'production')
+    __LAST_SIGNAL_DEV_TEST__: JSON.stringify(mode === 'development' || mode === 'test')
   },
   root: fileURLToPath(new URL('.', import.meta.url)),
   base: './',

@@ -7,7 +7,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, readdir, rm, stat } from 'node:fs/promises';
 import { extname, join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 
@@ -65,6 +65,18 @@ async function main(): Promise<void> {
   run('npm', ['run', 'build']);
   log('BUILD test-mode');
   run('npm', ['run', 'build:test']);
+  log('BUILD custom mode (staging) must be treated as production');
+  run('npx', ['vite', 'build', '--mode', 'staging', '--outDir', 'dist-staging']);
+  const stagingAssets = await readdir(resolve(REPO, 'dist-staging/assets'));
+  const stagingLeak = stagingAssets.some((f) => f.endsWith('.js'));
+  let stagingHasHandle = false;
+  for (const f of stagingAssets) {
+    if (!f.endsWith('.js')) continue;
+    const body = await readFile(resolve(REPO, 'dist-staging/assets', f), 'utf8');
+    if (body.includes('window.__game=')) { stagingHasHandle = true; break; }
+  }
+  assert(!stagingLeak || !stagingHasHandle, 'custom non-dev/test mode exposed window.__game');
+  log('PASS custom_mode_no_game_handle');
 
   const browser = await chromium.launch({ headless: true });
   try {
@@ -82,6 +94,7 @@ async function main(): Promise<void> {
       await testBuilt.close();
     }
   } finally { await browser.close(); }
+  await rm(resolve(REPO, 'dist-staging'), { recursive: true, force: true });
   log('F03_PRODUCTION_GATE_PASS');
 }
 

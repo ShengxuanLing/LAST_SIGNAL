@@ -55,6 +55,8 @@ export class ExternalLinkClient {
     timeoutMs: number;
   };
   private closed = false;
+  /** All in-flight requests; degrade/dispose aborts them synchronously. */
+  private readonly inFlight = new Set<AbortController>();
   /** The bridge owns the session id/epoch; the handshake response replaces the
    *  locally proposed values so every later request uses the real ones. */
   private liveSession: string;
@@ -75,6 +77,15 @@ export class ExternalLinkClient {
 
   get session(): string { return this.liveSession; }
   get epoch(): number { return this.liveEpoch; }
+  get isClosed(): boolean { return this.closed; }
+
+  /** Abort every in-flight request WITHOUT closing the client, so a yield can
+   *  still be sent. Late resolutions are ignored by the caller's generation
+   *  check and can never heartbeat / ACK / re-attach in a new epoch. */
+  abortInFlight(): void {
+    for (const controller of this.inFlight) controller.abort();
+    this.inFlight.clear();
+  }
 
   /**
    * Complete the bridge handshake. The bridge requires an explicit
@@ -160,6 +171,7 @@ export class ExternalLinkClient {
 
   private async request(url: string, init: RequestInit): Promise<Response | null> {
     const controller = new AbortController();
+    this.inFlight.add(controller);
     const timer = setTimeout(() => controller.abort(), this.options.timeoutMs);
     try {
       return await this.options.fetchImpl(url, {
@@ -176,6 +188,7 @@ export class ExternalLinkClient {
       return null;
     } finally {
       clearTimeout(timer);
+      this.inFlight.delete(controller);
     }
   }
 }

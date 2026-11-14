@@ -194,14 +194,30 @@ export class World {
     intent: PlayerIntent;
     applyByTick: number;
     ttlTicks: number;
+    /** Integer REAL core ticks the intent must be delivered for. */
+    durationTicks?: number;
   }): ExternalActionReceipt {
     return this.externalLink.enqueueIntent(command, this._sim.tick);
   }
 
-  /** The intent the next rendered frame should execute (external owner). */
+  /**
+   * The intent the CURRENT rendered frame must run for the external owner.
+   * Only an ACTIVE execution (started and bound to an epoch by the controller)
+   * supplies an intent; a merely queued action never runs early.
+   */
   takeExternalIntent(): PlayerIntent {
-    const command = this.externalLink.takeNextIntent();
-    return command ? command.intent : { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+    return this.externalLink.activeIntent()
+      ?? { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+  }
+
+  /** Read-only legal perception predicate (same crop as the player's view). */
+  isPerceivablePosition(x: number, y: number): boolean {
+    return this.isPerceivable(x, y);
+  }
+
+  /** How many core ticks the active external action still needs. */
+  get externalRemainingTicks(): number {
+    return this.externalLink.activeExecution?.remainingTicks ?? 0;
   }
 
   /** The core tick actually applied an external intent: the receipt is real. */
@@ -962,7 +978,28 @@ export class World {
     if (ticks > 0) {
       // World-level spawns and ordinary room spawns commit at the tick boundary.
       this.processWorldSpawns();
-      events = stepSimulationTicks(this._sim, ticks, intent);
+      // C3-b fix: an external action's intent must be delivered for EXACTLY
+      // its remaining integer core ticks. If one frame contains more ticks than
+      // the action has left, split the core call so the surplus ticks run with
+      // a neutral intent. Counting is by core ticks, never by RAF frames.
+      const active = this.externalLink.activeExecution;
+      if (active && active.remainingTicks > 0 && ticks > active.remainingTicks) {
+        const first = active.remainingTicks;
+        events = stepSimulationTicks(this._sim, first, intent);
+        this.externalLink.advanceExecution(first, this._sim.tick, this.externalLink.epoch);
+        const rest = ticks - first;
+        if (rest > 0) {
+          const neutral: SimulationIntent = {
+            move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false
+          };
+          events.push(...stepSimulationTicks(this._sim, rest, neutral));
+        }
+      } else {
+        events = stepSimulationTicks(this._sim, ticks, intent);
+        if (active) {
+          this.externalLink.advanceExecution(ticks, this._sim.tick, this.externalLink.epoch);
+        }
+      }
       this.applySimEvents(events);
       this.bumpSimVersion();
     }

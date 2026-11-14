@@ -1,0 +1,19 @@
+PASS | typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3b-fixes/logs/typecheck.log
+PASS | unit | npx vitest run | rc=0 | reports/ai-native-02/c3b-fixes/logs/unit.log
+PASS | build | npm run build | rc=0 | reports/ai-native-02/c3b-fixes/logs/build.log
+PASS | build_test | npm run build:test | rc=0 | reports/ai-native-02/c3b-fixes/logs/build_test.log
+PASS | mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3b-fixes/logs/mcp_build.log
+PASS | f03_gate | npx vite-node scripts/c3b-f03-gate.mts | rc=0 | reports/ai-native-02/c3b-fixes/logs/f03_gate.log
+PASS | token_acl | npx vite-node scripts/c3b-token-acl-gate.mts | rc=0 | reports/ai-native-02/c3b-fixes/logs/token_acl.log
+PASS | mcp_default_client | npx vite-node src/ai-native/mcpClient.mts | rc=0 | reports/ai-native-02/c3b-fixes/logs/mcp_default_client.log
+PASS | world_mcp_smoke | npx vite-node src/ai-native/worldMcpSmoke.mts | rc=0 | reports/ai-native-02/c3b-fixes/logs/world_mcp_smoke.log
+PASS | world_mcp_integration | npx vite-node src/ai-native/worldMcpIntegration.mts | rc=0 | reports/ai-native-02/c3b-fixes/logs/world_mcp_integration.log
+PASS | world_mcp_integration_flag | npx vite-node src/ai-native/worldMcpIntegration.mts | rc=0 | reports/ai-native-02/c3b-fixes/logs/world_mcp_integration_flag.log
+PASS | world_lease_smoke | npx vite-node src/ai-native/worldMcpLeaseSmoke.mts | rc=0 | reports/ai-native-02/c3b-fixes/logs/world_lease_smoke.log
+PASS | parity_room | npx vite-node scripts/c2-room-generation-parity.ts | rc=0 | reports/ai-native-02/c3b-fixes/logs/parity_room.log
+PASS | parity_node | npx vite-node scripts/c2-node-parity.ts | rc=0 | reports/ai-native-02/c3b-fixes/logs/parity_node.log
+PASS | parity_kill | npx vite-node scripts/c2-kill-parity.ts | rc=0 | reports/ai-native-02/c3b-fixes/logs/parity_kill.log
+PASS | parity_loot | npx vite-node scripts/c2-loot-pickup-parity.ts | rc=0 | reports/ai-native-02/c3b-fixes/logs/parity_loot.log
+GATE1_DONE
+PASS | c3b_repeat3 | PORT=5173 npx playwright test c3b-external-link c3b-hard-disconnect --repeat-each=3 | 27/27 passed | reports/ai-native-02/c3b-fixes/logs/c3b_repeat3.log
+PASS | full_e2e_62 | PORT=5173 npx playwright test --workers=1 | 62/62 (five viewports + C2 regression) | reports/ai-native-02/c3b-fixes/logs/full_e2e.log

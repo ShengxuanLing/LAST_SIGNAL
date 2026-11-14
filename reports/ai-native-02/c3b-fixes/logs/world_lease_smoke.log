@@ -1,0 +1,4 @@
+PASS list_attached_while_live | {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_77bc1f3984f690fc869ff42b","epoch":1,"attached":true,"linkStatus":"connected","leaseStatus":"live"}
+PASS list_dead_not_attached | {"schema":"last_signal.mcp.tool-result.v1","ok":false,"code":"E_SESSION_NOT_FOUND","messageKey":"world.session_closed"}
+PASS observe_dead_fails | {"schema":"last_signal.mcp.tool-result.v1","ok":false,"code":"E_SESSION_NOT_FOUND","messageKey":"world.session_closed"}
+WORLD_LEASE_SMOKE_PASS

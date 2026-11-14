@@ -5,6 +5,7 @@ node_modules/
 dist/
 dist-mcp/
 dist-test/
+dist-staging/
 
 # Test / verification artifacts (screenshots, results, diagnostics)
 test-results/

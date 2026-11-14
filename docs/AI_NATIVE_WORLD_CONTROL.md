@@ -236,3 +236,15 @@ PORT=5173 LS_SHOT_DIR=reports/ai-native-02/screens npx playwright test --reporte
 P1 条件项修复的完整日志与证据在 `reports/ai-native-02/p1-fixes/logs/`、`reports/ai-native-02/p1-fixes/evidence-frozen/`；冻结快照端口 5283，命令见 `reports/ai-native-02/p1-fixes/REPORT.md`。
 
 > 证据分三类：①开发者 spec 注入固定 seed / i-frames / addXp / spawnEnemy / `enteredRooms.add` / 临时 `tile.type='wall'` / `spawnBoss`+坐标 / `portal.wx/wy` / 合成伤害 / 第二武器等**夹具证据**，只证明控制流、几何、清理与感知投影；②独立 Tester 对父提交 `2d78e80` 的无夹具探针在 `reports/ai-native-02/tester/p1-final/`，对修复提交 `1aadd2e` 的无夹具探针在 `reports/ai-native-02/tester/p1-fixes-final/`（自然受伤、背包/恢复/不自抢、指针覆盖层等），均不是本提交之后的 C2 WIP 证据；③外部 Agent / Headless World / Replay 全部未实现。各类证据的真实 commit 归属见 `docs/AI_NATIVE_PHASE_REPORTS.md` 证据范围表。三类均不得宣称 Headless、LLM、Codex 或战斗胜利。
+
+## C3-b 修复提交（8ec8758 之后）
+
+- **ACK 语义（精确）**：`applied` = 合法意图被真实 core tick 提交了请求的整数 `ticks`（real `startedTick`/`completedTick`/`executedTicks`），**不保证**位移/命中/击杀/交互成功；`queued ≠ applied`；`executing` 表示按 tick 推进。
+- **动作时长**：`move`/`fire` 的 `ticks` 由真实 core tick 计数（`World.stepFrame` 按实际 tick 扣减，一帧多 tick 不会多送意图，多帧累计同样计数）；`aim`/`interact`/`stop` 为 1 tick 合法提交；`fire` 只受真实 cooldown/ammo 约束。
+- **异步生命周期**：控制器每次异步操作持 `generation + 局部 client + epoch`，每个 `await` 后重新校验；`degrade()/dispose()` 立即 `abortInFlight()` 并置空 client，迟到回调不得 heartbeat/ACK/push/重挂；`beforeFrame`/`afterFrame` 互斥。
+- **观察裁剪**：`projectiles` 与 `drones/targets` 使用同一 `isPerceivable`（12 格 + 已探索 + LOS），墙后/他房/远距弹丸不返回。
+- **独立 Agent 租约**：MCP 进程持 `leaseId + version + expiresAtMs`，后台续约；浏览器心跳不能续 Agent 权限；硬 `SIGKILL` 后期限到期 → 取消执行/排队动作、bump epoch、关会话、渲染侧 HUMAN/LOST；同一 session 仅一个 live 租约；旧 `leaseId` 不能续新授权；`world_list_sessions` 每次远端核对，死会话绝不 `attached:true`，且不自动重挂。
+- **模式门禁**：`__LAST_SIGNAL_DEV_TEST__ = (mode === 'development' || mode === 'test')`；自定义 mode 按生产处理（不暴露 `__game`）。
+- **token 文件**：POSIX `chmod 0600`；Windows 用绝对路径 `System32\icacls.exe /inheritance:r /grant:r *<SID>:F`，实测只剩当前用户 ACE；不打印 token、不进 URL/参数。
+- **正式逐轮工具**：`npm run game:world:mcp-console`（官方 MCP stdio，`list/observe/act/raw/status/close`，`--json` 单次调用，工具 I/O 写入 `reports/ai-native-02/c3b-fixes/tool-io/`）。
+- **仍未实现**：C3-c Headless same-core 实跑、真实 LLM 战斗、游戏内连接输入 UI（后续小提交）；常规演示目前仍需宿主页/控制台注入配置。

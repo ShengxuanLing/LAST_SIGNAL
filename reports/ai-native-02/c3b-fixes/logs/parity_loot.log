@@ -1,0 +1,16 @@
+PASS far-20-present-at-drop
+PASS far-20-still-present-after-120-ticks
+PASS far-20-currency-unchanged
+PASS far-40-present-at-drop
+PASS far-40-still-present-after-120-ticks
+PASS far-40-currency-unchanged
+PASS far-85-present-at-drop
+PASS far-85-still-present-after-120-ticks
+PASS far-85-currency-unchanged
+PASS near-loot-collected
+PASS diagonal-loot-still-present
+PASS diagonal-loot-not-collected
+PASS small-pickup-range-no-collect
+PASS large-pickup-range-collects-far-loot
+PASS health-loot-heals-on-pickup
+LOOT_PICKUP_PARITY_PASS failures=0

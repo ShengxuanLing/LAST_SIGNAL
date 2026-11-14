@@ -1,4 +1,4 @@
-// AI-NATIVE-02 C3-b — rendered external-link controller.
+// AI-NATIVE-02 C3-b — rendered external-link controller (C3-b fix).
 //
 // Owns the browser side of the loopback bridge link:
 //   1. the HUMAN authorizes (the UI button), then the bridge handshake runs;
@@ -8,13 +8,27 @@
 //   4. after the tick that executed it, the receipt is ACKed with the REAL
 //      post-commit tick.
 //
-// It never steps the rendered world, never writes scene state and never logs
-// the bridge token.
+// Lifecycle invariants (reviewer blocking issue 2):
+//  - every async operation captures a LOCAL client reference + epoch +
+//    generation token and re-validates after EVERY await;
+//  - degrade/dispose bump the generation, null the client and abort all
+//    in-flight requests, so a late continuation can never heartbeat, ACK,
+//    push an observation or re-attach in a new epoch;
+//  - beforeFrame/afterFrame never overlap their commit/read of an action;
+//  - an action's `ticks` is delivered for that many REAL core ticks. The core
+//    tick counter (not the RAF frame counter) owns the duration.
+//
+// ACK semantics (documented, not over-claimed): `applied` means the LEGAL
+// INTENT was committed to the core for the requested number of ticks. It does
+// NOT guarantee a hit, a kill or a displacement: walls, cooldown, ammo and
+// the real collision rules still decide the effect, exactly as for a human.
 
 import { ExternalLinkClient, type ExternalClientObservation } from './externalLinkClient';
-import { ExternalLinkState, type ExternalActionReceipt } from './externalLink';
+import { ExternalLinkState, EXTERNAL_LINK_LIMITS, type ExternalActionReceipt } from './externalLink';
 import type { PlayerIntent } from './control';
 import type { World } from '../world/World';
+import { buildExternalObservation } from './externalObservation';
+import { WORLD_LIMITS } from './worldProtocol';
 
 export type ExternalLinkDegradeReason =
   | 'takeover' | 'pause' | 'death' | 'scene-exit' | 'disconnect' | 'heartbeat-loss'
@@ -28,6 +42,8 @@ export interface ExternalLinkControllerOptions {
   readonly authorize: () => void;
   readonly onStatus?: (status: ExternalLinkStatusView) => void;
   readonly heartbeatMs?: number;
+  /** Injectable transport for lifecycle regression tests. */
+  readonly fetchImpl?: typeof fetch;
 }
 
 export interface ExternalLinkStatusView {
@@ -40,11 +56,11 @@ export interface ExternalLinkStatusView {
   readonly lastAppliedTick: number | null;
 }
 
-interface PendingExecution {
-  readonly actionId: string;
-  readonly requestId: string;
-  readonly intent: PlayerIntent;
-  readonly issuedAtTick: number;
+/** A captured lifecycle token. Every await re-validates against it. */
+interface LifecycleToken {
+  readonly client: ExternalLinkClient;
+  readonly epoch: number;
+  readonly generation: number;
 }
 
 /** Convert a bridge action into a legal PlayerIntent. */
@@ -73,12 +89,28 @@ export function intentFromExternalAction(action: {
   return { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
 }
 
+/**
+ * `move`/`fire` honour the requested integer tick duration. `aim`, `interact`
+ * and `stop` are single legal commits by definition: repeating them would
+ * duplicate an interaction or an aim change rather than express a duration.
+ */
+export function durationForAction(action: { type: string; ticks?: number }): number {
+  if (action.type !== 'move' && action.type !== 'fire') return 1;
+  const value = action.ticks ?? 1;
+  if (!Number.isFinite(value)) return 1;
+  return Math.max(1, Math.min(WORLD_LIMITS.MAX_ACTION_TICKS, Math.floor(value)));
+}
+
 export class ExternalLinkController {
   private client: ExternalLinkClient | null = null;
-  private executing: PendingExecution | null = null;
+  private generation = 0;
   private lastHeartbeatMs = 0;
   private readonly heartbeatMs: number;
   private disposed = false;
+  private beforeBusy = false;
+  private afterBusy = false;
+  /** Last error from the bridge handshake, for a real UI error message. */
+  private _lastError: { code: string; messageKey: string } | null = null;
 
   constructor(private readonly options: ExternalLinkControllerOptions) {
     this.heartbeatMs = options.heartbeatMs ?? 1000;
@@ -86,6 +118,30 @@ export class ExternalLinkController {
 
   get connected(): boolean { return this.client !== null; }
   get state(): ExternalLinkState { return this.options.world.externalLink; }
+  get lastError(): { code: string; messageKey: string } | null { return this._lastError; }
+
+  /** Capture the session token at the START of an async operation. */
+  private capture(): LifecycleToken | null {
+    const client = this.client;
+    if (this.disposed || !client) return null;
+    return {
+      client,
+      epoch: this.options.world.externalLink.epoch,
+      generation: this.generation
+    };
+  }
+
+  /** Re-validate after EVERY await. No optional chaining can hide this race. */
+  private live(token: LifecycleToken): boolean {
+    const world = this.options.world;
+    return !this.disposed
+      && this.generation === token.generation
+      && this.client === token.client
+      && !token.client.isClosed
+      && world.externalLink.status === 'CONNECTED'
+      && world.externalLink.epoch === token.epoch
+      && world.player.control.owner === 'external';
+  }
 
   /**
    * Human authorization: creates the local link state and performs the bridge
@@ -93,27 +149,41 @@ export class ExternalLinkController {
    */
   async authorizeHuman(): Promise<boolean> {
     const authorized = this.options.world.externalLink.authorize(true);
-    if (!authorized.ok) return false;
+    if (!authorized.ok) {
+      this._lastError = { code: 'E_PERMISSION', messageKey: 'world.authorization_required' };
+      return false;
+    }
     this.options.authorize();
+    const generation = ++this.generation;
     const client = new ExternalLinkClient({
       bridgeUrl: this.options.bridgeUrl,
       token: this.options.token,
       session: authorized.session,
-      epoch: authorized.epoch
+      epoch: authorized.epoch,
+      ...(this.options.fetchImpl ? { fetchImpl: this.options.fetchImpl } : {})
     });
     const handshake = await client.handshake();
+    // A degrade/dispose may have happened while the handshake was in flight.
+    if (this.disposed || this.generation !== generation) {
+      this.options.world.externalLink.disconnect();
+      this._lastError = { code: 'E_LINK_UNAVAILABLE', messageKey: 'world.handshake_cancelled' };
+      return false;
+    }
     if (!handshake.ok) {
       this.options.world.externalLink.disconnect();
+      this._lastError = { code: 'E_LINK_UNAVAILABLE', messageKey: 'world.bridge_unreachable' };
       this.emit();
       return false;
     }
     // The bridge owns the session id/epoch: adopt them on both sides.
     if (!this.options.world.externalLink.connected(handshake.session, handshake.epoch)) {
       this.options.world.externalLink.disconnect();
+      this._lastError = { code: 'E_STALE_EPOCH', messageKey: 'world.stale_epoch' };
       this.emit();
       return false;
     }
     this.client = client;
+    this._lastError = null;
     this.options.world.player.control.enableExternal();
     this.emit();
     return true;
@@ -121,78 +191,100 @@ export class ExternalLinkController {
 
   /** Called once per rendered frame AFTER the core tick ran. */
   async afterFrame(): Promise<void> {
-    if (this.disposed || !this.client) return;
-    const world = this.options.world;
+    if (this.afterBusy) return; // never overlap a commit/read with another frame
+    this.afterBusy = true;
+    try {
+      const token = this.capture();
+      if (!token || !this.live(token)) return;
+      const world = this.options.world;
 
-    // 1) If an external intent was executed by the last tick, ACK it now with
-    //    the REAL post-commit tick.
-    if (this.executing) {
-      const execution = this.executing;
-      this.executing = null;
-      const applied = world.sim.tick > execution.issuedAtTick;
-      if (applied) {
-        world.commitExternalIntent(execution.actionId, world.sim.tick);
-        await this.client.ackIntent(execution.requestId, execution.actionId, 'applied', world.sim.tick);
-      } else {
-        // Not committed by a tick: the intent never happened.
-        world.rejectExternalIntent(execution.actionId, 'E_STALE_TICK', world.sim.tick);
-        await this.client.ackIntent(execution.requestId, execution.actionId, 'rejected', world.sim.tick, 'E_STALE_TICK');
+      // 1) Drain REAL post-commit completions and ACK each with its real tick.
+      const completions = world.externalLink.drainCompleted();
+      for (const completion of completions) {
+        if (!this.live(token)) return; // late callback: never ACK a new epoch
+        const r: ExternalActionReceipt = completion.receipt;
+        const applied = r.status === 'applied';
+        const tick = r.completedTick ?? r.appliedTick ?? world.sim.tick;
+        await token.client.ackIntent(
+          completion.requestId, completion.actionId,
+          applied ? 'applied' : 'rejected', tick,
+          applied ? undefined : (r.code ?? 'E_LINK_UNAVAILABLE')
+        );
+        if (!this.live(token)) return;
+        if (applied) {
+          // HUD LAST comes from the actual core commit, not from a queue.
+          world.player.control.noteExternalAction(completion.actionId, tick);
+        }
       }
-    }
 
-    // 2) Push the post-commit observation (perception-cropped, no map/seed/RNG).
-    await this.client.pushObservation(this.observation());
+      // 2) Push the post-commit, perception-cropped observation.
+      if (!this.live(token)) return;
+      await token.client.pushObservation(this.observation());
+      if (!this.live(token)) return; // reviewer race: degrade during the await
 
-    // 3) Heartbeat keeps the session alive; loss degrades to human control.
-    const now = Date.now();
-    if (now - this.lastHeartbeatMs >= this.heartbeatMs) {
-      this.lastHeartbeatMs = now;
-      const alive = await this.client.heartbeat();
-      if (!alive) this.degrade('heartbeat-loss');
+      // 3) Heartbeat keeps the session alive; loss degrades to human control.
+      const now = Date.now();
+      if (now - this.lastHeartbeatMs >= this.heartbeatMs) {
+        this.lastHeartbeatMs = now;
+        const alive = await token.client.heartbeat();
+        if (!this.live(token)) return; // late callback must not degrade a new epoch
+        if (!alive) this.degrade('heartbeat-loss');
+      }
+      this.emit();
+    } finally {
+      this.afterBusy = false;
     }
-    this.emit();
   }
 
   /**
-   * Poll the bridge for the next intent and queue it for the next core tick.
+   * Poll the bridge for the next intent and START it for the next core ticks.
    * Called BEFORE the core tick of the next frame.
    */
   async beforeFrame(): Promise<void> {
-    if (this.disposed || !this.client) return;
-    const world = this.options.world;
-    if (world.player.control.owner !== 'external') return;
-    if (this.executing) return; // one external intent at a time
-    const next = await this.client.nextIntent();
-    if (!next) return;
-    const intent = intentFromExternalAction(next.action);
-    const receipt = world.enqueueExternalIntent({
-      actionId: next.actionId,
-      requestId: next.requestId,
-      intent,
-      applyByTick: next.applyByTick,
-      ttlTicks: 120
-    });
-    if (receipt.status === 'queued') {
-      this.executing = {
+    if (this.beforeBusy) return; // never overlap two polls / two starts
+    this.beforeBusy = true;
+    try {
+      const token = this.capture();
+      if (!token || !this.live(token)) return;
+      const world = this.options.world;
+      if (world.externalLink.hasActive) return; // one external action at a time
+      const next = await token.client.nextIntent();
+      if (!this.live(token)) return; // late callback: never start a stale action
+      if (!next) return;
+      const durationTicks = durationForAction(next.action);
+      const intent = intentFromExternalAction(next.action);
+      const receipt = world.enqueueExternalIntent({
         actionId: next.actionId,
         requestId: next.requestId,
         intent,
-        issuedAtTick: world.sim.tick
-      };
+        applyByTick: next.applyByTick,
+        ttlTicks: EXTERNAL_LINK_LIMITS.MAX_TTL_TICKS,
+        durationTicks
+      });
+      if (!this.live(token)) return;
+      if (receipt.status === 'queued') {
+        // `beginExecution` binds the epoch and checks the execution deadline.
+        world.externalLink.beginExecution(world.sim.tick, token.epoch);
+      }
+    } finally {
+      this.beforeBusy = false;
     }
   }
 
-  /** Human takeover / pause / death / scene exit: cancel pending intents. */
+  /** Human takeover / pause / death / scene exit: cancel ALL in-flight work. */
   degrade(reason: ExternalLinkDegradeReason): void {
     const world = this.options.world;
-    world.externalLink.yield(reason);
+    // 1) Invalidate every in-flight async continuation BEFORE touching state.
+    this.generation += 1;
+    world.externalLink.yield(reason); // cancels active + pending + completions
     world.player.control.disableExternal(reason);
-    this.executing = null;
-    // Close the bridge session too, so the next explicit HUMAN AUTHORIZE can
-    // create a fresh session. Without the click nothing reconnects.
+    // 2) Detach and abort the local client; never reuse it after this point.
     const client = this.client;
     this.client = null;
     if (client) {
+      client.abortInFlight();
+      // Close the bridge session too, so the next explicit HUMAN AUTHORIZE can
+      // create a fresh session. Without the click nothing reconnects.
       void client.yieldLink(reason).catch(() => undefined).finally(() => {
         void client.close().catch(() => undefined);
       });
@@ -203,54 +295,45 @@ export class ExternalLinkController {
   async dispose(reason: 'scene-exit' | 'disconnect' = 'scene-exit'): Promise<void> {
     if (this.disposed) return;
     this.disposed = true;
+    this.generation += 1;
     const world = this.options.world;
     world.externalLink.yield(reason);
     world.player.control.disableExternal(reason);
-    this.executing = null;
-    if (this.client) {
-      await this.client.close().catch(() => undefined);
-      this.client = null;
+    const client = this.client;
+    this.client = null;
+    if (client) {
+      client.abortInFlight();
+      await client.close().catch(() => undefined);
     }
   }
 
-  /** Perception-cropped observation for the agent (no full map, seed or RNG). */
+  /** Perception-cropped observation (no full map, seed, RNG or hidden state). */
   private observation(): ExternalClientObservation {
     const world = this.options.world;
     const view = world.observationView();
-    const player = world.player;
-    const weapon = player.data.weapons.find((w) => w.key === player.data.weaponKey);
-    const coreDrones = world.sim.drones
-      .filter((d) => d.hp > 0)
-      .map((d) => ({
-        id: d.id, kind: d.data.kind, x: d.x, y: d.y, hp: d.hp, state: d.data.state
-      }));
-    const coreTargets = world.sim.targets
-      .filter((t) => t.hp > 0)
-      .map((t) => ({ id: t.id, kind: t.kind, x: t.x, y: t.y, hp: t.hp, state: 'alive' }));
-    const perceivedIds = new Set(view.perceivedActors.map((a) => a.id));
-    const visible = [...coreDrones, ...coreTargets].filter((a) => perceivedIds.has(a.id));
-    return {
-      schema: 'last_signal.world.v1',
-      protocolVersion: 1,
+    const sim = world.sim;
+    return buildExternalObservation({
       epoch: world.externalLink.epoch,
-      tick: world.sim.tick,
-      roomId: view.roomId,
-      player: {
-        x: view.player.x, y: view.player.y, hp: view.player.hp, maxHp: view.player.maxHp,
-        aimYaw: world.sim.player.aimYaw,
-        weaponKey: player.data.weaponKey,
-        ammo: weapon?.ammo ?? -1,
-        magazine: weapon?.magazine ?? -1
+      tick: sim.tick,
+      view,
+      playerData: {
+        weaponKey: world.player.data.weaponKey,
+        weapons: world.player.data.weapons
       },
-      drones: visible.map((a) => ({
-        id: a.id, kind: a.kind, x: a.x, y: a.y, hp: a.hp, state: a.state
+      aimYaw: sim.player.aimYaw,
+      drones: sim.drones.filter((d) => d.hp > 0).map((d) => ({
+        id: d.id, kind: d.data.kind, x: d.x, y: d.y, hp: d.hp, state: d.data.state
       })),
-      projectiles: world.sim.projectiles.map((p) => ({
-        id: p.id, side: p.side, kind: p.kind, x: p.pos.x, y: p.pos.y,
-        vx: p.vel.x, vy: p.vel.y, damage: p.damage, lifetime: p.lifetime
+      targets: sim.targets.filter((t) => t.hp > 0).map((t) => ({
+        id: t.id, kind: t.kind, x: t.x, y: t.y, hp: t.hp
       })),
-      availableActions: ['move', 'stop', 'aim', 'fire', 'interact']
-    };
+      projectiles: sim.projectiles.map((p) => ({
+        id: p.id, side: p.side, kind: p.kind, pos: p.pos, vel: p.vel,
+        damage: p.damage, lifetime: p.lifetime
+      })),
+      // SAME finite radius + explored + LOS predicate used for the player.
+      isPerceivable: (x, y) => world.isPerceivablePosition(x, y)
+    });
   }
 
   private emit(): void {

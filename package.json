@@ -25,6 +25,8 @@
     "game:world": "vite-node src/ai-native/mcpServer.ts --world",
     "game:world:bridge": "vite-node scripts/c3b-bridge.mts",
     "game:world:console": "vite-node scripts/c3b-world-console.mts",
+    "game:world:mcp-console": "vite-node scripts/c3b-mcp-console.mts",
+    "game:world:lease-smoke": "vite-node src/ai-native/worldMcpLeaseSmoke.mts",
     "game:world:smoke": "vite-node src/ai-native/worldMcpSmoke.mts",
     "game:world:integration": "vite-node src/ai-native/worldMcpIntegration.mts",
     "game:f03:gate": "vite-node scripts/c3b-f03-gate.mts"

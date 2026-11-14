@@ -10,6 +10,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { WORLD_LIMITS, WORLD_PROTOCOL_VERSION } from './worldProtocol';
 import type { ErrorCodeV1 } from './protocol';
 import type { WorldGateway } from './worldGateway';
+import { AgentLeaseRegistry } from './agentLease';
 
 export interface WorldBridgeOptions {
   readonly gateway: WorldGateway;
@@ -37,6 +38,8 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   const allowed = new Set(options.allowedOrigins);
   const bodyMax = options.bodyMaxBytes ?? WORLD_LIMITS.MAX_PAYLOAD_BYTES;
   const linkedByOrigin = new Map<string, string>();
+  // Independent AGENT lease. The browser heartbeat is NOT allowed to renew it.
+  const leases = new AgentLeaseRegistry();
   const server: Server = createServer((req, res) => { void handle(req, res); });
 
   const closeBridge = async (): Promise<void> => {
@@ -47,14 +50,30 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
       server.close(() => resolve());
     });
     options.gateway.dispose();
+    leases.dispose();
     linkedByOrigin.clear();
   };
 
   const reaper = setInterval(() => {
+    const now = Date.now();
     // LOST sessions stay in linkedByOrigin so a duplicate handshake cannot
     // silently create a new control link; explicit close/authorize is needed.
-    options.gateway.reapExpired(Date.now());
-  }, Math.max(20, options.heartbeatIntervalMs ?? WORLD_LIMITS.HEARTBEAT_MS));
+    options.gateway.reapExpired(now);
+    // HARD DISCONNECT: a SIGKILL cannot run cleanup, so the independent AGENT
+    // lease must expire on a deadline. Cancel pending/executing actions, bump
+    // the epoch, close the session and force the rendered game to HUMAN/LOST.
+    for (const expiry of leases.reap(now)) {
+      const view = options.gateway.listSessions().find((s) => s.session === expiry.sessionId);
+      if (view) {
+        options.gateway.yieldSession(expiry.sessionId, view.epoch, 'agent-lease-expired', now);
+        options.gateway.closeSession(expiry.sessionId, now);
+      }
+      for (const [origin, id] of linkedByOrigin) if (id === expiry.sessionId) linkedByOrigin.delete(origin);
+    }
+  }, Math.min(
+    WORLD_LIMITS.AGENT_REAP_MS,
+    Math.max(20, options.heartbeatIntervalMs ?? WORLD_LIMITS.HEARTBEAT_MS)
+  ));
   reaper.unref?.();
 
   async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -67,7 +86,9 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
       (pathname === '/world-link/attach' && method === 'POST') ||
       (pathname === '/world-link/observation' && method === 'GET') ||
       (pathname === '/world-link/action-submit' && method === 'POST') ||
-      (pathname === '/world-link/agent-disconnect' && method === 'POST');
+      (pathname === '/world-link/agent-disconnect' && method === 'POST') ||
+      (pathname === '/world-link/agent-renew' && method === 'POST') ||
+      (pathname === '/world-link/agent-status' && method === 'GET');
     if (typeof origin === 'string') {
       if (!allowed.has(origin)) {
         respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'world.origin_denied' });
@@ -93,6 +114,8 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (pathname === '/world-link/action-submit' && req.method === 'POST') return actionSubmit(req, res);
     if (pathname === '/world-link/attach' && req.method === 'POST') return attach(req, res);
     if (pathname === '/world-link/agent-disconnect' && req.method === 'POST') return agentDisconnect(req, res);
+    if (pathname === '/world-link/agent-renew' && req.method === 'POST') return agentRenew(req, res);
+    if (pathname === '/world-link/agent-status' && req.method === 'GET') return agentStatus(req, res);
     if (pathname === '/world-link/heartbeat' && req.method === 'POST') return heartbeat(req, res);
     if (pathname === '/world-link/next-action' && req.method === 'GET') return nextAction(req, res);
     if (pathname === '/world-link/action-ack' && req.method === 'POST') return actionAck(req, res);
@@ -116,6 +139,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
         return;
       }
       linkedByOrigin.delete(origin);
+      leases.invalidateSession(existing);
     }
     const linked = options.gateway.linkSession({ authorized: true, origin, nowMs: Date.now() });
     if (!linked.ok) {
@@ -183,13 +207,20 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (!view || view.status === 'closed') {
       return respond(res, 404, { ok: false, code: 'E_SESSION_NOT_FOUND', messageKey: 'world.session_unknown' });
     }
+    const issued = leases.issue(view.session, view.epoch, Date.now());
+    if (!issued.ok) return respond(res, 409, { ...issued });
     respond(res, 200, {
       ok: true,
       protocolVersion: WORLD_PROTOCOL_VERSION,
       session: view.session,
       epoch: view.epoch,
       status: view.status,
-      heartbeatMs: WORLD_LIMITS.HEARTBEAT_MS
+      heartbeatMs: WORLD_LIMITS.HEARTBEAT_MS,
+      // The MCP process must renew THIS lease; the browser heartbeat cannot.
+      leaseId: issued.lease.leaseId,
+      leaseVersion: issued.lease.version,
+      leaseMs: issued.leaseMs,
+      renewMs: issued.renewMs
     });
   }
 
@@ -208,10 +239,49 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     // HUMAN created and that is still live on this bridge.
     const live = [...linkedByOrigin.values()].includes(session);
     if (!live) return respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'world.authorization_required' });
+    const leaseId = asString(body.leaseId);
+    if (leaseId) leases.release(leaseId);
     const result = options.gateway.closeSession(session, Date.now());
+    if (result.ok) leases.invalidateSession(session);
     for (const [origin, id] of linkedByOrigin) if (id === session) linkedByOrigin.delete(origin);
     if (!result.ok) return respond(res, statusFor(result.code), result);
     respond(res, 200, { ok: true, session: result.session, control: 'human' });
+  }
+
+  /** Agent lease renewal. ONLY the MCP client renews; the browser heartbeat
+   *  is a separate route and can never extend Agent authority. */
+  async function agentRenew(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const leaseId = asString(body.leaseId);
+    const session = asString(body.session);
+    const epoch = asInt(body.epoch);
+    if (!leaseId || !session || epoch === null) return badRequest(res);
+    const result = leases.renew(leaseId, session, epoch, Date.now());
+    if (!result.ok) return respond(res, statusFor(result.code), { ...result });
+    respond(res, 200, { ok: true, expiresAtMs: result.lease.expiresAtMs, version: result.lease.version });
+  }
+
+  /** Remote truth for `world_list_sessions`: never trust a local cached id. */
+  async function agentStatus(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const url = new URL(req.url ?? '/', 'http://127.0.0.1');
+    const session = url.searchParams.get('session');
+    const leaseId = url.searchParams.get('leaseId');
+    if (!session || !leaseId) return badRequest(res);
+    if (!agentOriginOk(req, options.allowedOrigins)) return originDenied(res);
+    const view = options.gateway.listSessions().find((s) => s.session === session);
+    const dead = !view || view.status !== 'connected' || leases.isExpiredSession(session);
+    const lease = leases.status(session, leaseId, Date.now());
+    const live = !dead && lease.ok && lease.epoch === view!.epoch;
+    respond(res, 200, {
+      ok: true,
+      attached: live,
+      session,
+      epoch: view?.epoch ?? lease.epoch,
+      status: live ? 'connected' : dead ? 'closed' : 'lost',
+      leaseStatus: lease.status,
+      expiresAtMs: lease.expiresAtMs
+    });
   }
 
   /** Agent-side read of the latest post-commit observation. */
@@ -257,6 +327,11 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const epoch = asInt(body.epoch);
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    // A browser heartbeat must NEVER renew the Agent lease. If the lease has
+    // expired, tell the browser explicitly so it degrades to HUMAN / LOST.
+    if (leases.isExpiredSession(session)) {
+      return respond(res, 503, { ok: false, code: 'E_LINK_UNAVAILABLE', messageKey: 'world.agent_lease_expired' });
+    }
     const result = options.gateway.heartbeat(session, epoch, Date.now());
     if (!result.ok) return respond(res, statusFor(result.code), result);
     respond(res, 200, { ok: true });
@@ -307,6 +382,9 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
     const result = options.gateway.yieldSession(session, epoch, reason, Date.now());
+    // A yielded/closed link must also invalidate the AGENT lease; an old
+    // process can never renew authority after a human takeover.
+    if (result.ok) leases.invalidateSession(session);
     if (!result.ok) return respond(res, statusFor(result.code), result);
     respond(res, 200, { ok: true, epoch: result.epoch, status: 'yielded' });
   }
@@ -319,7 +397,10 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     // F3/close: closing a session is an authorized operation too. A different
     // allowed origin with the same token must not force-close another session.
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    const leaseId = asString(body.leaseId);
+    if (leaseId) leases.release(leaseId);
     const result = options.gateway.closeSession(session, Date.now());
+    if (result.ok) leases.invalidateSession(session);
     for (const [origin, id] of linkedByOrigin) if (id === session) linkedByOrigin.delete(origin);
     if (!result.ok) return respond(res, statusFor(result.code), result);
     respond(res, 200, { ok: true, session: result.session });

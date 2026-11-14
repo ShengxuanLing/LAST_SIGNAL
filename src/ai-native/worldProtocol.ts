@@ -32,7 +32,13 @@ export const WORLD_LIMITS = Object.freeze({
   MAX_OBSERVATION_DRONES: 32,
   MAX_OBSERVATION_PROJECTILES: 64,
   HEARTBEAT_MS: 1000,
-  LOST_AFTER_MS: 5000
+  LOST_AFTER_MS: 5000,
+  /** Independent AGENT lease (MCP process), separate from the browser heartbeat. */
+  AGENT_LEASE_MS: 4000,
+  /** How often the MCP client renews its lease in the background. */
+  AGENT_RENEW_MS: 1000,
+  /** Bridge-side expiry reaper cadence. */
+  AGENT_REAP_MS: 200
 });
 
 const actionId = z.string().regex(AI_NATIVE_ID_PATTERNS_V1.actionId);

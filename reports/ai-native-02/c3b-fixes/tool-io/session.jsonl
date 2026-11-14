@@ -1,0 +1,2 @@
+{"at":"2026-11-14T22:25:00.250Z","tool":"world_list_sessions","args":{},"result":{"schema":"last_signal.mcp.tool-result.v1","ok":false,"code":"E_LINK_UNAVAILABLE","messageKey":"world.bridge_unreachable"},"ms":4023}
+{"at":"2026-11-14T22:25:11.478Z","tool":"world_list_sessions","args":{},"result":{"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_069cda86fe5ba152f539255f","epoch":1,"attached":true,"linkStatus":"connected","leaseStatus":"live"},"ms":59}
