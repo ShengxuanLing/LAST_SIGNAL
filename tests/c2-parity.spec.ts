@@ -11,6 +11,7 @@ import path from 'node:path';
 const PORT = Number(process.env.PORT ?? 5173);
 const SEED = 424242;
 const OUT = path.resolve('reports/ai-native-02/c2/parity');
+const KILL_OUT = path.resolve('reports/ai-native-02/c2-fixes-round2/parity-kill');
 const NEUTRAL = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
 
 async function bootRun(page: Page): Promise<void> {
@@ -166,6 +167,87 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
     expect(result.eventTypes, 'drone FSM ran').toContain('drone-step');
     expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
   });
+
+  test('B6/H2: real kill rewards, events and post-kill shot parity fixture', async ({ page }) => {
+    test.setTimeout(150000);
+    const errors: string[] = [];
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    mkdirSync(KILL_OUT, { recursive: true });
+    await bootRun(page);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(350);
+
+    const result = await page.evaluate(async () => {
+      const mod: any = await import('/src/world/sim/core.ts');
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const w = gs.world;
+      const p = { x: w.player.wx, y: w.player.wy };
+      const room = w.currentRoom();
+      const walk = (dx: number): { x: number; y: number } | null => {
+        for (const d of [dx, dx * 1.5, dx * 2]) {
+          const x = p.x + d, y = p.y;
+          if (w.isWalkable(x, y, 0.5)) return { x, y };
+        }
+        return null;
+      };
+      const droneSpot = walk(1.5) ?? walk(-1.5)!;
+      const hunterSpot = walk(-1.5) ?? walk(1.5)!;
+      const drone = w.spawnEnemy('drone', droneSpot.x, droneSpot.y, room?.id ?? 0, 1);
+      const hunter = w.spawnEnemy('hunter', hunterSpot.x, hunterSpot.y, room?.id ?? 0, 1);
+      // Freeze both legacy/core FSM attacks for a deterministic reward/RNG sample.
+      for (const e of [drone, hunter]) {
+        e.data.state = 'stun';
+        e.data.stateTimer = 1000;
+        e.attackTimer = 1000;
+        e.wanderTimer = 1000;
+      }
+      const initial = JSON.parse(JSON.stringify(w.sim));
+      const sequence = [
+        { ticks: 90, intent: { move: { x: 0, y: 0 }, dash: false, fire: true, aim: { x: droneSpot.x, y: droneSpot.y }, interact: false } },
+        { ticks: 90, intent: { move: { x: 0, y: 0 }, dash: false, fire: true, aim: { x: hunterSpot.x, y: hunterSpot.y }, interact: false } },
+        { ticks: 40, intent: { move: { x: 0, y: 0 }, dash: false, fire: true, aim: { x: hunterSpot.x, y: hunterSpot.y }, interact: false } }
+      ];
+      const events: any[] = [];
+      w.resetSimulationAccumulator();
+      for (const step of sequence) {
+        for (let i = 0; i < step.ticks; i++) events.push(...w.stepFrame(1000 / 60 + 1e-6, step.intent));
+      }
+      return {
+        initial,
+        sequence,
+        canonical: mod.canonicalSimulationState(w.sim),
+        events: mod.canonicalSimulationEvents(events),
+        eventTypes: [...new Set(events.map((e: any) => e.type))],
+        finalTick: w.sim.tick,
+        xp: w.sim.player.data.xp,
+        currency: w.sim.player.data.currency,
+        dronesLeft: w.sim.drones.length,
+        targetsLeft: w.sim.targets.length
+      };
+    });
+    writeFileSync(path.join(KILL_OUT, 'kill-initial.json'), JSON.stringify(result.initial, null, 2));
+    writeFileSync(path.join(KILL_OUT, 'kill-sequence.json'), JSON.stringify(result.sequence, null, 2));
+    writeFileSync(path.join(KILL_OUT, 'kill-rendered.json'), JSON.stringify({
+      canonical: result.canonical,
+      events: result.events,
+      eventTypes: result.eventTypes,
+      finalTick: result.finalTick,
+      xp: result.xp,
+      currency: result.currency,
+      dronesLeft: result.dronesLeft,
+      targetsLeft: result.targetsLeft
+    }, null, 2));
+    expect(result.finalTick, 'kill scenario advanced the core').toBe(result.initial.tick + 220);
+    expect(result.eventTypes, 'real drone and non-drone deaths').toContain('enemy-died');
+    expect(result.eventTypes, 'core XP reward emitted').toContain('xp-gained');
+    expect(result.dronesLeft, 'drone removed').toBe(0);
+    expect(result.targetsLeft, 'non-drone target removed').toBe(0);
+    expect(result.xp, 'rendered XP reward committed by core').toBeGreaterThan(0);
+    expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
+  });
+
   test('F-08: restoreCheckpoint uses a deep copy of the incoming frame', async ({ page }) => {
     test.setTimeout(90000);
     const errors: string[] = [];
@@ -222,19 +304,23 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       const hunter = w.spawnEnemy('hunter', spot.x, spot.y, room.id, 1);
       const stalker = w.spawnEnemy('stalker', spot.x, spot.y, room.id, 1);
       const sentinel = w.spawnEnemy('sentinel', spot.x, spot.y, room.id, 1);
-      // Reduce HP only to verify the shared damage/death transaction in a short test.
-      hunter._hp = 20; stalker._hp = 20; sentinel._hp = 20;
-      const h0 = [hunter._hp, stalker._hp, sentinel._hp];
+      // Reduce HP through legal core commands; adapter setters are read-only now.
+      w.enqueueTargetHp(hunter._id, 20); w.enqueueTargetHp(stalker._id, 20); w.enqueueTargetHp(sentinel._id, 20);
       w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      const h0 = [hunter._hp, stalker._hp, sentinel._hp];
       for (let i = 0; i < 150; i++) w.stepFrame(1000 / 60 + 1e-6, fireAt(spot));
       const h1 = [hunter._hp, stalker._hp, sentinel._hp];
       const removed = [hunter, stalker, sentinel].map((e) => !w.enemies.some((x: any) => x._id === e._id));
 
       w.spawnBoss(w.map.rooms[room.id]);
       const boss = w.boss;
-      boss.wx = spot.x; boss.wy = spot.y; boss.attackTimer = 999999;
-      boss._hp = 24;
+      const bossRadius = w.sim.targets.find((t: any) => t.id === boss._id)?.radius ?? null;
+      w.enqueueTargetMove(boss._id, spot.x, spot.y);
+      w.enqueueTargetHp(boss._id, 24);
+      boss.attackTimer = 999999;
       w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
       for (let i = 0; i < 60; i++) w.stepFrame(1000 / 60 + 1e-6, fireAt({ x: boss.x, y: boss.y }));
       const bossDead = !w.boss;
 
@@ -268,7 +354,7 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
       const events = w.stepFrame(1000 / 60 + 1e-6, neutral);
       return {
         enemyBefore: h0, enemyAfter: h1, removed,
-        bossDead,
+        bossDead, bossRadius,
         beforeVel, afterVel, laserOk,
         playerBulletId: playerBullet?.id ?? null,
         coreCount, viewIsCore, coreAfterSetter,
@@ -281,6 +367,7 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
     expect(result.enemyAfter[2], 'sentinel damaged/dead').toBeLessThan(result.enemyBefore[2]);
     expect(result.removed.every(Boolean), 'all three legacy kinds removed after death').toBe(true);
     expect(result.bossDead, 'Boss can die through core projectile collision').toBe(true);
+    expect(result.bossRadius, 'Boss target keeps the old getRadius()+1 hit box').toBe(4);
     expect(result.beforeVel, 'player bullet exists before Boss laser').not.toBeNull();
     expect(result.afterVel, 'player bullet velocity unchanged by Boss laser').toEqual(result.beforeVel);
     expect(result.laserOk, 'Boss laser creates its own moving projectiles').toBe(true);
@@ -293,6 +380,88 @@ test.describe('AI-NATIVE-02 C2 fixed-tick core', () => {
     expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
   });
 
+
+
+
+  test('H10: non-Boss enemy-hit consumes hit flash state', async ({ page }) => {
+    test.setTimeout(90000);
+    await bootRun(page);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(350);
+    const result = await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const w = gs.world;
+      const p = w.player;
+      w.clearEnemiesForTest();
+      const room = w.currentRoom();
+      let spot: any = null;
+      for (const d of [2, 1.5, -2, -1.5]) {
+        const x = p.wx + d, y = p.wy;
+        if (w.isWalkable(x, y, 0.5)) { spot = { x, y }; break; }
+      }
+      if (!spot) spot = { x: p.wx, y: p.wy + 2 };
+      const hunter = w.spawnEnemy('hunter', spot.x, spot.y, room.id, 1);
+      w.enqueueTargetHp(hunter._id, 500);
+      w.resetSimulationAccumulator();
+      const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
+      let hitFlash = 0;
+      let sawHit = false;
+      for (let i = 0; i < 80; i++) {
+        const ev = w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: true, aim: spot, interact: false });
+        if (ev.some((e: any) => e.type === 'enemy-hit')) {
+          sawHit = true;
+          hitFlash = hunter.data.hitFlash;
+          break;
+        }
+      }
+      return { sawHit, hitFlash };
+    });
+    expect(result.sawHit, 'non-Boss target was hit').toBe(true);
+    expect(result.hitFlash, 'adapter consumed hit.hitFlash for non-Boss tint').toBeGreaterThan(0);
+  });
+
+  test('B4: blocked hit is not a hurt fact; two lethal queued hits yield one death', async ({ page }) => {
+    test.setTimeout(90000);
+    await bootRun(page);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(350);
+    const result = await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      const gs: any = g.scene.getScene('GameScene');
+      const w = gs.world;
+      const p = w.player;
+      w.clearEnemiesForTest();
+      const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+      // Blocked hit: invulnerable player must not produce a hurt fact.
+      p.invuln = 999;
+      p.hurt(20, p.wx + 1, p.wy);
+      w.resetSimulationAccumulator();
+      const blockedEvents = w.stepFrame(1000 / 60 + 1e-6, neutral);
+      const blockedHurt = blockedEvents.filter((e: any) => e.type === 'player-hurt').length;
+      // Two lethal queued hits in one tick: only the first hurts/deaths.
+      p.invuln = 0;
+      p.data.hp = 10;
+      p.hurt(999, p.wx + 1, p.wy);
+      p.hurt(999, p.wx + 1, p.wy);
+      const pending = w.sim.pendingPlayerHits.length;
+      w.resetSimulationAccumulator();
+      const lethalEvents = w.stepFrame(1000 / 60 + 1e-6, neutral);
+      return {
+        blockedHurt,
+        pending,
+        hurtCount: lethalEvents.filter((e: any) => e.type === 'player-hurt').length,
+        deathCount: lethalEvents.filter((e: any) => e.type === 'player-death').length,
+        hp: w.sim.player.data.hp
+      };
+    });
+    expect(result.blockedHurt, 'blocked hit emits no player-hurt fact').toBe(0);
+    expect(result.pending).toBe(2);
+    expect(result.hurtCount, 'only the first lethal hit hurts').toBe(1);
+    expect(result.deathCount, 'only one death event').toBe(1);
+    expect(result.hp).toBeLessThanOrEqual(0);
+  });
 
   test('H3: checkpoint capture/restore preserves core tick/rng/nextProjectileId', async ({ page }) => {
     test.setTimeout(90000);

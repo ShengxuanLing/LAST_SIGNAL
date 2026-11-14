@@ -13,8 +13,9 @@ import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, Vec2 } from '../../types';
 import {
   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
-  createSimulationState, isWalkableFromState, registerDrone, stepSimulationTicks,
-  SIM_TUNING, type SimEvent, type SimulationIntent, type SimulationState
+  createSimulationState, enqueuePlayerHit, enqueueTargetHp, enqueueTargetMove,
+  isWalkableFromState, registerDrone, registerTarget, stepSimulationTicks,
+  SIM_TUNING, type SimEvent, type SimulationIntent, type SimTarget, type SimulationState
 } from './core';
 
 function realMap(): MapData {
@@ -188,5 +189,75 @@ describe('C2 fixed-tick authoritative core', () => {
     const b = run(cloneSimulationState(mk()));
     expect(a.rng).toBe(b.rng);
     expect(a.crits).toBe(b.crits);
+  });
+
+  it('B4: two lethal queued hits produce one death; blocked hits are not hurt facts', () => {
+    const { state } = makeState();
+    state.drones = [];
+    state.player.data.hp = 10;
+    state.player.invuln = 0;
+    enqueuePlayerHit(state, 20, state.player.x + 1, state.player.y);
+    enqueuePlayerHit(state, 20, state.player.x + 1, state.player.y);
+    const events = stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(events.filter((e) => e.type === 'player-hurt')).toHaveLength(1);
+    expect(events.filter((e) => e.type === 'player-death')).toHaveLength(1);
+    expect(state.player.data.hp).toBeLessThanOrEqual(0);
+
+    const blocked = makeState().state;
+    blocked.drones = [];
+    blocked.player.invuln = 999;
+    enqueuePlayerHit(blocked, 20, blocked.player.x + 1, blocked.player.y);
+    const ev2 = stepSimulationTicks(blocked, 1, neutral({ x: 0, y: 0 }));
+    expect(ev2.some((e) => e.type === 'player-hurt')).toBe(false);
+    expect(ev2.some((e) => e.type === 'player-death')).toBe(false);
+    expect(blocked.player.data.hp).toBe(100);
+  });
+
+  it('B7: registerTarget deep-copies and target moves are committed by the tick', () => {
+    const { state } = makeState();
+    const input: SimTarget = {
+      id: 99, kind: 'hunter', x: 1, y: 1, hp: 20, maxHp: 20,
+      armor: 0, radius: 0.5, isBoss: false, xpValue: 18, currencyValue: 6
+    };
+    const stored = registerTarget(state, input);
+    expect(stored).not.toBe(input);
+    stored.x = 5;
+    expect(input.x).toBe(1);
+    enqueueTargetMove(state, 99, 7, 8);
+    expect(stored.x).toBe(5);
+    stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect({ x: stored.x, y: stored.y }).toEqual({ x: 7, y: 8 });
+    enqueueTargetHp(state, 99, 3);
+    stepSimulationTicks(state, 1, neutral({ x: 0, y: 0 }));
+    expect(stored.hp).toBe(3);
+  });
+
+  it('H2: kill loot rolls and the next shot share the controlled C1 RNG order', () => {
+    const { state, drone } = makeState();
+    state.player.x = drone.x - 0.5;
+    state.player.y = drone.y;
+    const d = state.drones[0];
+    d.hp = 1;
+    d.data.state = 'idle';
+    d.data.stateTimer = 1000;
+    d.attackTimer = 1000;
+    d.wanderTimer = 1000;
+    const aim = { x: d.x, y: d.y };
+    const events = stepSimulationTicks(state, 40, neutral({ x: 0, y: 0 }, true, aim));
+    const crits = events
+      .filter((e): e is Extract<SimEvent, { type: 'projectile-spawned' }> =>
+        e.type === 'projectile-spawned' && e.projectile.side === 'player')
+      .map((e) => e.projectile.crit);
+    expect(crits.length).toBeGreaterThanOrEqual(2);
+    expect(events.some((e) => e.type === 'enemy-died')).toBe(true);
+    expect(events.some((e) => e.type === 'xp-gained')).toBe(true);
+    const ref = new RNG(state.seed * 7919 + 1);
+    const shot1 = ref.float() < state.player.data.critChance;
+    ref.float(); ref.float(); // C1 kill loot rolls consume the same stream
+    const shot2 = ref.float() < state.player.data.critChance;
+    expect(crits[0]).toBe(shot1);
+    expect(crits[1]).toBe(shot2);
+    // XP is a core transaction, not an adapter addXp side effect.
+    expect(state.player.data.xp).toBeGreaterThan(0);
   });
 });

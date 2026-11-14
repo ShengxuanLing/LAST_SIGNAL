@@ -13,7 +13,6 @@ import {
   type ControlOwner, type PlayerIntent
 } from '../ai-native/control';
 import { LocalDeterministicController } from '../ai-native/localController';
-import { aimYawFromGrid, resolvePlayerHit } from '../world/sim/rules';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -36,6 +35,8 @@ export class Player {
   private aiController = new LocalDeterministicController();
   private lastIntentOwnerSeen: ControlOwner = 'human';
   private _interactQueued = false;
+  /** Pending human aim point; committed by the next core tick via intent. */
+  private pendingAim: Vec2 | null = null;
 
   private _wx: number;
   private _wy: number;
@@ -162,6 +163,8 @@ export class Player {
     this.cursors = cursors;
   }
 
+  /** Owner-only initialization/transition boundary (World room/checkpoint).
+   *  Adapters must not call this to write ordinary gameplay state. */
   reset(x: number, y: number): void {
     this.wx = x;
     this.wy = y;
@@ -197,8 +200,8 @@ export class Player {
    * (review R-08).
    */
   setAimGrid(x: number, y: number): void {
-    const yaw = aimYawFromGrid({ x: this.wx, y: this.wy }, { x, y });
-    if (yaw !== null) this.aimYaw = yaw;
+    // Adapter only records the aim point; core commits aimYaw on the next tick.
+    this.pendingAim = { x, y };
   }
 
   private isWalkable(nx: number, ny: number): boolean {
@@ -228,12 +231,14 @@ export class Player {
     }
     const interact = this._interactQueued;
     this._interactQueued = false;
+    const aim = this.pendingAim;
+    this.pendingAim = null;
     return intentFromHumanInput({
       up: this.input.up, down: this.input.down, left: this.input.left, right: this.input.right,
       dash: !!(this.cursors && this.cursors.space && this.cursors.space.isDown),
       fire: this._fireHeld,
       interact,
-      aim: null
+      aim
     });
   }
 
@@ -290,17 +295,13 @@ export class Player {
     return true;
   }
 
-  heal(amount: number): void { this.data.hp = Math.min(this.data.maxHp, this.data.hp + amount); }
+  heal(amount: number): void {
+    // Core transaction owns the canonical HP write.
+    this.world.healPlayer(amount);
+  }
 
   addXp(base: number): number {
-    const gained = Math.round(base * this.data.xpGain);
-    this.data.xp += gained;
-    while (this.data.xp >= this.data.xpToNext) {
-      this.data.xp -= this.data.xpToNext;
-      this.data.level++;
-      this.data.xpToNext = Math.round(30 * Math.pow(this.data.level, 1.3));
-      this.world.onLevelUp(this.data.level);
-    }
-    return gained;
+    // Core transaction owns XP/level writes and level-up callbacks.
+    return this.world.addPlayerXp(base);
   }
 }

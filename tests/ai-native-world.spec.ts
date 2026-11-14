@@ -1046,11 +1046,15 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       w.spawnBoss(w.map.rooms[room.id]);
       const boss: any = w.boss;
       const nearPoint = candidate ?? { x: p.x + 1, y: p.y };
-      boss.wx = nearPoint.x; boss.wy = nearPoint.y;
+      const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+      w.enqueueTargetMove(boss._id, nearPoint.x, nearPoint.y);
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
       const bossNear = !!w.observationView().boss;
-      boss.wx = other.gx + 2; boss.wy = other.gy + 2;
+      w.enqueueTargetMove(boss._id, other.gx + 2, other.gy + 2);
+      w.stepFrame(1000 / 60 + 1e-6, neutral);
       const bossFar = !!w.observationView().boss;
-      boss.sprite.destroy(); w.boss = null;
+      w.clearEnemiesForTest();
 
       // Portal position obeys the same bounds; destination never leaves the DTO.
       const portal = w.portal;

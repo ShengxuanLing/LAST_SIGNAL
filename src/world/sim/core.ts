@@ -14,6 +14,7 @@
 
 import { GAME } from '../../config/game';
 import { WEAPONS } from '../../config/weapons';
+import { UPGRADES, applyUpgrade } from '../../config/upgrades';
 import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, ProjectileData, Tile, Vec2 } from '../../types';
 import type { GridPoint } from './rules';
@@ -65,7 +66,17 @@ export interface SimTarget {
   armor: number;
   radius: number;
   isBoss: boolean;
+  xpValue: number;
+  currencyValue: number;
 }
+
+export type SimCommand =
+  | { type: 'move-target'; targetId: number; x: number; y: number }
+  | { type: 'set-target-hp'; targetId: number; hp: number }
+  | { type: 'heal-player'; amount: number }
+  | { type: 'add-currency'; amount: number }
+  | { type: 'add-xp'; base: number }
+  | { type: 'apply-upgrade'; key: string; level: number };
 
 export interface SimProjectile {
   id: number;
@@ -96,6 +107,7 @@ export interface SimulationState {
   targets: SimTarget[];
   projectiles: SimProjectile[];
   pendingPlayerHits: Array<{ damage: number; fromX: number; fromY: number }>;
+  pendingCommands: SimCommand[];
   nextProjectileId: number;
 }
 
@@ -116,6 +128,11 @@ export type SimEvent =
   | { type: 'enemy-died'; enemyId: number; x: number; y: number }
   | { type: 'player-hurt'; damage: number; hit: PlayerHitResult }
   | { type: 'player-death' }
+  | { type: 'player-healed'; amount: number; hp: number }
+  | { type: 'currency-gained'; amount: number; currency: number }
+  | { type: 'xp-gained'; amount: number; xp: number; level: number }
+  | { type: 'player-levelup'; level: number }
+  | { type: 'player-upgraded'; key: string; level: number }
   | { type: 'projectile-wall'; x: number; y: number };
 
 export interface CreateSimulationInput {
@@ -160,6 +177,7 @@ export function createSimulationState(input: CreateSimulationInput): SimulationS
     targets: [],
     projectiles: [],
     pendingPlayerHits: [],
+    pendingCommands: [],
     nextProjectileId: input.nextProjectileId ?? 1
   };
 }
@@ -175,8 +193,130 @@ export function registerDrone(
 }
 
 export function registerTarget(state: SimulationState, target: SimTarget): SimTarget {
-  state.targets.push(target);
-  return target;
+  // Deep copy: the caller's object must never be the authoritative target.
+  const stored: SimTarget = { ...target };
+  state.targets.push(stored);
+  return stored;
+}
+
+export function enqueueCommand(state: SimulationState, command: SimCommand): void {
+  state.pendingCommands.push(command);
+}
+
+export function enqueueTargetMove(state: SimulationState, targetId: number, x: number, y: number): void {
+  state.pendingCommands.push({ type: 'move-target', targetId, x, y });
+}
+
+export function enqueueTargetHp(state: SimulationState, targetId: number, hp: number): void {
+  state.pendingCommands.push({ type: 'set-target-hp', targetId, hp });
+}
+
+/** Core-owned XP/level transaction. Returns gained XP and every level reached. */
+export function addPlayerXp(state: SimulationState, base: number): { gained: number; levels: number[] } {
+  const p = state.player.data;
+  const gained = Math.round(base * p.xpGain);
+  p.xp += gained;
+  const levels: number[] = [];
+  while (p.xp >= p.xpToNext) {
+    p.xp -= p.xpToNext;
+    p.level++;
+    p.xpToNext = Math.round(30 * Math.pow(p.level, 1.3));
+    levels.push(p.level);
+  }
+  return { gained, levels };
+}
+
+export function healPlayer(state: SimulationState, amount: number): number {
+  const p = state.player.data;
+  p.hp = Math.min(p.maxHp, p.hp + amount);
+  return p.hp;
+}
+
+export function addCurrency(state: SimulationState, amount: number): number {
+  state.player.data.currency += amount;
+  return state.player.data.currency;
+}
+
+export function applyUpgradeToPlayer(state: SimulationState, key: string, level: number): boolean {
+  const def = UPGRADES[key];
+  if (!def) return false;
+  const data = state.player.data;
+  applyUpgrade(def, data, level);
+  const prog = data.upgrades.find((u) => u.key === key);
+  if (prog) prog.level = level;
+  else data.upgrades.push({ key, level });
+  return true;
+}
+
+function grantXp(state: SimulationState, base: number, events: SimEvent[]): void {
+  const { gained, levels } = addPlayerXp(state, base);
+  events.push({ type: 'xp-gained', amount: gained, xp: state.player.data.xp, level: state.player.data.level });
+  for (const level of levels) events.push({ type: 'player-levelup', level });
+}
+
+const KILL_CURRENCY_AMOUNT = 4;
+const KILL_HEALTH_AMOUNT = 30;
+
+/** C1 kill-reward order: two loot rolls, then XP. Boss uses no RNG (C1 used
+ *  an unseeded visual RNG only for cosmetic loot positions). */
+function awardEnemyKill(
+  state: SimulationState, xpValue: number, isBoss: boolean, rng: RNG, events: SimEvent[]
+): void {
+  if (isBoss) {
+    grantXp(state, xpValue, events);
+    const currency = addCurrency(state, 120);
+    events.push({ type: 'currency-gained', amount: 120, currency });
+    return;
+  }
+  const currencyRoll = rng.float();
+  const healthRoll = rng.float();
+  if (currencyRoll < 0.6) {
+    const currency = addCurrency(state, KILL_CURRENCY_AMOUNT);
+    events.push({ type: 'currency-gained', amount: KILL_CURRENCY_AMOUNT, currency });
+  }
+  if (healthRoll < 0.25) {
+    const hp = healPlayer(state, KILL_HEALTH_AMOUNT);
+    events.push({ type: 'player-healed', amount: KILL_HEALTH_AMOUNT, hp });
+  }
+  grantXp(state, xpValue, events);
+}
+
+function processCommands(state: SimulationState, events: SimEvent[]): void {
+  if (state.pendingCommands.length === 0) return;
+  const commands = state.pendingCommands;
+  state.pendingCommands = [];
+  for (const command of commands) {
+    switch (command.type) {
+      case 'move-target': {
+        const target = state.targets.find((t) => t.id === command.targetId && t.hp > 0);
+        if (target) { target.x = command.x; target.y = command.y; }
+        break;
+      }
+      case 'set-target-hp': {
+        const target = state.targets.find((t) => t.id === command.targetId);
+        if (target) target.hp = command.hp;
+        break;
+      }
+      case 'heal-player': {
+        const hp = healPlayer(state, command.amount);
+        events.push({ type: 'player-healed', amount: command.amount, hp });
+        break;
+      }
+      case 'add-currency': {
+        const currency = addCurrency(state, command.amount);
+        events.push({ type: 'currency-gained', amount: command.amount, currency });
+        break;
+      }
+      case 'add-xp':
+        grantXp(state, command.base, events);
+        break;
+      case 'apply-upgrade':
+        if (applyUpgradeToPlayer(state, command.key, command.level)) {
+          events.push({ type: 'player-upgraded', key: command.key, level: command.level });
+        }
+        break;
+    }
+  }
 }
 
 export function enqueuePlayerHit(
@@ -341,7 +481,12 @@ function applyPendingPlayerHits(state: SimulationState, events: SimEvent[]): voi
   if (state.pendingPlayerHits.length === 0) return;
   const pending = state.pendingPlayerHits;
   state.pendingPlayerHits = [];
-  for (const hit of pending) applyCorePlayerHit(state, hit.fromX, hit.fromY, hit.damage, events);
+  for (const hit of pending) {
+    // B4: after the first lethal hit, later queued hits are discarded. A dead
+    // player cannot be hurt or killed again in the same tick.
+    if (state.player.data.hp <= 0) break;
+    applyCorePlayerHit(state, hit.fromX, hit.fromY, hit.damage, events);
+  }
 }
 
 function stepPlayer(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
@@ -442,6 +587,7 @@ function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): voi
 
 function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number, damage: number, events: SimEvent[]): void {
   const p = state.player;
+  if (p.data.hp <= 0) return;
   const hit = resolvePlayerHit({
     hp: p.data.hp,
     position: { x: p.x, y: p.y },
@@ -452,18 +598,19 @@ function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number
     isWalkable: (x, y) => isWalkableFromState(state, x, y, PLAYER_RADIUS),
     pixelToTile: GAME.PIXEL_TO_TILE
   });
+  // Blocked hits are not hurt facts: no player-hurt event, no audio/shake, no
+  // HP/position write. Only real damage becomes canonical.
+  if (hit.blocked) return;
   events.push({ type: 'player-hurt', damage, hit });
-  if (!hit.blocked) {
-    p.data.hp = hit.hp;
-    p.x = hit.position.x;
-    p.y = hit.position.y;
-    p.invuln = hit.invuln;
-    p.hurtTimer = hit.hurtTimer;
-  }
+  p.data.hp = hit.hp;
+  p.x = hit.position.x;
+  p.y = hit.position.y;
+  p.invuln = hit.invuln;
+  p.hurtTimer = hit.hurtTimer;
   if (p.data.hp <= 0) events.push({ type: 'player-death' });
 }
 
-function stepProjectiles(state: SimulationState, dt: number, events: SimEvent[]): void {
+function stepProjectiles(state: SimulationState, dt: number, rng: RNG, events: SimEvent[]): void {
   const tickDt = dt;
   const remaining: SimProjectile[] = [];
   for (const projectile of state.projectiles) {
@@ -503,7 +650,10 @@ function stepProjectiles(state: SimulationState, dt: number, events: SimEvent[])
         drone.x = hit.position.x;
         drone.y = hit.position.y;
         drone.data.hitFlash = hit.hitFlash;
-        if (drone.hp <= 0) events.push({ type: 'enemy-died', enemyId: drone.id, x: drone.x, y: drone.y });
+        if (drone.hp <= 0) {
+          events.push({ type: 'enemy-died', enemyId: drone.id, x: drone.x, y: drone.y });
+          awardEnemyKill(state, drone.data.stats.xpValue, false, rng, events);
+        }
         if (projectile.pierce > 0) {
           projectile.pierce--;
           projectile.hitIds.push(drone.id);
@@ -540,7 +690,10 @@ function stepProjectiles(state: SimulationState, dt: number, events: SimEvent[])
           target.y = hit.position.y;
         }
         events.push({ type: 'enemy-hit', enemyId: target.id, damage: projectile.damage, crit: projectile.crit, hit });
-        if (target.hp <= 0) events.push({ type: 'enemy-died', enemyId: target.id, x: target.x, y: target.y });
+        if (target.hp <= 0) {
+          events.push({ type: 'enemy-died', enemyId: target.id, x: target.x, y: target.y });
+          awardEnemyKill(state, target.xpValue, target.isBoss, rng, events);
+        }
         if (projectile.pierce > 0) {
           projectile.pierce--;
           projectile.hitIds.push(target.id);
@@ -573,9 +726,11 @@ export function stepSimulationTicks(
   const rng = new RNG(0);
   rng.restore(state.rngState);
   for (let i = 0; i < ticks; i++) {
+    // Legal adapter/FSM commands are committed by the tick, before movement.
+    processCommands(state, events);
     stepPlayer(state, intent, rng, events);
     stepDrones(state, dt, events);
-    stepProjectiles(state, dt, events);
+    stepProjectiles(state, dt, rng, events);
     state.tick++;
   }
   state.rngState = rng.snapshot();
@@ -606,6 +761,7 @@ export interface CanonicalSimulationState {
   targets: SimTarget[];
   projectiles: SimProjectile[];
   pendingPlayerHits: Array<{ damage: number; fromX: number; fromY: number }>;
+  pendingCommands: SimCommand[];
   nextProjectileId: number;
 }
 
@@ -628,6 +784,7 @@ export function canonicalSimulationState(state: SimulationState): string {
     targets: state.targets,
     projectiles: state.projectiles,
     pendingPlayerHits: state.pendingPlayerHits,
+    pendingCommands: state.pendingCommands,
     nextProjectileId: state.nextProjectileId
   } as CanonicalSimulationState);
 }

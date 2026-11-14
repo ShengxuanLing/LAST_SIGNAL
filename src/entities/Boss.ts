@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { Vec2 } from '../types';
 import { ENEMY_STATS } from '../config/enemies';
 import { GAME } from '../config/game';
 import { World } from '../world/World';
@@ -29,11 +28,8 @@ export class Boss {
   spawnRoom: number;
 
   get _hp(): number { return this.simTarget ? this.simTarget.hp : this.__hp; }
-  set _hp(value: number) { if (this.simTarget) this.simTarget.hp = value; else this.__hp = value; }
   get wx(): number { return this.simTarget ? this.simTarget.x : this._wx; }
-  set wx(value: number) { if (this.simTarget) this.simTarget.x = value; else this._wx = value; }
   get wy(): number { return this.simTarget ? this.simTarget.y : this._wy; }
-  set wy(value: number) { if (this.simTarget) this.simTarget.y = value; else this._wy = value; }
 
   constructor(public world: World, x: number, y: number, room: number, _depth: number) {
     this.spawnRoom = room;
@@ -62,12 +58,10 @@ export class Boss {
 
   private stats() { return ENEMY_STATS.boss_warden; }
 
-  initHp(): void { this._hp = this.maxHp(); }
+  initHp(): void { this.__hp = this.maxHp(); }
 
   attachSimTarget(target: SimTarget): void {
-    target.x = this._wx;
-    target.y = this._wy;
-    target.hp = this.__hp;
+    // Read-only authority reference: initial x/y/hp were passed to registerTarget.
     this.simTarget = target;
   }
 
@@ -92,19 +86,21 @@ export class Boss {
     const dx = player.x - this.x, dy = player.y - this.y;
     const d = Math.hypot(dx, dy) || 1;
     const stats = this.stats();
-    let speed = stats.speed / 64;
+    const speed = stats.speed / 64;
+    let bx = this.wx, by = this.wy;
     if (this.phase === 1 && d > 10) {
       const vx = dx / d * speed, vy = dy / d * speed;
-      if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-      if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+      if (this.world.isWalkable(bx + vx * dt, by)) bx += vx * dt;
+      if (this.world.isWalkable(bx, by + vy * dt)) by += vy * dt;
     } else if (this.phase === 2) {
       // circle at medium range
       const desired = 6;
       const factor = d < desired ? -1 : 1;
       const vx = dx / d * speed * factor, vy = dy / d * speed * factor;
-      if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-      if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+      if (this.world.isWalkable(bx + vx * dt, by)) bx += vx * dt;
+      if (this.world.isWalkable(bx, by + vy * dt)) by += vy * dt;
     }
+    if (bx !== this.wx || by !== this.wy) this.world.enqueueTargetMove(this._id, bx, by);
     this.sprite.setRotation(Math.atan2(dy, dx));
     this.project();
     if (this.hitFlash > 0) this.sprite.setTint(0xffffff);
@@ -182,23 +178,7 @@ export class Boss {
     audio.wave();
   }
 
-  hit(damage: number, source: Vec2): boolean {
-    const reduction = 1 - Math.min(0.6, this.stats().armor / (this.stats().armor + 120));
-    this._hp -= Math.max(2, damage * reduction);
-    this.hitFlash = 0.15;
-    if (this._hp <= 0) return true;
-    // phase transitions
-    const ratio = this._hp / this.maxHp();
-    const newPhase = ratio > 0.66 ? 1 : ratio > 0.33 ? 2 : 3;
-    if (newPhase !== this.phase) {
-      this.phase = newPhase;
-      this.world.scene.events.emit('boss-phase', this.phase);
-      this.stateTimer = 0;
-      audio.bossroar();
-      this.world.addShake(16);
-    }
-    return false;
-  }
+
 }
 
 interface PlayerLike {

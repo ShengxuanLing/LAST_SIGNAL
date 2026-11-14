@@ -64,7 +64,7 @@ class SupplyTerminal {
       payout += clearReward(room);
     }
     if (payout > 0) {
-      world.player.data.currency += payout;
+      world.addCurrency(payout);
       this.checkpointPending = true;
       reward.textContent = `+${payout} credits · room cleared`;
       reward.hidden = false;

@@ -291,8 +291,7 @@ test('cleared room always offers an exit portal, even when every room is visited
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
     const room = w.currentRoom();
-    for (const e of w.enemies) { e._hp = 0; e.sprite.destroy(); }
-    w.enemies = [];
+    w.clearEnemiesForTest();
     return { id: room?.id, kind: room?.kind };
   });
   await page.waitForTimeout(250);

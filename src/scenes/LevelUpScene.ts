@@ -157,13 +157,11 @@ export class LevelUpScene extends Phaser.Scene {
     if (this.chosen) return;
     this.chosen = true;
     audio.levelchoose();
-    const def = UPGRADES[key];
     const prog = this.player.upgrades.find((u) => u.key === key);
     const newLevel = (prog?.level ?? 0) + 1;
-    applyUpgrade(def, this.player, newLevel);
-    if (prog) prog.level = newLevel;
-    else this.player.upgrades.push({ key, level: newLevel });
     const parent = this.scene.get<GameScene>('GameScene');
+    // Core owns the materialized upgrade state; never mutate player.data here.
+    parent?.world.applyUpgradeChoice(key, newLevel);
     parent?.saveCheckpoint();
     // Hand control back to the parent: it (re)opens the next pending level-up or
     // resumes the game. We must not set parent.paused/alpha directly here.

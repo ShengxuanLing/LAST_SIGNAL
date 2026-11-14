@@ -173,7 +173,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
     const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
     const w = gs.world, pl = w.player;
     for (const q of w.projectiles) q.spr.destroy();
-    w.projectiles = [];
+    w.resetProjectilesForTest();
     const e = w.spawnEnemy('drone', pl.wx + 3, pl.wy, w.currentRoom()?.id ?? 0, 1);
     (window as any).__enemyId = e._id;
     return { id: e._id, maxHp: e._hp, hasUpdate: typeof e.update === 'function', grid: { x: e.x, y: e.y } };
@@ -206,7 +206,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
     const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
     const w = gs.world, pl = w.player;
     for (const q of w.projectiles) q.spr.destroy();
-    w.projectiles = [];
+    w.resetProjectilesForTest();
     const e = w.spawnEnemy('drone', pl.wx + 6, pl.wy, w.currentRoom()?.id ?? 0, 1);
     e.attackTimer = 0;
     e.doAttack(pl);
@@ -232,7 +232,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
       };
       boss.sprite.destroy(); w.boss = null;
       for (const x of w.projectiles) x.spr.destroy();
-      w.projectiles = [];
+      w.resetProjectilesForTest();
       w.enemies = w.enemies.filter((x: any) => x !== e);
       e.sprite.destroy();
     } catch (err) { bossOk = { error: String(err) }; }
@@ -645,7 +645,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world, pl = w.player;
     for (const q of w.projectiles) q.spr.destroy();
-    w.projectiles = [];
+    w.resetProjectilesForTest();
     if (!w.boss) w.spawnBoss(w.map.rooms[w.currentRoom()?.id ?? 0]);
     const boss = w.boss;
     // The player was just reset() into this room and is invulnerable, so a Boss

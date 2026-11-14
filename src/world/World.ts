@@ -17,7 +17,10 @@ import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/wor
 import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
 import {
-  createSimulationState, enqueuePlayerHit, registerDrone, registerTarget,
+  addCurrency as addCoreCurrency, addPlayerXp as addCorePlayerXp, createSimulationState,
+  applyUpgradeToPlayer as applyCoreUpgrade, enqueueCommand, enqueuePlayerHit,
+  enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove,
+  healPlayer as healCorePlayer, registerDrone, registerTarget,
   spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
   type SimulationIntent, type SimulationState, type SimEvent, type SimProjectile, type SimTarget
 } from './sim/core';
@@ -65,11 +68,32 @@ export class World {
     // Compatibility setter must not clear or expose authoritative core state.
   }
 
+  private static assertDevTest(): void {
+    const env = (import.meta as any).env ?? {};
+    if (!(env.DEV === true || env.MODE === 'test')) throw new Error('dev/test only');
+  }
+
   /** Explicit dev/test reset; not a general scene API. */
   resetProjectilesForTest(): void {
+    World.assertDevTest();
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
     if (this.sim) this.sim.projectiles = [];
+  }
+
+  /** Explicit dev/test enemy cleanup; keeps adapter and core in sync. */
+  clearEnemiesForTest(): void {
+    World.assertDevTest();
+    for (const e of this.enemies) if (e.sprite.scene) e.sprite.destroy();
+    this.enemies = [];
+    if (this.sim) {
+      this.sim.drones = [];
+      this.sim.targets = [];
+    }
+    if (this.boss) {
+      if (this.boss.sprite.scene) this.boss.sprite.destroy();
+      this.boss = null;
+    }
   }
   loot: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> = [];
   fx: HitFx[] = [];
@@ -525,7 +549,8 @@ export class World {
     } else {
       const target = registerTarget(this.sim, {
         id: e._id, kind, x: e.x, y: e.y, hp: e._hp, maxHp: e.data.stats.maxHp,
-        armor: e.data.stats.armor, radius: e.getRadius(), isBoss: false
+        armor: e.data.stats.armor, radius: e.getRadius(), isBoss: false,
+        xpValue: e.data.stats.xpValue, currencyValue: e.data.stats.currencyValue
       });
       e.attachSimTarget(target);
     }
@@ -541,12 +566,52 @@ export class World {
     const target = registerTarget(this.sim, {
       id: this.boss._id, kind: 'boss_warden', x: this.boss.x, y: this.boss.y,
       hp: this.boss._hp, maxHp: this.boss.maxHp(),
-      armor: ENEMY_STATS.boss_warden.armor, radius: this.boss.getRadius(), isBoss: true
+      armor: ENEMY_STATS.boss_warden.armor, radius: this.boss.getRadius() + 1, isBoss: true,
+      xpValue: ENEMY_STATS.boss_warden.xpValue, currencyValue: ENEMY_STATS.boss_warden.currencyValue
     });
     this.boss.attachSimTarget(target);
   }
 
   boss: Boss | null = null;
+
+  /** Legal adapter commands: committed by the next core tick, never written live. */
+  enqueueTargetMove(targetId: number, x: number, y: number): void {
+    enqueueCoreTargetMove(this.sim, targetId, x, y);
+  }
+
+  enqueueTargetHp(targetId: number, hp: number): void {
+    enqueueCoreTargetHp(this.sim, targetId, hp);
+  }
+
+  enqueueHeal(amount: number): void {
+    enqueueCommand(this.sim, { type: 'heal-player', amount });
+  }
+
+  enqueueCurrency(amount: number): void {
+    enqueueCommand(this.sim, { type: 'add-currency', amount });
+  }
+
+  /** Core-owned XP transaction used by legacy/test callers; emits level callbacks. */
+  addPlayerXp(base: number): number {
+    const { gained, levels } = addCorePlayerXp(this.sim, base);
+    for (const level of levels) this.onLevelUp(level);
+    return gained;
+  }
+
+  /** Core-owned immediate heal transaction for non-tick adapter callers. */
+  healPlayer(amount: number): number {
+    return healCorePlayer(this.sim, amount);
+  }
+
+  /** Core-owned immediate currency transaction for non-tick adapter callers. */
+  addCurrency(amount: number): number {
+    return addCoreCurrency(this.sim, amount);
+  }
+
+  /** Core-owned upgrade transaction; the level-up UI must call this, not mutate data. */
+  applyUpgradeChoice(key: string, level: number): boolean {
+    return applyCoreUpgrade(this.sim, key, level);
+  }
 
   spawnEnemyProjectile(ownerId: number, x: number, y: number, damage: number, vel: Vec2 = { x: 0, y: 0 }): SimProjectile {
     const projectile = spawnCoreEnemyProjectile(this.sim, ownerId, x, y, damage, vel);
@@ -668,6 +733,8 @@ export class World {
           } else {
             const enemy = this.enemies.find((e) => e._id === event.enemyId);
             if (enemy) {
+              enemy.data.hitFlash = event.hit.hitFlash;
+              enemy.applyVisual();
               this.addDamageNumber(enemy.x, enemy.y, event.damage, event.crit);
               this.callbacks.onStats({ enemies: 0, items: 0, dmg: event.damage });
             }
@@ -689,6 +756,20 @@ export class World {
           break;
         case 'player-death':
           this.onPlayerDeath();
+          break;
+        case 'player-healed':
+          this.player.syncVisual();
+          audio.pickup();
+          break;
+        case 'currency-gained':
+        case 'xp-gained':
+          this.player.syncVisual();
+          break;
+        case 'player-levelup':
+          this.onLevelUp(event.level);
+          break;
+        case 'player-upgraded':
+          this.player.syncVisual();
           break;
         case 'projectile-wall':
           this.addHitFx(event.x, event.y, 0x88aacc);
@@ -770,10 +851,12 @@ export class World {
   }
 
   private collectLoot(drop: LootDrop): void {
+    // Loot is collected by the adapter, but the canonical player write is a
+    // core command committed on the next tick.
     switch (drop.kind) {
-      case 'health': this.player.heal(30); break;
-      case 'currency': this.player.data.currency += drop.amount || 10; break;
-      case 'restore': this.player.heal(this.player.data.maxHp); break;
+      case 'health': this.healPlayer(30); break;
+      case 'currency': this.addCurrency(drop.amount || 10); break;
+      case 'restore': this.healPlayer(this.player.data.maxHp); break;
     }
     this.callbacks.onStats({ enemies: 0, items: 1, dmg: 0 });
     // spawn a pickup visual flash
@@ -798,27 +881,19 @@ export class World {
   }
 
   private killEnemy(e: Enemy): void {
-    e._hp = 0;
+    // Core already committed HP/death, XP, currency and drop RNG. The adapter
+    // only removes presentation and emits stats.
     e.sprite.destroy();
     this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
-    // drop currency + health
-    if (this.rng.float() < 0.6) this.spawnLoot(e.x, e.y, 'currency', 'currency', 4);
-    if (this.rng.float() < 0.25) this.spawnLoot(e.x, e.y, 'health', 'health', 0);
-    // xp
-    this.player.addXp(e.data.stats.xpValue);
     this.enemies = this.enemies.filter((x) => x !== e);
   }
 
   private killBoss(): void {
     if (!this.boss) return;
-    this.boss._hp = 0;
     this.boss.sprite.destroy();
     this.boss = null;
     this.won = true;
     this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
-    this.player.addXp(200);
-    const bx = this.player.x, by = this.player.y;
-    for (let i = 0; i < 12; i++) this.spawnLoot(bx + (Math.random() - 0.5) * 120, by + (Math.random() - 0.5) * 120, 'currency', 'currency', 10);
     audio.bossroar();
     this.callbacks.onBossWin();
   }

@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
-import { EnemyData, EnemyStateName, Vec2 } from '../types';
+import { EnemyData, EnemyStateName } from '../types';
 import { ENEMY_STATS, EnemyKind } from '../config/enemies';
 import { GAME } from '../config/game';
 import { clamp, unit, angleDiff } from '../core/random';
 import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { Player } from './Player';
-import { axisSlideToward, distanceWithin, rangedAttackDescriptor, resolveEnemyHit } from '../world/sim/rules';
+import { axisSlideToward, distanceWithin, rangedAttackDescriptor } from '../world/sim/rules';
 import type { SimDroneState, SimTarget } from '../world/sim/core';
 
 export interface EnemySpec {
@@ -30,11 +30,8 @@ export class Enemy {
   get data(): EnemyData { return this.simDrone ? this.simDrone.data : this._data; }
   set data(value: EnemyData) { if (this.simDrone) this.simDrone.data = value; else this._data = value; }
   get wx(): number { return this.simDrone ? this.simDrone.x : this.simTarget ? this.simTarget.x : this._wx; }
-  set wx(value: number) { if (this.simDrone) this.simDrone.x = value; else if (this.simTarget) this.simTarget.x = value; else this._wx = value; }
   get wy(): number { return this.simDrone ? this.simDrone.y : this.simTarget ? this.simTarget.y : this._wy; }
-  set wy(value: number) { if (this.simDrone) this.simDrone.y = value; else if (this.simTarget) this.simTarget.y = value; else this._wy = value; }
   get _hp(): number { return this.simDrone ? this.simDrone.hp : this.simTarget ? this.simTarget.hp : this.__hp; }
-  set _hp(value: number) { if (this.simDrone) this.simDrone.hp = value; else if (this.simTarget) this.simTarget.hp = value; else this.__hp = value; }
   get attackTimer(): number { return this.simDrone ? this.simDrone.attackTimer : this._attackTimer; }
   set attackTimer(value: number) { if (this.simDrone) this.simDrone.attackTimer = value; else this._attackTimer = value; }
   get wanderTimer(): number { return this.simDrone ? this.simDrone.wanderTimer : this._wanderTimer; }
@@ -51,9 +48,7 @@ export class Enemy {
   }
 
   attachSimTarget(state: SimTarget): void {
-    state.x = this._wx;
-    state.y = this._wy;
-    state.hp = this.__hp;
+    // Read-only authority reference: initial x/y/hp were passed to registerTarget.
     this.simTarget = state;
   }
 
@@ -114,12 +109,12 @@ export class Enemy {
   // HP stored on sprite? We'll keep hp in a parallel field.
   get hp(): number { return this._hp; }
 
-  initHp(): void { this._hp = this.data.stats.maxHp; }
+  initHp(): void { this.__hp = this.data.stats.maxHp; }
 
   update(dt: number, player: Player): void {
     // C2: drone timers/FSM/projectiles are owned by World.sim (fixed ticks).
     if (this.data.kind === 'drone') return;
-    if (this.__hp <= 0) return;
+    if (this._hp <= 0) return;
     this.data.hitFlash = Math.max(0, this.data.hitFlash - dt);
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     this.wanderTimer -= dt;
@@ -193,7 +188,7 @@ export class Enemy {
     const stats = this.data.stats;
     const next = axisSlideToward({ x: this.wx, y: this.wy }, { x: player.x, y: player.y }, stats.speed, dt,
       (x, y) => this.world.isWalkable(x, y));
-    this.wx = next.x; this.wy = next.y;
+    this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.facePlayer(player);
     this.project();
   }
@@ -212,7 +207,7 @@ export class Enemy {
     }
     const next = axisSlideToward({ x: this.wx, y: this.wy }, target, stats.speed * 0.5, dt,
       (x, y) => this.world.isWalkable(x, y));
-    this.wx = next.x; this.wy = next.y;
+    this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.project();
   }
 
@@ -222,7 +217,7 @@ export class Enemy {
     const away = { x: 2 * this.x - player.x, y: 2 * this.y - player.y };
     const next = axisSlideToward({ x: this.wx, y: this.wy }, away, stats.speed, dt,
       (x, y) => this.world.isWalkable(x, y));
-    this.wx = next.x; this.wy = next.y;
+    this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.facePlayer(player);
     this.project();
   }
@@ -244,26 +239,6 @@ export class Enemy {
 
   get id(): number { return this._id; }
   _id = 0;
-
-  hit(damage: number, source: Vec2): boolean {
-    const result = resolveEnemyHit({
-      hp: this._hp,
-      position: { x: this.wx, y: this.wy },
-      armor: this.data.stats.armor,
-      stunTimer: this.data.stunTimer,
-      damage,
-      source,
-      isWalkable: (x, y, radius) => this.world.isWalkable(x, y, radius),
-      pixelToTile: GAME.PIXEL_TO_TILE
-    });
-    if (result.blocked) return false;
-    this._hp = result.hp;
-    this.data.hitFlash = result.hitFlash;
-    this.wx = result.position.x;
-    this.wy = result.position.y;
-    this.project();
-    return true;
-  }
 
   stun(seconds: number): void {
     this.data.stunTimer = seconds;

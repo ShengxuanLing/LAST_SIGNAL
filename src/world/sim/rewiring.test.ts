@@ -50,6 +50,38 @@ describe('C2 single-authority adapters', () => {
     expect(src).toContain("if (this.data.kind === 'drone') return;");
     expect(src).toContain('legacyStateMachine');
     expect(src).not.toContain('stepDroneAi(');
+    // B7: target state is read-only for the adapter; no live setters/hit write.
+    expect(src).not.toContain('set wx(');
+    expect(src).not.toContain('set wy(');
+    expect(src).not.toContain('set _hp(');
+    expect(src).not.toContain('hit(damage: number');
+    expect(src).toContain('enqueueTargetMove(');
+  });
+
+  it('Boss target is read-only for the adapter; target radius keeps the old +1', () => {
+    const src = read('src/entities/Boss.ts');
+    expect(src).not.toContain('set wx(');
+    expect(src).not.toContain('set wy(');
+    expect(src).not.toContain('set _hp(');
+    expect(src).not.toContain('hit(damage: number');
+    expect(src).toContain('enqueueTargetMove(');
+    expect(read('src/world/World.ts')).toContain('getRadius() + 1');
+  });
+
+  it('B6/B7/H9/H10: rewards, target commands, gated helpers and hit flash are in the core/World', () => {
+    const core = read('src/world/sim/core.ts');
+    expect(core).toContain('registerTarget');
+    expect(core).toContain('const stored: SimTarget = { ...target }');
+    expect(core).toContain('awardEnemyKill');
+    expect(core).toContain('processCommands');
+    expect(core).toContain('pendingCommands');
+    const world = read('src/world/World.ts');
+    expect(world).toContain('enqueueTargetMove(');
+    expect(world).toContain('assertDevTest');
+    expect(world).toContain('enemy.data.hitFlash = event.hit.hitFlash');
+    expect(world).not.toContain('this.player.addXp(e.data.stats.xpValue)');
+    expect(read('src/scenes/LevelUpScene.ts')).toContain('applyUpgradeChoice(');
+    expect(read('src/entities/Player.ts')).toContain('Owner-only initialization');
   });
 
   it('World owns SimulationState, fixed accumulator, typed events and legacy-only update', () => {
