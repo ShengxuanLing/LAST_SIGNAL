@@ -182,6 +182,12 @@ export class World {
   get playerHurtTimer(): number { return this._sim.player.hurtTimer; }
   get playerAimYaw(): number { return this._sim.player.aimYaw; }
 
+  /** Verifiable committed barrier: true while commands are enqueued but not yet
+   *  consumed by core.processCommands. Checkpoint must not capture while this is true. */
+  hasUncommittedCommands(): boolean {
+    return this._sim.pendingCommands.length > 0;
+  }
+
   private bumpSimVersion(): void {
     this.simVersion++;
     this.simSnapshotCache = null;
@@ -1152,6 +1158,10 @@ export class World {
     if (!room || !this.map.rooms[room.id].cleared || !this.player.alive ||
         this.won || this.boss || this.enemies.some((enemy) => enemy.alive) ||
         this.map.rooms.some((entry) => entry.spawned && !entry.cleared)) return null;
+    // Checkpoint must only capture fully committed transactions. If commands
+    // are still pending (enqueued but not yet consumed by processCommands),
+    // refuse to capture — the caller must wait for the next stepFrame commit.
+    if (this.hasUncommittedCommands()) return null;
     // Deep copy: the returned frame must not keep references to the live
     // player / loot. Any in-memory holder (AI harness, checkpoint UI, test)
     // would otherwise observe silently mutating "snapshots" (review R-03).

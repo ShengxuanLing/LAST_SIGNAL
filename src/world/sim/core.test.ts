@@ -13,7 +13,7 @@ import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, Vec2 } from '../../types';
 import {
   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
-  createSimulationState, enqueuePlayerHit, enqueueSpawnLoot, enqueueTargetHp, enqueueTargetMove,
+  createSimulationState, enqueueCommand, enqueuePlayerHit, enqueueSpawnLoot, enqueueTargetHp, enqueueTargetMove,
   isWalkableFromState, registerDrone, registerTarget, stepSimulationTicks,
   SIM_TUNING, type SimEvent, type SimulationIntent, type SimTarget, type SimulationState
 } from './core';
@@ -311,6 +311,72 @@ describe('C2 fixed-tick authoritative core', () => {
     const ev2 = stepSimulationTicks(state, 1, neutralIntent);
     expect(state.player.data.currency).toBe(currencyBefore + 7);
     expect(ev2.some((e) => e.type === 'currency-gained')).toBe(false);
+  });
+
+  it('B14: committed barrier — hasUncommittedCommands true while pending, false after tick', () => {
+    const { state } = makeState();
+    const neutralIntent = neutral({ x: 0, y: 0 });
+
+    // No commands pending: barrier is clear.
+    expect(state.pendingCommands.length).toBe(0);
+
+    // Enqueue a command: barrier is set.
+    enqueueSpawnLoot(state, state.player.x + 1, state.player.y, 'currency', 'currency', 7);
+    expect(state.pendingCommands.length).toBe(1);
+
+    // Zero-tick: command still pending, barrier still set.
+    stepSimulationTicks(state, 0, neutralIntent);
+    expect(state.pendingCommands.length).toBe(1);
+
+    // One tick: command consumed, barrier clear.
+    stepSimulationTicks(state, 1, neutralIntent);
+    expect(state.pendingCommands.length).toBe(0);
+  });
+
+  it('B15: sub-tick delta accumulates over multiple frames before committing', () => {
+    const { state } = makeState();
+    const neutralIntent = neutral({ x: 0, y: 0 });
+    const currencyBefore = state.player.data.currency;
+
+    // Enqueue currency reward.
+    enqueueSpawnLoot(state, state.player.x + 1, state.player.y, 'currency', 'currency', 5);
+
+    // Multiple sub-tick frames (zero ticks each): nothing commits.
+    for (let i = 0; i < 10; i++) {
+      const ev = stepSimulationTicks(state, 0, neutralIntent);
+      expect(ev.length).toBe(0);
+      expect(state.player.data.currency).toBe(currencyBefore);
+      expect(state.pendingCommands.length).toBe(1);
+    }
+    expect(state.tick).toBe(0);
+
+    // One full tick: commits.
+    const ev = stepSimulationTicks(state, 1, neutralIntent);
+    expect(state.player.data.currency).toBe(currencyBefore + 5);
+    expect(state.tick).toBe(1);
+  });
+
+  it('B16: set-player-data is one atomic command — currency + equipment change together', () => {
+    const { state } = makeState();
+    const neutralIntent = neutral({ x: 0, y: 0 });
+    const currencyBefore = state.player.data.currency;
+
+    // Queue set-player-data (atomic: replaces all player data at once).
+    const next = structuredClone(state.player.data);
+    next.currency = currencyBefore + 42;
+    // enqueueCommand mirrors World.enqueueSetPlayerData.
+    enqueueCommand(state, { type: 'set-player-data', data: next });
+    expect(state.pendingCommands.length).toBe(1);
+
+    // Zero-tick: nothing applied yet.
+    stepSimulationTicks(state, 0, neutralIntent);
+    expect(state.player.data.currency).toBe(currencyBefore);
+
+    // One tick: atomic commit applies all changes together.
+    const ev = stepSimulationTicks(state, 1, neutralIntent);
+    expect(state.player.data.currency).toBe(currencyBefore + 42);
+    expect(state.pendingCommands.length).toBe(0);
+    expect(ev.some((e) => e.type === 'player-reset')).toBe(true);
   });
 
   it('H2: kill loot rolls and the next shot share the controlled C1 RNG order', () => {

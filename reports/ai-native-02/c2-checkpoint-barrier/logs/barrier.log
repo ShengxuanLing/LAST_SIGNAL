@@ -1,0 +1,28 @@
+PASS typecheck npm run typecheck typecheck passed
+PASS build npm run build build passed
+PASS mcp-build npm run game:mcp:build mcp build passed
+PASS unit-tests npx vitest run 402/402 passed (24 files)
+PASS c1-parity npx vite-node scripts/c2-room-generation-parity.ts C1_ROOM_PARITY_PASS seeds=220 kinds=drone,hunter,sentinel,stalker
+PASS B12 paused/zero-dt no-commit src/world/sim/core.test.ts verifies stepFrame(0) commits nothing
+PASS B13 zero-dt economic reward no-commit src/world/sim/core.test.ts verifies currency/loot not committed without tick
+PASS B14 committed-barrier hasUncommittedCommands src/world/sim/core.test.ts verifies pending→consumed barrier
+PASS B15 sub-tick-multi-frame no-commit src/world/sim/core.test.ts verifies multiple zero-tick frames commit nothing
+PASS B16 set-player-data atomic commit src/world/sim/core.test.ts verifies currency+equipment in one command
+REMOVE processPendingCommands src/world/World.ts deleted public processPendingCommands() that used new RNG(0) bypassing tick
+ADD hasUncommittedCommands World.ts verifiable committed barrier (pendingCommands.length > 0)
+ADD captureCheckpoint guard World.ts refuses to capture when hasUncommittedCommands() is true
+REMOVE economy processPendingCommands call src/economy/main.ts removed direct saveCheckpoint from update()
+DEFER economy checkpoint save src/economy/main.ts saveCheckpoint only after hasUncommittedCommands() is false
+DEFER purchase checkpoint save src/economy/main.ts pendingPurchase cleared only after saveCheckpoint succeeds
+DOUBLE-CLICK GUARD src/economy/main.ts purchase() returns early if pendingPurchase; renderStock disables buttons
+PAUSE-SAFE PURCHASE src/economy/main.ts pendingPurchase survives pause; committed on resume via GameScene stepFrame
+EXIT-CANCEL src/economy/main.ts destroy() discards pendingReward/pendingPurchase, returns to last checkpoint
+FAIL e2e audit.spec.ts:65 pre-existing test-contract (sync state after enqueue*)
+FAIL e2e checkpoint.spec.ts:61 pre-existing test-contract (weaponKey sync read after enqueueEquipWeapon)
+FAIL e2e checkpoint.spec.ts:140 pre-existing test-contract (upgrade sync read after enqueueApplyUpgrade)
+FAIL e2e checkpoint.spec.ts:160 new test-contract (checkpoint save timing after enqueueCurrency)
+FAIL e2e checkpoint.spec.ts:185 pre-existing test-contract (line-shifted :171, checkpoint save timing)
+FAIL e2e checkpoint.spec.ts:304 new test-contract (checkpoint save timing on death)
+FAIL e2e economy.spec.ts:11 pre-existing test-contract (Supply terminal + checkpoint timing)
+FAIL e2e ai-native-world.spec.ts:257 flaky (passes individually, fails in full run)
+PASS e2e runtime-bugs.spec.ts:246 fixed (was failing before, now passes with stepFrame commit pattern)

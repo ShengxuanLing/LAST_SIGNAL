@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { game } from '../main';
 import type { GameScene } from '../scenes/GameScene';
 import { audio } from '../systems/AudioSystem';
-import type { Room } from '../types';
+import type { PlayerData, Room } from '../types';
 import { buySupply, clearReward, purchaseBlocker, suppliesFor, terminalRooms } from './supplies';
 import './economy.css';
 
@@ -16,12 +16,22 @@ const stock = document.querySelector<HTMLUListElement>('#supply-stock')!;
 const feedback = document.querySelector<HTMLParagraphElement>('#supply-feedback')!;
 const reward = document.querySelector<HTMLParagraphElement>('#supply-reward')!;
 
+interface PendingPurchase {
+  roomId: number;
+  index: number;
+  name: string;
+  price: number;
+}
+
 class SupplyTerminal {
   private readonly roomIds: Set<number>;
   private readonly cleared: Set<number>;
   private readonly listeners = new AbortController();
   private rewardTimer = 0;
-  private checkpointPending = false;
+  /** Currency reward enqueued but not yet committed by the core tick. */
+  private pendingReward = 0;
+  /** Purchase enqueued but not yet committed + checkpoint-saved. Guards double-click. */
+  private pendingPurchase: PendingPurchase | null = null;
 
   constructor(private readonly scene: GameScene) {
     const { rooms } = scene.world.map;
@@ -57,27 +67,43 @@ class SupplyTerminal {
       controls.hidden = true;
       return;
     }
+    // Detect newly cleared rooms and enqueue their currency rewards.
     let payout = 0;
     for (const room of world.map.rooms) {
       if (!room.cleared || this.cleared.has(room.id)) continue;
       this.cleared.add(room.id);
       payout += clearReward(room);
     }
-    const justEnqueued = payout > 0;
     if (payout > 0) {
       world.enqueueCurrency(payout);
-      this.checkpointPending = true;
+      this.pendingReward = payout;
       reward.textContent = `+${payout} credits · room cleared`;
       reward.hidden = false;
       window.clearTimeout(this.rewardTimer);
       this.rewardTimer = window.setTimeout(() => { reward.hidden = true; }, 3000);
     }
 
+    // Committed barrier: core.processCommands must have consumed every enqueued
+    // command before we may capture a checkpoint. stepFrame runs before this
+    // POST_UPDATE handler, so uncommitted commands are still pending here.
     const safe = scene.paused ? undefined : this.safeRoom();
-    if (this.checkpointPending && safe && !justEnqueued) {
-      scene.saveCheckpoint();
-      this.checkpointPending = false;
+    const committed = !world.hasUncommittedCommands();
+
+    // Room clear reward: wait for the currency command to commit, then save.
+    if (this.pendingReward > 0 && committed && safe) {
+      const saved = scene.saveCheckpoint();
+      if (saved) this.pendingReward = 0;
     }
+
+    // Purchase: wait for the set-player-data command to commit, then save and report.
+    if (this.pendingPurchase && committed && safe) {
+      const saved = scene.saveCheckpoint();
+      if (saved) {
+        feedback.textContent = `Purchased ${this.pendingPurchase.name}.`;
+        this.pendingPurchase = null;
+      }
+    }
+
     const current = world.currentRoom();
     controls.hidden = scene.paused || !current || !this.roomIds.has(current.id);
     openButton.hidden = controls.hidden || !safe;
@@ -118,6 +144,8 @@ class SupplyTerminal {
       const description = document.createElement('p');
       const button = document.createElement('button');
       const reason = purchaseBlocker(player, supply);
+      // Double-click guard: disable all purchase buttons while a purchase is pending.
+      const disabled = !!reason || this.pendingPurchase !== null;
       title.textContent = supply.name;
       description.textContent = supply.description;
       if (reason) description.append(` ${reason}.`);
@@ -125,7 +153,7 @@ class SupplyTerminal {
       button.type = 'button';
       button.textContent = `${supply.price} credits`;
       button.setAttribute('aria-label', `Buy ${supply.name} for ${supply.price} credits`);
-      button.disabled = !!reason;
+      button.disabled = disabled;
       button.addEventListener('click', () => this.purchase(roomId, index));
       buttons.push(button);
       row.append(details, button);
@@ -140,15 +168,19 @@ class SupplyTerminal {
 
   private purchase(roomId: number, index: number): void {
     if (!dialog.open || this.safeRoom()?.id !== roomId) return;
+    // Double-click guard: reject if a purchase is already pending commit.
+    if (this.pendingPurchase) return;
     const { player } = this.scene.world;
-    const before = player.data;
+    const before: PlayerData = player.data;
     const supply = suppliesFor(before, this.scene.seed, roomId)[index];
     const purchased = buySupply(before, supply);
     if (!purchased) return;
 
+    // Deduction + equipment/item in one atomic core command. Committed by the
+    // next stepFrame tick via core.processCommands; not applied synchronously.
     this.scene.world.enqueueSetPlayerData(purchased);
-    this.checkpointPending = true;
-    feedback.textContent = `Purchased ${supply.name}.`;
+    this.pendingPurchase = { roomId, index, name: supply.name, price: supply.price };
+    feedback.textContent = `Processing ${supply.name}...`;
     audio.ui();
     this.renderStock(roomId, index);
   }
@@ -161,6 +193,10 @@ class SupplyTerminal {
     controls.hidden = true;
     reward.hidden = true;
     if (dialog.open) dialog.close();
+    // Uncommitted purchases/rewards are discarded on shutdown: exit/refresh
+    // returns to the last committed checkpoint state, no partial success shown.
+    this.pendingReward = 0;
+    this.pendingPurchase = null;
   }
 }
 
@@ -173,3 +209,4 @@ function installSupplyTerminals(): void {
 
 if (game.scene.isBooted) installSupplyTerminals();
 else game.events.once(Phaser.Core.Events.READY, installSupplyTerminals);
+
