@@ -27,13 +27,18 @@ async function main(): Promise<void> {
       });
       return r.json();
     };
-    const hs = await post('/world-link/handshake', { authorized: true, protocolVersion: 1 }, ORIGIN);
+    // Human handshake: proves possession of the host-private pairing key.
+    const hs = await post('/world-link/handshake', { authorized: true, protocolVersion: 1, ownerKey: 'a'.repeat(64) }, ORIGIN);
     if (!hs.ok) fail(`handshake: ${JSON.stringify(hs)}`);
     const session = hs.session as string;
     const epoch = hs.epoch as number;
-    const ownerSecretHash = randomBytes(32).toString('hex');
-    const auth = await post('/world-link/companion-authorize', { session, epoch, ownerSecretHash, ownerMode: 'human' }, ORIGIN);
+    const ownerCap = hs.ownerCap as string;
+    if (typeof ownerCap !== 'string') fail(`no ownerCap in handshake: ${JSON.stringify(hs)}`);
+    // Owner authorize registers the issued capability.
+    const auth = await post('/world-link/companion-authorize', { session, epoch, ownerCap, ownerMode: 'human' }, ORIGIN);
     if (!auth.ok) fail(`companion-authorize: ${JSON.stringify(auth)}`);
+    const cap = auth.ownerCap as string;
+    if (typeof cap !== 'string') fail(`no ownerCap in authorize: ${JSON.stringify(auth)}`);
     const observation = {
       epoch, tick: 1, player: { x: 0, y: 0 },
       echo: { x: 0, y: 0, hp: 100, maxHp: 100, aimYaw: 0 },
@@ -42,7 +47,7 @@ async function main(): Promise<void> {
       perception: { center: { x: 0, y: 0 }, radiusTiles: 12, requiresExplored: true, requiresLineOfSight: true },
       targets: []
     };
-    const pushed = await post('/world-link/companion-observation', { session, epoch, observation }, ORIGIN);
+    const pushed = await post('/world-link/companion-observation', { session, epoch, observation, ownerCap: cap }, ORIGIN);
     if (!pushed.ok) fail(`companion-observation: ${JSON.stringify(pushed)}`);
 
     const child = spawn(process.execPath, [

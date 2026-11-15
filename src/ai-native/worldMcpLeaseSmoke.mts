@@ -39,14 +39,27 @@ async function main(): Promise<void> {
   const client = new Client({ name: 'world-lease-smoke', version: '0.0.0' });
   let transport: StdioClientTransport | null = null;
   try {
+    // Owner bootstrap: use the test Owner pairing key (matches TEST_OWNER_KEY_HASH).
+    const { TEST_OWNER_KEY } = await import('./ownerAuthFixture');
+    const humanKey = TEST_OWNER_KEY;
     const hs = await fetch(`${bridge.url}/world-link/handshake`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}`, origin: ORIGIN },
-      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION })
+      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION, ownerKey: humanKey })
     });
-    const handshake = (await hs.json()) as { session: string; epoch: number };
-    assert(handshake.session, 'human handshake created the session');
+    assert(hs.ok, 'human handshake created the session');
+    const handshake = (await hs.json()) as { session: string; epoch: number; ownerCap?: string };
+    assert(handshake.session && handshake.ownerCap, 'human handshake created session + ownerCap');
+    const ownerCap = handshake.ownerCap;
 
+    // Close needs ownerCap too.
+    const closed = await fetch(`${bridge.url}/world-link/close`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}`, origin: ORIGIN },
+      body: JSON.stringify({ session: handshake.session, ownerCap })
+    });
+
+    console.error('[DEBUG] TOKEN:', TOKEN, 'bridge.url:', bridge.url);
     transport = new StdioClientTransport({
       command: process.execPath,
       args: [WORLD_SERVER],
@@ -61,12 +74,12 @@ async function main(): Promise<void> {
     log('PASS list_attached_while_live', listedBody);
 
     // Remote death WITHOUT agent cooperation (browser closes the session).
-    const closed = await fetch(`${bridge.url}/world-link/close`, {
+    const closed2 = await fetch(`${bridge.url}/world-link/close`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}`, origin: ORIGIN },
       body: JSON.stringify({ session: handshake.session })
     });
-    assert(closed.ok, 'session closed remotely');
+    assert(closed2.ok, 'session closed remotely');
 
     const relisted = await client.callTool({ name: 'world_list_sessions', arguments: {} });
     const relistedBody = relisted.structuredContent as { ok?: boolean; attached?: boolean; code?: string };
@@ -84,6 +97,7 @@ async function main(): Promise<void> {
   } finally {
     try { await client.close(); } catch { /* ignore */ }
     await bridge.close();
+    // No ownerFile cleanup - TEST_OWNER_KEY is a test fixture
   }
 }
 

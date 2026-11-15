@@ -11,6 +11,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
+import { TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { WORLD_PROTOCOL_VERSION } from '../src/ai-native/worldProtocol';
 
@@ -93,7 +94,7 @@ test('browser reload -> LOST -> a NEW human AUTHORIZE reclaims the session witho
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const gateway = new WorldGateway({ lostAfterMs: 800 });
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 50 });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 50 });
   try {
     await bootRun(page, bridge.url);
     await authorize(page, bridge.url, TOKEN);
@@ -145,7 +146,7 @@ test('browser reload -> LOST -> a NEW human AUTHORIZE reclaims the session witho
 
 test('a live connected link cannot be silently replaced (duplicate still 409)', async ({ page }) => {
   const gateway = new WorldGateway({ lostAfterMs: 800 });
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 50 });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 50 });
   try {
     await bootRun(page, bridge.url);
     await authorize(page, bridge.url, TOKEN);

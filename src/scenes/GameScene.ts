@@ -820,14 +820,14 @@ export class GameScene extends Phaser.Scene {
    */
   async authorizeCompanionFromConfig(): Promise<boolean> {
     const config = (globalThis as unknown as {
-      __externalLinkConfig?: { bridgeUrl?: string; token?: string };
+      __externalLinkConfig?: { bridgeUrl?: string; token?: string; ownerKey?: string };
     }).__externalLinkConfig;
     const bridgeUrl = (config?.bridgeUrl ?? '').replace(/\/$/, '');
     const token = config?.token ?? '';
     const pairing = peekOwnerPairing(this);
-    if (!bridgeUrl || !token || !pairing) return false;
-    const ownerKey = pairing.consumeKey();
-    if (!ownerKey) return false;
+    const stashedKey = pairing ? pairing.consumeKey() : '';
+    const ownerKey = stashedKey || (config?.ownerKey ?? '');
+    if (!bridgeUrl || !token || !ownerKey) return false;
     try {
       const res = await fetch(`${bridgeUrl}/world-link/handshake`, {
         method: 'POST',
@@ -843,7 +843,7 @@ export class GameScene extends Phaser.Scene {
         clearOwnerPairing(this);
         return false;
       }
-      pairing.swapCap(hs.ownerCap);
+      pairing?.swapCap(hs.ownerCap);
       this.companionLink = new CompanionLink({
         bridgeUrl, token, origin: location.origin,
         session: hs.session, epoch: hs.epoch, ownerCap: hs.ownerCap,

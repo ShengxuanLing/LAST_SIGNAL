@@ -8,6 +8,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
+import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 
 const PORT = Number(process.env.PORT ?? 5173);
@@ -97,7 +98,7 @@ test('the form is reachable without the console, masks the token and isolates ty
 test('AUTHORIZE from the form links the rendered world; a wrong token shows a REAL error', async ({ page }) => {
   const tokenValue = randomBytes(24).toString('hex');
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: tokenValue, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: tokenValue, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     await bootRun(page);
     await page.keyboard.press('Escape');
@@ -106,6 +107,7 @@ test('AUTHORIZE from the form links the rendered world; a wrong token shows a RE
     // Wrong token first: the real bridge error must be shown, not a generic toast.
     await page.locator('[data-testid="external-link-form"] input[name="bridgeUrl"]').fill(bridge.url);
     await page.locator('[data-testid="external-link-form"] input[name="token"]').fill('wrong-token-value-0123456789');
+    await page.locator('[data-testid="external-link-form"] input[name="ownerKey"]').fill(TEST_OWNER_KEY);
     await page.getByRole('button', { name: 'AUTHORIZE' }).click();
     const status = page.getByTestId('external-link-status');
     await expect(status).toContainText('FAILED', { timeout: 10000 });
@@ -115,6 +117,7 @@ test('AUTHORIZE from the form links the rendered world; a wrong token shows a RE
     // Correct token from the same form.
     await page.locator('[data-testid="external-link-form"] input[name="bridgeUrl"]').fill(bridge.url);
     await page.locator('[data-testid="external-link-form"] input[name="token"]').fill(tokenValue);
+    await page.locator('[data-testid="external-link-form"] input[name="ownerKey"]').fill(TEST_OWNER_KEY);
     await page.getByRole('button', { name: 'AUTHORIZE' }).click();
     await expect(page.getByTestId('external-link-form')).toHaveCount(0, { timeout: 15000 });
     await expect.poll(async () => owner(page), { timeout: 15000 }).toBe('external');

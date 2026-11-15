@@ -8,6 +8,9 @@
  *   - `--headless --dev`: help entry + create(seed) -> quit
  *   - Rendered link: bridge + human handshake -> help/status -> quit
  * and asserts the process prints the expected output and is reaped on `quit`.
+ *
+ * Owner bootstrap: the rendered handshake reads the host-private Owner pairing
+ * key from OWNER_KEY_FILE separately (Agent env never receives it).
  */
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
@@ -16,6 +19,7 @@ import { startWorldBridge } from './worldBridgeServer';
 import { TEST_OWNER_KEY_HASH } from './ownerAuthFixture';
 import { WorldGateway } from './worldGateway';
 import { WORLD_PROTOCOL_VERSION } from './worldProtocol';
+import { readOwnerCredentialFile } from './ownerCredential';
 
 const REPO = process.cwd();
 const VITE_NODE = resolve(REPO, 'node_modules/vite-node/dist/cli.mjs');
@@ -71,27 +75,38 @@ async function main(): Promise<void> {
   log('PASS console_headless_dev_help', { code: dev.code });
 
   // ---- 3) Rendered link: bridge + human handshake -> help/status -> quit ----
+  // Owner bootstrap: generate the host-private Owner key in a current-user
+  // private file, read it ONLY for the Owner handshake, and never put it in
+  // the Agent env passed to the console subprocess.
   const token = randomBytes(24).toString('hex');
-  const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: ['http://localhost:5335'] });
+  const ownerFile = await import('./ownerCredential').then((m) => m.createOwnerCredentialFile());
   try {
-    const hs = await fetch(`${bridge.url}/world-link/handshake`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}`, origin: 'http://localhost:5335' },
-      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION })
-    });
-    assert(hs.ok, 'human handshake for the rendered console');
-    const rendered = await runConsole([], 'help\nstatus\nquit\n', {
-      LAST_SIGNAL_WORLD_BRIDGE_URL: bridge.url,
-      LAST_SIGNAL_WORLD_TOKEN: token
-    });
-    assert(rendered.reaped && rendered.code === 0, 'rendered console reaped/exit 0', { code: rendered.code, stderr: rendered.stderr });
-    assert(rendered.stdout.includes('CONNECTED console mode=rendered'), 'rendered console started', rendered.stdout.slice(0, 200));
-    assert(rendered.stdout.includes('list | observe | act'), 'rendered help entry lists the tools', rendered.stdout.slice(0, 300));
-    assert(rendered.stdout.includes('"attached":true') || rendered.stdout.includes('"session"'), 'rendered status works');
-    log('PASS console_rendered_help', { code: rendered.code });
+    const gateway = new WorldGateway();
+    const bridge = await startWorldBridge({ gateway, token, ownerKeyHash: ownerFile.keyHash, allowedOrigins: ['http://localhost:5335'] });
+    try {
+      // Owner handshake: human proves possession of the host-private key.
+      const humanKey = await readOwnerCredentialFile(ownerFile.path);
+      const hs = await fetch(`${bridge.url}/world-link/handshake`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${token}`, origin: 'http://localhost:5335' },
+        body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION, ownerKey: humanKey })
+      });
+      assert(hs.ok, 'human handshake for the rendered console');
+      const rendered = await runConsole([], 'help\nstatus\nquit\n', {
+        LAST_SIGNAL_WORLD_BRIDGE_URL: bridge.url,
+        LAST_SIGNAL_WORLD_TOKEN: token
+        // NOTE: NO ownerKey in Agent env — the console process is Agent-side.
+      });
+      assert(rendered.reaped && rendered.code === 0, 'rendered console reaped/exit 0', { code: rendered.code, stderr: rendered.stderr });
+      assert(rendered.stdout.includes('CONNECTED console mode=rendered'), 'rendered console started', rendered.stdout.slice(0, 200));
+      assert(rendered.stdout.includes('list | observe | act'), 'rendered help entry lists the tools', rendered.stdout.slice(0, 300));
+      assert(rendered.stdout.includes('"attached":true') || rendered.stdout.includes('"session"'), 'rendered status works');
+      log('PASS console_rendered_help', { code: rendered.code });
+    } finally {
+      await bridge.close();
+    }
   } finally {
-    await bridge.close();
+    await import('node:fs/promises').then((f) => f.rm(ownerFile.directory, { recursive: true, force: true })).catch(() => undefined);
   }
 
   log('WORLD_CONSOLE_SMOKE_PASS');

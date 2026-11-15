@@ -10,6 +10,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
 import { startWorldBridge, type RunningWorldBridge } from '../src/ai-native/worldBridgeServer';
+import { TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { WorldClient } from '../src/ai-native/worldClient';
 
@@ -212,7 +213,7 @@ test('human authorization links the rendered world to the bridge; actions commit
 
 test('takeover / overlay / agent disconnect yield the link; no automatic re-take', async ({ page }) => {
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     await page.goto('/');
     await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
@@ -306,7 +307,7 @@ test('ticks=1 vs ticks=120 differ in REAL core ticks and real displacement', asy
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     const client = await setupLinkedRun(page, bridge);
 
@@ -380,7 +381,7 @@ test('fire honours real cooldown / ammo / real projectiles; interact is one lega
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     const client = await setupLinkedRun(page, bridge);
     // Give the player a finite magazine so ammo is a real observable resource.
@@ -448,7 +449,7 @@ test('fire honours real cooldown / ammo / real projectiles; interact is one lega
 
 test('blocked legal move still gets a receipt but cannot fake displacement', async ({ page }) => {
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     const client = await setupLinkedRun(page, bridge);
     // Place the player on a real walkable cell that is adjacent to a real wall.
@@ -492,7 +493,7 @@ test('Rendered probe: hidden / far / other-room enemy projectiles are NOT in the
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     const client = await setupLinkedRun(page, bridge);
     // Inject REAL core projectiles through the dev/test OWNER fixture (never an
@@ -568,7 +569,7 @@ test('takeover while a long action is in flight: no pageerror, no ACK after the 
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     const client = await setupLinkedRun(page, bridge);
     const submitted = await client.submit('req_c3b000000000000000000040', [
@@ -596,7 +597,7 @@ test('Rendered effects: a real drone takes REAL damage from a ticks-long fire ac
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     const client = await setupLinkedRun(page, bridge);
     // Give the player a durable HP pool so the drone cannot end the run first.
@@ -661,7 +662,7 @@ test('a queued stop preempts the ACTIVE long action; other actions keep FIFO', a
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   try {
     const client = await setupLinkedRun(page, bridge);
     const move120 = await client.submit('req_c3b000000000000000000060', [

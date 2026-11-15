@@ -242,7 +242,9 @@ export class PauseScene extends Phaser.Scene {
           }).setOrigin(0.5);
           return;
         }
-        const ownerKey = peekOwnerPairing(parent)?.consumeKey() ?? '';
+        const stashedKey = peekOwnerPairing(parent)?.consumeKey() ?? '';
+        const configKey = (config as { ownerKey?: string })?.ownerKey ?? '';
+        const ownerKey = stashedKey || configKey;
         void parent.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
           if (!ok) clearOwnerPairing(parent);
           this.lastExternalSig = '';

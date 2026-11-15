@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
+import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 
 const ORIGIN = 'http://localhost:5176';
 const TOKEN = randomBytes(24).toString('hex');
@@ -27,10 +28,10 @@ test('Owner UI confirms a companion suggestion into a real echo core action', as
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(e.message));
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 20 });
-  await page.addInitScript(({ bridgeUrl, token }) => {
-    (window as any).__externalLinkConfig = { bridgeUrl, token };
-  }, { bridgeUrl: bridge.url, token: TOKEN });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 20 });
+  await page.addInitScript(({ bridgeUrl, token, ownerKey }) => {
+    (window as any).__externalLinkConfig = { bridgeUrl, token, ownerKey };
+  }, { bridgeUrl: bridge.url, token: TOKEN, ownerKey: TEST_OWNER_KEY });
   try {
     await page.goto('/');
     await page.evaluate(() => localStorage.removeItem('lastSignal.save.v1'));
@@ -99,7 +100,7 @@ test('Owner UI confirms a companion suggestion into a real echo core action', as
     const forged = await fetch(`${bridge.url}/world-link/companion-decision`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}` },
-      body: JSON.stringify({ session, epoch: 1, suggestionId, decision: 'confirm', tick: 2, ownerSecret: 'x' })
+      body: JSON.stringify({ session, epoch: 1, suggestionId, decision: 'confirm', tick: 2 })
     }).then((r) => r.json());
     expect(forged.ok).toBe(false);
 

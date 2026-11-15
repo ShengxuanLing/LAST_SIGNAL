@@ -16,6 +16,7 @@ import { resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
+import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { WorldClient } from '../src/ai-native/worldClient';
 import { writeSecureTokenFile, deleteSecureTokenFile } from '../src/ai-native/secureTokenFile';
@@ -53,9 +54,9 @@ async function authorizeViaMenu(page: Page, bridgeUrl?: string, token?: string):
   if (bridgeUrl && token) {
     // The page-level config is cleared whenever the link degrades (incl. the
     // pause that opens this menu). Inject AFTER the menu is open.
-    await page.evaluate(({ bridgeUrl: url, token: t }) => {
-      (window as any).__externalLinkConfig = { bridgeUrl: url, token: t };
-    }, { bridgeUrl, token });
+    await page.evaluate(({ bridgeUrl: url, token: t, ownerKey: k }) => {
+      (window as any).__externalLinkConfig = { bridgeUrl: url, token: t, ownerKey: k };
+    }, { bridgeUrl, token, ownerKey: TEST_OWNER_KEY });
   }
   const pos = await page.evaluate(() => {
     const ps = (window as any).__game.scene.getScene('PauseScene');
@@ -104,7 +105,7 @@ test('SIGKILL of the agent process expires the lease, yields the link and forbid
   const token = randomBytes(24).toString('hex');
   const tokenFile = await writeSecureTokenFile(token);
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   let client: Client | null = null;
   let transport: StdioClientTransport | null = null;
   try {

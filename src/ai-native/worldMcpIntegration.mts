@@ -56,19 +56,25 @@ async function main(): Promise<void> {
   let transport: StdioClientTransport | null = null;
   try {
     // HUMAN authorization on the rendered side creates the only session.
+    // Owner bootstrap: use the test Owner pairing key (matches TEST_OWNER_KEY_HASH).
+    // In production, this key is read separately from OWNER_KEY_FILE by the human.
+    const { TEST_OWNER_KEY } = await import('./ownerAuthFixture');
+    const humanKey = TEST_OWNER_KEY;
     const handshakeResponse = await fetch(`${bridge.url}/world-link/handshake`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}`, origin: ORIGIN },
-      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION })
+      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION, ownerKey: humanKey })
     });
-    const handshake = (await handshakeResponse.json()) as { session: string; epoch: number };
-    assert(handshake.session, 'human handshake created the session');
+    assert(handshakeResponse.ok, 'human handshake created the session');
+    const handshake = (await handshakeResponse.json()) as { session: string; epoch: number; ownerCap?: string };
+    assert(handshake.session && handshake.ownerCap, 'human handshake created session + ownerCap');
+    const ownerCap = handshake.ownerCap;
 
-    // The rendered game pushes a post-commit observation.
+    // The rendered game pushes a post-commit observation (Owner capability required).
     const pushed = await fetch(`${bridge.url}/world-link/observation`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}`, origin: ORIGIN },
-      body: JSON.stringify({ session: handshake.session, epoch: handshake.epoch, observation: observation(handshake.epoch, 12) })
+      body: JSON.stringify({ session: handshake.session, epoch: handshake.epoch, observation: observation(handshake.epoch, 12), ownerCap })
     });
     assert(pushed.ok, 'post-commit observation pushed');
 
@@ -153,6 +159,7 @@ async function main(): Promise<void> {
   } finally {
     await client.close().catch(() => undefined);
     await bridge.close();
+    // No ownerFile cleanup needed - used TEST_OWNER_KEY test fixture
   }
 }
 
