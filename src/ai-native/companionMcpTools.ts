@@ -140,7 +140,7 @@ export function registerCompanionTools(server: McpServer, client: CompanionClien
     z.strictObject({
       requestId: z.string().regex(ID_REQ),
       suggestionId: z.string().regex(ID_SUG),
-      kind: z.enum(['move', 'aim', 'fire', 'scan', 'jam']),
+      kind: z.enum(['move', 'aim', 'fire', 'scan', 'jam', 'toggle-relay']),
       reason: z.enum(['perceived_hostile', 'perceived_relay', 'no_perceived_target', 'objective_blocked']),
       target: z.strictObject({ x: COORD, y: COORD }).optional(),
       confidence: z.number().min(0).max(1).optional(),

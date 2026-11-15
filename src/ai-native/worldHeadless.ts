@@ -35,6 +35,7 @@ import { buildWorldObservation } from './worldObservation';
 import { buildExternalObservation } from './externalObservation';
 import { gridLineOfSight, WORLD_PERCEPTION } from './worldPerception';
 import { buildEchoObservation, type EchoObservation } from '../world/echoView';
+import { SIGNAL_TUNING } from '../signal/signalTuning';
 import {
   WORLD_LIMITS, WORLD_PROTOCOL_VERSION, WORLD_SCHEMA_V1,
   type WorldObservationV1
@@ -331,6 +332,8 @@ export class HeadlessWorld {
   echoView(): EchoObservation | null {
     const echo = this.sim.echo;
     if (!echo) return null;
+    const signal = this.sim.signal;
+    const echoAccount = signal?.actors.echo;
     return buildEchoObservation({
       echo,
       player: { x: this.sim.player.x, y: this.sim.player.y },
@@ -343,7 +346,20 @@ export class HeadlessWorld {
         const id = this.roomIdAt(x, y);
         return id !== null && this.entered.has(id);
       },
-      isOpaque: (x, y) => tileAtFromState(this.sim, Math.floor(x), Math.floor(y)).type === 'wall'
+      isOpaque: (x, y) => tileAtFromState(this.sim, Math.floor(x), Math.floor(y)).type === 'wall',
+      signal: signal
+        ? {
+            deviceId: signal.deviceId, x: signal.x, y: signal.y, relay: signal.relay,
+            powered: signal.powered, manualEnabled: signal.manualEnabled,
+            jammedUntilTick: signal.jammedUntilTick
+          }
+        : null,
+      energy: echoAccount
+        ? { current: echoAccount.energy.energy, max: SIGNAL_TUNING.ENERGY_MAX }
+        : undefined,
+      cooldowns: echoAccount
+        ? { scanTicks: echoAccount.cooldowns.scanCooldownTicks, jamTicks: echoAccount.cooldowns.jamCooldownTicks }
+        : undefined
     });
   }
   /**

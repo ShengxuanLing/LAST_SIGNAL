@@ -19,6 +19,7 @@ import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-nativ
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
 import { chooseNearestActor, type ActorCombatPort, type ActorTargetView } from './actorTarget';
 import { buildEchoObservation, type EchoObservation } from './echoView';
+import { SIGNAL_TUNING } from '../signal/signalTuning';
 import { ExternalLinkState, type ExternalActionReceipt } from '../ai-native/externalLink';
 import { EchoController, type EchoMode, type EchoView } from '../ai-native/echo';
 import type { PlayerIntent } from '../ai-native/control';
@@ -253,6 +254,8 @@ export class World {
   echoView(): EchoObservation | null {
     const echo = this._sim.echo;
     if (!echo) return null;
+    const signal = this._sim.signal;
+    const echoAccount = signal?.actors.echo;
     return buildEchoObservation({
       echo,
       player: { x: this._sim.player.x, y: this._sim.player.y },
@@ -262,7 +265,22 @@ export class World {
         id: target.id, kind: target.kind, x: target.x, y: target.y, hp: target.hp, isBoss: target.isBoss
       })),
       isExplored: (x, y) => this.isExploredCell(x, y),
-      isOpaque: (x, y) => this.isOpaqueCell(x, y)
+      isOpaque: (x, y) => this.isOpaqueCell(x, y),
+      // Echo-only Signal knowledge: the builder itself decides whether the
+      // echo currently perceives the device (no player-side leak).
+      signal: signal
+        ? {
+            deviceId: signal.deviceId, x: signal.x, y: signal.y, relay: signal.relay,
+            powered: signal.powered, manualEnabled: signal.manualEnabled,
+            jammedUntilTick: signal.jammedUntilTick
+          }
+        : null,
+      energy: echoAccount
+        ? { current: echoAccount.energy.energy, max: SIGNAL_TUNING.ENERGY_MAX }
+        : undefined,
+      cooldowns: echoAccount
+        ? { scanTicks: echoAccount.cooldowns.scanCooldownTicks, jamTicks: echoAccount.cooldowns.jamCooldownTicks }
+        : undefined
     });
   }
 

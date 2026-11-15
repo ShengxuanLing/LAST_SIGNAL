@@ -38,7 +38,7 @@ export const COMPANION_REASONS = Object.freeze([
 export type CompanionReason = (typeof COMPANION_REASONS)[number];
 
 export const COMPANION_SUGGESTION_KINDS = Object.freeze([
-  'move', 'aim', 'fire', 'scan', 'jam'
+  'move', 'aim', 'fire', 'scan', 'jam', 'toggle-relay'
 ] as const);
 export type CompanionSuggestionKind = (typeof COMPANION_SUGGESTION_KINDS)[number];
 

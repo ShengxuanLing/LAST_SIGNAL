@@ -33,6 +33,15 @@ export interface EchoObservationInput {
   targets: readonly EchoObservationTarget[];
   isExplored: (x: number, y: number) => boolean;
   isOpaque: (x: number, y: number) => boolean;
+  /** The run's ONE Signal device, if the run has one. It is only reported
+   *  when the ECHO itself perceives it (radius + explored + line of sight). */
+  signal?: {
+    deviceId: string; x: number; y: number; relay: string;
+    powered: boolean; manualEnabled: boolean; jammedUntilTick: number;
+  } | null;
+  /** The ECHO's own finite resource account (never the player's). */
+  energy?: { current: number; max: number };
+  cooldowns?: { scanTicks: number; jamTicks: number };
 }
 
 export const ECHO_OBSERVATION_SCHEMA = 'last_signal.echo-observation.v1' as const;
@@ -91,6 +100,12 @@ function perceives(
 
 export function buildEchoObservation(input: EchoObservationInput): EchoObservation {
   const { echo, isExplored, isOpaque } = input;
+  const signal = input.signal;
+  // The device is echo-only knowledge: no relay is reported unless the echo
+  // perceives it right now through the SAME shared perception rule as actors.
+  const perceivedRelay = signal && perceives(echo, signal.x, signal.y, isExplored, isOpaque)
+    ? { id: signal.deviceId, x: signal.x, y: signal.y, state: signal.relay }
+    : null;
   const drones = input.drones
     .filter((drone) => drone.hp > 0 && perceives(echo, drone.x, drone.y, isExplored, isOpaque))
     .slice(0, 32)
@@ -117,6 +132,10 @@ export function buildEchoObservation(input: EchoObservationInput): EchoObservati
       maxHp: echo.data.maxHp, aimYaw: echo.aimYaw
     },
     drones,
-    targets
+    targets,
+    ...(perceivedRelay ? { relay: perceivedRelay } : {}),
+    ...(perceivedRelay && signal && signal.relay !== 'ACTIVE' ? { objectiveBlocked: true } : {}),
+    ...(input.energy ? { energy: input.energy } : {}),
+    ...(input.cooldowns ? { cooldowns: input.cooldowns } : {})
   };
 }
