@@ -533,6 +533,15 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const dev = args.includes('--dev');
   const worldMode = args.includes('--world');
+  const headlessMode = args.includes('--world-headless');
+  if (headlessMode) {
+    // C3-c: official HEADLESS same-core WORLD surface. Player tools only unless
+    // --dev is also present (Dev/OWNER fixture surface). StationZero default
+    // behaviour is unchanged when neither flag is present.
+    const { startWorldHeadlessMcpServer } = await import('./worldHeadlessMcpTools');
+    await startWorldHeadlessMcpServer(dev);
+    return;
+  }
   if (worldMode) {
     // C3-b: official WORLD surface. StationZero compatibility: WITHOUT
     // --world the server behaves exactly as before (no world tools, no bridge).

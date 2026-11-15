@@ -1,0 +1,22 @@
+PASS player_surface_only | {"count":7}
+PASS player_create_session | {"session":"ses_9745b9dc54387999edbfb91b","epoch":1,"tick":0,"status":"running"}
+PASS player_observe_cropped | {"tick":0,"drones":1}
+PASS player_step_fire60 | {"fromTick":0,"toTick":60,"status":"cleared","eventCount":102,"applied":[{"actionId":"aid_000000000000000000000001","requestId":"req_000000000000000000000001","startedTick":0,"appliedTick":60,"executedTicks":60}]}
+PASS player_step_idempotent
+PASS player_observe_post_step | {"tick":60,"hp":100}
+PASS player_stale_epoch_rejected
+PASS signal_unsupported
+PASS player_close_releases
+PASS dev_inspect | {"tick":0,"mapHash":"fnv1a32:c364a6bf"}
+PASS dev_snapshot | {"bytes":946076}
+PASS dev_load_room | {"roomId":3,"epoch":2,"spawned":1}
+PASS dev_spawn_enemies | {"epoch":3,"spawned":2}
+PASS dev_real_combat | {"tick":240,"drones":2}
+PASS dev_replay | {"sameState":true,"sameEvents":true,"firstDivergence":null}
+PASS dev_export_failure | {"path":"D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\c3c\\failures\\ses_33c391b608285b02bff8d2fe-1794700982799.failure.json","bytes":1138938}
+PASS dev_batch | {"runs":2,"deaths":0,"cleared":2,"running":0,"totalTicks":50,"totalKills":2,"totalShots":6,"totalDamageTaken":0}
+PASS dev_compare | [{"policy":"hold","runs":2,"deaths":0,"cleared":0,"running":2,"totalTicks":1200,"totalKills":0,"totalShots":0,"totalDamageTaken":98},{"policy":"seek-and-fire","runs":2,"deaths":0,"cleared":2,"running":0,"totalTicks":50,"totalKills":2,"totalShots":6,"totalDamageTaken":0}]
+PASS dev_perf | {"ticks":1000,"sessions":10,"wallMs":3132.52,"cpuUserMs":3156,"heapUsedBytes":0,"events":30340,"liveTicks":9200}
+PASS dev_restore_epoch | {"epoch":4}
+PASS dev_batch_deterministic | {"hash":"fnv1a32:17e26b0c"}
+HEADLESS_MCP_SMOKE_PASS

@@ -17,7 +17,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         mcpServer: resolve(process.cwd(), 'src/ai-native/mcpServer.ts'),
-        worldMcpServer: resolve(process.cwd(), 'src/ai-native/worldMcpServer.ts')
+        worldMcpServer: resolve(process.cwd(), 'src/ai-native/worldMcpServer.ts'),
+        worldHeadlessMcpServer: resolve(process.cwd(), 'src/ai-native/worldHeadlessMcpServer.ts')
       },
       output: { entryFileNames: '[name].mjs', chunkFileNames: 'chunks/[name]-[hash].mjs' }
     }

@@ -183,6 +183,24 @@ export class WorldGateway {
     }));
   }
 
+  /**
+   * Owner-side epoch rebind after a headless frame mutation (restore/dev
+   * fixture). Bumps the epoch and clears pending/request/action caches so an
+   * old epoch or stale request can never apply to the new state.
+   */
+  rebindSession(sessionId: string, nowMs: number): { ok: true; epoch: number } | WorldGatewayError {
+    const s = this.sessions.get(sessionId);
+    if (!s) return this.err('E_SESSION_NOT_FOUND', 'world.session_unknown');
+    s.epoch += 1;
+    s.pending = [];
+    this.archiveCaches(s);
+    s.lastObservation = null;
+    s.lastObservationFingerprint = null;
+    s.status = 'connected';
+    s.lastSeenMs = nowMs;
+    return { ok: true, epoch: s.epoch };
+  }
+
   /** Human re-authorization after YIELDED/LOST; never automatic. */
   authorize(sessionId: string, epoch: number, nowMs: number): { ok: true; epoch: number } | WorldGatewayError {
     const s = this.sessions.get(sessionId);

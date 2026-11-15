@@ -1,0 +1,73 @@
+[
+  {
+    "ticks": 10,
+    "intent": {
+      "move": {
+        "x": 1,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 2,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 40,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 8,
+    "intent": {
+      "move": {
+        "x": -1,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  }
+]
