@@ -53,7 +53,9 @@ export interface EnemyStats {
 
 export interface EnemyData {
   kind: EnemyKind; stats: EnemyStats; state: EnemyStateName; stateTimer: number;
-  targetId: number | null; patrolPoints: Vec2[]; patrolIndex: number;
+  targetId: number | null;
+  /** P3-a: disambiguates echo actorId 1 from a legacy drone id 1. */
+  targetActorKind?: 'player' | 'echo'; patrolPoints: Vec2[]; patrolIndex: number;
   hitFlash: number; stunTimer: number; spawnRoom: number;
 }
 

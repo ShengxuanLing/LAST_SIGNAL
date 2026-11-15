@@ -162,3 +162,33 @@ describe('C3c owner file — D: oversized file rejected before read', () => {
     }
   }, 120_000);
 });
+
+describe('C3c owner file — B: frames ROOT junction is also rejected', () => {
+  it('isSafeFramesRoot accepts a plain directory but rejects a junction root', async () => {
+    const { isSafeFramesRoot } = await import('./worldHeadlessMcpTools');
+    expect(await isSafeFramesRoot(FRAMES)).toBe(true);
+    const outside = resolve('reports/ai-native-02/c3c/frames-root-outside');
+    await mkdir(outside, { recursive: true });
+    await writeFile(resolve(outside, 'frame.json'), '{"schema":"x"}', 'utf8');
+    const junction = resolve('reports/ai-native-02/c3c/frames-root-junction');
+    let created = false;
+    try {
+      if (process.platform === 'win32') {
+        execFileSync('cmd', ['/c', 'mklink', '/J', junction, outside], { stdio: 'ignore' });
+      } else {
+        await symlink(outside, junction);
+      }
+      created = true;
+      expect(await isSafeFramesRoot(junction), 'a junction root is not a plain directory').toBe(false);
+      expect(await isSafeFramesRoot(resolve(outside, 'frame.json')), 'a file is not a root').toBe(false);
+    } finally {
+      if (created) {
+        try {
+          if (process.platform === 'win32') execFileSync('cmd', ['/c', 'rmdir', junction], { stdio: 'ignore' });
+          else await rm(junction, { force: true });
+        } catch { /* best effort cleanup */ }
+      }
+      await rm(outside, { recursive: true, force: true });
+    }
+  }, 120_000);
+});

@@ -17,11 +17,13 @@ import type { ControllerActorView, LocalControllerView } from '../ai-native/loca
 import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
 import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
+import { chooseNearestActor, type ActorCombatPort, type ActorTargetView } from './actorTarget';
+import { buildEchoObservation, type EchoObservation } from './echoView';
 import { ExternalLinkState, type ExternalActionReceipt } from '../ai-native/externalLink';
-import { EchoController, ECHO_LIMITS, type EchoMode, type EchoView } from '../ai-native/echo';
+import { EchoController, type EchoMode, type EchoView } from '../ai-native/echo';
 import type { PlayerIntent } from '../ai-native/control';
 import {
-  createSimulationState, enqueueCommand, enqueuePlayerHit, isWalkableFromState,
+  createSimulationState, ECHO_ACTOR_ID, enqueueCommand, enqueueEchoHit, enqueuePlayerHit, isWalkableFromState,
   enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState, processCommands,
   registerDrone, registerTarget,
   spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
@@ -82,6 +84,10 @@ export class World {
   /** Explicit dev/test reset; not a general scene API. */
   resetProjectilesForTest(): void {
     World.assertDevTest();
+    // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
+    // memory or pending intent. Echo HP comes verbatim from the checkpoint.
+    this.echoController.reset();
+    this.echoShotsFired = 0;
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
     if (this._sim) this._sim.projectiles = [];
@@ -233,26 +239,20 @@ export class World {
    * The echo's OWN bounded perception: centred on the echo, 12 tiles, explored
    * rooms and line of sight. It never reuses the player's crop or full map.
    */
-  echoView(): EchoView | null {
+  echoView(): EchoObservation | null {
     const echo = this._sim.echo;
     if (!echo) return null;
-    const center = { x: echo.x, y: echo.y };
-    const drones = this.enemies
-      .filter((enemy) => enemy.alive && enemy.hp > 0)
-      .filter((enemy) => gridLineOfSight({ x: enemy.x, y: enemy.y }, {
-        center,
-        radiusTiles: ECHO_LIMITS.perceptionTiles,
-        isExplored: (x, y) => this.isExploredCell(x, y),
-        isOpaque: (x, y) => this.isOpaqueCell(x, y),
-        stepTiles: WORLD_PERCEPTION.losStepTiles
-      }))
-      .map((enemy) => ({ id: enemy._id, x: enemy.x, y: enemy.y, hp: enemy.hp }));
-    return {
+    return buildEchoObservation({
+      echo,
+      player: { x: this._sim.player.x, y: this._sim.player.y },
       tick: this._sim.tick,
-      player: { x: this.player.x, y: this.player.y },
-      echo: { x: echo.x, y: echo.y, hp: echo.data.hp, maxHp: echo.data.maxHp, aimYaw: echo.aimYaw },
-      drones
-    };
+      drones: this._sim.drones.map((drone) => ({ id: drone.id, x: drone.x, y: drone.y, hp: drone.hp })),
+      targets: this._sim.targets.map((target) => ({
+        id: target.id, kind: target.kind, x: target.x, y: target.y, hp: target.hp, isBoss: target.isBoss
+      })),
+      isExplored: (x, y) => this.isExploredCell(x, y),
+      isOpaque: (x, y) => this.isOpaqueCell(x, y)
+    });
   }
 
   /** Human request: spawn the companion next to the protagonist. */
@@ -1027,7 +1027,7 @@ export class World {
   // ---------- Update ----------
 
   /** C2: fixed 60Hz core ticks; render frame delta is only an accumulator input. */
-  stepFrame(frameDeltaMs: number, intent: SimulationIntent): SimEvent[] {
+  stepFrame(frameDeltaMs: number, intent: SimulationIntent, echoIntentOverride?: SimulationIntent): SimEvent[] {
     const delta = Math.max(0, Math.min(frameDeltaMs, SIM_TUNING.MAX_FRAME_DELTA_MS));
     this.simAccumulatorMs += delta;
     // Epsilon: 250ms must yield exactly 15 ticks despite binary rounding.
@@ -1045,8 +1045,10 @@ export class World {
       this.processWorldSpawns();
       // P3-a: the echo decides BEFORE the tick from its own perception, then the
       // same core tick commits its move/fire. No separate state mutation.
-      const echoView = this.echoView();
-      const echoIntent = echoView ? this.echoController.decide(echoView) : undefined;
+      // An explicit echo intent is used ONLY by the parity/diagnostic driver;
+      // normal rendered play always takes the EchoController decision.
+      const echoIntent = echoIntentOverride
+        ?? (this.echoView() ? this.echoController.decide(this.echoView()!) : undefined);
       // C3-b fix: an external action's intent must be delivered for EXACTLY
       // its remaining integer core ticks. If one frame contains more ticks than
       // the action has left, split the core call so the surplus ticks run with
@@ -1116,7 +1118,7 @@ export class World {
           this.addShake(3);
           break;
         case 'echo-death':
-          this.echoController.clearIntent();
+          this.echoController.reset();
           this.addShake(6);
           break;
         case 'echo-spawned':
@@ -1302,7 +1304,7 @@ export class World {
     const view = this.echoView();
     let target: { x: number; y: number } | null = null;
     let bestD = Infinity;
-    for (const drone of view?.drones ?? []) {
+    for (const drone of [...(view?.drones ?? []), ...(view?.targets ?? [])]) {
       const d = Math.hypot(drone.x - echo.x, drone.y - echo.y);
       if (d < bestD) { target = drone; bestD = d; }
     }
@@ -1313,14 +1315,69 @@ export class World {
     }
   }
 
+  /**
+   * Legal, echo-centred visibility for an enemy: the same grid radius +
+   * explored-room + wall LOS predicate used by the companion. Enemies never
+   * learn about an actor they cannot see.
+   */
+  private isActorVisibleFrom(self: { x: number; y: number }, x: number, y: number): boolean {
+    return gridLineOfSight({ x, y }, {
+      center: { x: self.x, y: self.y },
+      radiusTiles: WORLD_PERCEPTION.radiusTiles,
+      isExplored: (sx, sy) => this.isExploredCell(sx, sy),
+      isOpaque: (sx, sy) => this.isOpaqueCell(sx, sy),
+      stepTiles: WORLD_PERCEPTION.losStepTiles
+    });
+  }
+
+  /**
+   * Read-only actor view + legal damage facade for legacy enemies. The player is
+   * always a candidate (frozen no-echo behaviour); the ECHO is only a candidate
+   * when it is actually visible to that enemy. Ties keep the player.
+   */
+  private enemyCombatPort(self: { x: number; y: number }): ActorCombatPort | null {
+    const candidates: ActorTargetView[] = [];
+    if (this._sim.player.data.hp > 0) {
+      candidates.push({
+        actorId: 0, kind: 'player',
+        x: this._sim.player.x, y: this._sim.player.y,
+        hp: this._sim.player.data.hp, alive: true
+      });
+    }
+    const echo = this._sim.echo;
+    if (echo && echo.data.hp > 0 && this.isActorVisibleFrom(self, echo.x, echo.y)) {
+      candidates.push({
+        actorId: ECHO_ACTOR_ID, kind: 'echo',
+        x: echo.x, y: echo.y, hp: echo.data.hp, alive: true
+      });
+    }
+    const target = chooseNearestActor(self, candidates);
+    if (!target) return null;
+    return {
+      target,
+      hurtTarget: (amount: number, fromX: number, fromY: number): boolean => {
+        if (target.kind === 'player') return this.player.hurt(amount, fromX, fromY);
+        // Echo damage is a queued core command; the legacy adapter never writes
+        // authoritative HP and never bypasses processCommands.
+        enqueueEchoHit(this._sim, amount, fromX, fromY);
+        this.bumpSimVersion();
+        return true;
+      }
+    };
+  }
+
   private updateLegacy(dt: number): void {
     this.clock += dt;
     for (const e of this.enemies) {
       if (e.data.kind === 'drone') continue; // core owns drone FSM and timers
-      e.update(dt, this.player);
+      const port = this.enemyCombatPort(e);
+      if (port) e.update(dt, port);
       e.applyVisual();
     }
-    if (this.boss) this.boss.update(dt, this.player);
+    if (this.boss) {
+      const port = this.enemyCombatPort(this.boss);
+      if (port) this.boss.update(dt, port);
+    }
     this.updateFx(dt);
     this.updateRoom();
     this.updateCamera(dt);
@@ -1509,6 +1566,10 @@ export class World {
       // run still produces a deterministic core stream.
       this._sim.rngState = new RNG(run.seed * 7919 + 1).snapshot();
     }
+    // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
+    // memory or pending intent. Echo HP comes verbatim from the checkpoint.
+    this.echoController.reset();
+    this.echoShotsFired = 0;
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
     this._sim.loot = run.loot.map((drop, i) => ({ id: i + 1, x: drop.x, y: drop.y, kind: drop.kind as SimLootKind, key: drop.key, amount: drop.amount, bob: drop.bob }));
@@ -1520,6 +1581,10 @@ export class World {
   reset(): void {
     for (const e of this.enemies) e.sprite.destroy();
     this.enemies = [];
+    // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
+    // memory or pending intent. Echo HP comes verbatim from the checkpoint.
+    this.echoController.reset();
+    this.echoShotsFired = 0;
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
     this._sim.drones = [];
@@ -1529,7 +1594,7 @@ export class World {
     this.loot = [];
     this.boss = null;
     delete this._sim.echo;
-    this.echoController.clearIntent();
+    this.echoController.reset();
     this.echoShotsFired = 0;
     if (this.echoSprite) { this.echoSprite.destroy(); this.echoSprite = null; }
     if (this.echoLine) { this.echoLine.destroy(); this.echoLine = null; }

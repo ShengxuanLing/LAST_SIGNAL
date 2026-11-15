@@ -60,3 +60,32 @@ describe('HeadlessWorld echo', () => {
     expect(world.canonicalState()).toContain('"echo"');
   });
 });
+
+describe('HeadlessWorld echo observation (shared projection)', () => {
+  it('includes non-drone core targets and Boss public state, not hidden ones', () => {
+    const world = new HeadlessWorld({ seed: 424242 });
+    world.enableEcho();
+    world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
+    const sim = world.state;
+    const echo = sim.echo!;
+    sim.targets.push({
+      id: 77, kind: 'hunter', x: echo.x + 1, y: echo.y, hp: 60, maxHp: 60,
+      armor: 0, radius: 0.5, isBoss: false, xpValue: 4, currencyValue: 4
+    });
+    sim.targets.push({
+      id: 78, kind: 'boss_warden', x: echo.x + 2, y: echo.y, hp: 900, maxHp: 900,
+      armor: 2, radius: 2, isBoss: true, xpValue: 40, currencyValue: 40
+    });
+    sim.targets.push({
+      id: 79, kind: 'stalker', x: echo.x + 500, y: echo.y, hp: 20, maxHp: 20,
+      armor: 0, radius: 0.5, isBoss: false, xpValue: 4, currencyValue: 4
+    });
+    const allRooms = sim.map.rooms.map((_r) => 0).map((_v, i) => i);
+    const restored = HeadlessWorld.fromSimulationState(sim, allRooms);
+    const view = restored.echoView();
+    expect(view).not.toBeNull();
+    expect(view!.targets.map((t) => t.id).sort((a, b) => a - b)).toEqual([77, 78]);
+    expect(view!.targets.find((t) => t.isBoss)).toMatchObject({ kind: 'boss_warden', hp: 900 });
+    expect(view!.drones.every((d) => Math.hypot(d.x - echo.x, d.y - echo.y) <= 12)).toBe(true);
+  });
+});

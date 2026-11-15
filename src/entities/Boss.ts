@@ -5,6 +5,7 @@ import { World } from '../world/World';
 import { audio } from '../systems/AudioSystem';
 import { isoToScreen } from '../core/iso';
 import type { SimTarget } from '../world/sim/core';
+import type { ActorCombatPort, ActorTargetView } from '../world/actorTarget';
 
 // Boss projectile speeds are authored in screen-px/s (same convention as the
 // weapon configs). World.updateProjectiles advances pos in tile coords, so they
@@ -77,7 +78,8 @@ export class Boss {
     this.world.addShake(16);
   }
 
-  update(dt: number, player: PlayerLike): void {
+  update(dt: number, combat: ActorCombatPort): void {
+    const player = combat.target;
     this.hitFlash = Math.max(0, this.hitFlash - dt);
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     this.stateTimer -= dt;
@@ -107,14 +109,15 @@ export class Boss {
     else this.sprite.clearTint();
 
     // attacks
-    if (this.attackTimer <= 0) this.doAttack(player, d);
+    if (this.attackTimer <= 0) this.doAttack(combat, d);
   }
 
-  private doAttack(player: PlayerLike, d: number): void {
+  private doAttack(combat: ActorCombatPort, d: number): void {
+    const player = combat.target;
     if (this.phase === 1) {
       // phase 1: chase and fire a shockwave ring; bite if the player gets too close
       if (d < 3) {
-        player.hurt(this.stats().damage * 0.5, this.x, this.y);
+        combat.hurtTarget(this.stats().damage * 0.5, this.x, this.y);
         this.world.addShake(10);
         this.attackTimer = 1.4;
         this.shockwave();
@@ -136,7 +139,7 @@ export class Boss {
     }
   }
 
-  private fireLaser(player: PlayerLike): void {
+  private fireLaser(player: ActorTargetView): void {
     const a = Math.atan2(player.y - this.y, player.x - this.x);
     for (let i = -1; i <= 1; i++) {
       const spread = a + i * 0.25;
@@ -173,9 +176,4 @@ export class Boss {
   }
 
 
-}
-
-interface PlayerLike {
-  x: number; y: number; hurt(amount: number, fromX: number, fromY: number): boolean;
-  getRadius(): number;
 }

@@ -5,9 +5,9 @@ import { GAME } from '../config/game';
 import { clamp, unit, angleDiff } from '../core/random';
 import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
-import { Player } from './Player';
 import { axisSlideToward, distanceWithin, rangedAttackDescriptor } from '../world/sim/rules';
 import type { SimDroneState, SimTarget } from '../world/sim/core';
+import type { ActorCombatPort, ActorTargetView } from '../world/actorTarget';
 
 export interface EnemySpec {
   kind: EnemyKind; x: number; y: number; room: number; depth: number;
@@ -122,23 +122,25 @@ export class Enemy {
 
   initHp(): void { this.__hp = this.data.stats.maxHp; }
 
-  update(dt: number, player: Player): void {
+  update(dt: number, combat: ActorCombatPort): void {
     // C2: drone timers/FSM/projectiles are owned by World.sim (fixed ticks).
     if (this.data.kind === 'drone') return;
     if (this._hp <= 0) return;
+    this.data.targetActorKind = combat.target.kind;
     this.data.hitFlash = Math.max(0, this.data.hitFlash - dt);
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     this.wanderTimer -= dt;
     this.data.stateTimer -= dt;
-    this.legacyStateMachine(dt, player);
+    this.legacyStateMachine(dt, combat);
   }
 
-  private inRange(player: Player, range: number): boolean {
+  private inRange(player: ActorTargetView, range: number): boolean {
     return distanceWithin({ x: this.x, y: this.y }, { x: player.x, y: player.y }, range);
   }
 
   /** Non-drone kinds only; drone FSM is owned by World.sim/core. */
-  private legacyStateMachine(dt: number, player: Player): void {
+  private legacyStateMachine(dt: number, combat: ActorCombatPort): void {
+    const player = combat.target;
     switch (this.data.state) {
       case 'idle':
         if (this.data.stateTimer <= 0 || this.wanderTimer <= 0) this.data.state = 'patrol';
@@ -150,7 +152,7 @@ export class Enemy {
         break;
       case 'detect':
         this.data.stateTimer -= dt;
-        this.data.targetId = 0;
+        this.data.targetId = player.actorId;
         if (this.data.stateTimer <= 0) this.data.state = 'chase';
         if (!this.detects(player)) this.data.state = 'idle';
         break;
@@ -162,7 +164,7 @@ export class Enemy {
       case 'attack':
         if (this.detects(player)) {
           this.facePlayer(player);
-          this.doAttack(player);
+          this.doAttack(combat);
           this.data.stateTimer = 0.4;
           if (this.data.stateTimer <= 0) this.data.state = 'chase';
         } else {
@@ -170,7 +172,7 @@ export class Enemy {
         }
         break;
       case 'reposition':
-        this.reposition(dt);
+        this.reposition(dt, player);
         if (this.data.stateTimer <= 0) this.data.state = this.detects(player) ? 'chase' : 'patrol';
         break;
       case 'stun':
@@ -180,22 +182,22 @@ export class Enemy {
     }
   }
 
-  private detects(player: Player): boolean {
+  private detects(player: ActorTargetView): boolean {
     return distanceWithin({ x: this.x, y: this.y }, { x: player.x, y: player.y }, this.data.stats.aggroRange);
   }
 
-  private enterDetect(player: Player): void {
-    this.data.targetId = 0;
+  private enterDetect(player: ActorTargetView): void {
+    this.data.targetId = player.actorId;
     this.data.state = 'detect';
     this.data.stateTimer = 0.5;
   }
 
-  private facePlayer(player: Player): void {
+  private facePlayer(player: ActorTargetView): void {
     const a = Math.atan2(player.y - this.y, player.x - this.x);
     this.sprite.setRotation(a);
   }
 
-  private moveToPlayer(dt: number, player: Player): void {
+  private moveToPlayer(dt: number, player: ActorTargetView): void {
     const stats = this.data.stats;
     const next = axisSlideToward({ x: this.wx, y: this.wy }, { x: player.x, y: player.y }, stats.speed, dt,
       (x, y) => this.world.isWalkable(x, y));
@@ -222,9 +224,8 @@ export class Enemy {
     this.project();
   }
 
-  private reposition(dt: number): void {
+  private reposition(dt: number, player: ActorTargetView): void {
     const stats = this.data.stats;
-    const player = this.world.player;
     const away = { x: 2 * this.x - player.x, y: 2 * this.y - player.y };
     const next = axisSlideToward({ x: this.wx, y: this.wy }, away, stats.speed, dt,
       (x, y) => this.world.isWalkable(x, y));
@@ -233,14 +234,15 @@ export class Enemy {
     this.project();
   }
 
-  private doAttack(player: Player): void {
+  private doAttack(combat: ActorCombatPort): void {
+    const player = combat.target;
     if (this.attackTimer > 0) return;
     const stats = this.data.stats;
     this.attackTimer = stats.attackCooldown;
     if (stats.reachEnemy) {
       // melee
       if (this.inRange(player, stats.attackRange + 1.5)) {
-        player.hurt(stats.damage, this.x, this.y);
+        combat.hurtTarget(stats.damage, this.x, this.y);
       }
     } else if (stats.ranged) {
       const shot = rangedAttackDescriptor({ x: this.x, y: this.y }, { x: player.x, y: player.y }, GAME.PIXEL_TO_TILE);

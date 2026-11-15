@@ -34,7 +34,7 @@ import type { EnemyKind, MapData, PlayerData, Room } from '../types';
 import { buildWorldObservation } from './worldObservation';
 import { buildExternalObservation } from './externalObservation';
 import { gridLineOfSight, WORLD_PERCEPTION } from './worldPerception';
-import { ECHO_LIMITS, type EchoView } from './echo';
+import { buildEchoObservation, type EchoObservation } from '../world/echoView';
 import {
   WORLD_LIMITS, WORLD_PROTOCOL_VERSION, WORLD_SCHEMA_V1,
   type WorldObservationV1
@@ -318,31 +318,24 @@ export class HeadlessWorld {
    * Echo's own bounded perception, identical to the rendered World: centred on
    * the echo, 12 tiles, entered rooms and line of sight. Never the player crop.
    */
-  echoView(): EchoView | null {
+  echoView(): EchoObservation | null {
     const echo = this.sim.echo;
     if (!echo) return null;
-    const center = { x: echo.x, y: echo.y };
-    const drones = this.sim.drones
-      .filter((drone) => drone.hp > 0)
-      .filter((drone) => gridLineOfSight({ x: drone.x, y: drone.y }, {
-        center,
-        radiusTiles: ECHO_LIMITS.perceptionTiles,
-        isExplored: (x, y) => {
-          const id = this.roomIdAt(x, y);
-          return id !== null && this.entered.has(id);
-        },
-        isOpaque: (x, y) => tileAtFromState(this.sim, Math.floor(x), Math.floor(y)).type === 'wall',
-        stepTiles: WORLD_PERCEPTION.losStepTiles
-      }))
-      .map((drone) => ({ id: drone.id, x: drone.x, y: drone.y, hp: drone.hp }));
-    return {
-      tick: this.sim.tick,
+    return buildEchoObservation({
+      echo,
       player: { x: this.sim.player.x, y: this.sim.player.y },
-      echo: { x: echo.x, y: echo.y, hp: echo.data.hp, maxHp: echo.data.maxHp, aimYaw: echo.aimYaw },
-      drones
-    };
+      tick: this.sim.tick,
+      drones: this.sim.drones.map((drone) => ({ id: drone.id, x: drone.x, y: drone.y, hp: drone.hp })),
+      targets: this.sim.targets.map((target) => ({
+        id: target.id, kind: target.kind, x: target.x, y: target.y, hp: target.hp, isBoss: target.isBoss
+      })),
+      isExplored: (x, y) => {
+        const id = this.roomIdAt(x, y);
+        return id !== null && this.entered.has(id);
+      },
+      isOpaque: (x, y) => tileAtFromState(this.sim, Math.floor(x), Math.floor(y)).type === 'wall'
+    });
   }
-
   /** C3-a `WorldObservationV1`: identical shape to the rendered `--world` tool. */
   observation(epoch = this.epoch): WorldObservationV1 {
     const s = this.sim;

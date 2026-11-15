@@ -56,6 +56,20 @@ const MAX_FRAME_INGRESS_BYTES = 512 * 1024;
 const FRAME_REF_MAX = 2;
 const FRAME_REF_MAX_BYTES = 16 * 1024 * 1024;
 const FRAME_DIR = 'reports/ai-native-02/c3c/frames';
+
+/**
+ * The frames ROOT itself must be a plain directory, not a junction/symlink.
+ * Task0 checked links INSIDE the root; an escape through the root itself must
+ * obey exactly the same rule.
+ */
+export async function isSafeFramesRoot(root: string): Promise<boolean> {
+  try {
+    const info = await lstat(root);
+    return info.isDirectory() && !info.isSymbolicLink();
+  } catch {
+    return false;
+  }
+}
 const HEADLESS_MAX_BATCH_SEEDS = 8;
 
 function payload(data: Record<string, unknown>, isError = false): CallToolResult {
@@ -774,6 +788,10 @@ export class HeadlessWorldManager {
     { ok: true; path: string; size: number } | { ok: false; code: string; messageKey: string; extra?: Record<string, unknown> }
   > {
     const base = resolve(FRAME_DIR);
+    // Root-level junction/symlink escape: same rule as an internal link.
+    if (!(await isSafeFramesRoot(base))) {
+      return { ok: false, code: 'E_PERMISSION', messageKey: 'world.frame_path_forbidden' };
+    }
     const lexical = resolve(path);
     if (lexical === base || !lexical.startsWith(base + sep)) {
       return { ok: false, code: 'E_PERMISSION', messageKey: 'world.frame_path_forbidden' };

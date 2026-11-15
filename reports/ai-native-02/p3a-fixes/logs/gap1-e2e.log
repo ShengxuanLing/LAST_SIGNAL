@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ok 1 [chromium] › tests\p3a-enemy-target.spec.ts:47:1 › legacy hunter legally targets and damages the echo, then re-selects the player (8.0s)
+
+  1 passed (9.1s)
