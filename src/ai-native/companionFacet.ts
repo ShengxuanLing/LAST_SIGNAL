@@ -419,6 +419,13 @@ export class CompanionFacet {
     return cloneAndFreeze([...this.suggestions.values()].map((entry) => entry.suggestion));
   }
 
+  /** Read-only ids that can no longer be confirmed (TTL expiry or cancellation).
+   *  Used ONLY to aggregate truthful status receipts; it never re-arms a
+   *  decision or changes the dedup semantics. */
+  expiredSuggestionIds(): readonly string[] {
+    return Object.freeze([...this.evicted]);
+  }
+
   /** Tick-driven expiry only; no timers, no auto-reconnect, no auto-takeover. */
   advanceTo(tick: number): void {
     if (!Number.isFinite(tick)) return;

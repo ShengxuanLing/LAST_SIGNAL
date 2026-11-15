@@ -133,6 +133,39 @@ describe('CompanionGateway', () => {
       .toMatchObject({ ok: false, code: 'E_PERMISSION' });
   });
 
+  it('status exposes truthful receipts and pendingCount only counts undecided', () => {
+    const { companion, session, epoch } = setup();
+    companion.pushObservation(session, epoch, observation());
+    const a = companion.suggest({ session, epoch, ...suggestion() } as never);
+    const b = companion.suggest({
+      session, epoch,
+      requestId: 'req_' + 'e'.repeat(24), suggestionId: 'sug_' + 'e'.repeat(24),
+      kind: 'fire', reason: 'perceived_hostile', target: { x: 2, y: 0 }
+    } as never);
+    if (!a.ok || !b.ok) throw new Error('suggest failed');
+    const idA = a.value.suggestion.suggestionId;
+    const idB = b.value.suggestion.suggestionId;
+    // Confirm + apply A.
+    expect(companion.decide({ session, epoch, suggestionId: idA, decision: 'confirm', tick: 101 }).ok).toBe(true);
+    expect(companion.markApplied(session, idA, 102).ok).toBe(true);
+    // Reject B.
+    expect(companion.decide({ session, epoch, suggestionId: idB, decision: 'reject', tick: 101 }).ok).toBe(true);
+    const status = companion.status(session, epoch);
+    if (!status.ok) throw new Error('status failed');
+    // pending excludes both decided suggestions; count matches.
+    expect(status.value.pending).toHaveLength(0);
+    expect(status.value.status.pendingSuggestions).toBe(0);
+    const receiptA = status.value.receipts.find((r) => r.suggestionId === idA);
+    expect(receiptA).toMatchObject({ status: 'applied', decidedAtTick: 101, appliedTick: 102 });
+    const receiptB = status.value.receipts.find((r) => r.suggestionId === idB);
+    expect(receiptB).toMatchObject({ status: 'rejected' });
+    // A duplicate decision never re-executes.
+    expect(companion.decide({ session, epoch, suggestionId: idA, decision: 'confirm', tick: 103 }))
+      .toMatchObject({ ok: false, code: 'E_RETRYABLE' });
+    expect(companion.markApplied(session, idA, 104))
+      .toMatchObject({ ok: false, code: 'E_RETRYABLE' });
+  });
+
   it('lease expiry/disconnect cancels pending work and shows NO_MODEL fallback', () => {
     const { companion, session, epoch } = setup();
     companion.pushObservation(session, epoch, observation());

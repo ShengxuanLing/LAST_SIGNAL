@@ -402,7 +402,11 @@ export class GameScene extends Phaser.Scene {
     if (this.pendingCompanionReceipt && this.world.sim.tick > this.pendingCompanionReceipt.enqueuedTick) {
       const { suggestionId } = this.pendingCompanionReceipt;
       this.pendingCompanionReceipt = null;
-      void this.companionLink?.postApplied(suggestionId, this.world.sim.tick);
+      void this.companionLink?.postApplied(suggestionId, this.world.sim.tick).then((ok) => {
+        // Publish the fresh post-commit observation so the model reads its own
+        // real result (damage / state). Never advances the simulation.
+        if (ok) void this.companionLink?.pushObservation();
+      });
     }
     if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
     // C3-b: after the tick, ACK any executed external intent with the real
@@ -703,6 +707,9 @@ export class GameScene extends Phaser.Scene {
     // C3-b: pausing cancels pending external intents (they must not fire while
     // the game is frozen) and the epoch is bumped.
     this.externalLink?.degrade('pause');
+    // Publish the latest post-commit observation so the paused companion UI and
+    // the Agent read the real frozen state. Never advances the simulation.
+    void this.companionLink?.pushObservation();
     this.saveCheckpoint();
     this.paused = true;
     this.world.player.control.pause();

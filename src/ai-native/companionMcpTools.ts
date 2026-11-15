@@ -106,7 +106,7 @@ export class CompanionClient {
     const bad = await this.ready(); if (bad) return bad;
     const r = await this.get(`/world-link/companion-status?session=${this.session}&epoch=${this.epoch}`);
     if (!r.ok) return errPayload(r.code ?? 'E_LINK_UNAVAILABLE', r.messageKey ?? 'companion.status_failed');
-    return okPayload({ status: r.value.status, pending: r.value.pending });
+    return okPayload({ status: r.value.status, pending: r.value.pending, receipts: r.value.receipts ?? [] });
   }
 
   async memory(): Promise<CallToolResult> {

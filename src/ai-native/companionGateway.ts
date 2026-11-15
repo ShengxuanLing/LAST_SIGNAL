@@ -30,6 +30,16 @@ export interface CompanionDecisionRecord {
   readonly epoch: number;
   readonly decidedAtTick: number;
   readonly applied: boolean;
+  /** Real post-commit tick, set only by markApplied. */
+  readonly appliedTick: number | null;
+}
+
+/** Read-only truthful receipt for one suggestion (no Owner secret). */
+export interface CompanionReceipt {
+  readonly suggestionId: string;
+  readonly status: 'confirmed' | 'rejected' | 'applied' | 'expired';
+  readonly decidedAtTick: number | null;
+  readonly appliedTick: number | null;
 }
 
 interface CompanionSession {
@@ -171,11 +181,31 @@ export class CompanionGateway {
   }
 
   /** `echo_status` / `echo_memory` (agent, bounded). */
-  status(sessionId: string, epoch: number): Result<{ status: ReturnType<CompanionFacet['status']>; pending: readonly CompanionSuggestion[] }> {
+  /** Truthful status: `pending` is only the UNDECIDED proposals, and the
+   *  read-only `receipts` report the real production ledger (confirmed /
+   *  rejected / applied / expired) with real ticks. No Owner secret. */
+  status(sessionId: string, epoch: number): Result<{
+    status: ReturnType<CompanionFacet['status']>;
+    pending: readonly CompanionSuggestion[];
+    receipts: readonly CompanionReceipt[];
+  }> {
     const s = this.session(sessionId, epoch);
     if ('ok' in s && s.ok === false) return s;
     const state = s as CompanionSession;
-    return { ok: true, value: { status: state.facet.status(), pending: state.facet.pendingSuggestions() } };
+    const pending = state.facet.pendingSuggestions().filter((p) => !state.decisions.has(p.suggestionId));
+    const base = state.facet.status();
+    const receipts: CompanionReceipt[] = [
+      ...[...state.decisions.values()].map((d): CompanionReceipt => ({
+        suggestionId: d.suggestionId,
+        status: d.applied ? 'applied' : d.decision === 'confirm' ? 'confirmed' : 'rejected',
+        decidedAtTick: d.decidedAtTick,
+        appliedTick: d.appliedTick
+      })),
+      ...state.facet.expiredSuggestionIds()
+        .filter((id) => !state.decisions.has(id))
+        .map((id): CompanionReceipt => ({ suggestionId: id, status: 'expired', decidedAtTick: null, appliedTick: null }))
+    ];
+    return { ok: true, value: { status: { ...base, pendingSuggestions: pending.length }, pending, receipts } };
   }
 
   /** Browser-only: list unconfirmed proposals for the human UI. */
@@ -213,7 +243,8 @@ export class CompanionGateway {
       decision: validated.value.decision,
       epoch: input.epoch,
       decidedAtTick: validated.value.decidedAtTick,
-      applied: false
+      applied: false,
+      appliedTick: null
     });
     state.decisions.set(input.suggestionId, record);
     return { ok: true, value: record };
@@ -232,7 +263,7 @@ export class CompanionGateway {
     if (!Number.isInteger(appliedTick) || appliedTick < record.decidedAtTick) {
       return err('E_STALE_TICK', 'companion.applied_tick_invalid');
     }
-    const updated = { ...record, applied: true };
+    const updated = { ...record, applied: true, appliedTick };
     state.decisions.set(suggestionId, updated);
     return { ok: true, value: updated };
   }
