@@ -276,6 +276,13 @@ export class HeadlessWorldManager {
     const record = found.record;
     if (epoch !== record.epoch) return errPayload('E_STALE_EPOCH', 'world.stale_epoch');
     const boundedTicks = Math.max(1, Math.min(HEADLESS_MAX_TICKS_PER_STEP, Math.floor(ticks)));
+    // CHANNEL GUARD (Tester F2): the Player channel has NO direct intent. A
+    // Player must queue a `world_action` and then step; only Dev may pass a
+    // strict fixture/replay intent. This is checked BEFORE any quota/tick work,
+    // so a rejected direct intent cannot advance, charge or alter the queue.
+    if (!this.dev && intent !== undefined) {
+      return errPayload('E_PERMISSION', 'world.headless_intent_player_forbidden');
+    }
     let parsedIntent: TypedIntent | null = null;
     if (intent !== undefined) {
       parsedIntent = parsePlayerIntent(intent);
@@ -451,19 +458,70 @@ export class HeadlessWorldManager {
     return this.touch(session);
   }
 
+  /** Count unprocessed queued actions for this session/epoch (bounded probe). */
+  private pendingActions(session: string, epoch: number): number {
+    let cursor: string | undefined;
+    let count = 0;
+    while (count < 64) {
+      const next = rawAction(this.gateway.nextAction({ sessionId: session, epoch, afterActionId: cursor, nowMs: Date.now() }));
+      if (!next) break;
+      cursor = next.actionId;
+      count += 1;
+    }
+    return count;
+  }
+
+  /** Queued actions EXCLUDING the currently active one (which is still pending
+   *  in the gateway until it is ACKed). */
+  private queuedCount(record: HeadlessSession, session: string): number {
+    const pending = this.pendingActions(session, record.epoch);
+    return Math.max(0, pending - (record.active ? 1 : 0));
+  }
+
+  /** An ACTION BOUNDARY: no active execution and no unprocessed queued action. */
+  private atActionBoundary(record: HeadlessSession, session: string): boolean {
+    return record.active === null && this.pendingActions(session, record.epoch) === 0;
+  }
+
   inspect(session: string): CallToolResult {
     const found = this.devRecord(session);
     if (!found.ok) return errPayload(found.code, found.messageKey);
     const record = found.record;
-    return okPayload({ session, epoch: record.epoch, inspect: record.world.inspect() });
+    const queuedActions = this.queuedCount(record, session);
+    return okPayload({
+      session, epoch: record.epoch,
+      inspect: record.world.inspect(),
+      manager: {
+        boundary: record.active === null && queuedActions === 0 ? 'action' : 'mid_execution',
+        active: record.active
+          ? {
+              actionId: record.active.actionId, requestId: record.active.requestId,
+              actionType: record.active.actionType, startedTick: record.active.startedTick,
+              executedTicks: record.active.durationTicks - record.active.remainingTicks,
+              remainingTicks: record.active.remainingTicks, durationTicks: record.active.durationTicks
+            }
+          : null,
+        queuedActions,
+        ledger: record.ledger.stats()
+      }
+    });
   }
 
   snapshot(session: string): CallToolResult {
     const found = this.devRecord(session);
     if (!found.ok) return errPayload(found.code, found.messageKey);
     const record = found.record;
-    const frame = record.world.snapshot();
-    return okPayload({ session, epoch: record.epoch, frameBytes: canonicalJson(frame).length, frame });
+    // A snapshot is only meaningful at an ACTION BOUNDARY. Mid-execution would
+    // silently drop the remaining ticks / queued actions, so refuse it WITHOUT
+    // cancelling or ACKing anything.
+    if (!this.atActionBoundary(record, session)) {
+      return errPayload('E_NOT_APPLICABLE', 'world.snapshot_requires_action_boundary');
+    }
+    const frame = { ...record.world.snapshot(), boundary: 'action' as const };
+    return okPayload({
+      session, epoch: record.epoch, boundary: 'action',
+      frameBytes: canonicalJson(frame).length, frame
+    });
   }
 
   restore(session: string, frame: unknown): CallToolResult {
@@ -471,6 +529,16 @@ export class HeadlessWorldManager {
     if (!found.ok) return errPayload(found.code, found.messageKey);
     const record = found.record;
     if (!isHeadlessFrame(frame)) return errPayload('E_SNAPSHOT_INVALID', 'world.headless_frame_invalid');
+    // Only an ACTION-BOUNDARY frame may be restored. A mid-execution frame is
+    // explicitly refused (never silently drops remaining ticks/actions).
+    if ((frame as { boundary?: unknown }).boundary !== 'action') {
+      return errPayload('E_NOT_APPLICABLE', 'world.snapshot_requires_action_boundary');
+    }
+    // The CURRENT session must also be at a boundary, otherwise restoring would
+    // silently discard an in-flight/queued action.
+    if (!this.atActionBoundary(record, session)) {
+      return errPayload('E_NOT_APPLICABLE', 'world.restore_requires_action_boundary');
+    }
     const restored = record.world.restore(frame);
     if (!restored.ok) return errPayload(restored.code, restored.messageKey);
     const rebind = this.gateway.rebindSession(session, Date.now());
@@ -529,12 +597,39 @@ export class HeadlessWorldManager {
     const found = this.devRecord(session);
     if (!found.ok) return errPayload(found.code, found.messageKey);
     const record = found.record;
-    const bundle = record.world.exportFailure(reason);
+    const queuedActions = this.queuedCount(record, session);
+    const boundary = record.active === null && queuedActions === 0;
+    const base = record.world.exportFailure(reason);
+    const diagnostics = {
+      boundary: boundary ? 'action' : 'mid_execution',
+      replayable: boundary,
+      active: record.active
+        ? {
+            actionId: record.active.actionId, requestId: record.active.requestId,
+            actionType: record.active.actionType, startedTick: record.active.startedTick,
+            executedTicks: record.active.durationTicks - record.active.remainingTicks,
+            remainingTicks: record.active.remainingTicks, durationTicks: record.active.durationTicks
+          }
+        : null,
+      queuedActions,
+      ledger: record.ledger.stats(),
+      note: boundary
+        ? 'action-boundary export: full future state captured and replayable'
+        : 'INCOMPLETE reproduction: active/queued actions are still pending; remaining ticks are NOT in the frame'
+    };
+    // Only a boundary export gets the restorable marker; a mid-execution export
+    // must never masquerade as a complete reproducible frame.
+    const frame = base.frame as Record<string, unknown> | undefined;
+    if (boundary && frame) frame.boundary = 'action';
+    const bundle = { ...base, manager: diagnostics };
     const dir = resolve('reports/ai-native-02/c3c/failures');
     await mkdir(dir, { recursive: true });
     const file = resolve(dir, `${session}-${Date.now()}.failure.json`);
     await writeFile(file, canonicalJson(bundle), 'utf8');
-    return okPayload({ session, path: file, bytes: canonicalJson(bundle).length });
+    return okPayload({
+      session, path: file, bytes: canonicalJson(bundle).length,
+      boundary: diagnostics.boundary, replayable: diagnostics.replayable, diagnostics
+    });
   }
 
   batch(seeds: readonly number[], maxTicks: number, policy: BaselinePolicyId): CallToolResult {
@@ -670,9 +765,23 @@ export function registerHeadlessWorldTools(server: McpServer, manager: HeadlessW
     z.strictObject({ session: sessionId, epoch: z.number().int().min(0), requestId: worldRequestId, actions: z.array(actionSchema).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH), ttlTicks: z.number().int().min(1).max(WORLD_LIMITS.MAX_TTL_TICKS).optional() }),
     (args) => manager.action(args.session as string, args.epoch as number, args.requestId as string, args.actions, args.ttlTicks as number | undefined));
 
-  register(server, 'world_headless_step', 'Run real core ticks (Owner-controlled tick boundary). Drains queued actions then fills with intent.',
-    z.strictObject({ session: sessionId, epoch: z.number().int().min(0), requestId: worldRequestId, ticks: z.number().int().min(1).max(HEADLESS_MAX_TICKS_PER_STEP), intent: intentSchema.optional() }),
-    (args) => manager.step(args.session as string, args.epoch as number, args.requestId as string, args.ticks as number, args.intent));
+  // Player channel: NO `intent` field is registered at all, so the official
+  // SDK strict schema rejects a direct intent before it reaches the manager.
+  const playerStepSchema = z.strictObject({
+    session: sessionId, epoch: z.number().int().min(0), requestId: worldRequestId,
+    ticks: z.number().int().min(1).max(HEADLESS_MAX_TICKS_PER_STEP)
+  });
+  const devStepSchema = z.strictObject({
+    session: sessionId, epoch: z.number().int().min(0), requestId: worldRequestId,
+    ticks: z.number().int().min(1).max(HEADLESS_MAX_TICKS_PER_STEP),
+    intent: intentSchema.optional()
+  });
+  register(server, 'world_headless_step',
+    dev
+      ? 'DEV: run real core ticks; queued actions first, optionally a strict fixture intent for replay.'
+      : 'Run real core ticks. Advances ONLY queued world_action intents (then neutral). Queue with world_action first; direct intent is not accepted.',
+    dev ? devStepSchema : playerStepSchema,
+    (args) => manager.step(args.session as string, args.epoch as number, args.requestId as string, args.ticks as number, (args as { intent?: unknown }).intent));
 
   register(server, 'world_close', 'Close a headless session; releases the real core state.',
     z.strictObject({ session: sessionId }), (args) => manager.close(args.session as string));
@@ -684,10 +793,10 @@ export function registerHeadlessWorldTools(server: McpServer, manager: HeadlessW
   register(server, 'world_headless_dev_inspect', 'DEV: bounded debug projection (seed/rng/pending/ledger/map hash).',
     z.strictObject({ session: sessionId }), (args) => manager.inspect(args.session as string));
 
-  register(server, 'world_headless_dev_snapshot', 'DEV: full owner frame (state/commands/RNG/ledger/map identity/events).',
+  register(server, 'world_headless_dev_snapshot', 'DEV: action-boundary owner frame (state/commands/RNG/ledger/map identity). Refused mid-execution.',
     z.strictObject({ session: sessionId }), (args) => manager.snapshot(args.session as string));
 
-  register(server, 'world_headless_dev_restore', 'DEV: restore a real owner frame and atomically bump the epoch.',
+  register(server, 'world_headless_dev_restore', 'DEV: restore an ACTION-BOUNDARY owner frame only; atomically bumps the epoch.',
     z.strictObject({ session: sessionId, frame: z.unknown() }), (args) => manager.restore(args.session as string, args.frame));
 
   register(server, 'world_headless_dev_replay', 'DEV: deterministic replay from a start frame; returns REAL divergence info.',
@@ -702,7 +811,7 @@ export function registerHeadlessWorldTools(server: McpServer, manager: HeadlessW
     z.strictObject({ session: sessionId, kinds: z.array(enemyKind).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH) }),
     (args) => manager.spawnEnemies(args.session as string, args.kinds as EnemyKind[]));
 
-  register(server, 'world_headless_dev_export_failure', 'DEV: export a failure reproduction bundle to reports/ai-native-02/c3c/failures/.',
+  register(server, 'world_headless_dev_export_failure', 'DEV: export a failure bundle to reports/ai-native-02/c3c/failures/. Marks whether it is a complete/replayable boundary.',
     z.strictObject({ session: sessionId, reason: z.string().min(1).max(120) }),
     (args) => manager.exportFailure(args.session as string, args.reason as string));
 

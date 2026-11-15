@@ -69,6 +69,12 @@ export interface HeadlessActionLogEntry {
 export interface HeadlessWorldFrame {
   schema: typeof HEADLESS_FRAME_SCHEMA;
   version: typeof HEADLESS_FRAME_VERSION;
+  /**
+   * Set ONLY by the Dev MCP `snapshot` tool, and only when the session is at an
+   * action boundary (no active execution, no queued action). A frame produced
+   * mid-execution is NOT a boundary frame and `restore` refuses it.
+   */
+  boundary?: 'action';
   epoch: number;
   sim: SimulationState;
   events: SimEvent[];

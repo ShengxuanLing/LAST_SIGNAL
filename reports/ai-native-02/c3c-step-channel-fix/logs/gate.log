@@ -1,0 +1,17 @@
+PASS | channel_unit | npx vitest run | 39 files / 554 tests | reports/ai-native-02/c3c-step-channel-fix/logs/channel_unit.log
+PASS | channel_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_typecheck.log
+PASS | channel_build | npm run build | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_build.log
+PASS | channel_build_test | npm run build:test | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_build_test.log
+PASS | channel_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_mcp_build.log
+PASS | channel_player_negative | npx vite-node src/ai-native/worldHeadlessPlayerCrop.mts | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_player_negative.log
+PASS | channel_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_headless_smoke.log
+PASS | channel_parity_export | env PORT=5173 npx playwright test tests/c3c-headless-parity.spec.ts --reporter=line --workers=1 | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_parity_export.log
+PASS | channel_parity | npx vite-node scripts/c3c-rendered-headless-parity.mts | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_parity.log
+PASS | channel_mcp_default | npx vite-node src/ai-native/mcpClient.mts | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_mcp_default.log
+PASS | channel_world_smoke | npx vite-node src/ai-native/worldMcpSmoke.mts | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_world_smoke.log
+PASS | channel_lease_smoke | npx vite-node src/ai-native/worldMcpLeaseSmoke.mts | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_lease_smoke.log
+PASS | channel_token_acl | npx vite-node scripts/c3b-token-acl-gate.mts | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_token_acl.log
+PASS | channel_f03 | npx vite-node scripts/c3b-f03-gate.mts | rc=0 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_f03.log
+CHANNEL_GATE_DONE
+PASS | channel_c3b_repeat3 | PORT=5173 npx playwright test c3b-external-link c3b-hard-disconnect c3b-link-form c3c-bridge-reclaim c3c-headless-parity --repeat-each=3 | 48/48 | reports/ai-native-02/c3c-step-channel-fix/logs/channel_c3b_repeat3.log
+PASS | channel_full_e2e_69 | PORT=5173 npx playwright test --workers=1 | 69/69 (five viewports + C2) | reports/ai-native-02/c3c-step-channel-fix/logs/channel_full_e2e.log

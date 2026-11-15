@@ -248,3 +248,10 @@ P1 条件项修复的完整日志与证据在 `reports/ai-native-02/p1-fixes/log
 - **token 文件**：POSIX `chmod 0600`；Windows 用绝对路径 `System32\icacls.exe /inheritance:r /grant:r *<SID>:F`，实测只剩当前用户 ACE；不打印 token、不进 URL/参数。
 - **正式逐轮工具**：`npm run game:world:mcp-console`（官方 MCP stdio，`list/observe/act/raw/status/close`，`--json` 单次调用，工具 I/O 写入 `reports/ai-native-02/c3b-fixes/tool-io/`）。
 - **仍未实现**：C3-c Headless same-core 实跑、真实 LLM 战斗、游戏内连接输入 UI（后续小提交）；常规演示目前仍需宿主页/控制台注入配置。
+
+## C3c 修复：Player step 通道与 Dev snapshot 边界
+
+- **Player `world_headless_step` 不接受 `intent`**：官方 MCP Player schema 根本不注册该字段（SDK strict schema 直接拒绝）；manager 非 Dev 再校验一次并返回 `E_PERMISSION / world.headless_intent_player_forbidden`，且在任何 tick/配额/队列变更之前返回。Player 必须 `world_action` 入队后再 `step`；未入队时 `step` 只推进 neutral（不移动、不开火）。Dev `step` 保留严格 `intent` 供 fixture/replay（未知字段/HP/seed 拒绝，`move` 超速归一化）。
+- **Dev snapshot 仅在 ACTION BOUNDARY 可用**：session 无 active 执行、且无未处理排队动作时才允许 `world_headless_dev_snapshot`；否则返回 `E_NOT_APPLICABLE / world.snapshot_requires_action_boundary`，**不取消、不 ACK、不推进**。成功帧带 `boundary: "action"`；`restore` 只接受带该标记的帧，且当前 session 也必须处于 boundary（否则 `world.restore_requires_action_boundary`），epoch 严格递增。核心 `pendingCommands` 属于未来状态，随帧保存/恢复，不构成不完整。
+- **失败导出**：`world_headless_dev_export_failure` 始终写 owner bundle，并附 `manager{boundary, replayable, active{remainingTicks,...}, queuedActions, ledger}`；执行中导出标 `mid_execution` / `replayable:false` 且 `note` 明确“INCOMPLETE”，只有 boundary 导出才带可恢复标记。Dev `inspect` 同步暴露 active/queued/ledger 供诊断。
+- **日志**：`reports/ai-native-02/c3c-step-channel-fix/logs/`。

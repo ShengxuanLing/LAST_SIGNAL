@@ -1,0 +1,8 @@
+PASS world_requires_configuration
+PASS world_flag_requires_configuration
+PASS world_tools_registered | ["world_list_sessions","world_observe","world_action","world_close"]
+PASS world_surface_isolated
+PASS default_stationzero_surface_unchanged
+PASS world_link_error_is_explicit | {"schema":"last_signal.mcp.tool-result.v1","ok":false,"code":"E_LINK_UNAVAILABLE","messageKey":"world.bridge_unreachable"}
+PASS world_observe_error_is_explicit
+WORLD_MCP_SMOKE_PASS tools=world_list_sessions,world_observe,world_action,world_close

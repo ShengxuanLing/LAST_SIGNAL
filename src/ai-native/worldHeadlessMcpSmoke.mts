@@ -61,6 +61,40 @@ async function main(): Promise<void> {
     assert(devSeed.ok === false, 'Player cannot pass a seed', devSeed);
     log('PASS player_permission_negative', { devToolRejected: true, seedRejected: true });
 
+    // CHANNEL (Tester F2): Player step has NO direct intent. A direct intent is
+    // rejected by the tool schema and does not advance ticks or move the player.
+    const ch = await call(client, 'world_headless_create_session');
+    assert(ch.ok === true, 'channel session', ch);
+    const chSession = ch.session as string;
+    const chEpoch = ch.epoch as number;
+    const chObs = await call(client, 'world_observe', { session: chSession });
+    const sx = chObs.observation.player.x as number;
+    const sy = chObs.observation.player.y as number;
+    const directIntent = await call(client, 'world_headless_step', {
+      session: chSession, epoch: chEpoch, requestId: rid(40), ticks: 10,
+      intent: { move: { x: 1, y: 0 }, dash: false, fire: false, aim: null, interact: false }
+    });
+    assert(directIntent.ok === false, 'Player step must not accept a direct intent', directIntent);
+    const afterReject = await call(client, 'world_observe', { session: chSession });
+    assert(afterReject.observation.tick === chObs.observation.tick, 'rejected direct intent does not advance', afterReject.observation.tick);
+
+    const neutral = await call(client, 'world_headless_step', { session: chSession, epoch: chEpoch, requestId: rid(41), ticks: 10 });
+    assert(neutral.ok === true && neutral.ticks === 10, 'neutral step', neutral);
+    const neutralObs = await call(client, 'world_observe', { session: chSession });
+    assert(neutralObs.observation.player.x === sx && neutralObs.observation.player.y === sy, 'neutral step does not move');
+    assert(neutralObs.observation.projectiles.length === 0, 'neutral step does not fire');
+
+    await call(client, 'world_action', {
+      session: chSession, epoch: chEpoch, requestId: rid(42),
+      actions: [{ type: 'move', actionId: aid(42), dir: { x: 1, y: 0 }, ticks: 20 }], ttlTicks: 600
+    });
+    const movedStep = await call(client, 'world_headless_step', { session: chSession, epoch: chEpoch, requestId: rid(43), ticks: 20 });
+    assert(movedStep.ok === true && movedStep.applied[0].executedTicks === 20, 'act+step', movedStep);
+    const movedObs = await call(client, 'world_observe', { session: chSession });
+    assert(Math.hypot(movedObs.observation.player.x - sx, movedObs.observation.player.y - sy) > 0, 'act+step really moved');
+    log('PASS player_step_channel', { directRejected: true, neutralStable: true, actStepMoved: true });
+    await call(client, 'world_close', { session: chSession });
+
     const created = await call(client, 'world_headless_create_session');
     assert(created.ok === true, 'create session', created);
     assert(created.seed === undefined, 'Player create never returns a seed', created);
@@ -140,6 +174,18 @@ async function main(): Promise<void> {
     assert(created.ok === true && created.seed === 424242, 'dev explicit seed', created);
     const session = created.session as string;
     let epoch = created.epoch as number;
+
+    // Dev keeps a strict direct intent for fixture/replay.
+    const devBefore = await call(client, 'world_observe', { session });
+    const devStep = await call(client, 'world_headless_step', {
+      session, epoch, requestId: rid(60), ticks: 20,
+      intent: { move: { x: 1, y: 0 }, dash: false, fire: false, aim: null, interact: false }
+    });
+    assert(devStep.ok === true && devStep.ticks === 20, 'dev intent step', devStep);
+    const devAfter = await call(client, 'world_observe', { session });
+    assert(Math.hypot(devAfter.observation.player.x - devBefore.observation.player.x,
+      devAfter.observation.player.y - devBefore.observation.player.y) > 0, 'dev intent really moves');
+    log('PASS dev_step_intent', { fromTick: devStep.fromTick, toTick: devStep.toTick });
 
     const inspect = await call(client, 'world_headless_dev_inspect', { session });
     assert(inspect.ok === true && inspect.inspect.rngState !== undefined, 'inspect has RNG', inspect);
@@ -230,6 +276,30 @@ async function main(): Promise<void> {
     assert(a.ok && b.ok && a.result.runs[0].canonicalStateHash === b.result.runs[0].canonicalStateHash,
       'deterministic baseline is reproducible', { a: a.result.runs[0].canonicalStateHash, b: b.result.runs[0].canonicalStateHash });
     log('PASS dev_batch_deterministic', { hash: a.result.runs[0].canonicalStateHash });
+
+    // Dev snapshot boundary: refused mid-execution, allowed only at a boundary.
+    const snapCreated = await call(client, 'world_headless_create_session', { seed: 424243 });
+    const snapSession = snapCreated.session as string;
+    const snapEpoch = snapCreated.epoch as number;
+    const snapDrone = (await call(client, 'world_observe', { session: snapSession })).observation.drones[0];
+    await call(client, 'world_action', {
+      session: snapSession, epoch: snapEpoch, requestId: rid(80),
+      actions: [{ type: 'fire', actionId: aid(80), target: { x: snapDrone.x, y: snapDrone.y }, ticks: 120 }], ttlTicks: 600
+    });
+    const snap10 = await call(client, 'world_headless_step', { session: snapSession, epoch: snapEpoch, requestId: rid(81), ticks: 10 });
+    assert(snap10.executing && snap10.executing.remainingTicks === 110, 'executing 10/110', snap10.executing);
+    const midSnap = await call(client, 'world_headless_dev_snapshot', { session: snapSession });
+    assert(midSnap.ok === false && midSnap.code === 'E_NOT_APPLICABLE'
+      && midSnap.messageKey === 'world.snapshot_requires_action_boundary', 'mid-execution snapshot rejected', midSnap);
+    const snap110 = await call(client, 'world_headless_step', { session: snapSession, epoch: snapEpoch, requestId: rid(82), ticks: 110 });
+    assert(snap110.applied[0].executedTicks === 120, 'action completed at 120', snap110.applied);
+    const boundarySnap = await call(client, 'world_headless_dev_snapshot', { session: snapSession });
+    assert(boundarySnap.ok === true && boundarySnap.boundary === 'action'
+      && boundarySnap.frame.boundary === 'action', 'boundary snapshot', boundarySnap);
+    const boundaryRestore = await call(client, 'world_headless_dev_restore', { session: snapSession, frame: boundarySnap.frame });
+    assert(boundaryRestore.ok === true && boundaryRestore.epoch > snapEpoch, 'restore bumps epoch', boundaryRestore);
+    await call(client, 'world_close', { session: snapSession });
+    log('PASS dev_snapshot_boundary', { midRejected: true, restoredEpoch: boundaryRestore.epoch });
 
     await call(client, 'world_close', { session });
     void randomBytes;

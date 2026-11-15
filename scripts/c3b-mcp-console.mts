@@ -17,7 +17,7 @@
  *   ... -- --json '{"tool":"world_observe","args":{}}'
  *
  * Headless REPL extras:
- *   create [seed] | step <ticks> [intentJson] | inspect | snapshot
+ *   create [seed] | step <ticks> | inspect | snapshot
  *   loadroom <roomId> <kinds> | spawn <kinds> | batch <seeds> <maxTicks>
  *   compare <seeds> <maxTicks> | perf <ticks> <sessions> | exportfailure <reason>
  *   signal | session <id> | epoch <n>
@@ -116,7 +116,7 @@ async function main(): Promise<void> {
       switch (command) {
         case 'help':
           process.stdout.write(headless
-            ? 'create [seed] | list | observe | act <actions-json> [ttlTicks] | step <ticks> [intentJson] | inspect | snapshot | loadroom <roomId> <kinds> | spawn <kinds> | batch <seeds> <maxTicks> | compare <seeds> <maxTicks> | perf <ticks> <sessions> | exportfailure <reason> | signal | session <id> | epoch <n> | close | quit\n'
+            ? 'create [seed] | list | observe | act <actions-json> [ttlTicks] | step <ticks> | inspect | snapshot | loadroom <roomId> <kinds> | spawn <kinds> | batch <seeds> <maxTicks> | compare <seeds> <maxTicks> | perf <ticks> <sessions> | exportfailure <reason> | signal | session <id> | epoch <n> | close | quit\n'
             : 'list | observe | act <actions-json> [ttlTicks] | raw <tool> <args-json> | status | close | quit\n');
           return true;
         case 'list':
@@ -141,7 +141,13 @@ async function main(): Promise<void> {
         }
         case 'step': {
           const ticks = Number(rest[0] ?? 1);
-          const intent = rest[1] ? JSON.parse(rest[1]) : undefined;
+          // Player channel: `step` NEVER sends a direct intent; queue with `act`.
+          // Only Dev may pass a strict fixture intent as the second argument.
+          const intent = headless && dev && rest[1] ? JSON.parse(rest[1]) : undefined;
+          if (rest[1] && !(headless && dev)) {
+            process.stdout.write('NOTE: Player step has no direct intent; queue it with "act" first. Ignoring the intent argument.
+');
+          }
           const requestId = `req_${Date.now().toString(16).padStart(24, '0').slice(-24)}`;
           {
             const stepBody = await call('world_headless_step', {
@@ -216,7 +222,7 @@ async function main(): Promise<void> {
   process.stdout.write(
     `CONNECTED console mode=${headless ? `headless${dev ? ':dev' : ''}` : 'rendered'} server=${server} log=${logPath}\n`
     + (headless
-      ? 'Round: "create" -> "observe" -> "act <actions-json>" -> "step <ticks>" -> "observe".\n'
+      ? 'Round: "create" -> "observe" -> "act <actions-json>" -> "step <ticks>" -> "observe" (Player MUST queue; step has no intent).\n'
       : 'Round: "observe" -> choose action -> "act <actions-json>" -> "observe".\n')
     + 'queued is NOT applied; observe the new tick and receipt before claiming effect.\n'
   );

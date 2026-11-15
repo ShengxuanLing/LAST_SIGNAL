@@ -153,6 +153,9 @@ async function playerSurface(): Promise<void> {
     // Intent audit: unknown keys / hp writes / over-speed must be rejected or
     // clamped. The SDK strict schema rejects extra keys before the manager.
     for (const badIntent of [
+      // A fully LEGAL intent is still rejected on the Player channel: only
+      // queued world_action intents may advance the world.
+      { move: { x: 1, y: 0 }, dash: false, fire: false, aim: null, interact: false },
       { move: { x: 1, y: 0 }, dash: false, fire: false, aim: null, interact: false, hp: 99999 },
       { move: { x: 1, y: 0 }, dash: false, fire: false, aim: null, interact: false, seed: 1 },
       { move: { x: 1, y: 0 }, dash: false, fire: false, aim: null, interact: false, extra: true },
@@ -161,7 +164,7 @@ async function playerSurface(): Promise<void> {
       const res = await client.callTool({ name: 'world_headless_step', arguments: { session, epoch, requestId: rid(9), ticks: 1, intent: badIntent } });
       assert(res.isError === true || (res.structuredContent as any)?.ok === false, 'bad intent rejected', badIntent);
     }
-    log('PASS player_intent_unknown_fields_rejected');
+    log('PASS player_step_intent_channel_rejected');
 
     const listed = await callRaw(client, 'world_list_sessions');
     assert(listed.ok === true && Array.isArray(listed.sessions), 'player list', listed);
