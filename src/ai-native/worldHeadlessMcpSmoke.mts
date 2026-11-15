@@ -53,15 +53,20 @@ async function main(): Promise<void> {
     }
     log('PASS player_surface_only', { count: tools.length });
 
+    // Permission negatives: a Dev tool is not registered on the Player surface,
+    // and a Player create can never take a seed.
+    const devCall = await call(client, 'world_headless_dev_inspect', { session: 'ses_' + '0'.repeat(24) });
+    assert(devCall.ok === false, 'Player cannot call a Dev tool', devCall);
+    const devSeed = await call(client, 'world_headless_create_session', { seed: 11 });
+    assert(devSeed.ok === false, 'Player cannot pass a seed', devSeed);
+    log('PASS player_permission_negative', { devToolRejected: true, seedRejected: true });
+
     const created = await call(client, 'world_headless_create_session');
     assert(created.ok === true, 'create session', created);
     assert(created.seed === undefined, 'Player create never returns a seed', created);
     const session = created.session as string;
     const epoch = created.epoch as number;
     log('PASS player_create_session', { session, epoch, tick: created.tick, status: created.status });
-
-    const devAttempt = await call(client, 'world_headless_create_session', { seed: 11 });
-    assert(devAttempt.ok === false, 'Player cannot pass a seed', devAttempt);
 
     const observed = await call(client, 'world_observe', { session });
     assert(observed.ok === true && observed.observation.tick === 0, 'post-create observation', observed);
@@ -75,30 +80,40 @@ async function main(): Promise<void> {
 
     const action = await call(client, 'world_action', {
       session, epoch, requestId: rid(1),
-      actions: [{ type: 'fire', actionId: aid(1), target: { x: drone.x, y: drone.y }, ticks: 60 }],
+      actions: [{ type: 'fire', actionId: aid(1), target: { x: drone.x, y: drone.y }, ticks: 120 }],
       ttlTicks: 600
     });
     assert(action.ok === true, 'queue fire', action);
     assert(action.actions[0].status === 'queued', 'queued != applied', action);
 
-    const step = await call(client, 'world_headless_step', { session, epoch, requestId: rid(2), ticks: 60 });
-    assert(step.ok === true, 'step', step);
-    assert(step.ticks === 60, 'exactly 60 real core ticks', step.ticks);
-    assert(step.applied.length === 1 && step.applied[0].executedTicks === 60, 'fire executed for 60 ticks', step.applied);
-    log('PASS player_step_fire60', {
-      fromTick: step.fromTick, toTick: step.toTick, status: step.status,
-      eventCount: step.eventCount, applied: step.applied
-    });
+    // Cross-step execution: 10 ticks is executing (10/110), NOT applied.
+    const step10 = await call(client, 'world_headless_step', { session, epoch, requestId: rid(2), ticks: 10 });
+    assert(step10.ok === true, 'step10', step10);
+    assert(step10.canonicalState === undefined && step10.canonicalEvents === undefined, 'step10 has NO canonical');
+    assert(step10.applied.length === 0, 'step10 must not ACK applied', step10.applied);
+    assert(step10.executing && step10.executing.executedTicks === 10 && step10.executing.remainingTicks === 110, 'step10 executing 10/110', step10.executing);
+    log('PASS player_step_executing', { executing: step10.executing });
 
-    const replay = await call(client, 'world_headless_step', { session, epoch, requestId: rid(2), ticks: 60 });
-    assert(replay.replayed === true && replay.toTick === step.toTick, 'same step request is idempotent', replay);
+    const step110 = await call(client, 'world_headless_step', { session, epoch, requestId: rid(4), ticks: 110 });
+    assert(step110.ok === true, 'step110', step110);
+    assert(step110.canonicalState === undefined && step110.canonicalEvents === undefined, 'step110 has NO canonical');
+    assert(step110.applied.length === 1 && step110.applied[0].executedTicks === 120, 'completed only after 120 real ticks', step110.applied);
+    assert(step110.executing === null, 'no active action left', step110.executing);
+    log('PASS player_step_completed_120', { fromTick: step110.fromTick, toTick: step110.toTick, status: step110.status });
+
+    const replay = await call(client, 'world_headless_step', { session, epoch, requestId: rid(2), ticks: 10 });
+    assert(replay.replayed === true && replay.toTick === 10, 'same step request is idempotent', replay);
+    assert(replay.canonicalState === undefined, 'replay has NO canonical');
     const mismatch = await call(client, 'world_headless_step', { session, epoch, requestId: rid(2), ticks: 30 });
     assert(mismatch.ok === false && mismatch.code === 'E_ID_PAYLOAD_MISMATCH', 'step id mismatch rejected', mismatch);
     log('PASS player_step_idempotent');
 
     const observed2 = await call(client, 'world_observe', { session });
-    assert(observed2.ok === true && observed2.observation.tick === step.toTick, 'observation advanced with the step', observed2);
+    assert(observed2.ok === true && observed2.observation.tick === step110.toTick, 'observation advanced with the step', observed2);
     log('PASS player_observe_post_step', { tick: observed2.observation.tick, hp: observed2.observation.player.hp });
+
+    const ended = await call(client, 'world_headless_step', { session, epoch, requestId: rid(5), ticks: 5 });
+    assert(ended.ok === false && ended.code === 'E_NOT_APPLICABLE', 'terminal step rejected', ended);
 
     const staleEpoch = await call(client, 'world_headless_step', { session, epoch: epoch - 1, requestId: rid(3), ticks: 5 });
     assert(staleEpoch.ok === false && staleEpoch.code === 'E_STALE_EPOCH', 'old epoch rejected', staleEpoch);

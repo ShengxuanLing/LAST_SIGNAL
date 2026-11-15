@@ -19,7 +19,8 @@ const sequence = JSON.parse(readFileSync(path.join(dir, 'sequence.json'), 'utf8'
 }>;
 const rendered = JSON.parse(readFileSync(path.join(dir, 'rendered.json'), 'utf8')) as {
   canonical: string; events: string; eventTypes: string[]; finalTick: number;
-  dronesLeft: number; projectilesLeft: number;
+  dronesLeft: number; projectilesLeft: number; lootLeft: number;
+  currency: number; xp: number; level: number; playerHp: number;
 };
 
 function run(seedEntered: number[] = []): { world: HeadlessWorld; canonical: string; events: string } {
@@ -36,9 +37,15 @@ function assert(condition: unknown, message: string): asserts condition { if (!c
 
 const first = run();
 const second = run([]);
+const finalState = first.world.state;
 const finalTick = first.world.tick;
-const dronesLeft = first.world.state.drones.length;
-const projectilesLeft = first.world.state.projectiles.length;
+const dronesLeft = finalState.drones.length;
+const projectilesLeft = finalState.projectiles.length;
+const lootLeft = finalState.loot.length;
+const currency = finalState.player.data.currency;
+const xp = finalState.player.data.xp;
+const level = finalState.player.data.level;
+const playerHp = finalState.player.data.hp;
 
 const checks: Array<[string, boolean]> = [
   ['headless-replay-state', first.canonical === second.canonical],
@@ -48,6 +55,14 @@ const checks: Array<[string, boolean]> = [
   ['rendered-vs-headless-final-tick', finalTick === rendered.finalTick],
   ['rendered-vs-headless-drones', dronesLeft === rendered.dronesLeft],
   ['rendered-vs-headless-projectiles', projectilesLeft === rendered.projectilesLeft],
+  ['rendered-vs-headless-loot-left', lootLeft === rendered.lootLeft],
+  ['rendered-vs-headless-currency', currency === rendered.currency],
+  ['rendered-vs-headless-xp', xp === rendered.xp],
+  ['rendered-vs-headless-level', level === rendered.level],
+  ['rendered-vs-headless-player-hp', playerHp === rendered.playerHp],
+  ['real-kill-event', rendered.eventTypes.includes('enemy-died')],
+  ['real-loot-drop', rendered.eventTypes.includes('loot-dropped')],
+  ['real-loot-pickup', rendered.eventTypes.includes('loot-collected')],
   ['real-combat-events', rendered.eventTypes.includes('player-fired') && rendered.eventTypes.includes('drone-step')]
 ];
 
@@ -57,4 +72,4 @@ for (const [name, ok] of checks) {
   if (!ok) failed += 1;
 }
 if (failed > 0) fail(`${failed} parity check(s) failed`);
-log(`C3C_RENDERED_HEADLESS_PARITY_PASS finalTick=${finalTick} events=${first.world.eventTotal}`);
+log(`C3C_RENDERED_HEADLESS_PARITY_PASS finalTick=${finalTick} events=${first.world.eventTotal} kills=${dronesLeft === 0 ? 1 : 0} lootLeft=${lootLeft} currency=${currency} xp=${xp}`);

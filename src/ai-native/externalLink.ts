@@ -21,6 +21,7 @@
 
 import type { PlayerIntent } from './control';
 import { WORLD_LIMITS } from './worldProtocol';
+import { consumeExecutionTicks } from './actionExecution';
 
 export type ExternalLinkStatus =
   | 'DISCONNECTED'
@@ -294,8 +295,8 @@ export class ExternalLinkState {
     if (epoch !== this._epoch || execution.epoch !== this._epoch || this._status !== 'CONNECTED') {
       return this.cancelActive(currentTick, 'E_STALE_EPOCH');
     }
-    const consumed = Math.max(0, Math.min(coreTicks, execution.remainingTicks));
-    const remaining = execution.remainingTicks - consumed;
+    // SHARED duration rule (also used by the headless manager).
+    const { consumed, remaining } = consumeExecutionTicks(execution.remainingTicks, coreTicks);
     const executedTicks = execution.durationTicks - remaining;
     this.active = { ...execution, remainingTicks: remaining, };
     if (currentTick > execution.applyByTick) {

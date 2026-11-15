@@ -32,6 +32,7 @@ import {
 } from '../world/sim/core';
 import type { EnemyKind, MapData, PlayerData, Room } from '../types';
 import { buildWorldObservation } from './worldObservation';
+import { buildExternalObservation } from './externalObservation';
 import { gridLineOfSight, WORLD_PERCEPTION } from './worldPerception';
 import {
   WORLD_LIMITS, WORLD_PROTOCOL_VERSION, WORLD_SCHEMA_V1,
@@ -269,6 +270,11 @@ export class HeadlessWorld {
     });
   }
 
+  /** Same legal perception predicate the rendered link uses. */
+  isPerceivablePosition(x: number, y: number): boolean {
+    return this.isPerceivable(x, y);
+  }
+
   /** C3-a `WorldObservationV1`: identical shape to the rendered `--world` tool. */
   observation(epoch = this.epoch): WorldObservationV1 {
     const s = this.sim;
@@ -298,28 +304,40 @@ export class HeadlessWorld {
       },
       isPerceivable: (x, y) => this.isPerceivable(x, y)
     });
-    const perceived = new Set(view.perceivedActors.map((a) => a.id));
-    const weapon = s.player.data.weapons.find((w) => w.key === s.player.data.weaponKey);
-    const drones = s.drones
-      .filter((d) => d.hp > 0 && perceived.has(d.id))
-      .map((d) => ({ id: d.id, kind: d.data.kind, x: d.x, y: d.y, hp: d.hp, state: d.data.state }));
+    // SAME projection as the rendered link: `buildExternalObservation` filters
+    // actors by `perceivedActors` AND projectiles by the shared perception
+    // predicate. No parallel hand-written crop lives here.
+    const projected = buildExternalObservation({
+      epoch,
+      tick: s.tick,
+      view,
+      playerData: {
+        weaponKey: s.player.data.weaponKey,
+        weapons: s.player.data.weapons
+      },
+      aimYaw: s.player.aimYaw,
+      drones: s.drones.filter((d) => d.hp > 0).map((d) => ({
+        id: d.id, kind: d.data.kind, x: d.x, y: d.y, hp: d.hp, state: d.data.state
+      })),
+      targets: s.targets.filter((t) => t.hp > 0).map((t) => ({
+        id: t.id, kind: t.kind, x: t.x, y: t.y, hp: t.hp
+      })),
+      projectiles: s.projectiles.map((p) => ({
+        id: p.id, side: p.side, kind: p.kind, pos: p.pos, vel: p.vel,
+        damage: p.damage, lifetime: p.lifetime
+      })),
+      isPerceivable: (x, y) => this.isPerceivablePosition(x, y)
+    });
     return {
       schema: WORLD_SCHEMA_V1,
       protocolVersion: WORLD_PROTOCOL_VERSION,
-      epoch,
-      tick: s.tick,
-      roomId: view.roomId,
-      player: {
-        x: s.player.x, y: s.player.y, hp: s.player.data.hp, maxHp: s.player.data.maxHp,
-        aimYaw: s.player.aimYaw, weaponKey: s.player.data.weaponKey,
-        ammo: weapon?.ammo ?? -1, magazine: weapon?.magazine ?? -1
-      },
-      drones,
-      projectiles: s.projectiles.map((p) => ({
-        id: p.id, side: p.side, kind: p.kind, x: p.pos.x, y: p.pos.y,
-        vx: p.vel.x, vy: p.vel.y, damage: p.damage, lifetime: p.lifetime
-      })),
-      availableActions: ['move', 'stop', 'aim', 'fire', 'interact']
+      epoch: projected.epoch,
+      tick: projected.tick,
+      roomId: projected.roomId,
+      player: { ...projected.player },
+      drones: projected.drones.map((d) => ({ ...d })),
+      projectiles: projected.projectiles.map((p) => ({ ...p })),
+      availableActions: [...projected.availableActions]
     };
   }
 

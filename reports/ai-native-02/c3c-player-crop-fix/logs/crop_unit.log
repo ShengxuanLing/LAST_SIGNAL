@@ -1,0 +1,116 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Project/LAST_SIGNAL[39m
+
+ [32m✓[39m src/ai-native/protocol.test.ts [2m([22m[2m72 tests[22m[2m)[22m[90m 111[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldGateway.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 419[2mms[22m[39m
+ [32m✓[39m src/ai-native/coop.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 510[2mms[22m[39m
+ [32m✓[39m src/slice/vs00.rules.test.ts [2m([22m[2m28 tests[22m[2m)[22m[90m 51[2mms[22m[39m
+ [32m✓[39m src/ai-native/sessions.test.ts [2m([22m[2m43 tests[22m[2m)[22m[33m 1470[2mms[22m[39m
+ [32m✓[39m src/ai-native/harness.test.ts [2m([22m[2m32 tests[22m[2m)[22m[33m 1402[2mms[22m[39m
+   [33m[2m✓[22m[39m scenario / batch / compare[2m > [22msame seed reproduces state and gameplay events; a different seed changes only state [33m557[2mms[22m[39m
+ [32m✓[39m src/slice/vs01.corridor.test.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 101[2mms[22m[39m
+ [32m✓[39m src/world/sim/rules.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 52[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldBridgeServer.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1108[2mms[22m[39m
+ [32m✓[39m src/world/sim/core.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 4101[2mms[22m[39m
+   [33m[2m✓[22m[39m C2 fixed-tick authoritative core[2m > [22mis reproducible from a serializable snapshot (same seed + intents + ticks) [33m1743[2mms[22m[39m
+   [33m[2m✓[22m[39m C2 fixed-tick authoritative core[2m > [22mH1/H6: canonical state is authoritative and events are not rounded [33m1347[2mms[22m[39m
+ [32m✓[39m src/ai-native/c3bBridge.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 685[2mms[22m[39m
+ [32m✓[39m src/world/sim/parity.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+ [32m✓[39m src/core/runtime.test.ts [2m([22m[2m15 tests[22m[2m)[22m[90m 35[2mms[22m[39m
+ [32m✓[39m src/slice/evidence.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 44[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLinkDuration.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 134[2mms[22m[39m
+ [32m✓[39m src/ai-native/control.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+ [32m✓[39m src/world/sim/rewiring.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 34[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLinkLifecycle.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 29[2mms[22m[39m
+ [32m✓[39m src/ai-native/p4.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 158[2mms[22m[39m
+ [32m✓[39m src/ai-native/agentLease.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 5171[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-b fix — bridge / MCP lease integration[2m > [22mattach returns a lease; agent-status reports attached:true only while live [33m334[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-b fix — bridge / MCP lease integration[2m > [22ma browser heartbeat does NOT renew the Agent lease; expiry closes the session [33m4621[2mms[22m[39m
+ [32m✓[39m src/ai-native/task0.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 8051[2mms[22m[39m
+   [33m[2m✓[22m[39m Task0 — bounded lease history[2m > [22mreal HTTP bridge routes stay bounded across many sessions [33m7817[2mms[22m[39m
+ [32m✓[39m src/world/sim/purchaseLedger.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 4641[2mms[22m[39m
+   [33m[2m✓[22m[39m purchase ledger determinism and bounded replay protection[2m > [22mledger is part of canonical state (same ledger => same future; different ledger => different canonical) [33m4373[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLink.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalObservation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 49[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldObservation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldProtocol.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 71[2mms[22m[39m
+ [32m✓[39m src/slice/corridorGuard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+ [32m✓[39m src/config/supplies.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldPerception.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m src/ai-native/budget.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 32[2mms[22m[39m
+ [32m✓[39m src/ai-native/c3bControl.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m src/systems/runCheckpoint.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/slice/vs00.room.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=restricted (public commands only); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/worldHeadlessMcp.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 18872[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22mcreates a session without a seed; a seed is rejected for Player [33m726[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22mobservation is perception-cropped and never carries hidden state [33m798[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22mreal fire damage + encounter end through legal core ticks [33m946[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22mstep request is idempotent; a different payload is rejected [33m806[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22ma stale epoch is rejected [33m800[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22mPlayer cannot use any Dev tool [33m807[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22mclose releases the session; old epoch / closed session is not observable [33m877[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Dev surface[2m > [22mDev can create with an explicit seed and inspect RNG/ledger/map identity [33m1582[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Dev surface[2m > [22mDev load_room / spawn_enemies use REAL enemies and bump the epoch [33m2091[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Dev surface[2m > [22mDev snapshot/restore bumps the epoch and rejects the old one [33m2747[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Dev surface[2m > [22mDev batch/compare/perf produce REAL results; Signal stays unsupported [33m6689[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadless.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 22749[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22muses the REAL generated map, a REAL combat room, a REAL drone and the REAL pulse weapon [33m960[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mobservation is perception-cropped: no seed / RNG / full map / hidden goal [33m735[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mreal combat: fire -> projectile -> hit -> enemy-died -> cleared; real damage taken [33m2292[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mreal death: the core emits player-death and the session reports dead [33m2537[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mcollision is the real core: sustained movement never enters a wall cell [33m959[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mtwo worlds with the same seed + same intents produce identical canonical state/events [33m4094[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22man owner snapshot carries state, commands, RNG, ledger and map identity [33m1511[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mrestore bumps the epoch and replay reproduces the real canonical state/events [33m4120[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mrestore rejects a malformed frame without mutating the session [33m1945[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mDev room loading spawns REAL enemies from real enemy config [33m648[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22ma real kill drops loot and the REAL stepLoot path collects it into resources [33m678[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22ma Dev failure export never contains credentials or a Phaser object [33m2265[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessHarness.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 16597[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c harness — deterministic combat regression[2m > [22mruns a REAL encounter and is reproducible for a fixed seed [33m2869[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c harness — deterministic combat regression[2m > [22mbatch regression aggregates real per-seed outcomes [33m2949[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c harness — deterministic combat regression[2m > [22mbaseline comparison is explicitly NOT an AI agent / NOT Signal Combat [33m4934[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c harness — REAL perf[2m > [22mruns 1000 ticks x 10 sessions of real combat (no empty scene) [33m5842[2mms[22m[39m
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m)[22m[33m 64025[2mms[22m[39m
+   [33m[2m✓[22m[39m B5 — canonical hash is authoritative-state only[2m > [22mCLI 0-step replay hash equals the source snapshot hash [33m18060[2mms[22m[39m
+   [33m[2m✓[22m[39m B6 — CLI Dev channel identity (no audience upgrade)[2m > [22msnapshot/replay/restore require the explicit --dev channel [33m9853[2mms[22m[39m
+   [33m[2m✓[22m[39m B6 — CLI Dev channel identity (no audience upgrade)[2m > [22mobserve never leaks seed/RNG/full model even on the Dev channel [33m7598[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mstep/replay reject non-array actions/steps instead of silently using [] [33m7100[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22menforces instance count, id length and JSON line size [33m5948[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mrestore requires hashes and only accepts this instance issued frame [33m5598[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mquit exits and cleans up without waiting for stdin EOF [33m3666[2mms[22m[39m
+   [33m[2m✓[22m[39m purity and real Node CLI process[2m > [22mfull CLI cycle: create/step/observe/snapshot/replay/pause/resume/close/quit [33m5688[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessPlayerCrop.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 148425[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22mcreate / observe / list / close expose only public data [33m1426[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22maction returns only a public receipt (no seed/map/RNG) [33m1294[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22mstep exposes NO canonicalState/canonicalEvents (Player) [33m1163[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22man idempotent step replay does not leak owner data [33m770[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22mDev keeps canonical + snapshot + inspect detail [33m2973[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22mPlayer error paths never carry owner data [33m864[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22mPlayer export/failure path never returns an owner file path [33m833[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player step boundaries[2m > [22mafter the encounter ends, a NEW Player step is rejected (replay still works) [33m840[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player step boundaries[2m > [22man old epoch is rejected; a same-id different payload is rejected [33m869[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — cross-step execution (shared duration rule)[2m > [22mstep10 keeps the action executing (10/110) and does NOT ACK applied [33m1608[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — cross-step execution (shared duration rule)[2m > [22mstep10 + step110 equals one step120 canonically and in events [33m3714[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — cross-step execution (shared duration rule)[2m > [22ma queued stop preempts the ACTIVE action mid-flight [33m2266[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — bounded request ledger[2m > [22man evicted response cannot re-advance an old requestId [33m53609[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — bounded request ledger[2m > [22mthe dedup set has a hard cap: new requests are rejected atomically when full [33m75295[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — public events are perception-cropped[2m > [22ma Player step never returns drone-step / room-generated / hidden positions [33m323[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m38 passed[39m[22m[90m (38)[39m
+[2m      Tests [22m [1m[32m542 passed[39m[22m[90m (542)[39m
+[2m   Start at [22m 01:54:12
+[2m   Duration [22m 154.42s[2m (transform 6.18s, setup 0ms, collect 22.66s, tests 299.32s, environment 20ms, prepare 14.68s)[22m
+

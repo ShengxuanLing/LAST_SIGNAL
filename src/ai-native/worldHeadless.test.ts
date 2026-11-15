@@ -149,6 +149,28 @@ describe('C3-c headless same-core runtime', () => {
     expect(w.loadRoom(9999, ['drone']).ok).toBe(false);
   });
 
+  it('a real kill drops loot and the REAL stepLoot path collects it into resources', () => {
+    const w = new HeadlessWorld({ seed: 424242 });
+    const neutral = neutralIntent();
+    const all: any[] = [];
+    for (let i = 0; i < 1200 && w.observation().drones.length > 0; i += 1) {
+      const live = w.observation().drones.find((d) => d.hp > 0);
+      if (!live) break;
+      all.push(...w.runSteps([
+        { ticks: 1, intent: { ...neutral, fire: true, aim: { x: live.x, y: live.y } } },
+        { ticks: 2, intent: neutral }
+      ], 2000));
+    }
+    const types = all.map((e) => e.type);
+    expect(types, 'real enemy death').toContain('enemy-died');
+    expect(types, 'real loot drop').toContain('loot-dropped');
+    expect(types, 'real loot pickup (stepLoot, not a fixture)').toContain('loot-collected');
+    // The drop lands at the kill position; the real pickup threshold collects it
+    // within the same encounter, so the resources are real and already granted.
+    expect(w.state.player.data.currency + w.state.player.data.xp).toBeGreaterThan(0);
+    expect(w.state.player.data.currency).toBeGreaterThan(0);
+  });
+
   it('a Dev failure export never contains credentials or a Phaser object', () => {
     const w = new HeadlessWorld({ seed: 424242 });
     w.runSteps(combatSteps(2));
