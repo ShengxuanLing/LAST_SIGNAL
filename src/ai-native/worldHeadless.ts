@@ -26,7 +26,7 @@ import {
 } from '../world/MapGenerator';
 import {
   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
-  createSimulationState, registerDrone, stepSimulationTicks, tileAtFromState,
+  createSimulationState, enqueueCommand, registerDrone, stepSimulationTicks, tileAtFromState,
   isWalkableFromState,
   type SimEvent, type SimulationIntent, type SimulationState
 } from '../world/sim/core';
@@ -34,6 +34,7 @@ import type { EnemyKind, MapData, PlayerData, Room } from '../types';
 import { buildWorldObservation } from './worldObservation';
 import { buildExternalObservation } from './externalObservation';
 import { gridLineOfSight, WORLD_PERCEPTION } from './worldPerception';
+import { ECHO_LIMITS, type EchoView } from './echo';
 import {
   WORLD_LIMITS, WORLD_PROTOCOL_VERSION, WORLD_SCHEMA_V1,
   type WorldObservationV1
@@ -103,6 +104,11 @@ export interface HeadlessWorldFrame {
 export interface HeadlessRunStep {
   ticks: number;
   intent: SimulationIntent;
+  /**
+   * P3-a owner/dev-only echo intent for the SAME core ticks. The Player MCP
+   * surface never builds this field; only the Node parity driver / Dev do.
+   */
+  echoIntent?: SimulationIntent;
 }
 
 export const NEUTRAL_INTENT: SimulationIntent = {
@@ -213,6 +219,7 @@ export class HeadlessWorld {
   private status: HeadlessStatus = 'running';
   private kills = 0;
   private shots = 0;
+  private echoShots = 0;
   private damageTaken = 0;
   /** Monotonic event counter (the retained `events` array is bounded). */
   private totalEventCount = 0;
@@ -268,6 +275,8 @@ export class HeadlessWorld {
   get eventTotal(): number { return this.totalEventCount; }
   get killCount(): number { return this.kills; }
   get shotCount(): number { return this.shots; }
+  /** Owner/dev observability: committed echo shots. */
+  get echoShotCount(): number { return this.echoShots; }
   get damageTotal(): number { return this.damageTaken; }
   get playerHp(): number { return this.sim.player.data.hp; }
 
@@ -292,6 +301,46 @@ export class HeadlessWorld {
   /** Same legal perception predicate the rendered link uses. */
   isPerceivablePosition(x: number, y: number): boolean {
     return this.isPerceivable(x, y);
+  }
+
+  // ---------- P3-a echo companion (owner/dev only) ----------
+
+  /** Queue the echo spawn; committed by the next legal tick. */
+  enableEcho(x?: number, y?: number): { ok: true; x: number; y: number } {
+    if (this.sim.echo) return { ok: true, x: this.sim.echo.x, y: this.sim.echo.y };
+    let spawn = { x: x ?? this.sim.player.x + 1, y: y ?? this.sim.player.y };
+    if (!isWalkableFromState(this.sim, spawn.x, spawn.y, 0.5)) spawn = { x: this.sim.player.x, y: this.sim.player.y };
+    enqueueCommand(this.sim, { type: 'spawn-echo', x: spawn.x, y: spawn.y });
+    return { ok: true, x: spawn.x, y: spawn.y };
+  }
+
+  /**
+   * Echo's own bounded perception, identical to the rendered World: centred on
+   * the echo, 12 tiles, entered rooms and line of sight. Never the player crop.
+   */
+  echoView(): EchoView | null {
+    const echo = this.sim.echo;
+    if (!echo) return null;
+    const center = { x: echo.x, y: echo.y };
+    const drones = this.sim.drones
+      .filter((drone) => drone.hp > 0)
+      .filter((drone) => gridLineOfSight({ x: drone.x, y: drone.y }, {
+        center,
+        radiusTiles: ECHO_LIMITS.perceptionTiles,
+        isExplored: (x, y) => {
+          const id = this.roomIdAt(x, y);
+          return id !== null && this.entered.has(id);
+        },
+        isOpaque: (x, y) => tileAtFromState(this.sim, Math.floor(x), Math.floor(y)).type === 'wall',
+        stepTiles: WORLD_PERCEPTION.losStepTiles
+      }))
+      .map((drone) => ({ id: drone.id, x: drone.x, y: drone.y, hp: drone.hp }));
+    return {
+      tick: this.sim.tick,
+      player: { x: this.sim.player.x, y: this.sim.player.y },
+      echo: { x: echo.x, y: echo.y, hp: echo.data.hp, maxHp: echo.data.maxHp, aimYaw: echo.aimYaw },
+      drones
+    };
   }
 
   /** C3-a `WorldObservationV1`: identical shape to the rendered `--world` tool. */
@@ -368,7 +417,7 @@ export class HeadlessWorld {
       const ticks = Math.max(0, Math.min(Math.floor(step.ticks), tickCap - used));
       if (ticks <= 0) break;
       used += ticks;
-      const events = stepSimulationTicks(this.sim, ticks, step.intent);
+      const events = stepSimulationTicks(this.sim, ticks, step.intent, step.echoIntent);
       for (const event of events) this.accountForEvent(event);
       collected.push(...events);
       this.totalEventCount += events.length;
@@ -386,6 +435,7 @@ export class HeadlessWorld {
   private accountForEvent(event: SimEvent): void {
     if (event.type === 'enemy-died') this.kills += 1;
     if (event.type === 'player-fired') this.shots += 1;
+    if (event.type === 'echo-fired') this.echoShots += 1;
     if (event.type === 'player-hurt') this.damageTaken += event.damage ?? 0;
     if (event.type === 'player-death' || this.sim.player.data.hp <= 0) this.status = 'dead';
   }
