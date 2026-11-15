@@ -1544,8 +1544,9 @@ export class World {
         },
         nextProjectileId: this._sim.nextProjectileId,
         purchaseTransactions: [...this._sim.purchaseTransactions],
-        // Optional echo snapshot: deep-copied by cloneCheckpoint.
-        ...(this._sim.echo ? { echo: this._sim.echo } : {})
+        // Optional echo / Signal snapshots: deep-copied by cloneCheckpoint.
+        ...(this._sim.echo ? { echo: this._sim.echo } : {}),
+        ...(this._sim.signal ? { signal: this._sim.signal } : {})
       }
     });
   }
@@ -1606,6 +1607,11 @@ export class World {
         this._sim.echo = JSON.parse(JSON.stringify(run.coreState.echo)) as typeof this._sim.echo;
       } else {
         delete this._sim.echo;
+      }
+      if (run.coreState.signal) {
+        this._sim.signal = JSON.parse(JSON.stringify(run.coreState.signal)) as typeof this._sim.signal;
+      } else {
+        delete this._sim.signal;
       }
     } else {
       // Legacy frame: re-derive the core RNG from the map seed so a restored

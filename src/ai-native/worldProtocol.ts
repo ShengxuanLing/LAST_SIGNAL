@@ -16,6 +16,15 @@ import {
 
 export const WORLD_SCHEMA_V1 = 'last_signal.world.v1' as const;
 export const WORLD_PROTOCOL_VERSION = 1 as const;
+/** P3-b B: v2 is an OPT-IN capability negotiation; v1 semantics never change. */
+export const WORLD_SCHEMA_V2 = 'last_signal.world.v2' as const;
+export const WORLD_PROTOCOL_VERSION_2 = 2 as const;
+export const WORLD_CAPABILITIES_V2 = Object.freeze({
+  signal: true,
+  signalVersion: 1,
+  actors: ['player', 'echo'] as const,
+  actions: ['scan', 'jam'] as const
+});
 
 export const WORLD_LIMITS = Object.freeze({
   MAX_ACTIONS_PER_BATCH: 8,
@@ -173,3 +182,38 @@ export function worldBatchFingerprint(value: WorldActionBatchV1): string {
 }
 
 export const worldProtocolPatterns = Object.freeze({ sessionId, requestId, actionId });
+
+
+// ---------------------------------------------------------------------------
+// P3-b B: v2 additive actions (explicit actor + Signal capabilities).
+// v1 schemas above are intentionally untouched: an old v1 client requesting
+// scan/jam must receive E_VERSION_UNSUPPORTED, never a silent reinterpretation.
+// ---------------------------------------------------------------------------
+const scanActionV2 = z.strictObject({
+  type: z.literal('scan'), actionId,
+  actor: z.enum(['player', 'echo']),
+  ticks
+});
+const jamActionV2 = z.strictObject({
+  type: z.literal('jam'), actionId,
+  actor: z.enum(['player', 'echo']),
+  ticks
+});
+export const worldActionSchemaV2 = z.discriminatedUnion('type', [
+  moveAction, stopAction, aimAction, fireAction, interactAction, scanActionV2, jamActionV2
+]);
+export type WorldActionV2 = z.infer<typeof worldActionSchemaV2>;
+export const worldCapabilitiesV2Schema = z.strictObject({
+  schema: z.literal(WORLD_SCHEMA_V2),
+  protocolVersion: z.literal(WORLD_PROTOCOL_VERSION_2),
+  capabilities: z.strictObject({ signal: z.literal(true) })
+});
+export type WorldCapabilitiesV2 = z.infer<typeof worldCapabilitiesV2Schema>;
+
+export function parseWorldActionV2(value: unknown): WorldParseResult<WorldActionV2> {
+  return fromZod(worldActionSchemaV2.safeParse(value));
+}
+export function isSignalAction(value: unknown): boolean {
+  return !!value && typeof value === 'object' &&
+    ['scan', 'jam'].includes((value as { type?: string }).type ?? '');
+}

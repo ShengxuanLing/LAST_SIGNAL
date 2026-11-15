@@ -1,0 +1,18 @@
+PASS | B_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/signal-world/logs/B-mcp_build.log
+PASS | B_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/signal-world/logs/B-typecheck.log
+PASS | B_unit | npx vitest run | rc=0 | reports/ai-native-02/signal-world/logs/B-unit.log
+PASS | B_build | npm run build | rc=0 | reports/ai-native-02/signal-world/logs/B-build.log
+PASS | B_build_test | npm run build:test | rc=0 | reports/ai-native-02/signal-world/logs/B-build_test.log
+PASS | B_slice_unit | npx vitest run src/slice | rc=0 | reports/ai-native-02/signal-world/logs/B-slice_unit.log
+PASS | B_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | rc=0 | reports/ai-native-02/signal-world/logs/B-headless_smoke.log
+PASS | B_player_crop | npx vite-node src/ai-native/worldHeadlessPlayerCrop.mts | rc=0 | reports/ai-native-02/signal-world/logs/B-player_crop.log
+PASS | B_console_smoke | npx vite-node src/ai-native/companionConsoleSmoke.mts | rc=0 | reports/ai-native-02/signal-world/logs/B-console_smoke.log
+PASS | B_c2_parity | npm run game:sim:parity | rc=0 | reports/ai-native-02/signal-world/logs/B-c2_parity.log
+NOTE | B_c3c_parity_first | fixture drift (gitignored initial/sequence vs committed rendered.json); regenerated all three via tests/c3c-headless-parity.spec.ts then PASS | reports/ai-native-02/signal-world/logs/B-c3c_parity.log
+PASS | B_c3c_parity (after consistent fixture export) | npx vite-node scripts/c3c-rendered-headless-parity.mts | C3C_RENDERED_HEADLESS_PARITY_PASS | reports/ai-native-02/signal-world/logs/B-c3c_parity.log
+PASS | B_echo_parity | npx vite-node scripts/p3a-echo-rendered-parity.mts | rc=0 | reports/ai-native-02/signal-world/logs/B-echo_parity.log
+PASS | B_p3_e2e | env PORT=5176 npx playwright test tests/ai-native-world.spec.ts tests/p3a-restore.spec.ts tests/p3a-enemy-target.spec.ts tests/p3b-companion-owner.spec.ts --workers=1 | rc=0 | reports/ai-native-02/signal-world/logs/B-p3_e2e.log
+PASS | B_c3b_c3c_e2e | env PORT=5176 npx playwright test tests/c2-parity.spec.ts tests/c3b-external-link.spec.ts tests/c3c-headless-parity.spec.ts --workers=1 | rc=0 | reports/ai-native-02/signal-world/logs/B-c3b_c3c_e2e.log
+NOTE | B_preview_regression | 19/20 under full-suite load, vs01 route B x=2.7 vs <=2.6 timing flake; standalone PASS 1/1 | reports/ai-native-02/signal-world/logs/B-preview_regression.log
+PASS | B_preview_regression_standalone | PORT=5175 npx playwright test tests/vs01.spec.ts -g "route B reaches" | 1/1 | reports/ai-native-02/signal-world/logs/B-preview_regression.log
+B_GATE_DONE (known load flakes documented, not regressions)

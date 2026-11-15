@@ -336,6 +336,46 @@ export class HeadlessWorld {
       isOpaque: (x, y) => tileAtFromState(this.sim, Math.floor(x), Math.floor(y)).type === 'wall'
     });
   }
+  /**
+   * P3-b B: spawn ONE real Relay device through the SAME core command the
+   * rendered World uses. Committed by the next legal tick.
+   */
+  enableSignalDevice(input: { deviceId: string; roomId: number; x: number; y: number }): { ok: true } {
+    enqueueCommand(this.sim, {
+      type: 'spawn-signal-device', deviceId: input.deviceId,
+      roomId: input.roomId, x: input.x, y: input.y
+    });
+    return { ok: true };
+  }
+
+  /** Owner/dev-only legal Signal command; core commits it on the next tick. */
+  enqueueSignalCommand(command: {
+    type: 'signal-scan' | 'signal-jam' | 'toggle-relay' | 'signal-power';
+    actor?: 'player' | 'echo'; enabled?: boolean; powered?: boolean;
+  }): { ok: true } {
+    if (command.type === 'toggle-relay') enqueueCommand(this.sim, { type: 'toggle-relay', enabled: command.enabled === true });
+    else if (command.type === 'signal-power') enqueueCommand(this.sim, { type: 'signal-power', powered: command.powered === true });
+    else enqueueCommand(this.sim, { type: command.type, actor: command.actor ?? 'player' });
+    return { ok: true };
+  }
+
+  /** Bounded, real Signal state (no hidden fields). */
+  signalView(): Record<string, unknown> | null {
+    const s = this.sim.signal;
+    if (!s) return null;
+    return {
+      deviceId: s.deviceId, roomId: s.roomId, x: s.x, y: s.y,
+      relay: s.relay, manualEnabled: s.manualEnabled, powered: s.powered,
+      jammedUntilTick: s.jammedUntilTick,
+      playerEnergy: s.actors.player.energy.energy,
+      echoEnergy: s.actors.echo.energy.energy,
+      scanCooldown: s.actors.echo.cooldowns.scanCooldownTicks,
+      jamCooldown: s.actors.echo.cooldowns.jamCooldownTicks,
+      evidence: s.evidence.length,
+      exitOpen: s.relay === 'ACTIVE'
+    };
+  }
+
   /** C3-a `WorldObservationV1`: identical shape to the rendered `--world` tool. */
   observation(epoch = this.epoch): WorldObservationV1 {
     const s = this.sim;

@@ -5,8 +5,8 @@
 // MapGenerator + config). There is no empty-scene throughput and no invented
 // gameplay. Policies are explicitly DETERMINISTIC BASELINES, not an AI agent.
 //
-// Signal Combat is not implemented in the main World; this module returns an
-// explicit UNSUPPORTED result instead of faking it.
+// P3-b B: Signal Combat batch runs REAL core commands against ONE real Relay
+// device (scan energy, jam suppression, relay toggle, expiry, cooldowns).
 
 import { performance } from 'node:perf_hooks';
 import { HeadlessWorld, neutralIntent, type HeadlessStatus } from './worldHeadless';
@@ -224,7 +224,78 @@ export function combatPerf(
   };
 }
 
-/** Main-World Signal Combat is NOT implemented. Never fake it. */
-export function signalCombatStatus(): { ok: false; code: 'E_NOT_APPLICABLE'; messageKey: string } {
-  return { ok: false, code: 'E_NOT_APPLICABLE', messageKey: 'world.signal_combat_unsupported' };
+/** Truthful capability description; no device means unsupported. */
+export function signalCombatStatus(device?: Record<string, unknown> | null): {
+  supported: boolean; code: string; messageKey: string; device?: Record<string, unknown>;
+} {
+  if (!device) return { supported: false, code: 'E_NOT_APPLICABLE', messageKey: 'world.signal_combat_unsupported' };
+  return { supported: true, code: 'OK', messageKey: 'world.signal_combat_supported', device };
+}
+
+export interface SignalCombatRun {
+  seed: number;
+  ticks: number;
+  scanEnergy: number;
+  jamEnergy: number;
+  scanCooldown: number;
+  jamCooldown: number;
+  relayAfterJam: string;
+  relayAfterToggle: string;
+  relayAfterExpiry: string;
+  exitOpen: boolean;
+  evidenceCount: number;
+  canonicalStateHash: string;
+}
+
+/**
+ * REAL Signal Combat batch: multiple seeds, energy/cooldown/expiry, jam is
+ * suppression (never ACTIVE), owner toggle keeps power, and a real state hash.
+ */
+export function signalCombatBatch(seeds: readonly number[]): { runs: SignalCombatRun[]; checks: Record<string, boolean> } {
+  const runs: SignalCombatRun[] = [];
+  for (const seed of seeds) {
+    const world = new HeadlessWorld({ seed });
+    world.enableEcho();
+    world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
+    const echo = world.state.echo!;
+    // ONE real device beside the echo: legal LOS/range for the echo actor.
+    world.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echo.x + 0.5, y: echo.y });
+    world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
+    world.enqueueSignalCommand({ type: 'signal-scan', actor: 'echo' });
+    world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
+    const afterScan = world.signalView()!;
+    world.enqueueSignalCommand({ type: 'signal-jam', actor: 'echo' });
+    world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
+    const afterJam = world.signalView()!;
+    world.enqueueSignalCommand({ type: 'toggle-relay', enabled: true });
+    world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
+    const afterToggle = world.signalView()!;
+    // Let the jam window expire (360 ticks) with real cooldown/regen ticks.
+    world.runSteps([{ ticks: 370, intent: neutralIntent() }], 370);
+    const afterExpiry = world.signalView()!;
+    runs.push({
+      seed, ticks: world.tick,
+      scanEnergy: afterScan.echoEnergy as number,
+      jamEnergy: afterJam.echoEnergy as number,
+      scanCooldown: afterScan.scanCooldown as number,
+      jamCooldown: afterJam.jamCooldown as number,
+      relayAfterJam: afterJam.relay as string,
+      relayAfterToggle: afterToggle.relay as string,
+      relayAfterExpiry: afterExpiry.relay as string,
+      exitOpen: afterExpiry.exitOpen as boolean,
+      evidenceCount: afterScan.evidence as number,
+      canonicalStateHash: world.canonicalStateHash()
+    });
+  }
+  const checks = {
+    'scan_cost_10': runs.every((r) => r.scanEnergy === 90),
+    'jam_cost_25': runs.every((r) => r.jamEnergy === 65),
+    'scan_cd_120': runs.every((r) => r.scanCooldown >= 118 && r.scanCooldown <= 120),
+    'jam_cd_480': runs.every((r) => r.jamCooldown >= 478 && r.jamCooldown <= 480),
+    'jam_is_not_active': runs.every((r) => r.relayAfterJam === 'JAMMED' && r.relayAfterToggle === 'JAMMED'),
+    'expiry_recomputes_active': runs.every((r) => r.relayAfterExpiry === 'ACTIVE' && r.exitOpen),
+    'evidence_found': runs.every((r) => r.evidenceCount > 0),
+    'deterministic_per_seed': new Set(runs.map((r) => `${r.seed}:${r.canonicalStateHash}`)).size === runs.length
+  };
+  return { runs, checks };
 }

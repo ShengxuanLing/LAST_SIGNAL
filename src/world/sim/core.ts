@@ -25,6 +25,11 @@ import type { EnemyData, MapData, PlayerData, ProjectileData, Tile, Vec2 } from 
 import type { GridPoint } from './rules';
 import { canonicalJson, payloadFingerprint } from '../../ai-native/protocol';
 import {
+  createSignalDevice, commitSignalScan, commitSignalJam, commitToggleRelay,
+  commitSignalPower, tickSignalDevice, type SimSignalDevice, type SignalActorKind,
+  type SignalLegality
+} from './signalState';
+import {
   advanceProjectile, aimYawFromGrid, buildWeaponSpec, createEnemyProjectileData,
   createProjectileData, projectileHitsTarget, resolveBossHit, resolveEnemyHit,
   resolvePlayerHit, stepDroneAi, stepPlayerMovement, weaponCooldown,
@@ -117,7 +122,12 @@ export type SimCommand =
   | { type: 'set-player-data'; data: PlayerData }
   | { type: 'spawn-echo'; x: number; y: number }
   | { type: 'remove-echo' }
-  | { type: 'echo-hit'; damage: number; fromX: number; fromY: number };
+  | { type: 'echo-hit'; damage: number; fromX: number; fromY: number }
+  | { type: 'spawn-signal-device'; deviceId: string; roomId: number; x: number; y: number }
+  | { type: 'signal-scan'; actor: SignalActorKind }
+  | { type: 'signal-jam'; actor: SignalActorKind }
+  | { type: 'toggle-relay'; enabled: boolean }
+  | { type: 'signal-power'; powered: boolean };
 
 export interface SimProjectile {
   id: number;
@@ -147,6 +157,8 @@ export interface SimulationState {
   player: SimPlayerState;
   /** Optional independent companion actor (P3-a). Absent = unchanged C1/C2. */
   echo?: SimEchoState;
+  /** Optional ONE real Relay device (P3-b B). Absent = unchanged C1/C2/C3c. */
+  signal?: SimSignalDevice;
   drones: SimDroneState[];
   /** Legacy non-drone enemies and Boss; HP/position are core-owned. */
   targets: SimTarget[];
@@ -195,7 +207,13 @@ export type SimEvent =
   | { type: 'loot-collected'; id: number; kind: SimLootKind; key: string; amount: number; x: number; y: number }
   | { type: 'enemy-spawned'; id: number; kind: string; x: number; y: number; room: number; isBoss: boolean }
   | { type: 'room-generated'; roomId: number; portalTarget: number | null }
-  | { type: 'projectile-wall'; x: number; y: number };
+  | { type: 'projectile-wall'; x: number; y: number }
+  | { type: 'signal-device-spawned'; deviceId: string; roomId: number; x: number; y: number }
+  | { type: 'signal-scanned'; actorId: number; found: boolean; energy: number; cooldownTicks: number; evidence: unknown[] }
+  | { type: 'signal-jammed'; actorId: number; energy: number; cooldownTicks: number; relay: string; jamExpiresAtTick: number }
+  | { type: 'signal-relay-changed'; relay: string; manualEnabled: boolean; powered: boolean }
+  | { type: 'signal-evidence-expired'; deviceId: string }
+  | { type: 'signal-energy'; actorId: number; energy: number; scanCooldownTicks: number; jamCooldownTicks: number };
 
 export interface CreateSimulationInput {
   seed: number;
@@ -428,6 +446,36 @@ function awardEnemyKill(
   grantXp(state, xpValue, events);
 }
 
+/** Core-owned bounded LOS for the ONE Signal device (no map/seed exposure). */
+function signalLegality(state: SimulationState, actor: SignalActorKind, device: SimSignalDevice): SignalLegality {
+  const origin = actor === 'echo'
+    ? (state.echo && state.echo.data.hp > 0 ? { x: state.echo.x, y: state.echo.y } : null)
+    : { x: state.player.x, y: state.player.y };
+  return {
+    actorPosition: () => origin,
+    hasLineOfSight: () => {
+      if (!origin) return false;
+      const distance = Math.hypot(device.x - origin.x, device.y - origin.y);
+      const samples = Math.max(1, Math.ceil(distance / 0.25));
+      for (let i = 1; i <= samples; i += 1) {
+        const t = i / samples;
+        if (!isWalkableFromState(state, origin.x + (device.x - origin.x) * t,
+          origin.y + (device.y - origin.y) * t, 0.5)) return false;
+      }
+      return true;
+    }
+  };
+}
+function signalEnergyEvent(device: SimSignalDevice, actor: SignalActorKind): SimEvent {
+  const r = device.actors[actor];
+  return {
+    type: 'signal-energy', actorId: actor === 'echo' ? ECHO_ACTOR_ID : 0,
+    energy: r.energy.energy,
+    scanCooldownTicks: r.cooldowns.scanCooldownTicks,
+    jamCooldownTicks: r.cooldowns.jamCooldownTicks
+  };
+}
+
 export function processCommands(state: SimulationState, events: SimEvent[], rngCandidate: RNG): void {
   if (state.pendingCommands.length === 0) return;
   const commands = state.pendingCommands;
@@ -456,6 +504,64 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       }
       case 'remove-echo': {
         if (removeEcho(state)) events.push({ type: 'echo-despawned', actorId: ECHO_ACTOR_ID });
+        break;
+      }
+      case 'spawn-signal-device': {
+        state.signal = createSignalDevice({
+          deviceId: command.deviceId, roomId: command.roomId,
+          x: command.x, y: command.y, tick: state.tick
+        });
+        events.push({
+          type: 'signal-device-spawned', deviceId: command.deviceId,
+          roomId: command.roomId, x: command.x, y: command.y
+        });
+        break;
+      }
+      case 'signal-scan': {
+        const device = state.signal;
+        if (!device) break;
+        const result = commitSignalScan(device, command.actor, state.tick, false, signalLegality(state, command.actor, device));
+        events.push({
+          type: 'signal-scanned', actorId: command.actor === 'echo' ? ECHO_ACTOR_ID : 0,
+          found: result.found === true, energy: result.energy ?? device.actors[command.actor].energy.energy,
+          cooldownTicks: result.cooldownTicks ?? device.actors[command.actor].cooldowns.scanCooldownTicks,
+          evidence: result.ok ? cloneEventValue(device.evidence.filter((e) => e.observerActorId === command.actor)) : []
+        });
+        events.push(signalEnergyEvent(device, command.actor));
+        break;
+      }
+      case 'signal-jam': {
+        const device = state.signal;
+        if (!device) break;
+        const result = commitSignalJam(device, command.actor, state.tick, false, signalLegality(state, command.actor, device));
+        events.push({
+          type: 'signal-jammed', actorId: command.actor === 'echo' ? ECHO_ACTOR_ID : 0,
+          energy: result.energy ?? device.actors[command.actor].energy.energy,
+          cooldownTicks: result.cooldownTicks ?? device.actors[command.actor].cooldowns.jamCooldownTicks,
+          relay: device.relay, jamExpiresAtTick: device.jammedUntilTick
+        });
+        events.push(signalEnergyEvent(device, command.actor));
+        break;
+      }
+      case 'toggle-relay': {
+        const device = state.signal;
+        if (!device) break;
+        const result = commitToggleRelay(device, command.enabled, state.tick);
+        events.push({
+          type: 'signal-relay-changed', relay: device.relay,
+          manualEnabled: device.manualEnabled, powered: device.powered
+        });
+        void result;
+        break;
+      }
+      case 'signal-power': {
+        const device = state.signal;
+        if (!device) break;
+        commitSignalPower(device, command.powered, state.tick);
+        events.push({
+          type: 'signal-relay-changed', relay: device.relay,
+          manualEnabled: device.manualEnabled, powered: device.powered
+        });
         break;
       }
       case 'echo-hit': {
@@ -1162,6 +1268,15 @@ export function stepSimulationTicks(
   for (let i = 0; i < ticks; i++) {
     // Legal adapter/FSM commands are committed by the tick, before movement.
     processCommands(state, events, rng);
+    if (state.signal) {
+      const changed = tickSignalDevice(state.signal, state.tick, false);
+      if (changed) {
+        events.push({
+          type: 'signal-relay-changed', relay: state.signal.relay,
+          manualEnabled: state.signal.manualEnabled, powered: state.signal.powered
+        });
+      }
+    }
     stepPlayer(state, intent, rng, events);
     if (echoIntent) stepEcho(state, echoIntent, rng, events);
     stepDrones(state, dt, events);
@@ -1194,6 +1309,7 @@ export interface CanonicalSimulationState {
     dashTimer: number; invuln: number; hurtTimer: number; fireTimer: number; aimYaw: number;
   };
   echo?: SimEchoState;
+  signal?: SimSignalDevice;
   drones: SimDroneState[];
   targets: SimTarget[];
   projectiles: SimProjectile[];
@@ -1225,6 +1341,7 @@ export function canonicalSimulationState(state: SimulationState): string {
       hurtTimer: state.player.hurtTimer, fireTimer: state.player.fireTimer, aimYaw: state.player.aimYaw
     },
     ...(state.echo ? { echo: state.echo } : {}),
+    ...(state.signal ? { signal: state.signal } : {}),
     drones: state.drones,
     targets: state.targets,
     projectiles: state.projectiles,

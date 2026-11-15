@@ -53,11 +53,21 @@ describe('C3-c harness — REAL perf', () => {
   }, 120_000);
 });
 
-describe('C3-c harness — Signal', () => {
-  it('main-World Signal Combat is explicitly unsupported (never faked)', () => {
+describe('C3-c / P3-b harness — Signal', () => {
+  it('without a device Signal is explicitly unsupported (never faked)', () => {
     const status = signalCombatStatus();
-    expect(status.ok).toBe(false);
+    expect(status.supported).toBe(false);
     expect(status.code).toBe('E_NOT_APPLICABLE');
     expect(status.messageKey).toContain('signal');
+  });
+
+  it('with a real device it is supported and the batch drives REAL core state', async () => {
+    const { signalCombatBatch } = await import('./worldHeadlessHarness');
+    const result = signalCombatBatch([424242, 1337, 7]);
+    expect(result.runs).toHaveLength(3);
+    for (const [name, ok] of Object.entries(result.checks)) {
+      expect(ok, name).toBe(true);
+    }
+    expect(signalCombatStatus(result.runs[0] as never).supported).toBe(true);
   });
 });

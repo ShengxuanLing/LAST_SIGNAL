@@ -104,6 +104,8 @@ export interface CoreCheckpointState {
   purchaseTransactions?: string[];
   /** Optional echo actor snapshot; absent in old saves and solo runs. */
   echo?: EchoCheckpointState;
+  /** Optional ONE Relay device; absent in old saves and default runs. */
+  signal?: unknown;
 }
 
 /** Structural copy of the core's SimEchoState (types cannot import the core). */

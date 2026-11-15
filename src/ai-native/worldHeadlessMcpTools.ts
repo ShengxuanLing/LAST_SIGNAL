@@ -36,7 +36,7 @@ import {
   type HeadlessRunStep
 } from './worldHeadless';
 import {
-  combatPerf, combatRegression, compareBaselinePolicies, signalCombatStatus,
+  combatPerf, combatRegression, compareBaselinePolicies, signalCombatStatus, signalCombatBatch,
   type BaselinePolicyId
 } from './worldHeadlessHarness';
 import type { EnemyKind } from '../types';
@@ -981,8 +981,51 @@ export class HeadlessWorldManager {
   }
 
   signalStatus(): CallToolResult {
+    // Truthful: supported ONLY when a real core device exists.
+    for (const record of this.sessions.values()) {
+      const view = record.world.signalView();
+      if (view) {
+        const status = signalCombatStatus(view);
+        return okPayload({ supported: true, code: status.code, messageKey: status.messageKey, device: view });
+      }
+    }
     const status = signalCombatStatus();
     return errPayload(status.code, status.messageKey);
+  }
+
+  /** Dev/OWNER-only: spawn ONE real Relay device in an existing session. */
+  signalDevice(session: string): CallToolResult {
+    if (!this.dev) return errPayload('E_PERMISSION', 'world.headless_dev_only');
+    const found = this.touch(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    const record = found.record;
+    const deviceId = 'relay_main';
+    const roomId = record.world.currentEpoch >= 1 ? 0 : 0;
+    const pos = record.world.state.player;
+    record.world.enableSignalDevice({ deviceId, roomId, x: pos.x + 1, y: pos.y });
+    record.world.runSteps([{ ticks: 1, intent: neutralIntent() }], 1);
+    return okPayload({ session, epoch: found.record.epoch, device: record.world.signalView() });
+  }
+
+  /** Dev/OWNER-only: legal core Signal command, committed by a real tick. */
+  signalCommand(session: string, command: {
+    type: 'signal-scan' | 'signal-jam' | 'toggle-relay' | 'signal-power';
+    actor?: 'player' | 'echo'; enabled?: boolean; powered?: boolean;
+  }): CallToolResult {
+    if (!this.dev) return errPayload('E_PERMISSION', 'world.headless_dev_only');
+    const found = this.touch(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    if (!found.record.world.signalView()) return errPayload('E_NOT_APPLICABLE', 'world.signal_combat_unsupported');
+    found.record.world.enqueueSignalCommand(command);
+    const events = found.record.world.runSteps([{ ticks: 1, intent: neutralIntent() }], 1);
+    return okPayload({ session, epoch: found.record.epoch, events: events.map((e) => e.type), device: found.record.world.signalView() });
+  }
+
+  /** Dev/OWNER-only: REAL Signal Combat batch across seeds. */
+  signalBatch(seeds: readonly number[]): CallToolResult {
+    if (!this.dev) return errPayload('E_PERMISSION', 'world.headless_dev_only');
+    if (seeds.length === 0 || seeds.length > 10) return errPayload('E_RESOURCE_LIMIT', 'world.headless_batch_limit');
+    return okPayload({ result: signalCombatBatch(seeds) });
   }
 }
 
@@ -1111,7 +1154,19 @@ export function registerHeadlessWorldTools(server: McpServer, manager: HeadlessW
   register(server, 'world_close', 'Close a headless session; releases the real core state.',
     z.strictObject({ session: sessionId }), (args) => manager.close(args.session as string));
 
-  register(server, 'world_signal_status', 'Signal Combat in the main World is NOT implemented.', z.strictObject({}), () => manager.signalStatus());
+  register(server, 'world_signal_status', 'Real Signal Combat capability: supported only when a core Relay device exists.', z.strictObject({}), () => manager.signalStatus());
+  if (dev) {
+    register(server, 'world_headless_dev_signal_device', 'DEV: spawn ONE real Relay device in a session.', z.strictObject({ session: z.string() }), (a) => manager.signalDevice(a.session as string));
+    register(server, 'world_headless_dev_signal_command', 'DEV: commit one legal Signal core command.', z.strictObject({
+      session: z.string(),
+      type: z.enum(['signal-scan', 'signal-jam', 'toggle-relay', 'signal-power']),
+      actor: z.enum(['player', 'echo']).optional(),
+      enabled: z.boolean().optional(), powered: z.boolean().optional()
+    }), (a) => manager.signalCommand(a.session as string, a as never));
+    register(server, 'world_headless_dev_signal_batch', 'DEV: real multi-seed Signal Combat batch.', z.strictObject({
+      seeds: z.array(z.number().int().min(0)).min(1).max(10)
+    }), (a) => manager.signalBatch(a.seeds as number[]));
+  }
 
   if (!dev) return;
 

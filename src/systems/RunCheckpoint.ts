@@ -4,6 +4,7 @@ import { UPGRADE_LIST } from '../config/upgrades';
 import { isValidTransactionId, PURCHASE_LEDGER_CAP } from '../config/supplies';
 import { echoPlayerData, ECHO_ACTOR_ID } from '../world/sim/core';
 import { AI_NATIVE_LIMITS_V1 } from '../ai-native/protocol';
+import { validSignalDevice } from '../world/sim/signalState';
 import type { ItemKind, RunCheckpoint } from '../types';
 
 const PLAYER_NUMBERS = [...Object.keys(basePlayerData()), 'level', 'xp', 'xpToNext', 'currency'];
@@ -148,6 +149,8 @@ export function validateCheckpoint(run: RunCheckpoint | undefined): run is RunCh
     // checkpoint must not be able to inject speed/armor/damage or free skills.
     const echo = (core as { echo?: unknown }).echo;
     if (echo !== undefined && !validEchoActor(echo)) return false;
+    const signal = (core as { signal?: unknown }).signal;
+    if (signal !== undefined && !validSignalDevice(signal)) return false;
     // Optional processed-purchase ledger: absent is valid (old checkpoint),
     // present must be bounded, well-formed and duplicate-free.
     const ledger = (core as { purchaseTransactions?: unknown }).purchaseTransactions;
