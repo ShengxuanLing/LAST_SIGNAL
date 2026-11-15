@@ -48,6 +48,15 @@ export const HEADLESS_MAX_EVENTS = 20_000;
 export const HEADLESS_MAX_ACTION_LOG = 4_096;
 export const HEADLESS_MAX_FRAME_BYTES = 2 * 1024 * 1024;
 
+/**
+ * Immutable-history helper: the owner frame must never share nested objects
+ * with the live world (or with the caller). JSON round-trip keeps full
+ * IEEE-754 precision and detaches events/commands/ledger/actionLog.
+ */
+function deepCopy<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 export type HeadlessStatus = 'running' | 'cleared' | 'dead';
 
 export interface HeadlessMapIdentity {
@@ -456,8 +465,8 @@ export class HeadlessWorld {
       version: HEADLESS_FRAME_VERSION,
       epoch: this.epoch,
       sim: cloneSimulationState(this.sim),
-      events: this.events.slice(-HEADLESS_MAX_EVENTS) as SimEvent[],
-      actionLog: this.actionLog.slice(),
+      events: deepCopy(this.events.slice(-HEADLESS_MAX_EVENTS)) as SimEvent[],
+      actionLog: deepCopy(this.actionLog.slice()),
       enteredRooms: [...this.entered],
       status: this.status,
       kills: this.kills,
@@ -476,8 +485,8 @@ export class HeadlessWorld {
       return { ok: false, code: 'E_RESOURCE_LIMIT', messageKey: 'world.headless_frame_too_large' };
     }
     this.sim = cloneSimulationState(frame.sim);
-    this.events = (frame.events as SimEvent[]).slice(-HEADLESS_MAX_EVENTS);
-    this.actionLog = (frame.actionLog as HeadlessActionLogEntry[]).slice(-HEADLESS_MAX_ACTION_LOG);
+    this.events = deepCopy((frame.events as SimEvent[]).slice(-HEADLESS_MAX_EVENTS));
+    this.actionLog = deepCopy((frame.actionLog as HeadlessActionLogEntry[]).slice(-HEADLESS_MAX_ACTION_LOG));
     this.entered = new Set(frame.enteredRooms as number[]);
     this.status = frame.status as HeadlessStatus;
     this.kills = frame.kills as number;
@@ -498,6 +507,10 @@ export class HeadlessWorld {
     ok: boolean; sameState: boolean; sameEvents: boolean;
     expectedStateHash: string; actualStateHash: string;
     expectedEventsHash: string; actualEventsHash: string;
+    expectedNewEventsHash?: string; actualNewEventsHash?: string;
+    baselineEvents?: number;
+    historyPreserved?: boolean;
+    eventsTruncated?: boolean;
     firstDivergence: number | null;
   } {
     if (!isHeadlessFrame(frame)) {
@@ -507,27 +520,68 @@ export class HeadlessWorld {
         firstDivergence: null
       };
     }
+    const frameEvents = frame.events as SimEvent[];
+    const baselineEvents = frameEvents.length;
     const replayWorld = HeadlessWorld.fromFrame(frame, false);
-    const replayEvents = replayWorld.runSteps(steps);
+    // `runSteps` appends to the replay world's history, so `replayWorld.events`
+    // = frame.events (baseline) + the new segment. Compare the SAME interval.
+    replayWorld.runSteps(steps);
+    const expected = this.events;
+    const actual = replayWorld.events;
     const expectedStateHash = payloadFingerprint(canonicalSimulationState(this.sim));
     const actualStateHash = payloadFingerprint(canonicalSimulationState(replayWorld.sim));
-    const expectedEventsHash = payloadFingerprint(canonicalSimulationEvents(this.events));
-    const actualEventsHash = payloadFingerprint(canonicalSimulationEvents(replayEvents));
+
+    // 1) The preserved history must still match the frame baseline. A lost
+    //    prefix (20k truncation) is NEVER silently accepted as consistent.
     let firstDivergence: number | null = null;
-    for (let i = 0; i < Math.min(this.events.length, replayEvents.length); i += 1) {
-      if (canonicalJson(this.events[i]) !== canonicalJson(replayEvents[i])) { firstDivergence = i; break; }
+    let historyPreserved = expected.length >= baselineEvents;
+    if (historyPreserved) {
+      for (let i = 0; i < baselineEvents; i += 1) {
+        if (canonicalJson(expected[i]) !== canonicalJson(frameEvents[i])) {
+          firstDivergence = i;
+          historyPreserved = false;
+          break;
+        }
+      }
+    } else {
+      firstDivergence = expected.length;
     }
-    if (firstDivergence === null && this.events.length !== replayEvents.length) {
-      firstDivergence = Math.min(this.events.length, replayEvents.length);
+
+    // 2) The newly produced segment (after the frame baseline) must match.
+    const expectedNew = expected.slice(baselineEvents);
+    const actualNew = actual.slice(baselineEvents);
+    const newEqual = expectedNew.length === actualNew.length;
+    if (firstDivergence === null) {
+      if (!newEqual) {
+        firstDivergence = baselineEvents + Math.min(expectedNew.length, actualNew.length);
+      } else {
+        for (let i = 0; i < expectedNew.length; i += 1) {
+          if (canonicalJson(expectedNew[i]) !== canonicalJson(actualNew[i])) {
+            firstDivergence = baselineEvents + i;
+            break;
+          }
+        }
+      }
     }
+
+    const expectedEventsHash = payloadFingerprint(canonicalSimulationEvents(expected));
+    const actualEventsHash = payloadFingerprint(canonicalSimulationEvents(actual));
+    const expectedNewEventsHash = payloadFingerprint(canonicalSimulationEvents(expectedNew));
+    const actualNewEventsHash = payloadFingerprint(canonicalSimulationEvents(actualNew));
     return {
       ok: true,
       sameState: actualStateHash === expectedStateHash,
-      sameEvents: actualEventsHash === expectedEventsHash,
-      expectedStateHash, actualStateHash, expectedEventsHash, actualEventsHash,
+      sameEvents: historyPreserved && newEqual && firstDivergence === null,
+      expectedStateHash, actualStateHash,
+      expectedEventsHash, actualEventsHash,
+      expectedNewEventsHash, actualNewEventsHash,
+      baselineEvents,
+      historyPreserved,
+      eventsTruncated: baselineEvents >= HEADLESS_MAX_EVENTS,
       firstDivergence
     };
   }
+
 
   /** Dev/OWNER fixture: load a REAL generated room and spawn REAL enemies. */
   loadRoom(roomId: number, kinds: readonly EnemyKind[]): { ok: true; roomId: number; spawned: number } | { ok: false; code: string; messageKey: string } {
@@ -611,8 +665,8 @@ export class HeadlessWorld {
       status: this.status,
       observation: this.observation(),
       inspect: this.inspect(),
-      tailEvents: this.events.slice(-64),
-      actionLog: this.actionLog.slice(-64),
+      tailEvents: deepCopy(this.events.slice(-64)),
+      actionLog: deepCopy(this.actionLog.slice(-64)),
       frame: this.snapshot(),
       ...extra
     };
@@ -622,8 +676,8 @@ export class HeadlessWorld {
     if (!isHeadlessFrame(frame)) throw new Error('invalid headless frame');
     const world = Object.create(HeadlessWorld.prototype) as HeadlessWorld;
     (world as any).sim = cloneSimulationState(frame.sim as SimulationState);
-    (world as any).events = (frame.events as SimEvent[]).slice(-HEADLESS_MAX_EVENTS);
-    (world as any).actionLog = (frame.actionLog as HeadlessActionLogEntry[]).slice(-HEADLESS_MAX_ACTION_LOG);
+    (world as any).events = deepCopy((frame.events as SimEvent[]).slice(-HEADLESS_MAX_EVENTS));
+    (world as any).actionLog = deepCopy((frame.actionLog as HeadlessActionLogEntry[]).slice(-HEADLESS_MAX_ACTION_LOG));
     (world as any).entered = new Set(frame.enteredRooms as number[]);
     (world as any).status = frame.status as HeadlessStatus;
     (world as any).kills = frame.kills as number;

@@ -119,17 +119,21 @@ describe('C3c snapshot — action boundary only', () => {
         { type: 'move', actionId: aid(13), dir: { x: 1, y: 0 }, ticks: 20 }
       ], 600));
       const after = body(manager.step(session, currentEpoch, rid(14), 20));
-      // Compare the state and the events PRODUCED BY THE SUBSEQUENT ACTION.
-      // (`canonicalEvents` covers the whole history; historical
-      // `projectile-spawned` payloads hold live projectile references, which is
-      // a pre-existing C2 projection detail, not a restore regression.)
-      return { canonical: after.canonicalState as string, events: JSON.stringify(after.events), tick: after.toTick };
+      // Events are immutable value DTOs, so the FULL history (baseline + new
+      // segment) must match. This no longer relies on a "subsequent only" view.
+      return {
+        canonical: after.canonicalState as string,
+        events: after.canonicalEvents as string,
+        stepEvents: JSON.stringify(after.events),
+        tick: after.toTick
+      };
     };
     const plain = run(false);
     const restored = run(true);
     expect(restored.tick).toBe(plain.tick);
     expect(restored.canonical).toBe(plain.canonical);
-    expect(restored.events).toBe(plain.events);
+    expect(restored.events, 'full history (baseline + continuation) matches').toBe(plain.events);
+    expect(restored.stepEvents).toBe(plain.stepEvents);
   });
 
   it('exportFailure marks a mid-execution bundle as NOT replayable', async () => {

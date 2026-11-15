@@ -334,7 +334,7 @@ function awardEnemyKill(
       const a = (i / 12) * Math.PI * 2;
       const loot = spawnCoreLoot(state, x + Math.cos(a) * 1.5, y + Math.sin(a) * 1.5,
         'currency', 'currency', 10, a);
-      events.push({ type: 'loot-dropped', loot });
+      events.push({ type: 'loot-dropped', loot: cloneEventValue(loot) });
     }
     return;
   }
@@ -344,11 +344,11 @@ function awardEnemyKill(
   const healthRoll = _rng.float();
   if (currencyRoll < 0.6) {
     const loot = spawnCoreLoot(state, x, y, 'currency', 'currency', KILL_CURRENCY_AMOUNT);
-    events.push({ type: 'loot-dropped', loot });
+    events.push({ type: 'loot-dropped', loot: cloneEventValue(loot) });
   }
   if (healthRoll < 0.25) {
     const loot = spawnCoreLoot(state, x, y, 'health', 'health', KILL_HEALTH_AMOUNT);
-    events.push({ type: 'loot-dropped', loot });
+    events.push({ type: 'loot-dropped', loot: cloneEventValue(loot) });
   }
   grantXp(state, xpValue, events);
 }
@@ -371,7 +371,7 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       }
       case 'spawn-loot': {
         const loot = spawnCoreLoot(state, command.x, command.y, command.kind, command.key, command.amount, command.bob ?? 0);
-        events.push({ type: 'loot-dropped', loot });
+        events.push({ type: 'loot-dropped', loot: cloneEventValue(loot) });
         break;
       }
       case 'teleport-player': {
@@ -411,7 +411,7 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
           const kind: SimLootKind = rngCandidate.int(0, 1) === 0 ? 'currency' : 'health';
           const pos = command.resourcePositions[i] ?? { x: command.gx + 2, y: command.gy + 2 };
           const loot = spawnCoreLoot(state, pos.x, pos.y, kind, kind, kind === 'currency' ? 10 : 0);
-          events.push({ type: 'loot-dropped', loot });
+          events.push({ type: 'loot-dropped', loot: cloneEventValue(loot) });
         }
         const portalTarget = command.savedPortalTarget
           ?? (command.neighbors.length > 0 ? rngCandidate.pick(command.neighbors) : null);
@@ -422,7 +422,7 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
         const projectile = spawnEnemyProjectile(
           state, command.ownerId, command.x, command.y, command.damage, command.vel, command.lifetime
         );
-        events.push({ type: 'projectile-spawned', projectile });
+        events.push({ type: 'projectile-spawned', projectile: cloneEventValue(projectile) });
         break;
       }
       case 'heal-player': {
@@ -510,7 +510,7 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       case 'set-player-data': {
         // Restore player data & position from the checkpoint.
         state.player.data = JSON.parse(JSON.stringify(command.data)) as PlayerData;
-        events.push({ type: 'player-reset', data: command.data });
+        events.push({ type: 'player-reset', data: cloneEventValue(command.data) });
         break;
       }
     }
@@ -587,6 +587,18 @@ export function isWalkableFromState(
     blocked(x - radius, y - radius) || blocked(x + radius, y - radius) ||
     blocked(x - radius, y + radius) || blocked(x + radius, y + radius)
   );
+}
+
+/**
+ * EVENT IMMUTABILITY: events are plain, value-only DTOs. Any reference to a
+ * mutable part of `SimulationState` (a projectile that will move, a loot drop
+ * that will bob, player data that will change) is detached at EMIT time with a
+ * deep copy. History stored in a snapshot/replay therefore never changes when
+ * the live state evolves. JSON copy preserves full IEEE-754 double precision
+ * (round-trip), so canonical comparisons are exact, not rounded.
+ */
+function cloneEventValue<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function toSimProjectile(data: ProjectileData, source: 'player' | 'enemy', kind: string): SimProjectile {
@@ -672,7 +684,7 @@ function stepPlayerFire(state: SimulationState, intent: SimulationIntent, rng: R
   const projectile = toSimProjectile(data, 'player', spec.kind);
   state.projectiles.push(projectile);
   events.push({ type: 'player-fired', spec });
-  events.push({ type: 'projectile-spawned', projectile });
+  events.push({ type: 'projectile-spawned', projectile: cloneEventValue(projectile) });
 }
 
 
@@ -784,7 +796,7 @@ function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): voi
         });
         const projectile = toSimProjectile(data, 'enemy', 'plasma');
         state.projectiles.push(projectile);
-        events.push({ type: 'projectile-spawned', projectile });
+        events.push({ type: 'projectile-spawned', projectile: cloneEventValue(projectile) });
       } else if (step.attack.kind === 'melee') {
         applyCorePlayerHit(state, drone.x, drone.y, step.attack.damage, events);
       }

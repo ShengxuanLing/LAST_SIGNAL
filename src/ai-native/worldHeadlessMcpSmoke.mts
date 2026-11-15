@@ -296,6 +296,26 @@ async function main(): Promise<void> {
     const boundarySnap = await call(client, 'world_headless_dev_snapshot', { session: snapSession });
     assert(boundarySnap.ok === true && boundarySnap.boundary === 'action'
       && boundarySnap.frame.boundary === 'action', 'boundary snapshot', boundarySnap);
+    // Mid-run replay: continue 15 real ticks after the boundary frame, then
+    // replay the SAME interval. History baseline + new segment must match.
+    const cont15 = await call(client, 'world_headless_step', { session: snapSession, epoch: snapEpoch, requestId: rid(83), ticks: 15 });
+    assert(cont15.ok === true && cont15.ticks === 15, 'continuation step', cont15);
+    const histSteps = [{ ticks: 15, intent: { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false } }];
+    const histReplay = await call(client, 'world_headless_dev_replay', { session: snapSession, frame: boundarySnap.frame, steps: histSteps });
+    assert(histReplay.ok === true && histReplay.sameState === true && histReplay.sameEvents === true
+      && histReplay.firstDivergence === null, 'mid-run replay over the frame baseline', histReplay);
+    assert(histReplay.historyPreserved === true && histReplay.baselineEvents > 0, 'history baseline preserved', histReplay);
+    const tampered = JSON.parse(JSON.stringify(boundarySnap.frame));
+    tampered.events[0] = { type: 'player-moved', position: { x: 1.5, y: 2.5 } };
+    const badReplay = await call(client, 'world_headless_dev_replay', { session: snapSession, frame: tampered, steps: histSteps });
+    assert(badReplay.ok === true && badReplay.sameEvents === false && badReplay.firstDivergence === 0,
+      'tampered baseline history is detected at index 0', badReplay);
+    log('PASS dev_replay_history', {
+      baselineEvents: histReplay.baselineEvents,
+      historyPreserved: histReplay.historyPreserved,
+      tamperDivergence: badReplay.firstDivergence
+    });
+
     const boundaryRestore = await call(client, 'world_headless_dev_restore', { session: snapSession, frame: boundarySnap.frame });
     assert(boundaryRestore.ok === true && boundaryRestore.epoch > snapEpoch, 'restore bumps epoch', boundaryRestore);
     await call(client, 'world_close', { session: snapSession });

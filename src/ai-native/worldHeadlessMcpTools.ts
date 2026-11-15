@@ -613,6 +613,10 @@ export class HeadlessWorldManager {
         : null,
       queuedActions,
       ledger: record.ledger.stats(),
+      // History window: the retained event log is bounded. A truncated history
+      // is reported explicitly so a "same prefix" claim is never faked.
+      eventsRetained: record.world.eventsCount,
+      eventsTruncated: record.world.eventsCount >= 20_000,
       note: boundary
         ? 'action-boundary export: full future state captured and replayable'
         : 'INCOMPLETE reproduction: active/queued actions are still pending; remaining ticks are NOT in the frame'
