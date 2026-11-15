@@ -217,12 +217,16 @@ export function validSignalResources(value: unknown): value is SignalResources {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const v = value as Record<string, unknown>;
   if (v.actor !== 'player' && v.actor !== 'echo') return false;
-  for (const forbidden of ['upgrades', 'abilities', 'weaponKey', 'maxHp', 'damage']) {
-    if (forbidden in v) return false;
-  }
+  // Strict allowlist: no hiddenTarget, nested free skills or sim fields.
+  const allow = (obj: Record<string, unknown>, keys: readonly string[]): boolean =>
+    Object.keys(obj).every((k) => keys.includes(k));
+  if (!allow(v, ['actor', 'energy', 'cooldowns'])) return false;
   const energy = v.energy as Record<string, unknown> | undefined;
   const cd = v.cooldowns as Record<string, unknown> | undefined;
-  if (!energy || typeof energy !== 'object' || !cd || typeof cd !== 'object') return false;
+  if (!energy || typeof energy !== 'object' || Array.isArray(energy) ||
+      !cd || typeof cd !== 'object' || Array.isArray(cd)) return false;
+  if (!allow(energy, ['energy', 'regenAcc']) ||
+      !allow(cd, ['scanCooldownTicks', 'scanRevealTicks', 'jamCooldownTicks', 'jamRemainingTicks'])) return false;
   const intRange = (n: unknown, max: number): boolean =>
     typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 && n <= max;
   return intRange(energy.energy, SIGNAL_TUNING.ENERGY_MAX)
@@ -231,4 +235,33 @@ export function validSignalResources(value: unknown): value is SignalResources {
     && intRange(cd.scanRevealTicks, SIGNAL_TUNING.SCAN_REVEAL_TICKS)
     && intRange(cd.jamCooldownTicks, SIGNAL_TUNING.JAM_CD_TICKS)
     && intRange(cd.jamRemainingTicks, SIGNAL_TUNING.JAM_DURATION_TICKS);
+}
+
+
+/**
+ * SINGLE atomic gate: scenario permission -> blocker -> charge. No double
+ * deduction, no negative energy, and no charge when the caller lacks the
+ * scenario permission. The future core command must use this helper.
+ */
+export function tryScan(
+  resources: SignalResources, paused: boolean, failed: boolean, permitted: boolean
+): { ok: true; resources: SignalResources } | { ok: false; code: SignalBlockCode } {
+  if (!permitted) return { ok: false, code: 'E_PERMISSION' };
+  const blocked = scanBlocker(resources, paused, failed);
+  if (blocked) return { ok: false, code: blocked };
+  const charged = chargeScan(resources);
+  if (charged.energy.energy < 0) return { ok: false, code: 'E_ENERGY_INSUFFICIENT' };
+  return { ok: true, resources: charged };
+}
+
+export function tryJam(
+  resources: SignalResources, paused: boolean, failed: boolean, permitted: boolean,
+  affectsDevice = true
+): { ok: true; resources: SignalResources } | { ok: false; code: SignalBlockCode } {
+  if (!permitted) return { ok: false, code: 'E_PERMISSION' };
+  const blocked = jamBlocker(resources, paused, failed);
+  if (blocked) return { ok: false, code: blocked };
+  const charged = chargeJam(resources, affectsDevice);
+  if (charged.energy.energy < 0) return { ok: false, code: 'E_ENERGY_INSUFFICIENT' };
+  return { ok: true, resources: charged };
 }

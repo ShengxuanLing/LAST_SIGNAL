@@ -172,3 +172,26 @@ describe('checkpoint echo actor', () => {
     expect(validateCheckpoint(notFinite)).toBe(false);
   });
 });
+
+describe('Task0b — strict echo DTO allowlist and physical timer bounds', () => {
+  it('rejects extra hiddenTarget / nested free / oversized timers', () => {
+    const withHidden = echoFrame();
+    (withHidden.coreState!.echo as unknown as Record<string, unknown>).hiddenTarget = { x: 1, y: 2 };
+    expect(validateCheckpoint(withHidden)).toBe(false);
+    const nested = echoFrame();
+    (nested.coreState!.echo!.data as unknown as Record<string, unknown>).free = { damage: 99 };
+    expect(validateCheckpoint(nested)).toBe(false);
+    const weaponFree = echoFrame();
+    (weaponFree.coreState!.echo!.data.weapons[0] as unknown as Record<string, unknown>).free = true;
+    expect(validateCheckpoint(weaponFree)).toBe(false);
+    for (const key of ['fireTimer', 'dashTimer', 'invuln', 'hurtTimer'] as const) {
+      const oversized = echoFrame();
+      (oversized.coreState!.echo as unknown as Record<string, unknown>)[key] = 2_000_000_000;
+      expect(validateCheckpoint(oversized), `${key} beyond physical duration`).toBe(false);
+    }
+    const normal = echoFrame();
+    normal.coreState!.echo!.fireTimer = 12;   // 0.2 s weapon cooldown
+    normal.coreState!.echo!.invuln = 30;     // 0.5 s
+    expect(validateCheckpoint(normal), 'normal runtime timers still legal').toBe(true);
+  });
+});

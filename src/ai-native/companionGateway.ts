@@ -1,0 +1,250 @@
+// AI-NATIVE-02 P3-b A — Companion gateway (bounded suggestion/dedup/epoch).
+//
+// This is a TRANSPORT-SIDE owner of `CompanionFacet` per session. It reuses the
+// C3 `WorldGateway` session/epoch and `AgentLeaseRegistry` (in the bridge),
+// not a second protocol. Agent routes can only OBSERVE / SUGGEST; confirmations
+// are a browser-only route that RECORDS a decision. The browser then enqueues
+// the legal core command locally; this module never executes anything.
+
+import { WorldGateway } from './worldGateway';
+import {
+  COMPANION_LIMITS, CompanionFacet, COMPANION_ID_PATTERN,
+  type CompanionObservation, type CompanionObservationView,
+  type CompanionOwnerMode, type CompanionSuggestion, type CompanionSuggestionKind,
+  type CompanionReason
+} from './companionFacet';
+import type { ErrorCodeV1 } from './protocol';
+
+export interface CompanionGatewayError {
+  readonly ok: false;
+  readonly code: ErrorCodeV1;
+  readonly messageKey: string;
+}
+type Result<T> = { readonly ok: true; readonly value: T } | CompanionGatewayError;
+const err = <T>(code: ErrorCodeV1, messageKey: string): Result<T> => ({ ok: false, code, messageKey });
+const bad = (code: ErrorCodeV1, messageKey: string): CompanionGatewayError => ({ ok: false, code, messageKey });
+
+export interface CompanionDecisionRecord {
+  readonly suggestionId: string;
+  readonly decision: 'confirm' | 'reject';
+  readonly epoch: number;
+  readonly decidedAtTick: number;
+  readonly applied: boolean;
+}
+
+interface CompanionSession {
+  readonly facet: CompanionFacet;
+  readonly decisions: Map<string, CompanionDecisionRecord>;
+  observation: CompanionObservation | null;
+  ownerMode: CompanionOwnerMode;
+  /** Monotonic request-id dedup (hard 512 bound), separated from facet ids. */
+  readonly requests: Map<string, { suggestionId: string; fingerprint: string }>;
+  requestRecords: number;
+}
+
+export interface CompanionSuggestInput {
+  readonly session: string;
+  readonly epoch: number;
+  readonly requestId: string;
+  readonly suggestionId: string;
+  readonly kind: CompanionSuggestionKind;
+  readonly reason: CompanionReason;
+  readonly target?: { x: number; y: number };
+  readonly confidence?: number;
+  readonly ttlTicks?: number;
+}
+
+export class CompanionGateway {
+  private readonly sessions = new Map<string, CompanionSession>();
+
+  constructor(private readonly gateway: WorldGateway) {}
+
+  private session(sessionId: string, epoch: number): CompanionSession | CompanionGatewayError {
+    const view = this.gateway.listSessions().find((s) => s.session === sessionId);
+    if (!view) return bad('E_SESSION_NOT_FOUND', 'world.session_unknown');
+    if (view.epoch !== epoch) return bad('E_STALE_EPOCH', 'world.stale_epoch');
+    if (view.status !== 'connected') return bad('E_PERMISSION', 'world.not_authorized');
+    const existing = this.sessions.get(sessionId);
+    if (existing) return existing;
+    const created: CompanionSession = {
+      facet: new CompanionFacet({ session: sessionId, epoch }),
+      decisions: new Map(),
+      observation: null,
+      ownerMode: 'human',
+      requests: new Map(),
+      requestRecords: 0
+    };
+    this.sessions.set(sessionId, created);
+    return created;
+  }
+
+  /** Human AUTHORIZE inside the real game (renderer-only route). */
+  authorize(sessionId: string, epoch: number, ownerMode: CompanionOwnerMode): Result<{ session: string; epoch: number }> {
+    const s = this.session(sessionId, epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    state.ownerMode = ownerMode;
+    state.facet.setOwnerMode(ownerMode);
+    state.facet.setLink('connected');
+    return { ok: true, value: { session: sessionId, epoch } };
+  }
+
+  /** Browser pushes the echo's own cropped observation (renderer-only route). */
+  pushObservation(sessionId: string, epoch: number, value: unknown): Result<CompanionObservation> {
+    const s = this.session(sessionId, epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    const view = value as CompanionObservationView;
+    if (!view || typeof view !== 'object' || !Number.isFinite(view.tick) ||
+        !view.echo || !view.player || !Array.isArray(view.drones)) {
+      return err('E_SCHEMA', 'companion.observation_invalid');
+    }
+    // Server-side allowlist: no seed/map/RNG/hidden fields may enter.
+    const allowedTop = new Set(['epoch', 'tick', 'echo', 'player', 'drones', 'targets', 'relay', 'objectiveBlocked', 'energy', 'cooldowns', 'schema', 'perception']);
+    for (const key of Object.keys(view)) if (!allowedTop.has(key)) return err('E_SCHEMA', 'companion.observation_invalid');
+    const observed = state.facet.observe({ ...view, epoch });
+    if (!observed.ok) return err(observed.code, observed.messageKey);
+    state.observation = observed.value;
+    return { ok: true, value: observed.value };
+  }
+
+  /** `echo_observe` (agent). */
+  observe(sessionId: string, epoch: number): Result<CompanionObservation> {
+    const s = this.session(sessionId, epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    if (!state.observation) return err('E_LINK_UNAVAILABLE', 'companion.no_observation');
+    return { ok: true, value: state.observation };
+  }
+
+  /** `echo_suggest` (agent): propose only, bounded dedup, TTL and epoch. */
+  suggest(input: CompanionSuggestInput): Result<{ suggestion: CompanionSuggestion; replayed: boolean; requestId: string }> {
+    const s = this.session(input.session, input.epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    if (!state.observation) return err('E_LINK_UNAVAILABLE', 'companion.no_observation');
+    state.facet.advanceTo(state.observation.tick);
+    if (!COMPANION_ID_PATTERN.test(input.suggestionId)) return err('E_SCHEMA', 'companion.suggestion_id_invalid');
+    if (!/^req_[0-9a-f]{24}$/.test(input.requestId)) return err('E_SCHEMA', 'companion.request_id_invalid');
+    if (state.decisions.has(input.suggestionId)) return err('E_RETRYABLE', 'companion.decision_exists');
+    const fingerprint = JSON.stringify({
+      kind: input.kind, reason: input.reason, target: input.target ?? null,
+      confidence: input.confidence ?? null, ttlTicks: input.ttlTicks ?? null
+    });
+    const cached = state.requests.get(input.requestId);
+    if (cached !== undefined) {
+      if (cached.suggestionId !== input.suggestionId || cached.fingerprint !== fingerprint) {
+        return err('E_ID_PAYLOAD_MISMATCH', 'companion.request_payload_mismatch');
+      }
+      const live = state.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId);
+      if (!live) return err('E_RETRY_AFTER_EVICTION', 'companion.suggestion_evicted');
+      return { ok: true, value: { suggestion: live, replayed: true, requestId: input.requestId } };
+    }
+    if (state.requestRecords >= COMPANION_LIMITS.MAX_DEDUP_RECORDS) {
+      return err('E_RESOURCE_LIMIT', 'companion.dedup_limit');
+    }
+    const proposed = state.facet.suggest({
+      suggestionId: input.suggestionId,
+      kind: input.kind,
+      reason: input.reason,
+      target: input.target,
+      confidence: input.confidence,
+      ttlTicks: input.ttlTicks
+    });
+    if (!proposed.ok) return err(proposed.code, proposed.messageKey);
+    if (cached === undefined) {
+      state.requests.set(input.requestId, { suggestionId: input.suggestionId, fingerprint });
+      state.requestRecords += 1;
+    }
+    return { ok: true, value: { suggestion: proposed.value, replayed: false, requestId: input.requestId } };
+  }
+
+  /** `echo_status` / `echo_memory` (agent, bounded). */
+  status(sessionId: string, epoch: number): Result<{ status: ReturnType<CompanionFacet['status']>; pending: readonly CompanionSuggestion[] }> {
+    const s = this.session(sessionId, epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    return { ok: true, value: { status: state.facet.status(), pending: state.facet.pendingSuggestions() } };
+  }
+
+  /** Browser-only: list unconfirmed proposals for the human UI. */
+  pending(sessionId: string, epoch: number): Result<readonly CompanionSuggestion[]> {
+    const s = this.session(sessionId, epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    if (state.observation) state.facet.advanceTo(state.observation.tick);
+    return { ok: true, value: state.facet.pendingSuggestions().filter((p) => !state.decisions.has(p.suggestionId)) };
+  }
+
+  /**
+   * Browser-only confirmation. Records a post-commit fact; it does NOT enqueue
+   * a core command (the browser does that locally with its owner capability).
+   * An agent token or a forged Origin can never reach this method: the bridge
+   * exposes it only on the Origin-checked renderer route.
+   */
+  decide(input: { session: string; epoch: number; suggestionId: string; decision: 'confirm' | 'reject'; tick: number }): Result<CompanionDecisionRecord> {
+    const s = this.session(input.session, input.epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    if (state.ownerMode !== 'human') return err('E_PERMISSION', 'companion.owner_mode_readonly');
+    if (state.facet.status().link !== 'connected') return err('E_LINK_UNAVAILABLE', 'companion.link_fallback');
+    if (state.decisions.has(input.suggestionId)) return err('E_RETRYABLE', 'companion.decision_exists');
+    state.facet.advanceTo(input.tick);
+    const proposal = state.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId);
+    if (!proposal || input.tick >= proposal.expiresAtTick) return err('E_TARGET_DESTROYED', 'companion.suggestion_expired');
+    const record: CompanionDecisionRecord = Object.freeze({
+      suggestionId: input.suggestionId,
+      decision: input.decision,
+      epoch: input.epoch,
+      decidedAtTick: input.tick,
+      applied: false
+    });
+    state.decisions.set(input.suggestionId, record);
+    return { ok: true, value: record };
+  }
+
+  /** Browser reports the post-commit core fact; no side effect on suggestions. */
+  markApplied(sessionId: string, suggestionId: string): Result<CompanionDecisionRecord> {
+    const state = this.sessions.get(sessionId);
+    const record = state?.decisions.get(suggestionId);
+    if (!state || !record) return err('E_TARGET_DESTROYED', 'companion.decision_unknown');
+    const updated = { ...record, applied: true };
+    state.decisions.set(suggestionId, updated);
+    return { ok: true, value: updated };
+  }
+
+  /** Owner mode change (AI/External protagonist control => read-only). */
+  setOwnerMode(sessionId: string, epoch: number, ownerMode: CompanionOwnerMode): Result<{ readOnly: boolean }> {
+    const s = this.session(sessionId, epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    state.ownerMode = ownerMode;
+    state.facet.setOwnerMode(ownerMode);
+    return { ok: true, value: { readOnly: ownerMode !== 'human' } };
+  }
+
+  /** Lease expiry / disconnect: cancel ALL unconfirmed work, explicit fallback. */
+  disconnect(sessionId: string): void {
+    const state = this.sessions.get(sessionId);
+    if (!state) return;
+    state.facet.setLink('fallback');
+    state.observation = null;
+    state.decisions.clear();
+    state.requests.clear();
+    state.requestRecords = 0;
+  }
+
+  onLeaseExpired(sessionId: string): void { this.disconnect(sessionId); }
+
+  close(sessionId: string): void { this.sessions.delete(sessionId); }
+
+  stats(): { sessions: number; pending: number; decisions: number } {
+    let pending = 0;
+    let decisions = 0;
+    for (const s of this.sessions.values()) {
+      pending += s.facet.pendingSuggestions().length;
+      decisions += s.decisions.size;
+    }
+    return { sessions: this.sessions.size, pending, decisions };
+  }
+}

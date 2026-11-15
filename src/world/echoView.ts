@@ -35,13 +35,51 @@ export interface EchoObservationInput {
   isOpaque: (x: number, y: number) => boolean;
 }
 
-export type EchoObservation = EchoView & { targets: EchoVisibleTarget[] };
+export const ECHO_OBSERVATION_SCHEMA = 'last_signal.echo-observation.v1' as const;
+
+export type EchoObservation = EchoView & {
+  /** Attestation: this object was produced by buildEchoObservation (cropped). */
+  schema: typeof ECHO_OBSERVATION_SCHEMA;
+  perception: {
+    center: { x: number; y: number };
+    radiusTiles: number;
+    requiresExplored: true;
+    requiresLineOfSight: true;
+  };
+  targets: EchoVisibleTarget[];
+};
+
+/** Field-level crop attestation (survives JSON over the bridge). */
+export function isEchoObservation(value: unknown): value is EchoObservation {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const v = value as Record<string, unknown>;
+  if (v.schema !== ECHO_OBSERVATION_SCHEMA) return false;
+  const p = v.perception as Record<string, unknown> | undefined;
+  if (!p || p.requiresExplored !== true || p.requiresLineOfSight !== true ||
+      p.radiusTiles !== ECHO_LIMITS.perceptionTiles || !finite(p.center)) return false;
+  const allowed = new Set(['schema', 'perception', 'tick', 'player', 'echo', 'drones', 'targets', 'energy', 'cooldowns', 'relay', 'objectiveBlocked']);
+  for (const key of Object.keys(v)) if (!allowed.has(key)) return false;
+  if (!Array.isArray(v.drones) || !Array.isArray(v.targets)) return false;
+  const center = p.center as { x: number; y: number };
+  const bounded = (item: unknown): boolean => {
+    const a = item as Record<string, unknown>;
+    return !!a && typeof a.x === 'number' && typeof a.y === 'number'
+      && Math.hypot(a.x - center.x, a.y - center.y) < ECHO_LIMITS.perceptionTiles;
+  };
+  return (v.drones as unknown[]).every(bounded) && (v.targets as unknown[]).every(bounded);
+}
+function finite(value: unknown): value is { x: number; y: number } {
+  const v = value as Record<string, unknown> | undefined;
+  return !!v && typeof v.x === 'number' && Number.isFinite(v.x) && typeof v.y === 'number' && Number.isFinite(v.y);
+}
 
 function perceives(
   echo: SimEchoState, x: number, y: number,
   isExplored: (x: number, y: number) => boolean,
   isOpaque: (x: number, y: number) => boolean
 ): boolean {
+  // Strictly INSIDE the shared radius (slice uses the same `< radius` rule).
+  if (Math.hypot(x - echo.x, y - echo.y) >= ECHO_LIMITS.perceptionTiles) return false;
   return gridLineOfSight({ x, y }, {
     center: { x: echo.x, y: echo.y },
     radiusTiles: ECHO_LIMITS.perceptionTiles,
@@ -65,6 +103,13 @@ export function buildEchoObservation(input: EchoObservationInput): EchoObservati
       hp: target.hp, isBoss: target.isBoss
     }));
   return {
+    schema: ECHO_OBSERVATION_SCHEMA,
+    perception: {
+      center: { x: echo.x, y: echo.y },
+      radiusTiles: ECHO_LIMITS.perceptionTiles,
+      requiresExplored: true,
+      requiresLineOfSight: true
+    },
     tick: input.tick,
     player: { x: input.player.x, y: input.player.y },
     echo: {

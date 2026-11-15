@@ -21,13 +21,21 @@ function facet(overrides: Partial<{ epoch: number; maxUnconfirmed: number; maxDe
 }
 
 function view(overrides: Partial<CompanionObservationView> = {}): CompanionObservationView {
-  return {
-    epoch: 1,
-    tick: 100,
+  const base: CompanionObservationView = {
+    epoch: 1, tick: 100,
     player: { x: 0, y: 0 },
     echo: { x: 0, y: 0, hp: 100, maxHp: 100, aimYaw: 0 },
-    drones: [],
-    ...overrides
+    drones: []
+  };
+  const merged = { ...base, ...overrides };
+  return {
+    ...merged,
+    schema: 'last_signal.echo-observation.v1',
+    perception: {
+      center: { x: merged.echo.x, y: merged.echo.y },
+      radiusTiles: 12, requiresExplored: true, requiresLineOfSight: true
+    },
+    targets: merged.targets ?? []
   };
 }
 
@@ -35,11 +43,7 @@ describe('CompanionFacet observe', () => {
   it('projects only the echo-centred, bounded perception view', () => {
     const f = facet();
     const r = f.observe(view({
-      drones: [
-        { id: 1, x: 3, y: 0, hp: 5 },
-        { id: 2, x: 40, y: 0, hp: 5 },
-        { id: 3, x: 0, y: 0, hp: 0 }
-      ],
+      drones: [{ id: 1, x: 3, y: 0, hp: 5 }],
       relay: { id: 'relay_main', x: 2, y: 0, state: 'INACTIVE' },
       objectiveBlocked: true,
       energy: { current: 90, max: 100 }
@@ -56,6 +60,26 @@ describe('CompanionFacet observe', () => {
     expect(Object.isFrozen(r.value)).toBe(true);
     // The returned value cannot be used to mutate internal memory.
     expect(() => { (r.value.drones as unknown as unknown[]).push({}); }).toThrow();
+  });
+
+  it('rejects a raw sim / hidden far actor that was never cropped', () => {
+    const f = facet();
+    expect(f.observe(view({ drones: [{ id: 2, x: 40, y: 0, hp: 5 }] })))
+      .toMatchObject({ ok: false, code: 'E_SCHEMA', messageKey: 'companion.observation_not_cropped' });
+    expect(f.observe(view({ hiddenTarget: { x: 1, y: 1 } } as never)))
+      .toMatchObject({ ok: false, code: 'E_SCHEMA' });
+  });
+
+  it('records cropped non-drone targets in bounded memory', () => {
+    const f = facet();
+    const r = f.observe(view({
+      targets: [{ id: 9, kind: 'hunter', x: 2, y: 0, hp: 40, isBoss: false }]
+    }));
+    expect(r.ok).toBe(true);
+    expect(f.memory.some((m) => m.kind === 'relay' && String(m.id).startsWith('target_'))).toBe(true);
+    expect(f.status().availableActions.find((a) => a.kind === 'jam')?.available).toBe(true);
+    const far = f.status().availableActions;
+    expect(far).toHaveLength(2);
   });
 
   it('rejects a stale epoch and a backwards tick', () => {
@@ -225,10 +249,20 @@ describe('CompanionFacet honesty / exclusion', () => {
 // ---------------------------------------------------------------------------
 // Owner confirmation contract (pure; no gateway or UI registration)
 // ---------------------------------------------------------------------------
-import {
-  COMPANION_SUGGESTION_KINDS, CompanionOwnerLedger,
-  createOwnerCapability, isOwnerCapability
-} from './companionFacet';
+import { COMPANION_SUGGESTION_KINDS, CompanionOwnerLedger } from './companionFacet';
+
+/** Test-local authority: mirrors the browser-only WeakSet controller. */
+function testAuthority() {
+  const known = new WeakSet<object>();
+  const mint = (): object => {
+    const proof = Object.freeze({ kind: 'OWNER' });
+    known.add(proof);
+    return proof;
+  };
+  const isOwner = (proof: unknown): boolean =>
+    typeof proof === 'object' && proof !== null && known.has(proof);
+  return { mint, isOwner };
+}
 
 function proposed(f: CompanionFacet, kind: string = 'scan') {
   f.observe(view({ relay: { id: 'relay', x: 2, y: 0, state: 'INACTIVE' } }));
@@ -239,29 +273,32 @@ function proposed(f: CompanionFacet, kind: string = 'scan') {
 
 describe('CompanionOwnerLedger capability', () => {
   it('a token, Origin header, JSON or plain object can NEVER become the owner capability', () => {
-    const real = createOwnerCapability('ses_aaaaaaaaaaaaaaaaaaaaaaaa');
-    expect(isOwnerCapability(real)).toBe(true);
+    const { mint, isOwner } = testAuthority();
+    const real = mint();
+    expect(isOwner(real)).toBe(true);
     for (const forged of [
       { kind: 'OWNER', session: 'ses_aaaaaaaaaaaaaaaaaaaaaaaa', token: 'secret', origin: 'http://localhost:5335' },
-      { kind: 'OWNER', session: 'ses_aaaaaaaaaaaaaaaaaaaaaaaa' },
-      { kind: 'OWNER', session: 'ses_aaaaaaaaaaaaaaaaaaaaaaaa', [Symbol('other')]: true },
-      'Bearer secret', null, undefined, 42,
-      JSON.parse(JSON.stringify(real))
+      { ...real },
+      Object.create(real),
+      JSON.parse(JSON.stringify(real)),
+      Object.assign({}, real, { [Symbol.for('owner')]: true }),
+      'Bearer secret', null, undefined, 42
     ]) {
-      expect(isOwnerCapability(forged), `forged owner proof rejected: ${JSON.stringify(forged)}`).toBe(false);
+      expect(isOwner(forged), `forged owner proof rejected`).toBe(false);
     }
   });
 
   it('owner decisions need the capability, matching session/epoch, human mode and a live link', () => {
     const f = facet();
     const s = proposed(f);
-    const ledger = new CompanionOwnerLedger(f);
-    const cap = createOwnerCapability(f.session);
+    const authority = testAuthority();
+    const ledger = new CompanionOwnerLedger(f, authority.isOwner);
+    const cap = authority.mint();
     const base = { suggestionId: s.suggestionId, decision: 'confirm' as const, epoch: 1, tick: s.createdAtTick + 1 };
 
     expect(ledger.decide({ ...base, capability: { token: 'x', origin: 'http://localhost:5335' } }))
       .toMatchObject({ ok: false, code: 'E_PERMISSION' });
-    expect(ledger.decide({ ...base, capability: createOwnerCapability('ses_bbbbbbbbbbbbbbbbbbbbbbbb') }))
+    expect(ledger.decide({ ...base, capability: { ...cap } }))
       .toMatchObject({ ok: false, code: 'E_PERMISSION' });
     expect(ledger.decide({ ...base, capability: cap, epoch: 99 }))
       .toMatchObject({ ok: false, code: 'E_STALE_EPOCH' });
@@ -304,9 +341,10 @@ describe('CompanionOwnerLedger capability', () => {
   it('expired suggestions cannot be confirmed (TTL is a real contract)', () => {
     const f = facet();
     const s = proposed(f);
-    const ledger = new CompanionOwnerLedger(f);
+    const authority = testAuthority();
+    const ledger = new CompanionOwnerLedger(f, authority.isOwner);
     expect(ledger.decide({
-      capability: createOwnerCapability(f.session), suggestionId: s.suggestionId,
+      capability: authority.mint(), suggestionId: s.suggestionId,
       decision: 'confirm', epoch: 1, tick: s.expiresAtTick
     })).toMatchObject({ ok: false, code: 'E_TARGET_DESTROYED' });
     expect(ledger.list()).toHaveLength(0);
@@ -314,7 +352,8 @@ describe('CompanionOwnerLedger capability', () => {
 
   it('EVERY external suggestion kind, including move, stays proposed until a decision', () => {
     const f = facet();
-    const ledger = new CompanionOwnerLedger(f);
+    const authority = testAuthority();
+    const ledger = new CompanionOwnerLedger(f, authority.isOwner);
     for (const kind of COMPANION_SUGGESTION_KINDS) {
       const s = proposed(f, kind);
       expect(s.status).toBe('proposed');
@@ -350,13 +389,43 @@ describe('CompanionOwnerLedger capability', () => {
   it('old epoch and disconnect fallback are visible in the snapshot and block decisions', () => {
     const f = facet();
     proposed(f);
-    const cap = createOwnerCapability(f.session);
-    const ledger = new CompanionOwnerLedger(f);
+    const authority = testAuthority();
+    const ledger = new CompanionOwnerLedger(f, authority.isOwner);
+    const cap = authority.mint();
     f.rebindEpoch(2);
     expect(ledger.decide({ capability: cap, suggestionId: f.pendingSuggestions()[0]?.suggestionId ?? 'x', decision: 'confirm', epoch: 1, tick: 101 }))
       .toMatchObject({ ok: false });
     expect(f.snapshot()).toMatchObject({ epoch: 2, pending: [] });
     f.setLink('fallback');
     expect(f.snapshot()).toMatchObject({ link: 'fallback', fallbackLabel: 'NO_MODEL' });
+  });
+});
+
+describe('Owner decision strictness / out-of-range actions', () => {
+  it('rejects non-enum decisions, ticks before creation, old epochs and expired proposals', () => {
+    const { mint, isOwner } = testAuthority();
+    const f = facet();
+    const s = proposed(f);
+    const ledger = new CompanionOwnerLedger(f, isOwner);
+    expect(ledger.decide({ capability: mint(), suggestionId: s.suggestionId, decision: 'execute' as never, epoch: 1, tick: 101 }))
+      .toMatchObject({ ok: false, code: 'E_SCHEMA' });
+    expect(ledger.decide({ capability: mint(), suggestionId: s.suggestionId, decision: 'confirm', epoch: 1, tick: s.createdAtTick - 1 }))
+      .toMatchObject({ ok: false, code: 'E_STALE_TICK' });
+    expect(ledger.decide({ capability: mint(), suggestionId: s.suggestionId, decision: 'confirm', epoch: 0, tick: 101 }))
+      .toMatchObject({ ok: false, code: 'E_STALE_EPOCH' });
+    const expired = f.status();
+    expect(expired.epoch).toBe(1);
+    expect(ledger.decide({ capability: mint(), suggestionId: s.suggestionId, decision: 'confirm', epoch: 1, tick: s.expiresAtTick }))
+      .toMatchObject({ ok: false });
+  });
+
+  it('jam is out-of-range for a perceived target beyond 6 tiles; scan stays <12', () => {
+    const f = facet();
+    const r = f.observe(view({ drones: [{ id: 1, x: 8, y: 0, hp: 5 }] }));
+    expect(r.ok).toBe(true);
+    const actions = f.status().availableActions;
+    expect(actions.find((a) => a.kind === 'scan')?.available).toBe(true);
+    expect(actions.find((a) => a.kind === 'jam')?.available).toBe(false);
+    expect(actions.find((a) => a.kind === 'jam')?.reason).toBe('out_of_range');
   });
 });

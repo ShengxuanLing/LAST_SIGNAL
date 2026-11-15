@@ -162,3 +162,37 @@ describe('validSignalResources (checkpoint-safe)', () => {
     for (const value of tampered) expect(validSignalResources(value)).toBe(false);
   });
 });
+
+describe('single-gate scan/jam charge and strict Signal DTO', () => {
+  it('charges exactly once, never negative, and checks scenario permission first', async () => {
+    const m = await import('./signalCore');
+    const base = m.createSignalResources('echo');
+    const denied = m.tryScan(base, false, false, false);
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.code).toBe('E_PERMISSION');
+    expect(base.energy.energy).toBe(100);
+    const first = m.tryScan(base, false, false, true);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    expect(first.resources.energy.energy).toBe(90);
+    const second = m.tryScan(first.resources, false, false, true);
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.code).toBe('E_COOLDOWN');
+    expect(first.resources.energy.energy, 'no double deduction').toBe(90);
+    const jam = m.tryJam(first.resources, false, false, true);
+    expect(jam.ok).toBe(true);
+    if (!jam.ok) return;
+    expect(jam.resources.energy.energy).toBe(65);
+    expect(jam.resources.energy.energy).toBeGreaterThanOrEqual(0);
+  });
+
+  it('rejects nested free / hiddenTarget extras in checkpoint Signal state', async () => {
+    const m = await import('./signalCore');
+    const base = m.createSignalResources('player') as unknown as Record<string, unknown>;
+    const withFree = { ...base, free: { energy: 9999 } };
+    expect(m.validSignalResources(withFree)).toBe(false);
+    const nested = { ...base, energy: { energy: 50, regenAcc: 0, free: true } };
+    expect(m.validSignalResources(nested)).toBe(false);
+    expect(m.validSignalResources(base)).toBe(true);
+  });
+});

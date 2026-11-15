@@ -51,8 +51,20 @@ const ECHO_EXACT_BASE_KEYS = Object.freeze([
   'hpRegen', 'level', 'xp', 'xpToNext', 'currency', 'weaponKey'
 ] as const);
 
-/** Runtime values change every tick; they are range-checked, never frozen. */
-function finiteRuntime(value: unknown, max = AI_NATIVE_LIMITS_V1.MAX_TICK): boolean {
+/** Runtime timers are bounded by REAL physical durations at 60Hz, not MAX_TICK. */
+const ECHO_TIMER_BOUNDS = Object.freeze({
+  dashTimer: 2 * 60,       // 2 s dash window
+  invuln: 10 * 60,         // 10 s invulnerability
+  hurtTimer: 1 * 60,       // 1 s hurt flash
+  fireTimer: 5 * 60,       // 5 s weapon cooldown
+  reloadTimer: 10 * 60     // 10 s reload
+});
+const ECHO_TOP_KEYS = Object.freeze([
+  'actorId', 'x', 'y', 'data', 'dashTimer', 'invuln', 'hurtTimer', 'fireTimer', 'aimYaw'
+]);
+const ECHO_WEAPON_KEYS = Object.freeze(['key', 'level', 'ammo', 'magazine', 'reloading', 'reloadTimer']);
+
+function bounded(value: unknown, max: number): boolean {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= max;
 }
 
@@ -60,6 +72,8 @@ function finiteRuntime(value: unknown, max = AI_NATIVE_LIMITS_V1.MAX_TICK): bool
 export function validEchoActor(value: unknown): boolean {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const e = value as Record<string, unknown>;
+  // Strict allowlist: extra hiddenTarget / nested free fields are rejected.
+  if (Object.keys(e).some((k) => !ECHO_TOP_KEYS.includes(k))) return false;
   if (e.actorId !== ECHO_ACTOR_ID) return false;
   if (typeof e.x !== 'number' || !Number.isFinite(e.x) ||
       typeof e.y !== 'number' || !Number.isFinite(e.y) ||
@@ -67,10 +81,13 @@ export function validEchoActor(value: unknown): boolean {
       Math.abs(e.y) > AI_NATIVE_LIMITS_V1.MAX_COORDINATE_ABS) return false;
   // aimYaw can be negative; the other timers are non-negative.
   if (typeof e.aimYaw !== 'number' || !Number.isFinite(e.aimYaw)) return false;
-  if (!['dashTimer', 'invuln', 'hurtTimer', 'fireTimer'].every((k) => finiteRuntime(e[k]))) return false;
+  for (const key of ['dashTimer', 'invuln', 'hurtTimer', 'fireTimer'] as const) {
+    if (!bounded(e[key], ECHO_TIMER_BOUNDS[key])) return false;
+  }
 
   const data = e.data as Record<string, unknown> | undefined;
   if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+  if (Object.keys(data).some((k) => !Object.keys(ECHO_BASE).includes(k))) return false;
   // Non-upgradeable stats / identity must be EXACTLY the legal base values.
   for (const key of ECHO_EXACT_BASE_KEYS) {
     if (data[key] !== ECHO_BASE[key as keyof typeof ECHO_BASE]) return false;
@@ -83,9 +100,11 @@ export function validEchoActor(value: unknown): boolean {
   if (!Array.isArray(data.weapons) || data.weapons.length !== 1) return false;
   const weapon = data.weapons[0] as Record<string, unknown>;
   const baseWeapon = ECHO_BASE.weapons[0];
-  if (!weapon || weapon.key !== baseWeapon.key || weapon.level !== baseWeapon.level ||
+  if (!weapon || typeof weapon !== 'object' || Array.isArray(weapon) ||
+      Object.keys(weapon).some((k) => !ECHO_WEAPON_KEYS.includes(k)) ||
+      weapon.key !== baseWeapon.key || weapon.level !== baseWeapon.level ||
       weapon.ammo !== baseWeapon.ammo || weapon.magazine !== baseWeapon.magazine ||
-      weapon.reloading !== false || !finiteRuntime(weapon.reloadTimer)) return false;
+      weapon.reloading !== false || !bounded(weapon.reloadTimer, ECHO_TIMER_BOUNDS.reloadTimer)) return false;
   // No free skills: the echo has no upgrades and no abilities, ever.
   if (!Array.isArray(data.upgrades) || data.upgrades.length !== 0) return false;
   if (!Array.isArray(data.abilities) || data.abilities.length !== 0) return false;

@@ -9,9 +9,9 @@
 // It reuses the existing C3 budget/shape conventions (WORLD_LIMITS / ECHO_LIMITS)
 // so the later gateway/bridge adapter is a thin transport, not a second protocol.
 
-import { randomBytes } from 'node:crypto';
 import { AI_NATIVE_LIMITS_V1, type ErrorCodeV1 } from './protocol';
 import { WORLD_LIMITS } from './worldProtocol';
+import { isEchoObservation, ECHO_OBSERVATION_SCHEMA } from '../world/echoView';
 import { ECHO_LIMITS, type EchoView } from './echo';
 
 export const COMPANION_SCHEMA = 'last_signal.companion.v1' as const;
@@ -46,11 +46,42 @@ export type CompanionOwnerMode = 'human' | 'ai' | 'external';
 export type CompanionLinkState = 'connected' | 'fallback';
 export type CompanionFallbackLabel = 'NO_MODEL' | null;
 
+/** Perception may contain a target at <=12 tiles, but jam needs STRICT <6. */
+export function companionAvailableActions(observation: CompanionObservation | null): Array<{
+  kind: CompanionSuggestionKind; available: boolean; reason: string;
+}> {
+  const all = [...(observation?.drones ?? []), ...((observation as unknown as { targets?: unknown[] })?.targets ?? [])] as Array<{ x: number; y: number }>;
+  const center = observation?.echo ?? { x: 0, y: 0 };
+  const nearest = all.reduce((best, actor) => Math.min(best, Math.hypot(actor.x - center.x, actor.y - center.y)), Infinity);
+  return [
+    { kind: 'scan', available: Number.isFinite(nearest) && nearest < COMPANION_LIMITS.PERCEPTION_TILES,
+      reason: Number.isFinite(nearest) && nearest < COMPANION_LIMITS.PERCEPTION_TILES ? 'perceived_target' : 'out_of_range' },
+    { kind: 'jam', available: Number.isFinite(nearest) && nearest < 6,
+      reason: Number.isFinite(nearest) && nearest < 6 ? 'in_jam_range' : 'out_of_range' }
+  ];
+}
+
+/** Browser + Node safe entropy (no node:crypto, so the rendered bundle works). */
+function randomHex(bytes = 12): string {
+  const values = new Uint8Array(bytes);
+  globalThis.crypto.getRandomValues(values);
+  return [...values].map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
 export const COMPANION_ID_PATTERN = /^sug_[0-9a-f]{24}$/;
 
 export interface CompanionObservationView extends EchoView {
   /** Stale-epoch guard: the adapter passes the gateway's current epoch. */
   epoch: number;
+  /** Crop attestation produced by buildEchoObservation (survives JSON). */
+  schema?: typeof ECHO_OBSERVATION_SCHEMA;
+  perception?: {
+    center: { x: number; y: number };
+    radiusTiles: number;
+    requiresExplored: true;
+    requiresLineOfSight: true;
+  };
+  targets?: ReadonlyArray<{ id: number; kind: string; x: number; y: number; hp: number; isBoss: boolean }>;
   /** Echo-only observed device (absent when not perceived). */
   relay?: { id: string; x: number; y: number; state: string };
   /** Echo-only observed objective flag; never hidden state. */
@@ -75,6 +106,8 @@ export interface CompanionObservation {
   echo: { x: number; y: number; hp: number; maxHp: number; aimYaw: number };
   player: { x: number; y: number };
   drones: Array<{ id: number; x: number; y: number; hp: number }>;
+  /** Echo-perceived non-drone / Boss public state (bounded, no hidden). */
+  targets: Array<{ id: number; kind: string; x: number; y: number; hp: number; isBoss: boolean }>;
   relay: { id: string; x: number; y: number; state: string } | null;
   objectiveBlocked: boolean;
   energy?: { current: number; max: number };
@@ -122,6 +155,7 @@ export interface CompanionStatus {
   pendingSuggestions: number;
   dedupRecords: number;
   dedupLimit: number;
+  availableActions: ReturnType<typeof companionAvailableActions>;
 }
 
 export type CompanionResult<T> =
@@ -206,7 +240,7 @@ export class CompanionFacet {
     this.session = options.session;
     this.currentEpoch = options.epoch;
     this.suggestionIdFactory = options.suggestionIdFactory
-      ?? (() => `sug_${randomBytes(12).toString('hex')}`);
+      ?? (() => `sug_${randomHex()}`);
     this.maxUnconfirmed = options.maxUnconfirmed ?? COMPANION_LIMITS.MAX_UNCONFIRMED;
     this.maxDedupRecords = options.maxDedupRecords ?? COMPANION_LIMITS.MAX_DEDUP_RECORDS;
   }
@@ -216,6 +250,11 @@ export class CompanionFacet {
 
   /** `echo_observe`: only the echo's own perception; never hidden state. */
   observe(view: CompanionObservationView): CompanionResult<CompanionObservation> {
+    // Only a REAL cropped echo observation may be recorded; a raw sim/EchoView
+    // without the crop attestation (or with hidden fields) is rejected.
+    const { epoch: _epoch, ...cropped } = view;
+    const attested = { ...cropped, drones: view.drones, targets: view.targets ?? [] };
+    if (!isEchoObservation(attested)) return fail('E_SCHEMA', 'companion.observation_not_cropped');
     if (view.epoch !== this.currentEpoch) return fail('E_STALE_EPOCH', 'companion.stale_epoch');
     if (!Number.isFinite(view.tick) || view.tick < 0) return fail('E_SCHEMA', 'companion.tick_invalid');
     if (this.lastObservationTick !== null && view.tick < this.lastObservationTick) {
@@ -239,13 +278,16 @@ export class CompanionFacet {
       },
       player: { x: view.player.x, y: view.player.y },
       drones,
+      targets: (view.targets ?? []).map((target) => ({
+        id: target.id, kind: target.kind, x: target.x, y: target.y, hp: target.hp, isBoss: target.isBoss
+      })),
       relay,
       objectiveBlocked: view.objectiveBlocked === true,
       ...(view.energy ? { energy: { current: view.energy.current, max: view.energy.max } } : {}),
       ...(view.cooldowns ? { cooldowns: { scanTicks: view.cooldowns.scanTicks, jamTicks: view.cooldowns.jamTicks } } : {}),
       memory: []
     };
-    this.recordMemory(view.tick, drones, relay);
+    this.recordMemory(view.tick, drones, relay, view.targets ?? []);
     observed.memory = this.memoryValue.map((entry) => ({ ...entry }));
     this.lastObservation = cloneAndFreeze(observed);
     this.lastObservationTick = view.tick;
@@ -367,7 +409,8 @@ export class CompanionFacet {
       memoryEntries: this.memoryValue.length,
       pendingSuggestions: this.suggestions.size,
       dedupRecords: this.dedupRecords,
-      dedupLimit: this.maxDedupRecords
+      dedupLimit: this.maxDedupRecords,
+      availableActions: companionAvailableActions(this.lastObservation)
     });
   }
 
@@ -425,10 +468,14 @@ export class CompanionFacet {
   private recordMemory(
     tick: number,
     drones: ReadonlyArray<{ id: number; x: number; y: number }>,
-    relay: { id: string; x: number; y: number } | null
+    relay: { id: string; x: number; y: number } | null,
+    targets: ReadonlyArray<{ id: number; kind: string; x: number; y: number }>
   ): void {
     for (const drone of drones) {
       this.memoryValue.push({ tick, kind: 'drone', id: drone.id, x: drone.x, y: drone.y });
+    }
+    for (const target of targets) {
+      this.memoryValue.push({ tick, kind: 'relay', id: `target_${target.id}_${target.kind}`, x: target.x, y: target.y });
     }
     if (relay) this.memoryValue.push({ tick, kind: 'relay', id: relay.id, x: relay.x, y: relay.y });
     const cutoff = tick - COMPANION_LIMITS.MEMORY_TTL_TICKS;
@@ -440,34 +487,17 @@ export class CompanionFacet {
 }
 
 // ---------------------------------------------------------------------------
-// Owner confirmation capability (pure contract, NOT a gateway/UI registration)
+// Owner decision contract (NO exported factory, NO exported symbol)
 // ---------------------------------------------------------------------------
 
 /**
- * Module-private symbol: an agent process cannot mint this from a token, an
- * Origin header, JSON or a string. It is created only by the local human UI
- * process. Origin is NOT authentication; a Node agent can forge any Origin.
+ * The browser-only Owner controller injects this validator. It closes over a
+ * private WeakSet of exact object identities minted by the human UI. There is
+ * deliberately NO public `createOwnerCapability` here: shared modules, MCP,
+ * gateway and bridge cannot construct an owner proof. Spread, Object.create,
+ * symbol copying and JSON round-trips all fail the WeakSet identity check.
  */
-const OWNER_CAPABILITY = Symbol('last_signal.companion.owner.v1');
-
-export interface CompanionOwnerCapability {
-  readonly kind: 'OWNER';
-  readonly session: string;
-  readonly [OWNER_CAPABILITY]: true;
-}
-
-/** Owner-side factory. Never callable from the agent transport surface. */
-export function createOwnerCapability(session: string): CompanionOwnerCapability {
-  return Object.freeze({ kind: 'OWNER' as const, session, [OWNER_CAPABILITY]: true as const });
-}
-
-export function isOwnerCapability(value: unknown): value is CompanionOwnerCapability {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Record<string | symbol, unknown>;
-  return candidate.kind === 'OWNER'
-    && typeof candidate.session === 'string'
-    && candidate[OWNER_CAPABILITY] === true;
-}
+export type OwnerAuthorityValidator = (proof: unknown) => boolean;
 
 export interface OwnerDecision {
   readonly suggestionId: string;
@@ -478,34 +508,36 @@ export interface OwnerDecision {
   readonly decidedAtTick: number;
 }
 
-/**
- * Owner-only decision ledger. It RECORDS a human decision; it never executes a
- * suggestion and never grants the agent an execution path. Every external
- * suggestion (including `move`) needs one of these decisions before any later
- * core command may be built. Local `follow` remains a legal default policy,
- * but it is not an implicit confirmation of an external suggestion.
- */
+/** Owner-only decision ledger: records a human decision, never executes. */
 export class CompanionOwnerLedger {
   private readonly decisions = new Map<string, OwnerDecision>();
+  private maxEpochSeen = 0;
 
-  constructor(private readonly facet: CompanionFacet) {}
+  constructor(
+    private readonly facet: CompanionFacet,
+    private readonly isOwner: OwnerAuthorityValidator
+  ) {
+    this.maxEpochSeen = facet.status().epoch;
+  }
 
   decide(input: {
     capability: unknown;
     suggestionId: string;
     decision: 'confirm' | 'reject';
     epoch: number;
-    /** Current authoritative core tick for TTL evaluation (no wall clock). */
     tick: number;
   }): CompanionResult<OwnerDecision> {
-    if (!isOwnerCapability(input.capability)) {
+    if (input.decision !== 'confirm' && input.decision !== 'reject') {
+      return fail('E_SCHEMA', 'companion.decision_invalid');
+    }
+    if (!this.isOwner(input.capability)) {
       return fail('E_PERMISSION', 'companion.owner_capability_required');
     }
-    if (input.capability.session !== this.facet.session) {
-      return fail('E_PERMISSION', 'companion.owner_session_mismatch');
-    }
+    if (!Number.isInteger(input.epoch)) return fail('E_STALE_EPOCH', 'companion.stale_epoch');
     const status = this.facet.status();
-    if (input.epoch !== status.epoch) return fail('E_STALE_EPOCH', 'companion.stale_epoch');
+    if (input.epoch !== status.epoch || input.epoch < this.maxEpochSeen) {
+      return fail('E_STALE_EPOCH', 'companion.stale_epoch');
+    }
     if (status.link !== 'connected') return fail('E_LINK_UNAVAILABLE', 'companion.link_fallback');
     if (status.ownerMode !== 'human' || status.readOnly) {
       return fail('E_PERMISSION', 'companion.owner_mode_readonly');
@@ -513,9 +545,10 @@ export class CompanionOwnerLedger {
     if (!Number.isFinite(input.tick)) return fail('E_SCHEMA', 'companion.tick_invalid');
     if (this.decisions.has(input.suggestionId)) return fail('E_RETRYABLE', 'companion.decision_exists');
     this.facet.advanceTo(input.tick);
-    const suggestion = this.facet.pendingSuggestions().find((s) => s.suggestionId === input.suggestionId);
+    const suggestion = this.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId);
     if (!suggestion) return fail('E_TARGET_DESTROYED', 'companion.suggestion_expired');
     if (input.tick >= suggestion.expiresAtTick) return fail('E_ACTION_EXPIRED', 'companion.suggestion_expired');
+    if (input.tick < suggestion.createdAtTick) return fail('E_STALE_TICK', 'companion.tick_before_creation');
     const decided: OwnerDecision = Object.freeze({
       suggestionId: input.suggestionId,
       decision: input.decision,
@@ -525,12 +558,11 @@ export class CompanionOwnerLedger {
       decidedAtTick: input.tick
     });
     this.decisions.set(input.suggestionId, decided);
+    this.maxEpochSeen = Math.max(this.maxEpochSeen, input.epoch);
     return ok(decided);
   }
 
-  list(): readonly OwnerDecision[] {
-    return Object.freeze([...this.decisions.values()]);
-  }
+  list(): readonly OwnerDecision[] { return Object.freeze([...this.decisions.values()]); }
 }
 
 /** Diagnostic snapshot: necessary state only, never hidden state or auth. */
