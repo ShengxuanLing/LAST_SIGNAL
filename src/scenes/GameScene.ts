@@ -228,6 +228,8 @@ export class GameScene extends Phaser.Scene {
       this.world.player.control.onSceneExit();
       this.world.player.clearHeldInput();
       this.fireHeld = false;
+      // Scene exit clears any pending signal key debounce.
+      this.signalKeyCooldown = false;
     });
     // Snap the camera once. In Phaser 3.90 zoom is about the viewport center, so
     // getScroll() (which also clamps to setBounds) is the scroll that centers the
@@ -407,14 +409,19 @@ export class GameScene extends Phaser.Scene {
     this.world.stepFrame(delta, intent);
     if (intent.interact) this.world.tryInteract(this.world.player);
     // PLAYER signal actions (OWNER/human only), on the player's own energy account.
-    // Q = scan, E = jam, R = toggle relay. Debounced so one press = one commit.
-    if (this.world.sim.signal && !this.paused && !this.signalKeyCooldown) {
+    // Q = scan, E = jam, R = toggle relay. Debounced so one press = one commit,
+    // debounced until key release. Only the human owner (not AI/External) may
+    // issue these; they go through the same core commit path as every other
+    // player action, never bypassing permission checks.
+    if (this.world.sim.signal && !this.paused && !this.signalKeyCooldown && this.world.player.control.owner === 'human') {
       const k = this.input.keyboard;
-      if (k && k.addKey('1').isDown) { this.world.playerSignalScan(); this.signalKeyCooldown = true; }
-      else if (k && k.addKey('2').isDown) { this.world.playerSignalJam(); this.signalKeyCooldown = true; }
-      else if (k && k.addKey('3').isDown) { this.world.toggleRelay(); this.signalKeyCooldown = true; }
+      if (k && k.addKey('Q').isDown) { this.world.playerSignalScan(); this.signalKeyCooldown = true; }
+      else if (k && k.addKey('E').isDown) { this.world.playerSignalJam(); this.signalKeyCooldown = true; }
+      else if (k && k.addKey('R').isDown) { this.world.toggleRelay(); this.signalKeyCooldown = true; }
     }
-    if (this.signalKeyCooldown && this.world.sim.tick > this.signalKeyCooldownTick) { this.signalKeyCooldown = false; }
+    if (this.signalKeyCooldown && !(this.input.keyboard?.addKey('Q').isDown || this.input.keyboard?.addKey('E').isDown || this.input.keyboard?.addKey('R').isDown)) {
+      this.signalKeyCooldown = false;
+    }
     // Companion receipt: only AFTER a real core tick consumed the confirmed
     // Companion receipt: only AFTER a real core tick consumed the confirmed
     // intent (never early, never while paused with no tick).
@@ -591,8 +598,7 @@ export class GameScene extends Phaser.Scene {
     }
     const e = s.echoEnergy ?? 0, p = s.playerEnergy ?? 0;
     let c = '';
-    if (s.echoEnergy !== undefined) c += ` echoCD:${s.scanCooldown}s/jam:${s.jamCooldown}s`;
-    if (s.playerEnergy !== undefined && s.echoEnergy === undefined) c += ` scanCD:${s.scanCooldown}s`;
+    if (s.echoEnergy !== undefined) c += ` echoScanCD:${s.scanCooldown}t/jamCD:${s.jamCooldown}t`;
     const exit = s.exitOpen ? 'EXIT OPEN' : 'EXIT CLOSED';
     let txt = `RELAY ${s.relay.toUpperCase()} | e:${e} p:${p}`;
     if (c) txt += c;
@@ -754,6 +760,9 @@ export class GameScene extends Phaser.Scene {
     this.world.player.control.pause();
     this.world.player.clearHeldInput();
     this.fireHeld = false;
+    // Pause clears any pending signal key debounce so a held key cannot fire
+    // again after resume without a fresh press.
+    this.signalKeyCooldown = false;
     this.refreshHud();
     this.world.resetSimulationAccumulator();
     this.scene.launch('PauseScene', { mode: 'pause' });

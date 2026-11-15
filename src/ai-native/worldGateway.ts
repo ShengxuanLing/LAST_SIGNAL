@@ -11,7 +11,7 @@
 import { randomBytes } from 'node:crypto';
 import {
   WORLD_LIMITS, parseWorldActionBatch, parseWorldObservation, worldActionFingerprint,
-  worldBatchFingerprint, type WorldActionBatchV1, type WorldActionV1, type WorldObservationV1
+  worldBatchFingerprint, type WorldActionBatchV1, type WorldActionV1, type WorldActionV2, type WorldObservationV1
 } from './worldProtocol';
 import type { ErrorCodeV1 } from './protocol';
 import { canonicalJson, payloadFingerprint } from './protocol';
@@ -76,7 +76,7 @@ interface PendingAction {
   readonly acceptedTick: number;
   readonly applyByTick: number;
   readonly queuedAtMs: number;
-  readonly action: WorldActionV1;
+  readonly action: WorldActionV1 | WorldActionV2;
 }
 
 interface CachedAction {
@@ -313,8 +313,8 @@ export class WorldGateway {
 
     const actionIds: string[] = [];
     const replayed: WorldActionReceipt[] = [];
-    const toQueue: Array<{ action: WorldActionV1; fingerprint: string }> = [];
-    for (const action of batch.actions) {
+    const toQueue: Array<{ action: WorldActionV1 | WorldActionV2; fingerprint: string }> = [];
+    for (const action of batch.actions as WorldActionV2[]) {
       const fingerprint = worldActionFingerprint(action);
       if (s.evictedActionIds.has(action.actionId)) {
         return this.err('E_RETRY_AFTER_EVICTION', 'world.action_evicted');
@@ -345,7 +345,7 @@ export class WorldGateway {
         acceptedTick,
         applyByTick,
         queuedAtMs: input.nowMs,
-        action: entry.action
+        action: entry.action as WorldActionV1
       });
       s.actionCache.set(entry.action.actionId, {
         fingerprint: entry.fingerprint,
@@ -388,7 +388,7 @@ export class WorldGateway {
       actionId: pending.actionId,
       requestId: pending.requestId,
       applyByTick: pending.applyByTick,
-      action: pending.action
+      action: pending.action as WorldActionV1
     };
   }
 

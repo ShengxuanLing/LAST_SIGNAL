@@ -74,20 +74,6 @@ export const worldActionSchema = z.discriminatedUnion('type', [
 ]);
 export type WorldActionV1 = z.infer<typeof worldActionSchema>;
 
-export const worldActionBatchSchema = z.strictObject({
-  actions: z.array(worldActionSchema).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH),
-  ttlTicks: ttlTicks.optional()
-}).superRefine((batch, ctx) => {
-  const ids = new Set<string>();
-  for (const [index, action] of batch.actions.entries()) {
-    if (ids.has(action.actionId)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['actions', index, 'actionId'], message: 'duplicate actionId' });
-    }
-    ids.add(action.actionId);
-  }
-});
-export type WorldActionBatchV1 = z.infer<typeof worldActionBatchSchema>;
-
 const droneSchema = z.strictObject({
   id: z.number().int().min(0).max(AI_NATIVE_LIMITS_V1.MAX_TICK),
   kind: z.string().min(1).max(32),
@@ -173,7 +159,7 @@ export function parseWorldObservation(value: unknown): WorldParseResult<WorldObs
 }
 
 /** Canonical payload hash used by gateway idempotency. */
-export function worldActionFingerprint(value: WorldActionV1): string {
+export function worldActionFingerprint(value: WorldActionV1 | WorldActionV2): string {
   return payloadFingerprint(canonicalJson(value));
 }
 
@@ -217,3 +203,17 @@ export function isSignalAction(value: unknown): boolean {
   return !!value && typeof value === 'object' &&
     ['scan', 'jam'].includes((value as { type?: string }).type ?? '');
 }
+
+export const worldActionBatchSchema = z.strictObject({
+  actions: z.array(worldActionSchemaV2).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH),
+  ttlTicks: ttlTicks.optional()
+}).superRefine((batch, ctx) => {
+  const ids = new Set<string>();
+  for (const [index, action] of batch.actions.entries()) {
+    if (ids.has(action.actionId)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['actions', index, 'actionId'], message: 'duplicate actionId' });
+    }
+    ids.add(action.actionId);
+  }
+});
+export type WorldActionBatchV1 = z.infer<typeof worldActionBatchSchema>;
