@@ -12,6 +12,10 @@ import {
 import { Corridor, type CorridorCheckpoint, type CorridorReveal, type CorridorSnapshot } from './corridor';
 import { CORRIDOR } from './corridorRoom';
 import { SLICE } from './tuning';
+import {
+  chargeJam, chargeScan, evidenceExpiry, scanBlocker, tickCooldowns, tickEnergyAccount,
+  withinSignalRange, type SignalCooldownState, type SignalResources
+} from '../signal/signalCore';
 import type { FullSliceState, SliceEvidenceV1 } from './fullState';
 import { isSliceEvidenceArray } from './fullState';
 
@@ -267,17 +271,44 @@ export class SliceModel {
     return advanced;
   }
 
+  /** Adapter to the SHARED pure finite-resource state (no rule copy). */
+  private signalResources(): SignalResources {
+    return {
+      actor: 'player',
+      energy: { energy: this.energyValue, regenAcc: this.regenAcc },
+      cooldowns: this.signalCooldowns()
+    };
+  }
+  private signalCooldowns(): SignalCooldownState {
+    return {
+      scanCooldownTicks: this.scanCooldownTicks,
+      scanRevealTicks: this.scanRevealTicks,
+      jamCooldownTicks: this.jamCooldownTicks,
+      jamRemainingTicks: this.jamRemainingTicks
+    };
+  }
+  private applySignalResources(resources: SignalResources): void {
+    this.energyValue = resources.energy.energy;
+    this.regenAcc = resources.energy.regenAcc;
+    this.applySignalCooldowns(resources.cooldowns);
+  }
+  private applySignalCooldowns(cooldowns: SignalCooldownState): void {
+    this.scanCooldownTicks = cooldowns.scanCooldownTicks;
+    this.scanRevealTicks = cooldowns.scanRevealTicks;
+    this.jamCooldownTicks = cooldowns.jamCooldownTicks;
+    this.jamRemainingTicks = cooldowns.jamRemainingTicks;
+  }
+
   /** Shared scan cost/cooldown gate (human and ECHO use the same resource rules). */
   private scanCost(): ActionResult | null {
-    if (this.pausedFlag) return this.fail('E_PAUSED', '已暂停，操作不可用。');
-    if (this.failed) return this.fail('E_PERMISSION', '本局已失败，请重开。');
-    if (this.scanCooldownTicks > 0) {
+    const blocked = scanBlocker(this.signalResources(), this.pausedFlag, this.failed);
+    if (blocked === 'E_PAUSED') return this.fail('E_PAUSED', '已暂停，操作不可用。');
+    if (blocked === 'E_PERMISSION') return this.fail('E_PERMISSION', '本局已失败，请重开。');
+    if (blocked === 'E_COOLDOWN') {
       return this.fail('E_COOLDOWN', `扫描冷却中，还需 ${Math.ceil(this.scanCooldownTicks / SLICE.TICK_HZ)} 秒。`);
     }
-    if (this.energyValue < SLICE.SCAN_COST) return this.insufficient(SLICE.SCAN_COST);
-    this.energyValue -= SLICE.SCAN_COST;
-    this.scanCooldownTicks = SLICE.SCAN_CD_TICKS;
-    this.scanRevealTicks = SLICE.SCAN_REVEAL_TICKS;
+    if (blocked === 'E_ENERGY_INSUFFICIENT') return this.insufficient(SLICE.SCAN_COST);
+    this.applySignalResources(chargeScan(this.signalResources()));
     return null;
   }
 
@@ -335,10 +366,11 @@ export class SliceModel {
     readonly revealSealSource: boolean;
     readonly evidence: SliceEvidenceV1[];
   } {
-    const receiverInRange = distanceToReceiver(x, y) < range;
-    const sourceInRange = distanceToSource(x, y) < range;
-    const revealDoorReceiver = receiverInRange && hasLineOfSight(x, y, ROOM.receiver.x, ROOM.receiver.y);
-    const revealSealSource = sourceInRange && hasLineOfSight(x, y, ROOM.source.x, ROOM.source.y, ROOM.sourceCell);
+    const center = { x, y };
+    const revealDoorReceiver = withinSignalRange(center, ROOM.receiver, range,
+      (tx, ty) => hasLineOfSight(x, y, tx, ty));
+    const revealSealSource = withinSignalRange(center, ROOM.source, range,
+      (tx, ty) => hasLineOfSight(x, y, tx, ty, ROOM.sourceCell));
     const found = revealDoorReceiver || revealSealSource;
     const evidence = this.buildLabEvidence(revealDoorReceiver, revealSealSource, { x, y }, provenance);
     return { found, revealDoorReceiver, revealSealSource, evidence };
@@ -365,7 +397,7 @@ export class SliceModel {
       this.corridor.setJammed(this.tickIndex, true);
       return this.ok('中继器发射已压制。开关意图与供电保留。', SLICE.JAM_COST);
     }
-    if (!(distanceToReceiver(this.playerX, this.playerY) < SLICE.JAM_RANGE)) {
+    if (!withinSignalRange({ x: this.playerX, y: this.playerY }, ROOM.receiver, SLICE.JAM_RANGE, () => true)) {
       return this.fail('E_ILLEGAL_TARGET', '距离门接收器太远（需严格小于 6 格）。');
     }
     return this.labJamFrom(this.playerX, this.playerY);
@@ -385,7 +417,7 @@ export class SliceModel {
   }
 
   private labJamFrom(x: number, y: number): ActionResult {
-    if (!(distanceToReceiver(x, y) < SLICE.JAM_RANGE)) {
+    if (!withinSignalRange({ x, y }, ROOM.receiver, SLICE.JAM_RANGE, () => true)) {
       return this.fail('E_ILLEGAL_TARGET', '距离门接收器太远（需严格小于 6 格）。');
     }
     if (!hasLineOfSight(x, y, ROOM.receiver.x, ROOM.receiver.y)) {
@@ -410,11 +442,9 @@ export class SliceModel {
       const { manualEnabled, relay } = this.corridor.snapshot(this.tickIndex);
       return this.ok(`中继器开关已${manualEnabled ? '开启' : '关闭'}。${relay === 'JAMMED' ? '压制仍在生效。' : ''}`, 0);
     }
-    if (!(distanceToReceiver(this.playerX, this.playerY) < SLICE.INTERACT_RANGE)) {
-      return this.fail('E_ILLEGAL_TARGET', '距离门太远。');
-    }
-    if (!hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y)) {
-      return this.fail('E_ILLEGAL_TARGET', '门被遮挡，无法交互。');
+    if (!withinSignalRange({ x: this.playerX, y: this.playerY }, ROOM.receiver, SLICE.INTERACT_RANGE,
+      (tx, ty) => hasLineOfSight(this.playerX, this.playerY, tx, ty))) {
+      return this.fail('E_ILLEGAL_TARGET', '门被遮挡或距离太远，无法交互。');
     }
     if (this.jamActive) {
       return this.ok('门当前已被压制打开，无需普通开门。', 0);
@@ -465,8 +495,8 @@ export class SliceModel {
     else {
       const legal = this.corridor
         ? (this.corridor.canJam() || this.corridor.canJamGuard())
-        : (distanceToReceiver(this.playerX, this.playerY) < SLICE.JAM_RANGE &&
-           hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y));
+        : withinSignalRange({ x: this.playerX, y: this.playerY }, ROOM.receiver, SLICE.JAM_RANGE,
+            (tx, ty) => hasLineOfSight(this.playerX, this.playerY, tx, ty));
       jam = mk('jam', legal ? 'available' : 'unavailable', legal ? undefined : 'E_ILLEGAL_TARGET');
     }
     out.push(jam);
@@ -475,8 +505,8 @@ export class SliceModel {
     else {
       const legal = this.corridor
         ? this.corridor.canInteract()
-        : (distanceToReceiver(this.playerX, this.playerY) < SLICE.INTERACT_RANGE &&
-           hasLineOfSight(this.playerX, this.playerY, ROOM.receiver.x, ROOM.receiver.y));
+        : withinSignalRange({ x: this.playerX, y: this.playerY }, ROOM.receiver, SLICE.INTERACT_RANGE,
+            (tx, ty) => hasLineOfSight(this.playerX, this.playerY, tx, ty));
       interact = mk('interact', legal ? 'available' : 'unavailable', legal ? undefined : 'E_ILLEGAL_TARGET');
     }
     out.push(interact);
@@ -595,21 +625,15 @@ export class SliceModel {
     if (!this.corridor) onTick?.();
     this.tickIndex++;
 
-    // Energy regeneration: 1 per REGEN_TICKS, capped. At full energy keep the
-    // accumulator at 0 so the first post-spend tick cannot immediately grant regen.
-    if (this.energyValue >= SLICE.ENERGY_MAX) {
-      this.regenAcc = 0;
-    } else {
-      this.regenAcc++;
-      if (this.regenAcc >= SLICE.REGEN_TICKS) {
-        this.regenAcc -= SLICE.REGEN_TICKS;
-        this.energyValue++;
-        if (this.energyValue >= SLICE.ENERGY_MAX) this.regenAcc = 0;
-      }
-    }
+    // Shared pure energy/regen + fixed-tick cooldown decay. The slice keeps
+    // its own field layout but no longer owns a second copy of these rules.
+    const account = tickEnergyAccount({ energy: this.energyValue, regenAcc: this.regenAcc }, this.pausedFlag);
+    this.energyValue = account.energy;
+    this.regenAcc = account.regenAcc;
+    const wasJammed = this.jamRemainingTicks > 0;
+    this.applySignalCooldowns(tickCooldowns(this.signalCooldowns(), this.pausedFlag));
 
-    if (this.scanCooldownTicks > 0) this.scanCooldownTicks--;
-    if (this.scanRevealTicks > 0) this.scanRevealTicks--;
+
     // R9 evidence expires by its absolute TTL even if scanRevealTicks was stale.
     if (this.evidence.length > 0) {
       const alive = this.evidence.filter((e) => this.tickIndex < e.expiresAtTick);
@@ -624,10 +648,6 @@ export class SliceModel {
       this.corridorReveal = null;
       this.evidence = [];
     }
-    if (this.jamCooldownTicks > 0) this.jamCooldownTicks--;
-
-    const wasJammed = this.jamRemainingTicks > 0;
-    if (this.jamRemainingTicks > 0) this.jamRemainingTicks--;
     if (this.corridor) {
       const rescued = this.corridor.advance(this.tickIndex, this.jamActive);
       if (!rescued && !this.failed) onTick?.();
@@ -866,7 +886,7 @@ export class SliceModel {
   ): SliceEvidenceV1[] {
     if (!revealDoorReceiver && !revealSealSource) return [];
     const tick = this.tickIndex;
-    const expiresAtTick = tick + SLICE.SCAN_REVEAL_TICKS;
+    const expiresAtTick = evidenceExpiry(tick);
     const position = at ? { x: at.x, y: at.y } : { x: this.position.x, y: this.position.y };
     const link = revealDoorReceiver && revealSealSource ? 'rel_lab_seal_link' : null;
     const prov = evidenceProvenance(provenance);
@@ -886,7 +906,7 @@ export class SliceModel {
     const reveal = this.corridorReveal;
     if (!reveal) return [];
     const tick = this.tickIndex;
-    const expiresAtTick = tick + SLICE.SCAN_REVEAL_TICKS;
+    const expiresAtTick = evidenceExpiry(tick);
     // The observer is the corridor avatar, NOT the stale laboratory playerX/Y.
     const position = { x: this.position.x, y: this.position.y };
     const prov = evidenceProvenance(provenance);
@@ -917,9 +937,7 @@ export class SliceModel {
   }
 
   private startJam(affectsDevice = true): void {
-    this.energyValue -= SLICE.JAM_COST;
-    this.jamCooldownTicks = SLICE.JAM_CD_TICKS;
-    if (affectsDevice) this.jamRemainingTicks = SLICE.JAM_DURATION_TICKS;
+    this.applySignalResources(chargeJam(this.signalResources(), affectsDevice));
   }
 
   private ok(message: string, cost: number): ActionResult {

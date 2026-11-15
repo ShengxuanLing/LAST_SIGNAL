@@ -1,0 +1,10 @@
+PASS | signal_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_typecheck.log
+PASS | signal_full_unit | npx vitest run | 642/642 | reports/ai-native-02/p3b-signal-core/logs/core_unit.log
+PASS | signal_pure_unit | npx vitest run src/signal/signalCore.test.ts | 10/10 | reports/ai-native-02/p3b-signal-core/logs/core_signal_unit.log
+PASS | signal_slice_unit | npx vitest run src/slice | 59/59 (5 files) | reports/ai-native-02/p3b-signal-core/logs/core_slice_unit.log
+PASS | signal_slice_e2e | PORT=5175 npx playwright test tests/vs00.spec.ts tests/vs01.spec.ts | 13/13 | reports/ai-native-02/p3b-signal-core/logs/slice-checkpoint-e2e.log
+PASS | signal_build | npm run build | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_build.log
+PASS | signal_build_test | npm run build:test | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_build_test.log
+PASS | signal_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_mcp_build.log
+PASS | signal_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | HEADLESS_MCP_SMOKE_PASS | reports/ai-native-02/p3b-signal-core/logs/core_headless_smoke.log
+PASS | signal_console_smoke | npx vite-node src/ai-native/worldConsoleSmoke.mts | WORLD_CONSOLE_SMOKE_PASS | reports/ai-native-02/p3b-signal-core/logs/core_console_smoke.log
