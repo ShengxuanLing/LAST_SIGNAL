@@ -5,7 +5,7 @@ import { World } from '../world/World';
 import { audio } from '../systems/AudioSystem';
 import { isoToScreen } from '../core/iso';
 import type { SimTarget } from '../world/sim/core';
-import type { ActorCombatPort, ActorTargetView } from '../world/actorTarget';
+import { toCombatPort, type ActorCombatPort, type ActorTargetView, type PlayerLikeCombat } from '../world/actorTarget';
 
 // Boss projectile speeds are authored in screen-px/s (same convention as the
 // weapon configs). World.updateProjectiles advances pos in tile coords, so they
@@ -78,8 +78,9 @@ export class Boss {
     this.world.addShake(16);
   }
 
-  update(dt: number, combat: ActorCombatPort): void {
-    const player = combat.target;
+  update(dt: number, combat: ActorCombatPort | PlayerLikeCombat): void {
+    const port = toCombatPort(combat);
+    const player = port.target;
     this.hitFlash = Math.max(0, this.hitFlash - dt);
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     this.stateTimer -= dt;
@@ -109,15 +110,16 @@ export class Boss {
     else this.sprite.clearTint();
 
     // attacks
-    if (this.attackTimer <= 0) this.doAttack(combat, d);
+    if (this.attackTimer <= 0) this.doAttack(port, d);
   }
 
-  private doAttack(combat: ActorCombatPort, d: number): void {
-    const player = combat.target;
+  private doAttack(combat: ActorCombatPort | PlayerLikeCombat, d: number): void {
+    const port = toCombatPort(combat);
+    const player = port.target;
     if (this.phase === 1) {
       // phase 1: chase and fire a shockwave ring; bite if the player gets too close
       if (d < 3) {
-        combat.hurtTarget(this.stats().damage * 0.5, this.x, this.y);
+        port.hurtTarget(this.stats().damage * 0.5, this.x, this.y);
         this.world.addShake(10);
         this.attackTimer = 1.4;
         this.shockwave();

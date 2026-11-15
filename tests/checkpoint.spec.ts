@@ -45,7 +45,7 @@ async function fixSeed(page: Page, seed: number) {
 async function pickFirstCard(page: Page) {
   const card = await page.evaluate(() => {
     const g = (window as any).__game;
-    const ls = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'LevelUpScene') as any;
+    const ls = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'LevelUpScene') as any;
     return ls && ls.buttons.length ? { x: ls.buttons[0].x, y: ls.buttons[0].y } : null;
   });
   expect(card, 'level-up card available').not.toBeNull();
@@ -354,7 +354,7 @@ test('death routes to Game Over and clears the run checkpoint', async ({ page })
   await page.waitForTimeout(200);
   await expect.poll(async () => page.evaluate(() => {
     const g = (window as any).__game;
-    return g.scene.getScenes(true).map((s: any) => s.constructor.name);
+    return g.scene.getScenes(true).map((s: any) => s.sys.settings.key);
   })).not.toContain('GameScene');
 
   expect(errors).toEqual([]);

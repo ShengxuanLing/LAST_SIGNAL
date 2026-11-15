@@ -19,7 +19,8 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
-        'station-zero': fileURLToPath(new URL('./station-zero.html', import.meta.url))
+        'station-zero': fileURLToPath(new URL('./station-zero.html', import.meta.url)),
+        economy: fileURLToPath(new URL('./economy.html', import.meta.url))
       }
     }
   },

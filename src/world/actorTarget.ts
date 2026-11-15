@@ -37,3 +37,23 @@ export function chooseNearestActor(
   }
   return best;
 }
+
+
+/** Legacy direct test/Scene calls may pass a Player-like object instead of a port. */
+export interface PlayerLikeCombat {
+  x: number; y: number;
+  hurt(amount: number, fromX: number, fromY: number): boolean;
+  data?: { hp?: number };
+}
+
+export function toCombatPort(value: ActorCombatPort | PlayerLikeCombat): ActorCombatPort {
+  if ('target' in value) return value as ActorCombatPort;
+  const player = value as PlayerLikeCombat;
+  return {
+    target: {
+      actorId: 0, kind: 'player', x: player.x, y: player.y,
+      hp: player.data?.hp ?? 1, alive: true
+    },
+    hurtTarget: (amount, fromX, fromY) => player.hurt(amount, fromX, fromY)
+  };
+}

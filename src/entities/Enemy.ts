@@ -7,7 +7,7 @@ import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { axisSlideToward, distanceWithin, rangedAttackDescriptor } from '../world/sim/rules';
 import type { SimDroneState, SimTarget } from '../world/sim/core';
-import type { ActorCombatPort, ActorTargetView } from '../world/actorTarget';
+import { toCombatPort, type ActorCombatPort, type ActorTargetView, type PlayerLikeCombat } from '../world/actorTarget';
 
 export interface EnemySpec {
   kind: EnemyKind; x: number; y: number; room: number; depth: number;
@@ -122,16 +122,17 @@ export class Enemy {
 
   initHp(): void { this.__hp = this.data.stats.maxHp; }
 
-  update(dt: number, combat: ActorCombatPort): void {
+  update(dt: number, combat: ActorCombatPort | PlayerLikeCombat): void {
     // C2: drone timers/FSM/projectiles are owned by World.sim (fixed ticks).
     if (this.data.kind === 'drone') return;
     if (this._hp <= 0) return;
-    this.data.targetActorKind = combat.target.kind;
+    const port = toCombatPort(combat);
+    this.data.targetActorKind = port.target.kind;
     this.data.hitFlash = Math.max(0, this.data.hitFlash - dt);
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     this.wanderTimer -= dt;
     this.data.stateTimer -= dt;
-    this.legacyStateMachine(dt, combat);
+    this.legacyStateMachine(dt, port);
   }
 
   private inRange(player: ActorTargetView, range: number): boolean {
@@ -234,15 +235,16 @@ export class Enemy {
     this.project();
   }
 
-  private doAttack(combat: ActorCombatPort): void {
-    const player = combat.target;
+  private doAttack(combat: ActorCombatPort | PlayerLikeCombat): void {
+    const port = toCombatPort(combat);
+    const player = port.target;
     if (this.attackTimer > 0) return;
     const stats = this.data.stats;
     this.attackTimer = stats.attackCooldown;
     if (stats.reachEnemy) {
       // melee
       if (this.inRange(player, stats.attackRange + 1.5)) {
-        combat.hurtTarget(stats.damage, this.x, this.y);
+        port.hurtTarget(stats.damage, this.x, this.y);
       }
     } else if (stats.ranged) {
       const shot = rangedAttackDescriptor({ x: this.x, y: this.y }, { x: player.x, y: player.y }, GAME.PIXEL_TO_TILE);
