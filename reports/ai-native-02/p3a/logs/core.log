@@ -1,0 +1,2 @@
+PASS | p3a_core_unit | npx vitest run | 45 files / 589 tests | reports/ai-native-02/p3a/logs/p3a-core-unit.log
+PASS | p3a_echo_core | npx vitest run src/world/sim/echo.test.ts | 9 tests: independent actor, no-echo canonical unchanged, enemy selects echo, echo death independent, no free upgrades | reports/ai-native-02/p3a/logs/p3a-core-unit.log

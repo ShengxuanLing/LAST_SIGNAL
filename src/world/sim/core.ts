@@ -12,7 +12,7 @@
 // Not a full-game core: boss, other enemy kinds, loot, rooms, Signal and
 // checkpoint policy remain adapter/legacy. Visual RNG never enters this state.
 
-import { GAME } from '../../config/game';
+import { GAME, basePlayerData } from '../../config/game';
 import { WEAPONS } from '../../config/weapons';
 import { UPGRADES, applyUpgrade } from '../../config/upgrades';
 import { buildEnemyData } from '../../config/enemies';
@@ -43,6 +43,20 @@ const PLAYER_RADIUS = 0.5;
 export interface SimPlayerState {
   x: number;
   y: number;
+  data: PlayerData;
+  dashTimer: number;
+  invuln: number;
+  hurtTimer: number;
+  fireTimer: number;
+  aimYaw: number;
+}
+
+export interface SimEchoState {
+  /** Independent actor identity; never the player id (0). */
+  actorId: number;
+  x: number;
+  y: number;
+  /** Base player-shaped stats + pulse only: no upgrades, no shared player data. */
   data: PlayerData;
   dashTimer: number;
   invuln: number;
@@ -100,13 +114,15 @@ export type SimCommand =
   | { type: 'apply-upgrade'; key: string; level: number }
   | { type: 'equip-weapon'; key: string }
   | { type: 'purchase-supply'; transactionId: string; offerKey: string; roomId: number }
-  | { type: 'set-player-data'; data: PlayerData };
+  | { type: 'set-player-data'; data: PlayerData }
+  | { type: 'spawn-echo'; x: number; y: number }
+  | { type: 'remove-echo' };
 
 export interface SimProjectile {
   id: number;
   ownerId: number;
   side: 'player' | 'enemy';
-  source: 'player' | 'enemy';
+  source: 'player' | 'echo' | 'enemy';
   kind: string;
   pos: Vec2;
   vel: Vec2;
@@ -126,6 +142,8 @@ export interface SimulationState {
   mapMinX: number;
   mapMinY: number;
   player: SimPlayerState;
+  /** Optional independent companion actor (P3-a). Absent = unchanged C1/C2. */
+  echo?: SimEchoState;
   drones: SimDroneState[];
   /** Legacy non-drone enemies and Boss; HP/position are core-owned. */
   targets: SimTarget[];
@@ -156,6 +174,12 @@ export type SimEvent =
   | { type: 'enemy-died'; enemyId: number; x: number; y: number }
   | { type: 'player-hurt'; damage: number; hit: PlayerHitResult }
   | { type: 'player-death' }
+  | { type: 'echo-moved'; position: Vec2; velocity: Vec2; dashTimer: number; dashStarted: boolean }
+  | { type: 'echo-fired'; spec: WeaponFireSpec }
+  | { type: 'echo-hurt'; damage: number; hit: PlayerHitResult }
+  | { type: 'echo-death' }
+  | { type: 'echo-spawned'; x: number; y: number }
+  | { type: 'echo-despawned' }
   | { type: 'player-healed'; amount: number; hp: number }
   | { type: 'currency-gained'; amount: number; currency: number }
   | { type: 'xp-gained'; amount: number; xp: number; level: number }
@@ -228,6 +252,54 @@ export function registerDrone(
   const drone: SimDroneState = { ...input, data: input.data };
   state.drones.push(drone);
   return drone;
+}
+
+/** The echo is a separate actor: same pure combat rules, its own base stats. */
+export const ECHO_ACTOR_ID = 1;
+
+/** Base stats + pulse only. No upgrades/abilities/currency from the player. */
+export function echoPlayerData(): PlayerData {
+  const base = basePlayerData();
+  const pulse = WEAPONS.pulse;
+  const data: PlayerData = {
+    ...base,
+    level: 1,
+    xp: 0,
+    xpToNext: 30,
+    currency: 0,
+    weaponKey: 'pulse',
+    weapons: [{
+      key: 'pulse', level: 1,
+      ammo: pulse.magazine ?? -1,
+      magazine: pulse.magazine ?? -1,
+      reloading: false, reloadTimer: 0
+    }],
+    upgrades: [],
+    abilities: []
+  };
+  return data;
+}
+
+export function registerEcho(state: SimulationState, x: number, y: number): SimEchoState {
+  const echo: SimEchoState = {
+    actorId: ECHO_ACTOR_ID,
+    x,
+    y,
+    data: echoPlayerData(),
+    dashTimer: 0,
+    invuln: 0,
+    hurtTimer: 0,
+    fireTimer: 0,
+    aimYaw: 0
+  };
+  state.echo = echo;
+  return echo;
+}
+
+export function removeEcho(state: SimulationState): boolean {
+  if (!state.echo) return false;
+  delete state.echo;
+  return true;
 }
 
 export function registerTarget(state: SimulationState, target: SimTarget): SimTarget {
@@ -372,6 +444,15 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       case 'spawn-loot': {
         const loot = spawnCoreLoot(state, command.x, command.y, command.kind, command.key, command.amount, command.bob ?? 0);
         events.push({ type: 'loot-dropped', loot: cloneEventValue(loot) });
+        break;
+      }
+      case 'spawn-echo': {
+        registerEcho(state, command.x, command.y);
+        events.push({ type: 'echo-spawned', x: command.x, y: command.y });
+        break;
+      }
+      case 'remove-echo': {
+        if (removeEcho(state)) events.push({ type: 'echo-despawned' });
         break;
       }
       case 'teleport-player': {
@@ -601,7 +682,7 @@ function cloneEventValue<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function toSimProjectile(data: ProjectileData, source: 'player' | 'enemy', kind: string): SimProjectile {
+function toSimProjectile(data: ProjectileData, source: 'player' | 'echo' | 'enemy', kind: string): SimProjectile {
   return {
     id: data.id,
     ownerId: data.ownerId,
@@ -619,8 +700,20 @@ function toSimProjectile(data: ProjectileData, source: 'player' | 'enemy', kind:
   };
 }
 
-function tickPlayerTimers(state: SimulationState, dt: number): void {
-  const p = state.player;
+interface SimActor {
+  x: number;
+  y: number;
+  data: PlayerData;
+  dashTimer: number;
+  invuln: number;
+  hurtTimer: number;
+  fireTimer: number;
+  aimYaw: number;
+}
+
+/** Shared actor timers (fire cooldown, invuln, hurt flash, reload, regen). */
+function tickActorTimers(actor: SimActor, dt: number): void {
+  const p = actor;
   p.fireTimer = Math.max(0, p.fireTimer - dt);
   p.invuln = Math.max(0, p.invuln - dt);
   p.hurtTimer = Math.max(0, p.hurtTimer - dt);
@@ -638,8 +731,12 @@ function tickPlayerTimers(state: SimulationState, dt: number): void {
   }
 }
 
-function stepPlayerFire(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
-  const p = state.player;
+/** Shared actor fire rule (cooldown, magazine/reload, projectile + event). */
+function fireActor(
+  state: SimulationState, p: SimActor, ownerId: number,
+  source: 'player' | 'echo', kind: 'player' | 'echo',
+  intent: SimulationIntent, rng: RNG, events: SimEvent[]
+): void {
   if (!intent.fire || p.data.hp <= 0 || p.fireTimer > 0) return;
   const weapon = WEAPONS[p.data.weaponKey] ?? WEAPONS.pulse;
   let ws = p.data.weapons.find((w) => w.key === p.data.weaponKey);
@@ -671,7 +768,7 @@ function stepPlayerFire(state: SimulationState, intent: SimulationIntent, rng: R
   });
   const data = createProjectileData({
     id: state.nextProjectileId++,
-    ownerId: 0,
+    ownerId,
     side: 'player',
     origin: { x: p.x, y: p.y },
     angle: p.aimYaw,
@@ -681,10 +778,19 @@ function stepPlayerFire(state: SimulationState, intent: SimulationIntent, rng: R
     shotCount: spec.shots,
     pixelToTile: GAME.PIXEL_TO_TILE
   });
-  const projectile = toSimProjectile(data, 'player', spec.kind);
+  const projectile = toSimProjectile(data, source, spec.kind);
   state.projectiles.push(projectile);
-  events.push({ type: 'player-fired', spec });
+  events.push({ type: kind === 'player' ? 'player-fired' : 'echo-fired', spec });
   events.push({ type: 'projectile-spawned', projectile: cloneEventValue(projectile) });
+}
+
+function stepPlayerFire(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
+  fireActor(state, state.player, 0, 'player', 'player', intent, rng, events);
+}
+
+function stepEchoFire(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
+  if (!state.echo) return;
+  fireActor(state, state.echo, ECHO_ACTOR_ID, 'echo', 'echo', intent, rng, events);
 }
 
 
@@ -708,18 +814,20 @@ function applyPendingPlayerHits(state: SimulationState, events: SimEvent[]): voi
   }
 }
 
-function stepPlayer(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
-  const p = state.player;
+/** Shared actor movement/aim rule; event type is actor-specific. */
+function stepActorMovement(
+  state: SimulationState, p: SimActor, intent: SimulationIntent,
+  events: SimEvent[], kind: 'player' | 'echo'
+): void {
   const tickDt = SIM_TUNING.TICK_MS / 1000;
-  applyPendingPlayerHits(state, events);
+  const movedType = kind === 'player' ? 'player-moved' : 'echo-moved';
   // Preserve the existing recovery from a stuck/knockback position.
   const recovered = ensureWalkableFromState(state, { x: p.x, y: p.y });
   if (recovered.x !== p.x || recovered.y !== p.y) {
     p.x = recovered.x;
     p.y = recovered.y;
-    events.push({ type: 'player-moved', position: recovered, velocity: { x: 0, y: 0 }, dashTimer: p.dashTimer, dashStarted: false });
+    events.push({ type: movedType, position: recovered, velocity: { x: 0, y: 0 }, dashTimer: p.dashTimer, dashStarted: false } as SimEvent);
   }
-  tickPlayerTimers(state, tickDt);
   if (intent.aim) {
     const yaw = aimYawFromGrid({ x: p.x, y: p.y }, intent.aim);
     if (yaw !== null) p.aimYaw = yaw;
@@ -740,16 +848,45 @@ function stepPlayer(state: SimulationState, intent: SimulationIntent, rng: RNG, 
     p.dashTimer = step.dashTimer;
     if (step.dashStarted) p.invuln = Math.max(p.invuln, p.data.dashDuration + 0.05);
     events.push({
-      type: 'player-moved', position: step.position, velocity: step.velocity,
+      type: movedType, position: step.position, velocity: step.velocity,
       dashTimer: step.dashTimer, dashStarted: step.dashStarted
-    });
-    stepPlayerFire(state, intent, rng, events);
+    } as SimEvent);
   }
+}
+
+function stepPlayer(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
+  const p = state.player;
+  const tickDt = SIM_TUNING.TICK_MS / 1000;
+  applyPendingPlayerHits(state, events);
+  tickActorTimers(p, tickDt);
+  stepActorMovement(state, p, intent, events, 'player');
+  stepPlayerFire(state, intent, rng, events);
+}
+
+/** Echo runs through the same pure rules, on its own actor state. */
+function stepEcho(state: SimulationState, intent: SimulationIntent, rng: RNG, events: SimEvent[]): void {
+  const e = state.echo;
+  if (!e || e.data.hp <= 0) return;
+  const tickDt = SIM_TUNING.TICK_MS / 1000;
+  tickActorTimers(e, tickDt);
+  stepActorMovement(state, e, intent, events, 'echo');
+  stepEchoFire(state, intent, rng, events);
+}
+
+/** Nearest living actor (player or echo) is the legal drone target. */
+function chooseActorTarget(state: SimulationState, x: number, y: number): SimActor {
+  const actor = state.echo && state.echo.data.hp > 0 ? state.echo : null;
+  if (!actor) return state.player;
+  if (state.player.data.hp <= 0) return actor;
+  const dPlayer = (state.player.x - x) ** 2 + (state.player.y - y) ** 2;
+  const dEcho = (actor.x - x) ** 2 + (actor.y - y) ** 2;
+  return dEcho < dPlayer ? actor : state.player;
 }
 
 function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): void {
   for (const drone of state.drones) {
     if (drone.hp <= 0) continue;
+    const target = chooseActorTarget(state, drone.x, drone.y);
     // Exact pre-step timer decrements from Enemy.update(), now on the core.
     drone.data.hitFlash = Math.max(0, drone.data.hitFlash - dt);
     drone.attackTimer = Math.max(0, drone.attackTimer - dt);
@@ -758,7 +895,7 @@ function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): voi
     const step = stepDroneAi({
       dt,
       position: { x: drone.x, y: drone.y },
-      player: { x: state.player.x, y: state.player.y },
+      player: { x: target.x, y: target.y },
       stats: {
         speed: drone.data.stats.speed,
         aggroRange: drone.data.stats.aggroRange,
@@ -784,8 +921,10 @@ function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): voi
     drone.data.stateTimer = step.stateTimer;
     drone.wanderTimer = step.wanderTimer;
     drone.data.patrolIndex = step.patrolIndex;
-    drone.data.targetId = step.targetId;
     drone.attackTimer = step.attackTimer;
+    // Keep the diagnostic target id honest when the drone locked the echo.
+    if (target === state.echo) step.targetId = ECHO_ACTOR_ID;
+    drone.data.targetId = step.targetId;
     events.push({ type: 'drone-step', droneId: drone.id, step });
     if (step.attack) {
       if (step.attack.kind === 'ranged' && step.attack.velocity) {
@@ -798,14 +937,17 @@ function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): voi
         state.projectiles.push(projectile);
         events.push({ type: 'projectile-spawned', projectile: cloneEventValue(projectile) });
       } else if (step.attack.kind === 'melee') {
-        applyCorePlayerHit(state, drone.x, drone.y, step.attack.damage, events);
+        applyActorHit(state, target, drone.x, drone.y, step.attack.damage, events, target === state.echo ? 'echo' : 'player');
       }
     }
   }
 }
 
-function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number, damage: number, events: SimEvent[]): void {
-  const p = state.player;
+/** Shared actor hit rule; blocked hits produce no canonical hurt fact. */
+function applyActorHit(
+  state: SimulationState, p: SimActor, fromX: number, fromY: number,
+  damage: number, events: SimEvent[], kind: 'player' | 'echo'
+): void {
   if (p.data.hp <= 0) return;
   const hit = resolvePlayerHit({
     hp: p.data.hp,
@@ -820,13 +962,17 @@ function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number
   // Blocked hits are not hurt facts: no player-hurt event, no audio/shake, no
   // HP/position write. Only real damage becomes canonical.
   if (hit.blocked) return;
-  events.push({ type: 'player-hurt', damage, hit });
+  events.push({ type: kind === 'player' ? 'player-hurt' : 'echo-hurt', damage, hit } as SimEvent);
   p.data.hp = hit.hp;
   p.x = hit.position.x;
   p.y = hit.position.y;
   p.invuln = hit.invuln;
   p.hurtTimer = hit.hurtTimer;
-  if (p.data.hp <= 0) events.push({ type: 'player-death' });
+  if (p.data.hp <= 0) events.push({ type: kind === 'player' ? 'player-death' : 'echo-death' });
+}
+
+function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number, damage: number, events: SimEvent[]): void {
+  applyActorHit(state, state.player, fromX, fromY, damage, events, 'player');
 }
 
 function stepLoot(state: SimulationState, dt: number, events: SimEvent[]): void {
@@ -959,10 +1105,14 @@ function stepProjectiles(state: SimulationState, dt: number, rng: RNG, events: S
         }
       }
     } else {
-      const p = state.player;
-      if (p.data.hp > 0 && projectileHitsTarget(previous, projectile.pos, { x: p.x, y: p.y }, PLAYER_RADIUS, projectile.radius)) {
-        applyCorePlayerHit(state, projectile.pos.x, projectile.pos.y, projectile.damage, events);
+      const targets: SimActor[] = [state.player];
+      if (state.echo && state.echo.data.hp > 0) targets.push(state.echo);
+      for (const actor of targets) {
+        if (actor.data.hp <= 0) continue;
+        if (!projectileHitsTarget(previous, projectile.pos, { x: actor.x, y: actor.y }, PLAYER_RADIUS, projectile.radius)) continue;
+        applyActorHit(state, actor, projectile.pos.x, projectile.pos.y, projectile.damage, events, actor === state.echo ? 'echo' : 'player');
         alive = false;
+        break;
       }
     }
     if (alive) remaining.push(projectile);
@@ -975,7 +1125,8 @@ function stepProjectiles(state: SimulationState, dt: number, rng: RNG, events: S
 export function stepSimulationTicks(
   state: SimulationState,
   ticks: number,
-  intent: SimulationIntent
+  intent: SimulationIntent,
+  echoIntent?: SimulationIntent
 ): SimEvent[] {
   const events: SimEvent[] = [];
   const dt = SIM_TUNING.TICK_MS / 1000;
@@ -985,6 +1136,7 @@ export function stepSimulationTicks(
     // Legal adapter/FSM commands are committed by the tick, before movement.
     processCommands(state, events, rng);
     stepPlayer(state, intent, rng, events);
+    if (echoIntent) stepEcho(state, echoIntent, rng, events);
     stepDrones(state, dt, events);
     stepProjectiles(state, dt, rng, events);
     stepLoot(state, dt, events);
@@ -1014,6 +1166,7 @@ export interface CanonicalSimulationState {
     data: PlayerData;
     dashTimer: number; invuln: number; hurtTimer: number; fireTimer: number; aimYaw: number;
   };
+  echo?: SimEchoState;
   drones: SimDroneState[];
   targets: SimTarget[];
   projectiles: SimProjectile[];
@@ -1044,6 +1197,7 @@ export function canonicalSimulationState(state: SimulationState): string {
       dashTimer: state.player.dashTimer, invuln: state.player.invuln,
       hurtTimer: state.player.hurtTimer, fireTimer: state.player.fireTimer, aimYaw: state.player.aimYaw
     },
+    ...(state.echo ? { echo: state.echo } : {}),
     drones: state.drones,
     targets: state.targets,
     projectiles: state.projectiles,
