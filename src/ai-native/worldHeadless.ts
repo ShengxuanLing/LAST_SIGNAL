@@ -87,6 +87,8 @@ export interface HeadlessWorldFrame {
   epoch: number;
   sim: SimulationState;
   events: SimEvent[];
+  /** Monotonic total events ever produced (the retained `events` array is bounded). */
+  eventTotal?: number;
   actionLog: HeadlessActionLogEntry[];
   enteredRooms: number[];
   status: HeadlessStatus;
@@ -466,6 +468,7 @@ export class HeadlessWorld {
       epoch: this.epoch,
       sim: cloneSimulationState(this.sim),
       events: deepCopy(this.events.slice(-HEADLESS_MAX_EVENTS)) as SimEvent[],
+      eventTotal: this.totalEventCount,
       actionLog: deepCopy(this.actionLog.slice()),
       enteredRooms: [...this.entered],
       status: this.status,
@@ -486,6 +489,9 @@ export class HeadlessWorld {
     }
     this.sim = cloneSimulationState(frame.sim);
     this.events = deepCopy((frame.events as SimEvent[]).slice(-HEADLESS_MAX_EVENTS));
+    this.totalEventCount = typeof frame.eventTotal === 'number'
+      ? frame.eventTotal
+      : this.events.length;
     this.actionLog = deepCopy((frame.actionLog as HeadlessActionLogEntry[]).slice(-HEADLESS_MAX_ACTION_LOG));
     this.entered = new Set(frame.enteredRooms as number[]);
     this.status = frame.status as HeadlessStatus;
@@ -577,7 +583,11 @@ export class HeadlessWorld {
       expectedNewEventsHash, actualNewEventsHash,
       baselineEvents,
       historyPreserved,
-      eventsTruncated: baselineEvents >= HEADLESS_MAX_EVENTS,
+      // Exact: a frame whose eventTotal exceeds its retained events lost history.
+      eventsTruncated: isHistoryTruncated(
+        typeof frame.eventTotal === 'number' ? frame.eventTotal : baselineEvents,
+        baselineEvents
+      ),
       firstDivergence
     };
   }
@@ -677,6 +687,9 @@ export class HeadlessWorld {
     const world = Object.create(HeadlessWorld.prototype) as HeadlessWorld;
     (world as any).sim = cloneSimulationState(frame.sim as SimulationState);
     (world as any).events = deepCopy((frame.events as SimEvent[]).slice(-HEADLESS_MAX_EVENTS));
+    (world as any).totalEventCount = typeof frame.eventTotal === 'number'
+      ? frame.eventTotal
+      : ((frame.events as SimEvent[]).length);
     (world as any).actionLog = deepCopy((frame.actionLog as HeadlessActionLogEntry[]).slice(-HEADLESS_MAX_ACTION_LOG));
     (world as any).entered = new Set(frame.enteredRooms as number[]);
     (world as any).status = frame.status as HeadlessStatus;
@@ -690,6 +703,15 @@ export class HeadlessWorld {
 }
 
 /** Structural validation of an owner frame (no simulation writes). */
+/**
+ * EXACT history-truncation predicate: the retained event array is a WINDOW of
+ * the true history. `eventTotal === retained` is NOT truncated (the array can
+ * hold exactly HEADLESS_MAX_EVENTS); only `eventTotal > retained` lost a prefix.
+ */
+export function isHistoryTruncated(eventTotal: number, retained: number): boolean {
+  return Number.isFinite(eventTotal) && eventTotal > retained;
+}
+
 export function isHeadlessFrame(value: unknown): value is HeadlessWorldFrame {
   if (!value || typeof value !== 'object') return false;
   const f = value as Record<string, unknown>;

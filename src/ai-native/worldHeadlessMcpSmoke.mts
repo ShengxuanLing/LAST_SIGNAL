@@ -245,7 +245,9 @@ async function main(): Promise<void> {
       session, reason: 'smoke'
     });
     assert(exported.ok === true && typeof exported.path === 'string', 'failure export', exported);
-    log('PASS dev_export_failure', { path: exported.path, bytes: exported.bytes });
+    assert(exported.boundary === 'action' && exported.replayable === true && exported.eventsTruncated === false,
+      'short boundary export is replayable and not truncated', exported);
+    log('PASS dev_export_failure', { path: exported.path, bytes: exported.bytes, replayable: exported.replayable });
 
     const batch = await call(client, 'world_headless_dev_batch', { seeds: [424242, 777], maxTicks: 600 });
     assert(batch.ok === true && batch.result.runs.length === 2, 'batch combat regression', batch);

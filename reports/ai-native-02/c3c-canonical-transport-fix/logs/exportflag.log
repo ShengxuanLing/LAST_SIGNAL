@@ -1,0 +1,4 @@
+PASS | exportflag_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/exportflag_typecheck.log
+PASS | exportflag_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/exportflag_mcp_build.log
+PASS | exportflag_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | rc=0 (short boundary export replayable, dev_replay_history) | reports/ai-native-02/c3c-canonical-transport-fix/logs/exportflag_headless_smoke.log
+PASS | exportflag_unit (c3cExportFlag) | npx vitest run src/ai-native/c3cExportFlag.test.ts | 5/5 (exact 20k predicate, boundary/mid, truncated export) | see canonical_unit.log

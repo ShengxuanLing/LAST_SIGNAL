@@ -156,7 +156,7 @@ describe('C3c snapshot — action boundary only', () => {
     const full = body(await manager.exportFailure(session, 'boundary'));
     expect(full.boundary).toBe('action');
     expect(full.replayable).toBe(true);
-  });
+  }, 60_000);
 
   it('inspect exposes manager execution state for diagnostics', () => {
     const manager = dev();

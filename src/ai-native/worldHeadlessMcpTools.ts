@@ -31,7 +31,7 @@ import { HeadlessRequestLedger } from './headlessRequestLedger';
 import { publicEvents } from './headlessPublicEvents';
 import {
   HEADLESS_MAX_SESSIONS, HEADLESS_MAX_TICKS_PER_STEP,
-  HeadlessWorld, isHeadlessFrame, intentFromWorldAction, neutralIntent,
+  HeadlessWorld, isHeadlessFrame, isHistoryTruncated, intentFromWorldAction, neutralIntent,
   type HeadlessRunStep
 } from './worldHeadless';
 import {
@@ -517,9 +517,16 @@ export class HeadlessWorldManager {
     if (!this.atActionBoundary(record, session)) {
       return errPayload('E_NOT_APPLICABLE', 'world.snapshot_requires_action_boundary');
     }
+    const eventsRetained = record.world.eventsCount;
+    const eventsTotal = record.world.eventTotal;
     const frame = { ...record.world.snapshot(), boundary: 'action' as const };
     return okPayload({
       session, epoch: record.epoch, boundary: 'action',
+      // Same exact truncation flag as replay/exportFailure. A truncated
+      // HISTORY does not invalidate the (complete) future STATE, but it is
+      // never presented as a full-history reproduction.
+      eventsRetained, eventsTotal,
+      eventsTruncated: isHistoryTruncated(eventsTotal, eventsRetained),
       frameBytes: canonicalJson(frame).length, frame
     });
   }
@@ -599,10 +606,16 @@ export class HeadlessWorldManager {
     const record = found.record;
     const queuedActions = this.queuedCount(record, session);
     const boundary = record.active === null && queuedActions === 0;
+    const eventsRetained = record.world.eventsCount;
+    const eventsTotal = record.world.eventTotal;
+    // EXACT truncation: `eventTotal === retained` is NOT truncated; only a lost
+    // prefix (eventTotal > retained) makes a full reproduction impossible.
+    const eventsTruncated = isHistoryTruncated(eventsTotal, eventsRetained);
+    const replayable = boundary && !eventsTruncated;
     const base = record.world.exportFailure(reason);
     const diagnostics = {
       boundary: boundary ? 'action' : 'mid_execution',
-      replayable: boundary,
+      replayable,
       active: record.active
         ? {
             actionId: record.active.actionId, requestId: record.active.requestId,
@@ -615,16 +628,20 @@ export class HeadlessWorldManager {
       ledger: record.ledger.stats(),
       // History window: the retained event log is bounded. A truncated history
       // is reported explicitly so a "same prefix" claim is never faked.
-      eventsRetained: record.world.eventsCount,
-      eventsTruncated: record.world.eventsCount >= 20_000,
-      note: boundary
-        ? 'action-boundary export: full future state captured and replayable'
-        : 'INCOMPLETE reproduction: active/queued actions are still pending; remaining ticks are NOT in the frame'
+      eventsRetained,
+      eventsTotal,
+      eventsTruncated,
+      note: eventsTruncated
+        ? 'HISTORY TRUNCATED (eventTotal > retained events): the retained window alone is not a full reproduction and cannot be claimed replayable'
+        : boundary
+          ? 'action-boundary export: full future state captured and replayable'
+          : 'INCOMPLETE reproduction: active/queued actions are still pending; remaining ticks are NOT in the frame'
     };
     // Only a boundary export gets the restorable marker; a mid-execution export
     // must never masquerade as a complete reproducible frame.
     const frame = base.frame as Record<string, unknown> | undefined;
-    if (boundary && frame) frame.boundary = 'action';
+    // The restorable marker is only for a truly replayable boundary export.
+    if (replayable && frame) frame.boundary = 'action';
     const bundle = { ...base, manager: diagnostics };
     const dir = resolve('reports/ai-native-02/c3c/failures');
     await mkdir(dir, { recursive: true });
@@ -632,7 +649,9 @@ export class HeadlessWorldManager {
     await writeFile(file, canonicalJson(bundle), 'utf8');
     return okPayload({
       session, path: file, bytes: canonicalJson(bundle).length,
-      boundary: diagnostics.boundary, replayable: diagnostics.replayable, diagnostics
+      boundary: diagnostics.boundary, replayable: diagnostics.replayable,
+      eventsRetained, eventsTotal, eventsTruncated,
+      diagnostics
     });
   }
 
