@@ -165,6 +165,9 @@ export class World {
   private _maxX = 0;
   private _maxY = 0;
   private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number; wx: number; wy: number } | null = null;
+  /** ONE real Relay device per run. Spawned on first room enter; absent =
+   *  legacy v1 run (portal always open). */
+  private signalDeviceSpawned = false;
 
   /** Deep, frozen read-only snapshot. External adapters must never mutate this. */
   get sim(): SimulationState {
@@ -257,45 +260,86 @@ export class World {
     });
   }
 
+  /** Bounded, real Signal state (no hidden fields). Mirrors headless
+   *  worldHeadless.signalView() so Rendered and Headless report byte-parity
+   *  echoSignal. Returns null when no relay device exists (legacy v1 run). */
+  signalView(): Record<string, unknown> | null {
+    const s = this._sim.signal;
+    if (!s) return null;
+    return {
+      deviceId: s.deviceId, roomId: s.roomId, x: s.x, y: s.y,
+      relay: s.relay, manualEnabled: s.manualEnabled, powered: s.powered,
+      jammedUntilTick: s.jammedUntilTick,
+      playerEnergy: s.actors.player.energy.energy,
+      echoEnergy: s.actors.echo.energy.energy,
+      scanCooldown: s.actors.echo.cooldowns.scanCooldownTicks,
+      jamCooldown: s.actors.echo.cooldowns.jamCooldownTicks,
+      evidence: s.evidence.length,
+      exitOpen: s.relay === 'ACTIVE'
+    };
+  }
+
   /**
-   * Owner-confirmed companion action -> a SINGLE queued core intent. It is
-   * consumed by the next stepFrame tick; no flush, no direct state write.
-   * `scan`/`jam` stay explicitly unsupported until the P3-b Signal wiring.
+     /** Enqueue a legal Signal command directly on the core. Committed by the next
+   *  processCommands tick; no flush, no direct state write. Returns false when
+   *  no signal device exists or the command is unknown. */
+  private enqueueSignalCommand(command: { type: 'signal-scan' | 'signal-jam'; actor: 'echo' } | { type: 'toggle-relay'; enabled: boolean }): boolean {
+    if (!this._sim.signal) return false;
+    enqueueCommand(this._sim, command);
+    this.bumpSimVersion();
+    return true;
+  }
+
+  /** Owner-confirmed companion action -> a SINGLE queued core intent (move/fire/
+   *  aim/stop) consumed by the next stepFrame tick, or a Signal command
+   *  (scan/jam/toggle-relay) committed directly by the core tick. No flush, no
+   *  direct state write. `scan`/`jam` spend the ECHO's own energy account and
+   *  are gated by range/LOS/cooldown inside the core.
    */
   enqueueCompanionAction(kind: string, target?: { x: number; y: number }): boolean {
     const echo = this._sim.echo;
     if (!echo || echo.data.hp <= 0) return false;
-    const intent: SimulationIntent = {
-      move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false
-    };
     switch (kind) {
       case 'move': {
         if (!target) return false;
         const dx = target.x - echo.x, dy = target.y - echo.y;
         const len = Math.hypot(dx, dy);
         if (len < 1e-6) return false;
-        intent.move = { x: dx / len, y: dy / len };
-        break;
+        this.pendingCompanionIntent = {
+          move: { x: dx / len, y: dy / len }, dash: false, fire: false, aim: null, interact: false
+        };
+        this.bumpSimVersion();
+        return true;
       }
       case 'aim':
         if (!target) return false;
-        intent.aim = { x: target.x, y: target.y };
-        break;
+        this.pendingCompanionIntent = {
+          move: { x: 0, y: 0 }, dash: false, fire: false, aim: { x: target.x, y: target.y }, interact: false
+        };
+        this.bumpSimVersion();
+        return true;
       case 'fire':
-        intent.fire = true;
-        intent.aim = target ? { x: target.x, y: target.y } : null;
-        break;
+        this.pendingCompanionIntent = {
+          move: { x: 0, y: 0 }, dash: false, fire: true,
+          aim: target ? { x: target.x, y: target.y } : null, interact: false
+        };
+        this.bumpSimVersion();
+        return true;
       case 'stop':
-        break;
+        this.pendingCompanionIntent = {
+          move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false
+        };
+        this.bumpSimVersion();
+        return true;
       case 'scan':
+        return this.enqueueSignalCommand({ type: 'signal-scan', actor: 'echo' });
       case 'jam':
-        return false; // Signal commands are not wired yet (P3-b B).
+        return this.enqueueSignalCommand({ type: 'signal-jam', actor: 'echo' });
+      case 'toggle-relay':
+        return this.enqueueSignalCommand({ type: 'toggle-relay', enabled: !(this._sim.signal?.manualEnabled ?? false) });
       default:
         return false;
     }
-    this.pendingCompanionIntent = intent;
-    this.bumpSimVersion();
-    return true;
   }
 
   get hasPendingCompanionIntent(): boolean { return this.pendingCompanionIntent !== null; }
@@ -675,6 +719,17 @@ export class World {
         this.pendingRoomEnters.add(r.id);
         this.callbacks.onRoomEntered(room);
         this.placePortal(r);
+        // ONE real Relay device per run, spawned on first room enter.
+        if (!this.signalDeviceSpawned) {
+          this.signalDeviceSpawned = true;
+          enqueueCommand(this._sim, {
+            type: 'spawn-signal-device',
+            deviceId: 'relay_main',
+            roomId: r.id,
+            x: r.gx + Math.floor(r.w / 2),
+            y: r.gy + Math.floor(r.h / 2)
+          });
+        }
     } else {
         // Already spawned room: ensure a portal exists.
         if (!this.portal) {
@@ -817,6 +872,11 @@ export class World {
 
   tryInteract(player: Player): void {
     if (!this.portal) return;
+    // Only an ACTIVE relay opens the exit. No device => legacy v1 run
+    // unchanged (portal always open). JAMMED/DISABLED relay keeps the gate
+    // shut: scan→confirm→ACTIVE is required to pass.
+    const sig = this.signalView();
+    if (sig && sig.relay !== 'ACTIVE') return;
     const dx = player.x - this.portal.wx, dy = player.y - this.portal.wy;
     if (Math.hypot(dx, dy) < 2.0) {
       const target = this.map.rooms[this.portal.targetRoom];
