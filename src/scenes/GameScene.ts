@@ -53,16 +53,23 @@ export class GameScene extends Phaser.Scene {
   private txtAiTarget!: Phaser.GameObjects.Text;
   private txtAgentLink!: Phaser.GameObjects.Text;
   private txtEcho!: Phaser.GameObjects.Text;
+  private txtSignal!: Phaser.GameObjects.Text;
   /** P3-b A: browser-held owner capability (never exposed to the agent). */
   companionLink: CompanionLink | null = null;
   private companionFrame = 0;
   /** Confirmed companion suggestion awaiting its post-commit receipt. */
   private pendingCompanionReceipt: { suggestionId: string; enqueuedTick: number } | null = null;
+  /** Player signal keys (Q=scan, E=jam, R=toggle relay), debounced per core tick. */
+  private signalKeyCooldown = false;
+  private signalKeyCooldownTick = 0;
+  private keyQ!: Phaser.Input.Keyboard.Key;
+  private keyE!: Phaser.Input.Keyboard.Key;
+  private keyR!: Phaser.Input.Keyboard.Key;
   private txtHelp!: Phaser.GameObjects.Text;
   /** Compact-viewport HUD layout (F-06): larger logical fonts, no z-index tricks. */
   private hudLayout = {
     weaponY: 20, roomY: 44, enemiesY: 64,
-    controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164,
+    controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164, signalY: 182,
     helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
     helpFont: '13px', helpColor: '#8fb8c8'
   };
@@ -292,13 +299,13 @@ export class GameScene extends Phaser.Scene {
     this.hudLayout = compact
       ? {
           weaponY: 16, roomY: 42, enemiesY: 68,
-          controlY: 96, actionY: 124, targetY: 152, linkY: 180, echoY: 208,
+          controlY: 96, actionY: 124, targetY: 152, linkY: 180, echoY: 208, signalY: 226,
           helpY: GAME.WINDOW_H - 52, baseRowFont: '17px', controlFont: '17px', rowFont: '17px',
           helpFont: '16px', helpColor: '#8fb8c8'
         }
       : {
           weaponY: 20, roomY: 44, enemiesY: 64,
-          controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164,
+          controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164, signalY: 182,
           helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
           helpFont: '13px', helpColor: '#8fb8c8'
         };
@@ -330,6 +337,7 @@ export class GameScene extends Phaser.Scene {
     this.txtAiTarget = add.text(GAME.WINDOW_W - 20, L.targetY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtAgentLink = add.text(GAME.WINDOW_W - 20, L.linkY, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtEcho = add.text(GAME.WINDOW_W - 20, L.echoY, 'ECHO OFF · PAUSE > ECHO COMPANION', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#33e0ff' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtSignal = add.text(GAME.WINDOW_W - 20, L.signalY, 'RELAY OFF · NO DEVICE', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtBossHp = add.text(GAME.WINDOW_W / 2, 30, '', { fontFamily: 'monospace', fontSize: '20px', color: '#ff3355', fontStyle: 'bold' }).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     this.bossBarFill = add.rectangle(GAME.WINDOW_W / 2, 52, 0, 8, 0xff3355, 1).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
@@ -370,6 +378,7 @@ export class GameScene extends Phaser.Scene {
     place(this.txtAiTarget, GAME.WINDOW_W - 20, L.targetY);
     place(this.txtAgentLink, GAME.WINDOW_W - 20, L.linkY);
     place(this.txtEcho, GAME.WINDOW_W - 20, L.echoY);
+    place(this.txtSignal, GAME.WINDOW_W - 20, L.signalY);
     place(this.txtHelp, 20, L.helpY);
     place(this.txtBossHp, GAME.WINDOW_W / 2, 30);
     place(this.bossBarFill, GAME.WINDOW_W / 2, 52);
@@ -397,6 +406,16 @@ export class GameScene extends Phaser.Scene {
     const intent = this.world.player.sampleIntent();
     this.world.stepFrame(delta, intent);
     if (intent.interact) this.world.tryInteract(this.world.player);
+    // PLAYER signal actions (OWNER/human only), on the player's own energy account.
+    // Q = scan, E = jam, R = toggle relay. Debounced so one press = one commit.
+    if (this.world.sim.signal && !this.paused && !this.signalKeyCooldown) {
+      const k = this.input.keyboard;
+      if (k && k.addKey('1').isDown) { this.world.playerSignalScan(); this.signalKeyCooldown = true; }
+      else if (k && k.addKey('2').isDown) { this.world.playerSignalJam(); this.signalKeyCooldown = true; }
+      else if (k && k.addKey('3').isDown) { this.world.toggleRelay(); this.signalKeyCooldown = true; }
+    }
+    if (this.signalKeyCooldown && this.world.sim.tick > this.signalKeyCooldownTick) { this.signalKeyCooldown = false; }
+    // Companion receipt: only AFTER a real core tick consumed the confirmed
     // Companion receipt: only AFTER a real core tick consumed the confirmed
     // intent (never early, never while paused with no tick).
     if (this.pendingCompanionReceipt && this.world.sim.tick > this.pendingCompanionReceipt.enqueuedTick) {
@@ -501,6 +520,7 @@ export class GameScene extends Phaser.Scene {
       this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}${link}`);
       this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
     }
+    this.refreshSignalHud();
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.timer.setText(formatDuration(Math.max(0, secs)));
     const settings = saveSystem.getSettings();
@@ -558,8 +578,27 @@ export class GameScene extends Phaser.Scene {
       this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}${link}`);
       this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
     }
+    this.refreshSignalHud();
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.txtStats.setText(`KILLS ${this.enemiesKilled} · LOOT ${this.itemsCollected} · DMG ${Math.round(this.damageDealt)} · ${secs}s`);
+  }
+
+  private refreshSignalHud(): void {
+    const s = this.world.signalView() as { relay: string; echoEnergy?: number; playerEnergy?: number; scanCooldown?: number; jamCooldown?: number; exitOpen: boolean } | null;
+    if (!s) {
+      if (this.txtSignal) this.txtSignal.setText('RELAY OFF · NO DEVICE');
+      return;
+    }
+    const e = s.echoEnergy ?? 0, p = s.playerEnergy ?? 0;
+    let c = '';
+    if (s.echoEnergy !== undefined) c += ` echoCD:${s.scanCooldown}s/jam:${s.jamCooldown}s`;
+    if (s.playerEnergy !== undefined && s.echoEnergy === undefined) c += ` scanCD:${s.scanCooldown}s`;
+    const exit = s.exitOpen ? 'EXIT OPEN' : 'EXIT CLOSED';
+    let txt = `RELAY ${s.relay.toUpperCase()} | e:${e} p:${p}`;
+    if (c) txt += c;
+    txt += ` · ${exit}`;
+    if (this.txtSignal) this.txtSignal.setText(txt);
+    this.txtSignal.setColor(s.relay === 'ACTIVE' ? '#00ff77' : s.relay === 'JAMMED' ? '#ff3333' : '#8fb8c8');
   }
 
   private runStats(): RunCheckpoint['stats'] {

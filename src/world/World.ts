@@ -285,12 +285,26 @@ export class World {
      /** Enqueue a legal Signal command directly on the core. Committed by the next
    *  processCommands tick; no flush, no direct state write. Returns false when
    *  no signal device exists or the command is unknown. */
-  private enqueueSignalCommand(command: { type: 'signal-scan' | 'signal-jam'; actor: 'echo' } | { type: 'toggle-relay'; enabled: boolean }): boolean {
+  private enqueueSignalCommand(
+    command: { type: 'signal-scan' | 'signal-jam'; actor: 'player' | 'echo' }
+      | { type: 'toggle-relay'; enabled: boolean }
+      | { type: 'signal-power'; powered: boolean }
+  ): boolean {
     if (!this._sim.signal) return false;
     enqueueCommand(this._sim, command);
     this.bumpSimVersion();
     return true;
   }
+
+  /** HUMAN PLAYER scan the Relay using the player's own finite energy account. */
+  playerSignalScan(): boolean { return this.enqueueSignalCommand({ type: 'signal-scan', actor: 'player' }); }
+  /** HUMAN PLAYER jam the relay emission (suppresses, never toggles manual/power). */
+  playerSignalJam(): boolean { return this.enqueueSignalCommand({ type: 'signal-jam', actor: 'player' }); }
+  /** HUMAN OWNER manual relay + power toggle (JAM is preserved, not a switch). */
+  toggleRelay(enabled?: boolean): boolean {
+    return this.enqueueSignalCommand({ type: 'toggle-relay', enabled: enabled ?? !(this._sim.signal?.manualEnabled ?? false) });
+  }
+  setRelayPower(powered: boolean): boolean { return this.enqueueSignalCommand({ type: 'signal-power', powered }); }
 
   /** Owner-confirmed companion action -> a SINGLE queued core intent (move/fire/
    *  aim/stop) consumed by the next stepFrame tick, or a Signal command
