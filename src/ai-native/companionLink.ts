@@ -1,11 +1,10 @@
 // AI-NATIVE-02 P3-b A/B — browser-side Companion link (OWNER capability holder).
 //
 // The bridge-issued Owner session capability lives ONLY in ECMAScript #private
-// fields here. It is never sent to the agent, never logged, never part of a
-// URL, and cannot be read by JSON.stringify / enumeration / Object.keys.
+// fields. It never goes in a URL (GET uses the x-owner-cap header; POST uses the
+// body), is never logged, and cannot be read by JSON.stringify / enumeration.
 // The HUMAN pairing key is one-shot: it proves presence at handshake or
-// re-authorization and is immediately discarded from this object.
-// No Phaser import: the Scene passes plain callbacks.
+// re-authorization and is immediately discarded. No Phaser import.
 
 import { type CompanionSuggestion } from './companionFacet';
 
@@ -19,12 +18,11 @@ export interface CompanionLinkConfig {
   readonly ownerCap: string;
   /** Echo-legal observation from World.echoView(), no hidden fields. */
   readonly observation: () => Record<string, unknown> | null;
-  /** Human confirmation enqueues a real core command; returns false if illegal.
-   *  The receipt is posted LATER by the Scene after the core tick commits it. */
+  /** Human confirmation enqueues a real core command; returns false if illegal. */
   readonly apply: (kind: string, target?: { x: number; y: number }, suggestionId?: string) => boolean;
   /** Real post-commit tick after the confirmed intent was consumed by core. */
   readonly appliedTick: () => number;
-  /** Heartbeat interval in ms (bounded, no unbounded reconnect). */
+  /** Renderer gateway-heartbeat interval (well under LOST_AFTER_MS=5s). */
   readonly heartbeatIntervalMs?: number;
 }
 
@@ -35,13 +33,13 @@ export class CompanionLink {
   #state: CompanionLinkState = 'OFF';
   #lastError = '';
   #inFlight = false;
-  /** Bounded heartbeat: on failure the link degrades to FALLBACK:NO_MODEL. */
   #heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
+  #heartbeatActive = false;
   #heartbeatIntervalMs: number;
 
   constructor(private readonly config: CompanionLinkConfig) {
     this.#cap = config.ownerCap;
-    this.#heartbeatIntervalMs = config.heartbeatIntervalMs ?? 5000;
+    this.#heartbeatIntervalMs = config.heartbeatIntervalMs ?? 1000;
   }
 
   get status(): CompanionLinkState { return this.#state; }
@@ -65,48 +63,43 @@ export class CompanionLink {
     return res.json();
   }
   private async get(path: string): Promise<any> {
-    // Send the capability when present. echo_status / echo_memory ignore it;
-    // Owner suggestion reads (companion-suggestions) require it.
-    const separator = path.includes('?') ? '&' : '?';
-    const cap = this.#cap ? `${separator}ownerCap=${encodeURIComponent(this.#cap)}` : '';
-    const res = await fetch(`${this.config.bridgeUrl}${path}${cap}`, {
-      headers: { authorization: `Bearer ${this.config.token}`, origin: this.config.origin }
-    });
+    // Owner capability travels in a dedicated request header, never a URL.
+    const headers: Record<string, string> = {
+      authorization: `Bearer ${this.config.token}`,
+      origin: this.config.origin
+    };
+    if (this.#cap) headers['x-owner-cap'] = this.#cap;
+    const res = await fetch(`${this.config.bridgeUrl}${path}`, { headers });
     return res.json();
   }
 
-  /** Start bounded heartbeat: failure degrades to FALLBACK:NO_MODEL. */
+  /** Idempotent: a real renderer gateway heartbeat (POST /world-link/heartbeat)
+   *  at a bounded interval renews the RENDERED session so a paused companion
+   *  does not expire. It NEVER renews the independent Agent lease. */
   startHeartbeat(): void {
-    this.stopHeartbeat();
+    if (this.#heartbeatActive) return;
+    this.#heartbeatActive = true;
+    this.#scheduleHeartbeat();
+  }
+  #scheduleHeartbeat(): void {
     this.#heartbeatTimer = setTimeout(async () => {
+      if (!this.#heartbeatActive || this.#state !== 'CONNECTED') { this.#heartbeatActive = false; return; }
       try {
-        const res = await fetch(`${this.config.bridgeUrl}/world-link/companion-status?session=${this.config.session}&epoch=${this.config.epoch}`, {
-          headers: { authorization: `Bearer ${this.config.token}`, origin: this.config.origin }
+        const r = await this.post('/world-link/heartbeat', {
+          session: this.config.session, epoch: this.config.epoch
         });
-        if (!res.ok) {
-          this.#setFallback();
-          return;
-        }
-        const json = await res.json();
-        if (!json.ok || (json.value as any)?.status?.link === 'fallback') {
-          this.#setFallback();
-          return;
-        }
+        if (!r.ok) { this.#setFallback(); return; }
       } catch {
         this.#setFallback();
         return;
       }
-      this.#heartbeatTimer = setTimeout(() => this.startHeartbeat(), this.#heartbeatIntervalMs);
+      if (this.#heartbeatActive) this.#scheduleHeartbeat();
     }, this.#heartbeatIntervalMs);
   }
-
   stopHeartbeat(): void {
-    if (this.#heartbeatTimer) {
-      clearTimeout(this.#heartbeatTimer);
-      this.#heartbeatTimer = null;
-    }
+    this.#heartbeatActive = false;
+    if (this.#heartbeatTimer) { clearTimeout(this.#heartbeatTimer); this.#heartbeatTimer = null; }
   }
-
   #setFallback(): void {
     this.stopHeartbeat();
     this.#cap = '';
@@ -137,7 +130,8 @@ export class CompanionLink {
     return true;
   }
 
-  /** Called from the real rendered frame: push the echo's own perception. */
+  /** Push the echo's own committed observation (safe to call immediately after
+   *  authorize, without resuming the game tick). */
   async pushObservation(): Promise<void> {
     if (this.#state !== 'CONNECTED' || this.#inFlight) return;
     const observation = this.config.observation();
@@ -157,18 +151,20 @@ export class CompanionLink {
   }
 
   /**
-   * Owner CONFIRM/REJECT. The bridge validates the renderer capability, and
-   * the shared pure validator enforces enum/epoch/tick/TTL; this object has no
-   * raw secret to leak. A receipt is posted only after a real core commit.
+   * Owner CONFIRM/REJECT. The decision tick is the ACTUAL current core tick
+   * (config.appliedTick()), never a fabricated createdAtTick+1. Paused and
+   * same-as-create is legal (equal); an expired observation is refused by the
+   * shared validator. Receipt is posted later by the Scene after the tick.
    */
   async decide(suggestion: CompanionSuggestion, decision: 'confirm' | 'reject'): Promise<boolean> {
     if (this.#state !== 'CONNECTED' || !this.#cap) {
       this.#lastError = 'E_PERMISSION companion.owner_capability_required';
       return false;
     }
+    const tick = this.config.appliedTick();
     const r = await this.post('/world-link/companion-decision', {
       session: this.config.session, epoch: this.config.epoch,
-      suggestionId: suggestion.suggestionId, decision, tick: suggestion.createdAtTick + 1
+      suggestionId: suggestion.suggestionId, decision, tick
     });
     if (!r.ok) { this.#lastError = `${r.code} ${r.messageKey}`; return false; }
     if (decision === 'reject') return true;
@@ -180,8 +176,7 @@ export class CompanionLink {
     return true;
   }
 
-  /** Post the post-commit receipt once the core consumed the confirmed intent.
-   *  Idempotent on the bridge; called from the rendered frame, never early. */
+  /** Post the post-commit receipt once the core consumed the confirmed intent. */
   async postApplied(suggestionId: string, appliedTick: number): Promise<boolean> {
     if (this.#state !== 'CONNECTED' || !this.#cap) return false;
     const receipt = await this.post('/world-link/companion-applied', {

@@ -851,7 +851,7 @@ export class GameScene extends Phaser.Scene {
         bridgeUrl: bridgeUrl.replace(/\/$/, ''), token, origin: location.origin,
         session: hs.session, epoch: hs.epoch, ownerCap: hs.ownerCap,
         observation: () => this.world.echoView() as unknown as Record<string, unknown> | null,
-        heartbeatIntervalMs: 1500,
+        heartbeatIntervalMs: 1000,
         apply: (kind, target, suggestionId) => {
           const ok = this.world.enqueueCompanionAction(kind, target);
           if (ok && suggestionId) this.pendingCompanionReceipt = { suggestionId, enqueuedTick: this.world.sim.tick };
@@ -859,7 +859,11 @@ export class GameScene extends Phaser.Scene {
         },
         appliedTick: () => this.world.sim.tick
       });
-      return await this.companionLink.authorize();
+      const ok = await this.companionLink.authorize();
+      // Push the committed echo observation immediately so Agent echo_observe
+      // succeeds right away, WITHOUT resuming the game tick (no manual step).
+      if (ok) void this.companionLink.pushObservation();
+      return ok;
     } catch {
       return false;
     }

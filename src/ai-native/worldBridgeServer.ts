@@ -159,7 +159,11 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   }
   function companionSuggestions(req: IncomingMessage, res: ServerResponse): void {
     const { session, epoch } = companionQuery(req);
-    const cap = new URL(req.url ?? '/', 'http://127.0.0.1').searchParams.get('ownerCap');
+    // Owner capability in a dedicated header (never a URL); query kept as a
+    // compatibility fallback for older callers.
+    const headerCap = req.headers['x-owner-cap'];
+    const cap = (typeof headerCap === 'string' ? headerCap : null)
+      ?? new URL(req.url ?? '/', 'http://127.0.0.1').searchParams.get('ownerCap');
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
     // Owner suggestion read: requires the issued capability (Owner UI only).
@@ -660,7 +664,7 @@ function authorized(req: IncomingMessage, token: string): boolean {
 function applyCors(res: ServerResponse, origin: string): void {
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Headers', 'authorization,content-type');
+  res.setHeader('Access-Control-Allow-Headers', 'authorization,content-type,x-owner-cap');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Cache-Control', 'no-store');
 }
