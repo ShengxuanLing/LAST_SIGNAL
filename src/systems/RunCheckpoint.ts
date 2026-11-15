@@ -2,6 +2,8 @@ import { basePlayerData, GAME } from '../config/game';
 import { WEAPON_LIST } from '../config/weapons';
 import { UPGRADE_LIST } from '../config/upgrades';
 import { isValidTransactionId, PURCHASE_LEDGER_CAP } from '../config/supplies';
+import { echoPlayerData, ECHO_ACTOR_ID } from '../world/sim/core';
+import { AI_NATIVE_LIMITS_V1 } from '../ai-native/protocol';
 import type { ItemKind, RunCheckpoint } from '../types';
 
 const PLAYER_NUMBERS = [...Object.keys(basePlayerData()), 'level', 'xp', 'xpToNext', 'currency'];
@@ -38,48 +40,53 @@ export function cloneCheckpoint(run: RunCheckpoint): RunCheckpoint {
   };
 }
 
-/** Conservative absolute bounds for the echo's base-only stats. */
-export const ECHO_STAT_BOUNDS = Object.freeze({
-  hp: 10000, speed: 1000, armor: 1000, damage: 100,
-  critChance: 1, critDamage: 100, xpGain: 100, pickupRange: 1000,
-  dashCooldown: 100, dashDuration: 10, cooldownReduced: 1,
-  pierceCount: 10, hpRegen: 100
-});
+// P3-b Task0 — the echo base actor shape comes from the SAME factory used to
+// create it (`core.ts echoPlayerData()`). An absolute upper bound is NOT enough:
+// damage=99 / regen=50 / speed=1000 would still pass. Non-upgradeable fields
+// must equal the factory values exactly; only genuine runtime state may vary.
+const ECHO_BASE = echoPlayerData();
+const ECHO_EXACT_BASE_KEYS = Object.freeze([
+  'maxHp', 'speed', 'armor', 'damage', 'critChance', 'critDamage', 'xpGain',
+  'pickupRange', 'dashCooldown', 'dashDuration', 'cooldownReduced', 'pierceCount',
+  'hpRegen', 'level', 'xp', 'xpToNext', 'currency', 'weaponKey'
+] as const);
+
+/** Runtime values change every tick; they are range-checked, never frozen. */
+function finiteRuntime(value: unknown, max = AI_NATIVE_LIMITS_V1.MAX_TICK): boolean {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= max;
+}
 
 /** Deep validation of the optional echo actor in a checkpoint frame. */
 export function validEchoActor(value: unknown): boolean {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const e = value as Record<string, unknown>;
-  if (e.actorId !== 1) return false;
-  if (!Number.isFinite(e.x) || !Number.isFinite(e.y)) return false;
-  if (!['dashTimer', 'invuln', 'hurtTimer', 'fireTimer', 'aimYaw'].every((k) =>
-    typeof e[k] === 'number' && Number.isFinite(e[k]) && (e[k] as number) >= 0)) return false;
+  if (e.actorId !== ECHO_ACTOR_ID) return false;
+  if (typeof e.x !== 'number' || !Number.isFinite(e.x) ||
+      typeof e.y !== 'number' || !Number.isFinite(e.y) ||
+      Math.abs(e.x) > AI_NATIVE_LIMITS_V1.MAX_COORDINATE_ABS ||
+      Math.abs(e.y) > AI_NATIVE_LIMITS_V1.MAX_COORDINATE_ABS) return false;
+  // aimYaw can be negative; the other timers are non-negative.
+  if (typeof e.aimYaw !== 'number' || !Number.isFinite(e.aimYaw)) return false;
+  if (!['dashTimer', 'invuln', 'hurtTimer', 'fireTimer'].every((k) => finiteRuntime(e[k]))) return false;
+
   const data = e.data as Record<string, unknown> | undefined;
   if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
-  const numeric: Array<[string, number]> = [
-    ['hp', ECHO_STAT_BOUNDS.hp], ['maxHp', ECHO_STAT_BOUNDS.hp],
-    ['speed', ECHO_STAT_BOUNDS.speed], ['armor', ECHO_STAT_BOUNDS.armor],
-    ['damage', ECHO_STAT_BOUNDS.damage], ['critChance', ECHO_STAT_BOUNDS.critChance],
-    ['critDamage', ECHO_STAT_BOUNDS.critDamage], ['xpGain', ECHO_STAT_BOUNDS.xpGain],
-    ['pickupRange', ECHO_STAT_BOUNDS.pickupRange], ['dashCooldown', ECHO_STAT_BOUNDS.dashCooldown],
-    ['dashDuration', ECHO_STAT_BOUNDS.dashDuration], ['cooldownReduced', ECHO_STAT_BOUNDS.cooldownReduced],
-    ['pierceCount', ECHO_STAT_BOUNDS.pierceCount], ['hpRegen', ECHO_STAT_BOUNDS.hpRegen],
-    ['aimYaw', Math.PI * 4], ['level', 1], ['xp', 0], ['currency', 0]
-  ];
-  for (const [key, max] of numeric) {
-    const v = data[key];
-    if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > max) return false;
+  // Non-upgradeable stats / identity must be EXACTLY the legal base values.
+  for (const key of ECHO_EXACT_BASE_KEYS) {
+    if (data[key] !== ECHO_BASE[key as keyof typeof ECHO_BASE]) return false;
   }
-  if (typeof data.maxHp !== 'number' || data.maxHp <= 0) return false;
-  if (typeof data.hp !== 'number' || data.hp > data.maxHp) return false;
-  if (typeof data.xpToNext !== 'number' || !Number.isFinite(data.xpToNext) || data.xpToNext <= 0) return false;
-  if (data.weaponKey !== 'pulse') return false;
+  // Runtime HP (normal damage), facing and the weapon reload timer may vary.
+  if (typeof data.hp !== 'number' || !Number.isFinite(data.hp) ||
+      data.hp < 0 || data.hp > ECHO_BASE.maxHp) return false;
+  if (typeof data.aimYaw !== 'number' || !Number.isFinite(data.aimYaw)) return false;
+
   if (!Array.isArray(data.weapons) || data.weapons.length !== 1) return false;
   const weapon = data.weapons[0] as Record<string, unknown>;
-  if (!weapon || weapon.key !== 'pulse' || weapon.level !== 1 || weapon.ammo !== -1 ||
-      weapon.magazine !== -1 || weapon.reloading !== false ||
-      typeof weapon.reloadTimer !== 'number' || !Number.isFinite(weapon.reloadTimer)) return false;
-  // Base-only: no upgrades, no abilities, no free skills.
+  const baseWeapon = ECHO_BASE.weapons[0];
+  if (!weapon || weapon.key !== baseWeapon.key || weapon.level !== baseWeapon.level ||
+      weapon.ammo !== baseWeapon.ammo || weapon.magazine !== baseWeapon.magazine ||
+      weapon.reloading !== false || !finiteRuntime(weapon.reloadTimer)) return false;
+  // No free skills: the echo has no upgrades and no abilities, ever.
   if (!Array.isArray(data.upgrades) || data.upgrades.length !== 0) return false;
   if (!Array.isArray(data.abilities) || data.abilities.length !== 0) return false;
   return true;

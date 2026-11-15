@@ -99,6 +99,25 @@ describe('checkpoint echo actor', () => {
     expect(captured.coreState!.echo!.data.hp).toBe(80);
   });
 
+  it('accepts normal runtime damage, angles, positions and weapon/hit timers', () => {
+    const run = echoFrame();
+    const echo = run.coreState!.echo!;
+    echo.data.hp = 1;                 // survived a real hit
+    echo.data.aimYaw = -2.5;          // facing is runtime state
+    echo.x = 12.25;
+    echo.y = -3.5;
+    echo.invuln = 0.5;
+    echo.hurtTimer = 0.25;
+    echo.fireTimer = 0.3;
+    echo.dashTimer = 0.1;
+    echo.aimYaw = 1.2;
+    echo.data.weapons[0].reloadTimer = 0.2;
+    expect(validateCheckpoint(run)).toBe(true);
+    const playerUpgrades = makeRun();
+    playerUpgrades.player.upgrades.push({ key: 'power', level: 3 });
+    expect(validateCheckpoint(playerUpgrades), 'player upgrades are still legal').toBe(true);
+  });
+
   it('old saves without an echo stay valid (solo compatibility)', () => {
     const run = makeRun();
     run.coreState = {
@@ -121,12 +140,24 @@ describe('checkpoint echo actor', () => {
       run.coreState!.echo!.data.maxHp = data.maxHp;
       expect(validateCheckpoint(run)).toBe(false);
     }
-    const tamperedStats = echoFrame();
-    tamperedStats.coreState!.echo!.data.speed = 999999;
-    expect(validateCheckpoint(tamperedStats), 'speed beyond the base-only bound').toBe(false);
-    const tamperedArmor = echoFrame();
-    tamperedArmor.coreState!.echo!.data.armor = 5000;
-    expect(validateCheckpoint(tamperedArmor), 'armor beyond the base-only bound').toBe(false);
+    // Every absolute-upper-bound-only tamper that Reviewer/Tester flagged must
+    // now be rejected: base stats are EXACT, not merely <= an arbitrary cap.
+    const tampered: Array<[string, number]> = [
+      ['damage', 99], ['hpRegen', 50], ['cooldownReduced', 1], ['critDamage', 99],
+      ['pierceCount', 10], ['speed', 1000], ['armor', 1000], ['pickupRange', 1000],
+      ['xpGain', 100], ['maxHp', 10000]
+    ];
+    for (const [key, value] of tampered) {
+      const bad = echoFrame();
+      (bad.coreState!.echo!.data as unknown as Record<string, number>)[key] = value;
+      expect(validateCheckpoint(bad), `${key}=${value} must be rejected`).toBe(false);
+    }
+    const tamperedXp = echoFrame();
+    tamperedXp.coreState!.echo!.data.xp = 100;
+    expect(validateCheckpoint(tamperedXp)).toBe(false);
+    const tamperedCurrency = echoFrame();
+    tamperedCurrency.coreState!.echo!.data.currency = 100;
+    expect(validateCheckpoint(tamperedCurrency)).toBe(false);
     const tamperedSkills = echoFrame();
     tamperedSkills.coreState!.echo!.data.upgrades.push({ key: 'damage', level: 1 });
     expect(validateCheckpoint(tamperedSkills), 'no free upgrades from a save').toBe(false);
