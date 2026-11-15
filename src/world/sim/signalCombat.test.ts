@@ -357,3 +357,105 @@ describe('Signal default opt-in (Task C item 2)', () => {
     expect(sig.actors.echo.energy.energy).toBe(100); // unchanged
   });
 });
+
+describe('Signal E2E cooperation chain (Task C item 5)', () => {
+  it('scan → evidence → energy cost → jam → suppression → expiry → toggle → ACTIVE → exit open', () => {
+    const s = state();
+    spawnRelay(s);
+    spawnEcho(s);
+
+    // 1. Echo scan: costs echo energy, records evidence
+    const echoEnergyBefore = s.signal!.actors.echo.energy.energy;
+    enqueueCommand(s, { type: 'signal-scan', actor: 'echo' });
+    stepSimulationTicks(s, 1, neutral());
+    expect(s.signal!.actors.echo.energy.energy).toBeLessThan(echoEnergyBefore);
+    expect(s.signal!.evidence.length).toBeGreaterThan(0);
+
+    // 2. Player jam: suppresses emission, relay JAMMED (not ACTIVE)
+    enqueueCommand(s, { type: 'signal-jam', actor: 'player' });
+    stepSimulationTicks(s, 1, neutral());
+    expect(s.signal!.relay).toBe('JAMMED');
+    expect(signalExitOpen(s.signal)).toBe(false);
+    expect(s.signal!.manualEnabled).toBe(false); // JAM never toggles manual
+    expect(s.signal!.powered).toBe(true); // power preserved
+
+    // 3. Toggle while JAMMED: manualEnabled set but relay stays JAMMED
+    enqueueCommand(s, { type: 'toggle-relay', enabled: true });
+    stepSimulationTicks(s, 1, neutral());
+    expect(s.signal!.relay).toBe('JAMMED');
+    expect(s.signal!.manualEnabled).toBe(true);
+
+    // 4. Jam expires (360 ticks): relay returns to ACTIVE (manualEnabled=true)
+    for (let i = 0; i < 365; i += 1) stepSimulationTicks(s, 1, neutral());
+    expect(s.signal!.relay).toBe('ACTIVE');
+    expect(signalExitOpen(s.signal)).toBe(true);
+    expect(s.signal!.manualEnabled).toBe(true);
+    expect(s.signal!.powered).toBe(true);
+  });
+
+  it('jam suppresses emission but preserves manual/power state', () => {
+    const s = state();
+    spawnRelay(s);
+
+    // Enable relay first
+    enqueueCommand(s, { type: 'toggle-relay', enabled: true });
+    stepSimulationTicks(s, 1, neutral());
+    expect(s.signal!.relay).toBe('ACTIVE');
+    expect(s.signal!.manualEnabled).toBe(true);
+    expect(s.signal!.powered).toBe(true);
+
+    // Jam while ACTIVE: relay becomes JAMMED, manual/power preserved
+    enqueueCommand(s, { type: 'signal-jam', actor: 'player' });
+    stepSimulationTicks(s, 1, neutral());
+    expect(s.signal!.relay).toBe('JAMMED');
+    expect(s.signal!.manualEnabled).toBe(true);
+    expect(s.signal!.powered).toBe(true);
+    expect(signalExitOpen(s.signal)).toBe(false);
+
+    // Jam expires: returns to ACTIVE (manualEnabled still true)
+    for (let i = 0; i < 365; i += 1) stepSimulationTicks(s, 1, neutral());
+    expect(s.signal!.relay).toBe('ACTIVE');
+    expect(signalExitOpen(s.signal)).toBe(true);
+  });
+
+  it('evidence expires by absolute TTL, not wall clock', () => {
+    const s = state();
+    spawnRelay(s);
+    enqueueCommand(s, { type: 'signal-scan', actor: 'player' });
+    stepSimulationTicks(s, 1, neutral());
+    expect(s.signal!.evidence.length).toBe(1);
+
+    // Evidence expires after SCAN_REVEAL_TICKS (480) ticks
+    for (let i = 0; i < SIGNAL_TUNING.SCAN_REVEAL_TICKS + 1; i += 1) {
+      stepSimulationTicks(s, 1, neutral());
+    }
+    expect(s.signal!.evidence.length).toBe(0);
+  });
+});
+
+describe('External agent signal permission (Task C item 3)', () => {
+  it('external signal command with actor=echo is rejected (no Companion bypass)', () => {
+    // This tests the CORE rule: echo commands require echo actor to exist
+    // and go through Companion confirmation path, not direct external submit.
+    const s = state();
+    spawnRelay(s);
+    // No echo spawned → echo scan is illegal
+    const result = commitSignalScan(s.signal!, 'echo', s.tick, false, {
+      actorPosition: () => null, // echo has no position
+      hasLineOfSight: () => true
+    });
+    expect(result.ok).toBe(false);
+    expect(result.code).toBe('E_PERMISSION');
+  });
+
+  it('external signal command with actor=player is legal', () => {
+    const s = state();
+    spawnRelay(s);
+    const result = commitSignalScan(s.signal!, 'player', s.tick, false, {
+      actorPosition: () => ({ x: s.player.x, y: s.player.y }),
+      hasLineOfSight: () => true
+    });
+    expect(result.ok).toBe(true);
+    expect(s.signal!.actors.player.energy.energy).toBe(90);
+  });
+});

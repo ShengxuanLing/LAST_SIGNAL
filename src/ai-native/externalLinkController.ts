@@ -304,11 +304,25 @@ export class ExternalLinkController {
       if (!next) return;
       // V2 Signal actions (scan/jam) are committed directly by the core tick
       // on the named actor's energy account — they are NOT PlayerIntents.
+      // Player/external actions may ONLY use actor='player'. actor='echo'
+      // would bypass Owner/Companion confirmation and is rejected here.
       const na = next.action as { type: string; actor?: 'player' | 'echo'; actionId: string; requestId: string };
       if (na.type === 'scan' || na.type === 'jam') {
+        if (na.actor === 'echo') {
+          // External Player cannot issue echo signal commands — that is the
+          // Companion's domain and requires Owner UI confirmation.
+          if (!this.live(token)) return;
+          world.externalLink.beginExecution(world.sim.tick, token.epoch);
+          const receipt = world.externalLink.ackSignalCommand(
+            next.actionId, next.requestId, 'rejected',
+            world.sim.tick, 'E_PERMISSION'
+          );
+          void receipt;
+          return;
+        }
         const ok = world.enqueueSignalCommandByActor({
           type: na.type === 'scan' ? 'signal-scan' : 'signal-jam',
-          actor: na.actor ?? 'player'
+          actor: 'player'
         });
         // ACK immediately: signal commands are single-tick commits, not
         // duration-based intents. A failed enqueue (no device) is rejected.
