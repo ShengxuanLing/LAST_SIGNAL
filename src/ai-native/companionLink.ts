@@ -1,22 +1,13 @@
-// AI-NATIVE-02 P3-b A — browser-side Companion link (OWNER capability holder).
+// AI-NATIVE-02 P3-b A/B — browser-side Companion link (OWNER capability holder).
 //
-// The owner capability and the random owner secret live ONLY here, inside the
-// rendered game. They are never sent to the agent, never logged and never part
-// of a URL. The bridge independently verifies sha256(secret) on CONFIRM.
+// The bridge-issued Owner session capability lives ONLY in ECMAScript #private
+// fields here. It is never sent to the agent, never logged, never part of a
+// URL, and cannot be read by JSON.stringify / enumeration / Object.keys.
+// The HUMAN pairing key is one-shot: it proves presence at handshake or
+// re-authorization and is immediately discarded from this object.
 // No Phaser import: the Scene passes plain callbacks.
 
 import { type CompanionSuggestion } from './companionFacet';
-
-/** Browser-only: exact object identities minted by the human UI. */
-const OWNER_AUTHORITIES = new WeakSet<object>();
-function mintOwnerAuthority(): object {
-  const proof = Object.freeze({ kind: 'OWNER' });
-  OWNER_AUTHORITIES.add(proof);
-  return proof;
-}
-function isOwnerAuthority(proof: unknown): boolean {
-  return typeof proof === 'object' && proof !== null && OWNER_AUTHORITIES.has(proof);
-}
 
 export interface CompanionLinkConfig {
   readonly bridgeUrl: string;
@@ -24,26 +15,34 @@ export interface CompanionLinkConfig {
   readonly origin: string;
   readonly session: string;
   readonly epoch: number;
+  /** Bridge-issued renderer capability from the human handshake. */
+  readonly ownerCap: string;
   /** Echo-legal observation from World.echoView(), no hidden fields. */
   readonly observation: () => Record<string, unknown> | null;
   /** Human confirmation enqueues a real core command; returns false if illegal. */
   readonly apply: (kind: string, target?: { x: number; y: number }) => boolean;
+  /** Real post-commit tick after the confirmed intent was consumed by core. */
+  readonly appliedTick: () => number;
 }
 
 export type CompanionLinkState = 'OFF' | 'CONNECTED' | 'FALLBACK:NO_MODEL' | 'READ_ONLY';
 
 export class CompanionLink {
-  private ownerSecret: string | null = null;
-  private capability: object | null = null;
-  private state: CompanionLinkState = 'OFF';
-  private lastError = '';
-  private inFlight = false;
+  #cap: string;
+  #state: CompanionLinkState = 'OFF';
+  #lastError = '';
+  #inFlight = false;
 
-  constructor(private readonly config: CompanionLinkConfig) {}
+  constructor(private readonly config: CompanionLinkConfig) {
+    this.#cap = config.ownerCap;
+  }
 
-  get status(): CompanionLinkState { return this.state; }
-  get error(): string { return this.lastError; }
+  get status(): CompanionLinkState { return this.#state; }
+  get error(): string { return this.#lastError; }
   get session(): string { return this.config.session; }
+
+  /** No enumerable secrets even under dev diagnostics / JSON.stringify. */
+  toJSON(): Record<string, never> { return {}; }
 
   private async post(path: string, body: Record<string, unknown>): Promise<any> {
     const res = await fetch(`${this.config.bridgeUrl}${path}`, {
@@ -53,87 +52,90 @@ export class CompanionLink {
         authorization: `Bearer ${this.config.token}`,
         origin: this.config.origin
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ ...body, ownerCap: this.#cap })
     });
     return res.json();
   }
   private async get(path: string): Promise<any> {
-    const res = await fetch(`${this.config.bridgeUrl}${path}`, {
+    const separator = path.includes('?') ? '&' : '?';
+    const res = await fetch(`${this.config.bridgeUrl}${path}${separator}ownerCap=${encodeURIComponent(this.#cap)}`, {
       headers: { authorization: `Bearer ${this.config.token}`, origin: this.config.origin }
     });
     return res.json();
   }
 
-  private async sha256(value: string): Promise<string> {
-    const bytes = new TextEncoder().encode(value);
-    const digest = await crypto.subtle.digest('SHA-256', bytes);
-    return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  /** HUMAN authorize (Pause menu). Creates the browser-only owner capability. */
-  async authorize(): Promise<boolean> {
-    const secret = [...crypto.getRandomValues(new Uint8Array(24))]
-      .map((b) => b.toString(16).padStart(2, '0')).join('');
-    const ownerSecretHash = await this.sha256(secret);
+  /**
+   * HUMAN authorize / re-authorize (Pause menu). Registration needs the
+   * bridge-issued capability; re-authorization additionally requires the host
+   * pairing key and atomically swaps the capability.
+   */
+  async authorize(ownerMode: 'human' | 'ai' | 'external' = 'human', ownerKey = ''): Promise<boolean> {
+    const reauthorize = ownerKey.length > 0;
     const r = await this.post('/world-link/companion-authorize', {
       session: this.config.session, epoch: this.config.epoch,
-      ownerSecretHash, ownerMode: 'human'
+      ownerMode, ...(reauthorize ? { reauthorize: true, ownerKey } : {})
     });
-    if (!r.ok) { this.lastError = `${r.code ?? 'E_PERMISSION'} ${r.messageKey ?? ''}`; this.state = 'FALLBACK:NO_MODEL'; return false; }
-    this.ownerSecret = secret;
-    this.capability = mintOwnerAuthority();
-    this.state = 'CONNECTED';
+    if (!r.ok) {
+      this.#lastError = `${r.code ?? 'E_PERMISSION'} ${r.messageKey ?? ''}`;
+      this.#state = 'FALLBACK:NO_MODEL';
+      this.#cap = '';
+      return false;
+    }
+    if (typeof r.ownerCap === 'string') this.#cap = r.ownerCap;
+    this.#state = ownerMode === 'human' ? 'CONNECTED' : 'READ_ONLY';
     return true;
   }
 
   /** Called from the real rendered frame: push the echo's own perception. */
   async pushObservation(): Promise<void> {
-    if (this.state !== 'CONNECTED' || this.inFlight) return;
+    if (this.#state !== 'CONNECTED' || this.#inFlight) return;
     const observation = this.config.observation();
     if (!observation) return;
-    this.inFlight = true;
+    this.#inFlight = true;
     try {
       await this.post('/world-link/companion-observation', {
         session: this.config.session, epoch: this.config.epoch, observation
       });
-    } finally { this.inFlight = false; }
+    } finally { this.#inFlight = false; }
   }
 
   async pending(): Promise<readonly CompanionSuggestion[]> {
-    if (this.state !== 'CONNECTED') return [];
+    if (this.#state !== 'CONNECTED') return [];
     const r = await this.get(`/world-link/companion-suggestions?session=${this.config.session}&epoch=${this.config.epoch}`);
     return r.ok ? (r.value as CompanionSuggestion[]) : [];
   }
 
   /**
-   * Owner CONFIRM/REJECT. The symbol-based capability is checked locally, and
-   * the secret is checked by the bridge. The agent has neither.
+   * Owner CONFIRM/REJECT. The bridge validates the renderer capability, and
+   * the shared pure validator enforces enum/epoch/tick/TTL; this object has no
+   * raw secret to leak. A receipt is posted only after a real core commit.
    */
   async decide(suggestion: CompanionSuggestion, decision: 'confirm' | 'reject'): Promise<boolean> {
-    if (!this.capability || !isOwnerAuthority(this.capability) || !this.ownerSecret) {
-      this.lastError = 'E_PERMISSION companion.owner_capability_required';
+    if (this.#state !== 'CONNECTED' || !this.#cap) {
+      this.#lastError = 'E_PERMISSION companion.owner_capability_required';
       return false;
     }
-    if (this.state !== 'CONNECTED') return false;
     const r = await this.post('/world-link/companion-decision', {
       session: this.config.session, epoch: this.config.epoch,
-      suggestionId: suggestion.suggestionId, decision, tick: suggestion.createdAtTick + 1,
-      ownerSecret: this.ownerSecret
+      suggestionId: suggestion.suggestionId, decision, tick: suggestion.createdAtTick + 1
     });
-    if (!r.ok) { this.lastError = `${r.code} ${r.messageKey}`; return false; }
-    if (decision === 'confirm' && !this.config.apply(suggestion.kind, suggestion.target ?? undefined)) {
-      return false; // scan/jam not wired until P3-b B
+    if (!r.ok) { this.#lastError = `${r.code} ${r.messageKey}`; return false; }
+    if (decision === 'reject') return true;
+    if (!this.config.apply(suggestion.kind, suggestion.target ?? undefined)) {
+      this.#lastError = 'E_PERMISSION companion.action_not_applicable';
+      return false;
     }
-    await this.post('/world-link/companion-applied', {
-      session: this.config.session, suggestionId: suggestion.suggestionId,
-      ownerSecret: this.ownerSecret
+    const appliedTick = this.config.appliedTick();
+    const receipt = await this.post('/world-link/companion-applied', {
+      session: this.config.session, suggestionId: suggestion.suggestionId, appliedTick
     });
+    if (!receipt.ok) { this.#lastError = `${receipt.code} ${receipt.messageKey}`; return false; }
     return true;
   }
 
   setOwnerMode(ownerMode: 'human' | 'ai' | 'external'): void {
-    if (this.state === 'OFF') return;
-    this.state = ownerMode === 'human' ? 'CONNECTED' : 'READ_ONLY';
+    if (this.#state === 'OFF') return;
+    this.#state = ownerMode === 'human' ? 'CONNECTED' : 'READ_ONLY';
     void this.post('/world-link/companion-mode', {
       session: this.config.session, epoch: this.config.epoch, ownerMode
     });
@@ -141,10 +143,9 @@ export class CompanionLink {
 
   /** Explicit disconnect: NO_MODEL fallback, never a fake connected state. */
   disconnect(): void {
-    if (this.state === 'OFF') return;
+    if (this.#state === 'OFF') return;
     void this.post('/world-link/companion-disconnect', { session: this.config.session });
-    this.ownerSecret = null;
-    this.capability = null;
-    this.state = 'FALLBACK:NO_MODEL';
+    this.#cap = '';
+    this.#state = 'FALLBACK:NO_MODEL';
   }
 }

@@ -8,7 +8,7 @@
 
 import { WorldGateway } from './worldGateway';
 import {
-  COMPANION_LIMITS, CompanionFacet, COMPANION_ID_PATTERN,
+  COMPANION_LIMITS, CompanionFacet, COMPANION_ID_PATTERN, validateOwnerDecision,
   type CompanionObservation, type CompanionObservationView,
   type CompanionOwnerMode, type CompanionSuggestion, type CompanionSuggestionKind,
   type CompanionReason
@@ -78,11 +78,22 @@ export class CompanionGateway {
     return created;
   }
 
-  /** Human AUTHORIZE inside the real game (renderer-only route). */
-  authorize(sessionId: string, epoch: number, ownerMode: CompanionOwnerMode): Result<{ session: string; epoch: number }> {
+  /**
+   * Human AUTHORIZE inside the real game (renderer-only route). A
+   * re-authorization atomically invalidates the previous owner's unconfirmed
+   * work and published observation before the bridge issues a NEW capability.
+   */
+  authorize(sessionId: string, epoch: number, ownerMode: CompanionOwnerMode, reauthorize = false): Result<{ session: string; epoch: number }> {
     const s = this.session(sessionId, epoch);
     if ('ok' in s && s.ok === false) return s;
     const state = s as CompanionSession;
+    if (reauthorize) {
+      state.facet.reauthorize(epoch);
+      state.observation = null;
+      state.decisions.clear();
+      state.requests.clear();
+      state.requestRecords = 0;
+    }
     state.ownerMode = ownerMode;
     state.facet.setOwnerMode(ownerMode);
     state.facet.setLink('connected');
@@ -182,32 +193,45 @@ export class CompanionGateway {
    * An agent token or a forged Origin can never reach this method: the bridge
    * exposes it only on the Origin-checked renderer route.
    */
-  decide(input: { session: string; epoch: number; suggestionId: string; decision: 'confirm' | 'reject'; tick: number }): Result<CompanionDecisionRecord> {
+  decide(input: { session: string; epoch: number; suggestionId: string; decision: 'confirm' | 'reject'; tick: number; maxEpochSeen?: number }): Result<CompanionDecisionRecord> {
     const s = this.session(input.session, input.epoch);
     if ('ok' in s && s.ok === false) return s;
     const state = s as CompanionSession;
-    if (state.ownerMode !== 'human') return err('E_PERMISSION', 'companion.owner_mode_readonly');
-    if (state.facet.status().link !== 'connected') return err('E_LINK_UNAVAILABLE', 'companion.link_fallback');
-    if (state.decisions.has(input.suggestionId)) return err('E_RETRYABLE', 'companion.decision_exists');
+    // Shared pure validator: identical rules to CompanionOwnerLedger. The
+    // suggestion is read BEFORE advanceTo so an expired proposal reports
+    // E_ACTION_EXPIRED instead of being silently reclassified.
+    const validated = validateOwnerDecision(input, {
+      status: state.facet.status(),
+      suggestion: state.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId),
+      alreadyDecided: state.decisions.has(input.suggestionId),
+      maxEpochSeen: input.maxEpochSeen ?? input.epoch
+    });
+    if (!validated.ok) return err(validated.code, validated.messageKey);
     state.facet.advanceTo(input.tick);
-    const proposal = state.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId);
-    if (!proposal || input.tick >= proposal.expiresAtTick) return err('E_TARGET_DESTROYED', 'companion.suggestion_expired');
     const record: CompanionDecisionRecord = Object.freeze({
       suggestionId: input.suggestionId,
-      decision: input.decision,
+      decision: validated.value.decision,
       epoch: input.epoch,
-      decidedAtTick: input.tick,
+      decidedAtTick: validated.value.decidedAtTick,
       applied: false
     });
     state.decisions.set(input.suggestionId, record);
     return { ok: true, value: record };
   }
 
-  /** Browser reports the post-commit core fact; no side effect on suggestions. */
-  markApplied(sessionId: string, suggestionId: string): Result<CompanionDecisionRecord> {
+  /**
+   * Post-commit receipt. Only a CONFIRM that really reached the core tick may
+   * become applied; a rejected decision can never be reported as executed.
+   */
+  markApplied(sessionId: string, suggestionId: string, appliedTick: number): Result<CompanionDecisionRecord> {
     const state = this.sessions.get(sessionId);
     const record = state?.decisions.get(suggestionId);
     if (!state || !record) return err('E_TARGET_DESTROYED', 'companion.decision_unknown');
+    if (record.decision !== 'confirm') return err('E_PERMISSION', 'companion.decision_not_confirmed');
+    if (record.applied) return err('E_RETRYABLE', 'companion.decision_already_applied');
+    if (!Number.isInteger(appliedTick) || appliedTick < record.decidedAtTick) {
+      return err('E_STALE_TICK', 'companion.applied_tick_invalid');
+    }
     const updated = { ...record, applied: true };
     state.decisions.set(suggestionId, updated);
     return { ok: true, value: updated };

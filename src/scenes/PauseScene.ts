@@ -4,6 +4,7 @@ import { UPGRADES } from '../config/upgrades';
 import { WEAPONS } from '../config/weapons';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
+import { clearOwnerPairing, peekOwnerPairing, stashOwnerPairing } from '../ai-native/ownerPairing';
 import { GameScene } from './GameScene';
 
 export class PauseScene extends Phaser.Scene {
@@ -13,8 +14,9 @@ export class PauseScene extends Phaser.Scene {
   private externalStatusText: Phaser.GameObjects.Text | null = null;
   private controlText: Phaser.GameObjects.Text | null = null;
   private lastExternalSig = '';
-  /** Native DOM form for the loopback bridge URL + masked token. */
+  /** Native DOM form for the loopback bridge URL + masked token + OWNER key. */
   private externalLinkForm: HTMLElement | null = null;
+  private linkFormMode: 'external' | 'companion' = 'external';
 
   constructor() { super('PauseScene'); }
 
@@ -240,7 +242,9 @@ export class PauseScene extends Phaser.Scene {
           }).setOrigin(0.5);
           return;
         }
-        void parent.authorizeExternalAgent(bridgeUrl, token).then((ok) => {
+        const ownerKey = peekOwnerPairing(parent)?.consumeKey() ?? '';
+        void parent.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
+          if (!ok) clearOwnerPairing(parent);
           this.lastExternalSig = '';
           this.refreshExternalLabels();
           if (!ok) {
@@ -352,7 +356,10 @@ export class PauseScene extends Phaser.Scene {
 
     this._button(GAME.WINDOW_W / 2, 340, 'ENABLE / RE-AUTHORIZE (HUMAN)', () => {
       if (!parent.world.echoActor) parent.world.enableEcho();
-      void parent.authorizeCompanionFromConfig().then(redraw);
+      // The host-private pairing key is entered into a masked DOM form; it is
+      // never injected into a global config or shown to an Agent route.
+      this.linkFormMode = 'companion';
+      this.openExternalLinkForm('companion');
     }, 0x274a55);
     this._button(GAME.WINDOW_W / 2, 400, 'REJECT FIRST PROPOSAL', () => {
       const link = parent.companionLink;
@@ -476,8 +483,9 @@ export class PauseScene extends Phaser.Scene {
    * window keyboard listeners so W/A/S/D/SPACE/ESC cannot take over or close
    * the pause menu while the player enters a URL/token.
    */
-  private openExternalLinkForm(): void {
+  private openExternalLinkForm(mode: 'external' | 'companion' = 'external'): void {
     if (this.externalLinkForm) return;
+    this.linkFormMode = mode;
     const parent = this.scene.get<GameScene>('GameScene');
     const existing = (globalThis as unknown as { __externalLinkConfig?: { bridgeUrl?: string; token?: string } })
       .__externalLinkConfig;
@@ -499,10 +507,12 @@ export class PauseScene extends Phaser.Scene {
     ].join(';');
 
     const title = document.createElement('div');
-    title.textContent = 'EXTERNAL AGENT LINK';
+    title.textContent = mode === 'companion' ? 'COMPANION · HUMAN OWNER PAIRING' : 'EXTERNAL AGENT LINK';
     title.style.cssText = 'font-size:18px;font-weight:700;letter-spacing:2px;color:#33e0ff';
     const note = document.createElement('div');
-    note.textContent = 'Local bridge only. The token is masked, never saved and never logged. You must click AUTHORIZE.';
+    note.textContent = mode === 'companion'
+      ? 'Enter the host-private OWNER_KEY_FILE value. It is masked, used once, then cleared. Only this human can authorize the companion.'
+      : 'Local bridge only. Token and Owner pairing key are masked, never saved and never logged. You must click AUTHORIZE.';
     note.style.cssText = 'font-size:12px;line-height:1.5;color:#8fb8c8';
 
     const label = (text: string): HTMLLabelElement => {
@@ -528,6 +538,14 @@ export class PauseScene extends Phaser.Scene {
     tokenInput.spellcheck = false;
     tokenInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
 
+    const ownerKeyInput = document.createElement('input');
+    ownerKeyInput.type = 'password';
+    ownerKeyInput.name = 'ownerKey';
+    ownerKeyInput.placeholder = 'host owner pairing key (masked, 64 hex)';
+    ownerKeyInput.autocomplete = 'off';
+    ownerKeyInput.spellcheck = false;
+    ownerKeyInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+
     const status = document.createElement('div');
     status.setAttribute('role', 'status');
     status.setAttribute('data-testid', 'external-link-status');
@@ -545,7 +563,8 @@ export class PauseScene extends Phaser.Scene {
     row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap';
     row.append(cancel, authorize);
 
-    panel.append(title, note, label('BRIDGE URL'), urlInput, label('TOKEN'), tokenInput, status, row);
+    panel.append(title, note, label('BRIDGE URL'), urlInput, label('TOKEN'), tokenInput,
+      label('OWNER PAIRING KEY · from host private OWNER_KEY_FILE'), ownerKeyInput, status, row);
     root.append(panel);
     // Bubble-phase stop: the input still receives typing, but Phaser's window
     // keyboard listeners never see it (no takeover, no ESC close).
@@ -578,12 +597,32 @@ export class PauseScene extends Phaser.Scene {
         setStatus('TOKEN is empty or too short', '#ff8a3c');
         return;
       }
-      // Clear the secret from the DOM immediately; it lives only in memory.
+      const ownerKey = ownerKeyInput.value.trim();
+      if (!/^[0-9a-f]{64}$/.test(ownerKey)) {
+        setStatus('OWNER PAIRING KEY must be 64 hex characters from OWNER_KEY_FILE', '#ff8a3c');
+        return;
+      }
+      // Clear BOTH secrets from the DOM immediately; the raw key goes only
+      // into a module-private WeakMap (#private fields), never a global config.
       tokenInput.value = '';
+      ownerKeyInput.value = '';
+      stashOwnerPairing(parent, ownerKey);
+      if (this.linkFormMode === 'companion') {
+        setStatus('PAIRING OWNER…', '#ffd233');
+        void parent.authorizeCompanionFromConfig().then((ok) => {
+          if (ok) {
+            setStatus('CONNECTED · Owner authority registered', '#7ff0ff');
+            this.closeExternalLinkForm();
+          } else {
+            setStatus('FAILED · owner pairing rejected — control stays human', '#ff8a3c');
+          }
+        });
+        return;
+      }
       (globalThis as unknown as { __externalLinkConfig?: { bridgeUrl: string; token: string } })
         .__externalLinkConfig = { bridgeUrl, token };
       setStatus('AUTHORIZING…', '#ffd233');
-      void parent.authorizeExternalAgent(bridgeUrl, token).then((ok) => {
+      void parent.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
         if (ok) {
           this.lastExternalSig = '';
           this.refreshExternalLabels();

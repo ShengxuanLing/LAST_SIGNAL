@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
 import { WorldGateway } from './worldGateway';
 import { startWorldBridge } from './worldBridgeServer';
+import { TEST_OWNER_KEY_HASH } from './ownerAuthFixture';
 
 const ORIGIN = 'http://localhost:5335';
 const TOKEN = randomBytes(24).toString('hex');
@@ -12,7 +13,7 @@ const log = (m: string): void => { process.stdout.write(`${m}\n`); };
 
 async function main(): Promise<void> {
   const bridge = await startWorldBridge({
-    gateway: new WorldGateway(), token: TOKEN, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 20
+    gateway: new WorldGateway(), token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 20
   });
   try {
     const post = async (path: string, body: unknown, origin?: string): Promise<any> => {

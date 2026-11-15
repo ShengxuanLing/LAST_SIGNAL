@@ -15,6 +15,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { WorldGateway } from './worldGateway';
 import { startWorldBridge } from './worldBridgeServer';
+import { TEST_OWNER_KEY_HASH } from './ownerAuthFixture';
 import { WORLD_PROTOCOL_VERSION, WORLD_SCHEMA_V1 } from './worldProtocol';
 
 const REPO = process.cwd();
@@ -50,7 +51,7 @@ function observation(epoch: number, tick: number) {
 
 async function main(): Promise<void> {
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   const client = new Client({ name: 'world-integration-smoke', version: '0.0.0' });
   let transport: StdioClientTransport | null = null;
   try {

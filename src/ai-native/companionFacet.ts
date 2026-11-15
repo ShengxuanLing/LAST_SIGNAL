@@ -460,7 +460,20 @@ export class CompanionFacet {
     this.cancelUnconfirmed();
   }
 
-  private cancelUnconfirmed(): void {
+  /**
+   * Human re-authorization: atomically drop the previous authority's
+   * unconfirmed work and published observation. The new session capability is
+   * issued by the bridge in the SAME request, so an old capability cannot
+   * consume a proposal after the swap.
+   */
+  reauthorize(epoch: number): void {
+    if (epoch !== this.currentEpoch) return;
+    this.cancelUnconfirmed();
+    this.lastObservation = null;
+    this.lastObservationTick = null;
+  }
+
+  cancelUnconfirmed(): void {
     for (const id of this.suggestions.keys()) this.evicted.add(id);
     this.suggestions.clear();
   }
@@ -527,42 +540,69 @@ export class CompanionOwnerLedger {
     epoch: number;
     tick: number;
   }): CompanionResult<OwnerDecision> {
-    if (input.decision !== 'confirm' && input.decision !== 'reject') {
-      return fail('E_SCHEMA', 'companion.decision_invalid');
-    }
     if (!this.isOwner(input.capability)) {
       return fail('E_PERMISSION', 'companion.owner_capability_required');
     }
-    if (!Number.isInteger(input.epoch)) return fail('E_STALE_EPOCH', 'companion.stale_epoch');
-    const status = this.facet.status();
-    if (input.epoch !== status.epoch || input.epoch < this.maxEpochSeen) {
-      return fail('E_STALE_EPOCH', 'companion.stale_epoch');
-    }
-    if (status.link !== 'connected') return fail('E_LINK_UNAVAILABLE', 'companion.link_fallback');
-    if (status.ownerMode !== 'human' || status.readOnly) {
-      return fail('E_PERMISSION', 'companion.owner_mode_readonly');
-    }
-    if (!Number.isFinite(input.tick)) return fail('E_SCHEMA', 'companion.tick_invalid');
-    if (this.decisions.has(input.suggestionId)) return fail('E_RETRYABLE', 'companion.decision_exists');
-    this.facet.advanceTo(input.tick);
-    const suggestion = this.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId);
-    if (!suggestion) return fail('E_TARGET_DESTROYED', 'companion.suggestion_expired');
-    if (input.tick >= suggestion.expiresAtTick) return fail('E_ACTION_EXPIRED', 'companion.suggestion_expired');
-    if (input.tick < suggestion.createdAtTick) return fail('E_STALE_TICK', 'companion.tick_before_creation');
-    const decided: OwnerDecision = Object.freeze({
-      suggestionId: input.suggestionId,
-      decision: input.decision,
-      session: this.facet.session,
-      epoch: input.epoch,
-      actorId: COMPANION_ACTOR_ID,
-      decidedAtTick: input.tick
+    const decided = validateOwnerDecision({ ...input, session: this.facet.session }, {
+      status: this.facet.status(),
+      suggestion: this.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId),
+      alreadyDecided: this.decisions.has(input.suggestionId),
+      maxEpochSeen: this.maxEpochSeen
     });
-    this.decisions.set(input.suggestionId, decided);
+    if (!decided.ok) return decided;
+    this.decisions.set(input.suggestionId, decided.value);
     this.maxEpochSeen = Math.max(this.maxEpochSeen, input.epoch);
-    return ok(decided);
+    return decided;
   }
 
   list(): readonly OwnerDecision[] { return Object.freeze([...this.decisions.values()]); }
+}
+
+/**
+ * ONE pure validator shared by CompanionOwnerLedger AND CompanionGateway.
+ * It is the only place that decides whether a human confirmation is legal:
+ * strict enum, current/monotonic epoch, connected human mode, tick bounds,
+ * TTL, no duplicate execution. No transport may reimplement this logic.
+ */
+export function validateOwnerDecision(
+  input: { suggestionId: string; decision: unknown; epoch: unknown; tick: unknown; session: string },
+  context: {
+    readonly status: CompanionStatus;
+    readonly suggestion: CompanionSuggestion | undefined;
+    readonly alreadyDecided: boolean;
+    readonly maxEpochSeen: number;
+  }
+): CompanionResult<OwnerDecision> {
+  if (input.decision !== 'confirm' && input.decision !== 'reject') {
+    return fail('E_SCHEMA', 'companion.decision_invalid');
+  }
+  if (typeof input.suggestionId !== 'string' || !COMPANION_ID_PATTERN.test(input.suggestionId)) {
+    return fail('E_SCHEMA', 'companion.suggestion_id_invalid');
+  }
+  if (!Number.isInteger(input.epoch)) return fail('E_STALE_EPOCH', 'companion.stale_epoch');
+  const epoch = input.epoch as number;
+  if (epoch !== context.status.epoch || epoch < context.maxEpochSeen) {
+    return fail('E_STALE_EPOCH', 'companion.stale_epoch');
+  }
+  if (context.status.link !== 'connected') return fail('E_LINK_UNAVAILABLE', 'companion.link_fallback');
+  if (context.status.ownerMode !== 'human' || context.status.readOnly) {
+    return fail('E_PERMISSION', 'companion.owner_mode_readonly');
+  }
+  if (!Number.isFinite(input.tick) || (input.tick as number) < 0) return fail('E_SCHEMA', 'companion.tick_invalid');
+  const tick = input.tick as number;
+  if (context.alreadyDecided) return fail('E_RETRYABLE', 'companion.decision_exists');
+  const suggestion = context.suggestion;
+  if (!suggestion) return fail('E_TARGET_DESTROYED', 'companion.suggestion_expired');
+  if (tick >= suggestion.expiresAtTick) return fail('E_ACTION_EXPIRED', 'companion.suggestion_expired');
+  if (tick < suggestion.createdAtTick) return fail('E_STALE_TICK', 'companion.tick_before_creation');
+  return ok(Object.freeze({
+    suggestionId: input.suggestionId,
+    decision: input.decision,
+    session: input.session,
+    epoch,
+    actorId: COMPANION_ACTOR_ID,
+    decidedAtTick: tick
+  }));
 }
 
 /** Diagnostic snapshot: necessary state only, never hidden state or auth. */

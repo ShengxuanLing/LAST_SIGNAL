@@ -14,6 +14,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { WorldGateway } from './worldGateway';
 import { startWorldBridge } from './worldBridgeServer';
+import { TEST_OWNER_KEY_HASH } from './ownerAuthFixture';
 import { WORLD_PROTOCOL_VERSION } from './worldProtocol';
 
 const REPO = process.cwd();
@@ -34,7 +35,7 @@ function assert(condition: unknown, message: string, data?: unknown): asserts co
 
 async function main(): Promise<void> {
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN] });
+  const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN] });
   const client = new Client({ name: 'world-lease-smoke', version: '0.0.0' });
   let transport: StdioClientTransport | null = null;
   try {

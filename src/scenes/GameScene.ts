@@ -9,6 +9,7 @@ import { audio } from '../systems/AudioSystem';
 import { formatDuration } from '../core/formatDuration';
 import { ExternalLinkController, type ExternalLinkDegradeReason } from '../ai-native/externalLinkController';
 import { CompanionLink } from '../ai-native/companionLink';
+import { clearOwnerPairing, peekOwnerPairing } from '../ai-native/ownerPairing';
 import { WORLD_PROTOCOL_VERSION } from '../ai-native/worldProtocol';
 import { Player } from '../entities/Player';
 import type { RunCheckpoint } from '../types';
@@ -723,7 +724,7 @@ export class GameScene extends Phaser.Scene {
    * menu button); an agent can never call it on the human's behalf. The bridge
    * URL and token are injected by the host page, never hard-coded here.
    */
-  async authorizeExternalAgent(bridgeUrl: string, token: string): Promise<boolean> {
+  async authorizeExternalAgent(bridgeUrl: string, token: string, ownerKey: string): Promise<boolean> {
     // The page-level config is a one-shot injection aid, never a credential
     // store. Remove it immediately after this authorization attempt; only the
     // live link keeps the required credentials in memory.
@@ -732,7 +733,7 @@ export class GameScene extends Phaser.Scene {
       if (g.__externalLinkConfig !== undefined) delete g.__externalLinkConfig;
     };
     clearGlobalConfig();
-    if (!bridgeUrl || !token) return false;
+    if (!bridgeUrl || !token || !ownerKey) return false;
     // A fresh HUMAN click may re-authorize a yielded/lost link. This is never
     // automatic: without the click the agent stays yielded.
     if (this.externalLink) {
@@ -746,6 +747,7 @@ export class GameScene extends Phaser.Scene {
       world: this.world,
       bridgeUrl,
       token,
+      ownerKey,
       authorize: () => { /* the human click already happened */ }
     });
     const ok = await this.externalLink.authorizeHuman();
@@ -756,6 +758,10 @@ export class GameScene extends Phaser.Scene {
       return false;
     }
     this.lastExternalLinkError = null;
+    // G4: External protagonist control is mutually exclusive with Companion
+    // authority. Set the companion READ_ONLY in the SAME human action.
+    this.companionLink?.setOwnerMode('external');
+    clearOwnerPairing(this);
     this.refreshHud();
     return true;
   }
@@ -818,7 +824,10 @@ export class GameScene extends Phaser.Scene {
     }).__externalLinkConfig;
     const bridgeUrl = (config?.bridgeUrl ?? '').replace(/\/$/, '');
     const token = config?.token ?? '';
-    if (!bridgeUrl || !token) return false;
+    const pairing = peekOwnerPairing(this);
+    if (!bridgeUrl || !token || !pairing) return false;
+    const ownerKey = pairing.consumeKey();
+    if (!ownerKey) return false;
     try {
       const res = await fetch(`${bridgeUrl}/world-link/handshake`, {
         method: 'POST',
@@ -827,20 +836,34 @@ export class GameScene extends Phaser.Scene {
           authorization: `Bearer ${token}`,
           origin: location.origin
         },
-        body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION })
+        body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION, ownerKey })
       });
-      const hs = await res.json() as { ok?: boolean; session?: string; epoch?: number };
-      if (!hs.ok || !hs.session || hs.epoch === undefined) return false;
+      const hs = await res.json() as { ok?: boolean; session?: string; epoch?: number; ownerCap?: string };
+      if (!hs.ok || !hs.session || hs.epoch === undefined || !hs.ownerCap) {
+        clearOwnerPairing(this);
+        return false;
+      }
+      pairing.swapCap(hs.ownerCap);
       this.companionLink = new CompanionLink({
         bridgeUrl, token, origin: location.origin,
-        session: hs.session, epoch: hs.epoch,
+        session: hs.session, epoch: hs.epoch, ownerCap: hs.ownerCap,
         observation: () => this.world.echoView() as unknown as Record<string, unknown> | null,
-        apply: (kind, target) => this.world.enqueueCompanionAction(kind, target)
+        apply: (kind, target) => this.world.enqueueCompanionAction(kind, target),
+        appliedTick: () => this.world.sim.tick
       });
       return await this.companionLink.authorize();
     } catch {
+      clearOwnerPairing(this);
       return false;
     }
+  }
+
+  /** HUMAN re-authorization: requires the private key and swaps the capability. */
+  async reauthorizeCompanion(ownerKey: string): Promise<boolean> {
+    if (!this.companionLink || !ownerKey) return false;
+    const ok = await this.companionLink.authorize('human', ownerKey);
+    if (ok) clearOwnerPairing(this);
+    return ok;
   }
 
   get companionStatus(): string {

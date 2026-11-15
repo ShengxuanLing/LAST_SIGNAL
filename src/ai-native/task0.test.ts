@@ -7,10 +7,12 @@ import { ExternalLinkController } from './externalLinkController';
 import { startWorldBridge } from './worldBridgeServer';
 import { WorldGateway } from './worldGateway';
 import { WORLD_PROTOCOL_VERSION } from './worldProtocol';
+import { TEST_OWNER_KEY_HASH } from './ownerAuthFixture';
 import type { World } from '../world/World';
 
 const TOKEN = 'task0-token-0123456789abcdef';
 const ORIGIN = 'http://localhost:5335';
+const OWNER_KEY = 'a'.repeat(64);
 
 function linked(): ExternalLinkState {
   const state = new ExternalLinkState();
@@ -142,7 +144,7 @@ describe('Task0 — bounded lease history', () => {
 
   it('real HTTP bridge routes stay bounded across many sessions', async () => {
     const gateway = new WorldGateway();
-    const bridge = await startWorldBridge({ gateway, token: TOKEN, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 50 });
+    const bridge = await startWorldBridge({ gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: [ORIGIN], heartbeatIntervalMs: 50 });
     try {
       for (let i = 0; i < 120; i += 1) {
         const hs = await fetch(`${bridge.url}/world-link/handshake`, {
@@ -201,7 +203,7 @@ describe('Task0 — credential cleanup', () => {
     readonly world: World;
     readonly fetchImpl = async (url: string): Promise<Response> => {
       if (String(url).includes('/world-link/handshake')) {
-        return { ok: true, status: 200, json: async () => ({ ok: true, session: 'ses_t0', epoch: 1 }) } as unknown as Response;
+        return { ok: true, status: 200, json: async () => ({ ok: true, session: 'ses_t0', epoch: 1, ownerCap: 'c'.repeat(64) }) } as unknown as Response;
       }
       return { ok: true, status: 200, json: async () => ({ ok: true }) } as unknown as Response;
     };
@@ -227,6 +229,7 @@ describe('Task0 — credential cleanup', () => {
         world: this.world,
         bridgeUrl: 'http://127.0.0.1:1',
         token: TOKEN,
+        ownerKey: OWNER_KEY,
         authorize: () => undefined,
         fetchImpl: this.fetchImpl as unknown as typeof fetch,
         heartbeatMs: 0
@@ -240,9 +243,8 @@ describe('Task0 — credential cleanup', () => {
     const controller = h.controller();
     expect(await controller.authorizeHuman()).toBe(true);
     // Credentials remain ONLY inside the live controller.
-    expect((controller as any).token).toBe(TOKEN);
     controller.forgetCredentials();
-    expect((controller as any).token).toBe('');
+    expect(await controller.authorizeHuman()).toBe(false);
     expect((globalThis as any).__externalLinkConfig).toBeUndefined();
   });
 
@@ -251,15 +253,14 @@ describe('Task0 — credential cleanup', () => {
     const ca = a.controller();
     expect(await ca.authorizeHuman()).toBe(true);
     ca.degrade('takeover');
-    expect((ca as any).token).toBe('');
-    expect((ca as any).bridgeUrl).toBe('');
+    expect(await ca.authorizeHuman()).toBe(false);
     expect((globalThis as any).__externalLinkConfig).toBeUndefined();
 
     const b = new Harness();
     const cb = b.controller();
     expect(await cb.authorizeHuman()).toBe(true);
     await cb.dispose('scene-exit');
-    expect((cb as any).token).toBe('');
+    expect(await cb.authorizeHuman()).toBe(false);
     expect((globalThis as any).__externalLinkConfig).toBeUndefined();
   });
 });

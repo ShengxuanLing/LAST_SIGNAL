@@ -88,7 +88,7 @@ class Harness {
     const path = String(url);
     this.calls.push(path);
     if (path.includes('/world-link/handshake')) {
-      return response({ ok: true, session: 'ses_lifecycle_1', epoch: 1, heartbeatMs: 1000 });
+      return response({ ok: true, session: 'ses_lifecycle_1', epoch: 1, ownerCap: 'c'.repeat(64), heartbeatMs: 1000 });
     }
     if (path.includes('/world-link/next-action')) {
       if (this.held.next && !this.nextGated) {
@@ -137,6 +137,7 @@ class Harness {
       world: this.world,
       bridgeUrl: 'http://127.0.0.1:1',
       token: 'test-token-not-a-secret',
+      ownerKey: 'a'.repeat(64),
       authorize: () => undefined,
       fetchImpl: this.fetchImpl as unknown as typeof fetch,
       heartbeatMs: 0 // force a heartbeat attempt on every afterFrame

@@ -38,6 +38,8 @@ export interface ExternalLinkControllerOptions {
   readonly world: World;
   readonly bridgeUrl: string;
   readonly token: string;
+  /** HUMAN-entered host-private pairing key; never stored globally. */
+  readonly ownerKey: string;
   /** Human-authored authorization. An agent can never call this with true. */
   readonly authorize: () => void;
   readonly onStatus?: (status: ExternalLinkStatusView) => void;
@@ -113,7 +115,8 @@ export class ExternalLinkController {
   private _lastError: { code: string; messageKey: string } | null = null;
   /** Credentials live ONLY here while the connection is alive. */
   private bridgeUrl: string;
-  private token: string;
+  #token: string;
+  #ownerKey: string;
   /** In-flight teardown (yield+close). Re-authorize waits for it so the bridge
    *  cannot see a half-closed old session and answer 409 duplicate handshake. */
   private teardown: Promise<void> | null = null;
@@ -121,7 +124,8 @@ export class ExternalLinkController {
   constructor(private readonly options: ExternalLinkControllerOptions) {
     this.heartbeatMs = options.heartbeatMs ?? 1000;
     this.bridgeUrl = options.bridgeUrl;
-    this.token = options.token;
+    this.#token = options.token;
+    this.#ownerKey = options.ownerKey;
   }
 
   get connected(): boolean { return this.client !== null; }
@@ -163,13 +167,14 @@ export class ExternalLinkController {
     }
     this.options.authorize();
     const generation = ++this.generation;
-    if (!this.bridgeUrl || !this.token) {
+    if (!this.bridgeUrl || !this.#token || !this.#ownerKey) {
       this._lastError = { code: 'E_PERMISSION', messageKey: 'world.authorization_required' };
       return false;
     }
     const client = new ExternalLinkClient({
       bridgeUrl: this.bridgeUrl,
-      token: this.token,
+      token: this.#token,
+      ownerKey: this.#ownerKey,
       session: authorized.session,
       epoch: authorized.epoch,
       ...(this.options.fetchImpl ? { fetchImpl: this.options.fetchImpl } : {})
@@ -337,7 +342,8 @@ export class ExternalLinkController {
 
   /** Remove credentials from this controller and from any global config. */
   forgetCredentials(): void {
-    this.token = '';
+    this.#token = '';
+    this.#ownerKey = '';
     this.bridgeUrl = '';
     const g = globalThis as unknown as { __externalLinkConfig?: unknown };
     if (g.__externalLinkConfig !== undefined) delete g.__externalLinkConfig;

@@ -6,16 +6,19 @@
 // Scene. Tokens are never included in URLs, responses or logs.
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { WORLD_LIMITS, WORLD_PROTOCOL_VERSION } from './worldProtocol';
 import type { ErrorCodeV1 } from './protocol';
 import type { WorldGateway } from './worldGateway';
 import { AgentLeaseRegistry } from './agentLease';
 import { CompanionGateway } from './companionGateway';
+import { ownerHashEquals, OWNER_PAIRING_KEY_PATTERN, ownerKeyHash } from './ownerCredential';
 
 export interface WorldBridgeOptions {
   readonly gateway: WorldGateway;
   readonly token: string;
+  /** sha256 of the HOST-ONLY pairing key; never the raw key. */
+  readonly ownerKeyHash: string;
   readonly allowedOrigins: readonly string[];
   readonly host?: '127.0.0.1';
   readonly port?: number;
@@ -35,6 +38,9 @@ type Json = Record<string, unknown>;
 
 export async function startWorldBridge(options: WorldBridgeOptions): Promise<RunningWorldBridge> {
   if (!options.token || options.token.trim().length < 16) throw new Error('world bridge token too short');
+  if (!ownerHashEquals(options.ownerKeyHash, options.ownerKeyHash)) {
+    throw new Error('world bridge requires a sha256 owner pairing key hash');
+  }
   if (options.allowedOrigins.length === 0 || options.allowedOrigins.some((o) => o === '*' || !/^https?:\/\/[^/]+$/.test(o))) {
     throw new Error('world bridge requires exact game origins, not wildcard');
   }
@@ -44,15 +50,29 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   // Independent AGENT lease. The browser heartbeat is NOT allowed to renew it.
   const leases = new AgentLeaseRegistry();
   const companions = new CompanionGateway(options.gateway);
-  /** Browser-held owner secret HASH only. The secret itself never leaves the UI. */
-  const ownerSecretHashes = new Map<string, string>();
-  const ownerSecretOk = (session: string, secret: unknown): boolean => {
-    const expected = ownerSecretHashes.get(session);
-    if (typeof secret !== 'string' || !expected) return false;
-    const actual = createHash('sha256').update(secret).digest('hex');
-    const a = Buffer.from(actual, 'hex');
-    const b = Buffer.from(expected, 'hex');
-    return a.length === b.length && timingSafeEqual(a, b);
+  /**
+   * Bridge-issued OWNER session capabilities. The human pairing key is proved
+   * ONCE at handshake; every later renderer mutation must present the issued
+   * capability. Agent routes never receive it. Re-authorization atomically
+   * swaps the capability so the old one stops working immediately.
+   */
+  const ownerCaps = new Map<string, { hash: string; epoch: number }>();
+  const pairingOk = (key: unknown): boolean =>
+    typeof key === 'string' && OWNER_PAIRING_KEY_PATTERN.test(key)
+      && ownerHashEquals(ownerKeyHash(key), options.ownerKeyHash);
+  const capOk = (session: string, cap: unknown, epoch?: number): boolean => {
+    const expected = ownerCaps.get(session);
+    if (!expected || typeof cap !== 'string' || !/^[0-9a-f]{64}$/.test(cap)) return false;
+    if (epoch !== undefined && expected.epoch !== epoch) return false;
+    return ownerHashEquals(ownerKeyHash(cap), expected.hash);
+  };
+  const issueOwnerCap = (session: string, epoch: number): string => {
+    const cap = randomBytes(32).toString('hex');
+    ownerCaps.set(session, { hash: ownerKeyHash(cap), epoch });
+    return cap;
+  };
+  const ownerDenied = (res: ServerResponse): void => {
+    respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'companion.owner_capability_required' });
   };
   const server: Server = createServer((req, res) => { void handle(req, res); });
 
@@ -75,14 +95,19 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (!body) return;
     const session = asString(body.session);
     const epoch = asInt(body.epoch);
-    const hash = asString(body.ownerSecretHash);
-    if (!session || epoch === null || !hash || !/^[0-9a-f]{64}$/.test(hash)) return badRequest(res);
+    if (!session || epoch === null) return badRequest(res);
+    // Origin is checked, but it is NOT authentication. The issued Owner
+    // capability is the only proof that can register/re-register authority.
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
+    const reauthorize = body.reauthorize === true;
+    if (reauthorize && !pairingOk(body.ownerKey)) return ownerDenied(res);
     const mode = body.ownerMode === 'ai' || body.ownerMode === 'external' ? body.ownerMode : 'human';
-    const r = companions.authorize(session, epoch, mode);
+    const r = companions.authorize(session, epoch, mode, reauthorize);
     if (!r.ok) return companionResult(res, r);
-    ownerSecretHashes.set(session, hash);
-    respond(res, 200, { ok: true, session, epoch, protocolVersion: WORLD_PROTOCOL_VERSION, companion: true });
+    // Atomic same-Owner swap: the old capability stops working in this tick.
+    const ownerCap = issueOwnerCap(session, epoch);
+    respond(res, 200, { ok: true, session, epoch, ownerCap, protocolVersion: WORLD_PROTOCOL_VERSION, companion: true });
   }
   async function companionObservation(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await jsonBody(req, res, bodyMax);
@@ -91,6 +116,9 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const epoch = asInt(body.epoch);
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    // Only the human's renderer may publish a cropped observation. An Agent
+    // token or a forged Origin can never inject a fabricated Boss/relay.
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
     companionResult(res, companions.pushObservation(session, epoch, body.observation));
   }
   function companionObservationGet(req: IncomingMessage, res: ServerResponse): void {
@@ -116,7 +144,9 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   }
   function companionStatus(req: IncomingMessage, res: ServerResponse): void {
     const { session, epoch } = companionQuery(req);
+    const cap = new URL(req.url ?? '/', 'http://127.0.0.1').searchParams.get('ownerCap');
     if (!session || epoch === null) return badRequest(res);
+    if (!capOk(session, cap, epoch)) return ownerDenied(res);
     companionResult(res, companions.status(session, epoch));
   }
   function companionMemory(req: IncomingMessage, res: ServerResponse): void {
@@ -128,8 +158,10 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   }
   function companionSuggestions(req: IncomingMessage, res: ServerResponse): void {
     const { session, epoch } = companionQuery(req);
+    const cap = new URL(req.url ?? '/', 'http://127.0.0.1').searchParams.get('ownerCap');
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, cap, epoch)) return ownerDenied(res);
     companionResult(res, companions.pending(session, epoch));
   }
   async function companionDecision(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -142,24 +174,23 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const decision = body.decision === 'confirm' || body.decision === 'reject' ? body.decision : null;
     if (!session || epoch === null || tick === null || !suggestionId || !decision) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
-    // REAL isolation: the agent never receives this secret (it lives only in
-    // the browser's Owner UI closure); a forged Origin + token is not enough.
-    if (!ownerSecretOk(session, body.ownerSecret)) {
-      return respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'companion.owner_capability_required' });
-    }
-    companionResult(res, companions.decide({ session, epoch, suggestionId, decision, tick }));
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
+    // The strict enum / epoch / tick / TTL validator lives in companionFacet
+    // and is shared with CompanionOwnerLedger. No route may reimplement it.
+    companionResult(res, companions.decide({
+      session, epoch, suggestionId, decision, tick
+    }));
   }
   async function companionApplied(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await jsonBody(req, res, bodyMax);
     if (!body) return;
     const session = asString(body.session);
     const suggestionId = asString(body.suggestionId);
-    if (!session || !suggestionId) return badRequest(res);
+    const appliedTick = asInt(body.appliedTick);
+    if (!session || !suggestionId || appliedTick === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
-    if (!ownerSecretOk(session, body.ownerSecret)) {
-      return respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'companion.owner_capability_required' });
-    }
-    companionResult(res, companions.markApplied(session, suggestionId));
+    if (!capOk(session, body.ownerCap)) return ownerDenied(res);
+    companionResult(res, companions.markApplied(session, suggestionId, appliedTick));
   }
   async function companionMode(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await jsonBody(req, res, bodyMax);
@@ -168,6 +199,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const epoch = asInt(body.epoch);
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
     const mode = body.ownerMode === 'ai' || body.ownerMode === 'external' ? body.ownerMode : 'human';
     companionResult(res, companions.setOwnerMode(session, epoch, mode));
   }
@@ -176,9 +208,10 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (!body) return;
     const session = asString(body.session);
     if (!session) return badRequest(res);
-    if (!originMatches(req, options.gateway, session) && !agentOriginOk(req, options.allowedOrigins)) return originDenied(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap)) return ownerDenied(res);
     companions.disconnect(session);
-    ownerSecretHashes.delete(session);
+    ownerCaps.delete(session);
     respond(res, 200, { ok: true, session, fallback: 'NO_MODEL' });
   }
 
@@ -204,7 +237,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     // the epoch, close the session and force the rendered game to HUMAN/LOST.
     for (const expiry of leases.reap(now)) {
       companions.onLeaseExpired(expiry.sessionId);
-      ownerSecretHashes.delete(expiry.sessionId);
+      ownerCaps.delete(expiry.sessionId);
       const view = options.gateway.listSessions().find((s) => s.session === expiry.sessionId);
       if (view) {
         options.gateway.yieldSession(expiry.sessionId, view.epoch, 'agent-lease-expired', now);
@@ -288,6 +321,13 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
       respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'world.authorization_required' });
       return;
     }
+    // HANDSHAKE IS HUMAN-ONLY. The Agent owns the bearer token and can forge
+    // Origin, but it never possesses the host-private pairing key. No self-
+    // handshake path exists: without a valid key the bridge stops here.
+    if (!pairingOk(body.ownerKey)) {
+      respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'world.owner_pairing_required' });
+      return;
+    }
     const existing = linkedByOrigin.get(origin);
     if (existing) {
       const current = options.gateway.listSessions().find((s) => s.session === existing);
@@ -310,11 +350,15 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
       return;
     }
     linkedByOrigin.set(origin, linked.session);
+    // Issued ONLY to the renderer response. It is not returned by attach,
+    // observation, status or any MCP tool, and cannot be derived from them.
+    const ownerCap = issueOwnerCap(linked.session, linked.epoch);
     respond(res, 200, {
       ok: true,
       protocolVersion: WORLD_PROTOCOL_VERSION,
       session: linked.session,
       epoch: linked.epoch,
+      ownerCap,
       heartbeatMs: WORLD_LIMITS.HEARTBEAT_MS
     });
   }
@@ -329,6 +373,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     // allow-list + token. A request from a different origin cannot update this
     // session's observation/ACK/yield.
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
     const result = options.gateway.pushObservation(session, epoch, body.observation, Date.now());
     if (!result.ok) return respond(res, statusFor(result.code), result);
     respond(res, 200, { ok: true, tick: result.tick });
@@ -490,6 +535,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const epoch = asInt(body.epoch);
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
     // A browser heartbeat must NEVER renew the Agent lease. If the lease has
     // expired, tell the browser explicitly so it degrades to HUMAN / LOST.
     if (leases.isExpiredSession(session)) {
@@ -506,6 +552,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const epoch = Number(url.searchParams.get('epoch'));
     if (!session || !Number.isInteger(epoch) || epoch < 0) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, url.searchParams.get('ownerCap'), epoch)) return ownerDenied(res);
     const afterActionId = url.searchParams.get('after') ?? undefined;
     const result = options.gateway.nextAction({ sessionId: session, epoch, afterActionId, nowMs: Date.now() });
     if (result && 'ok' in result) return respond(res, statusFor(result.code), result);
@@ -527,6 +574,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     }
     if (result === 'applied' && appliedTick === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
     const ack = options.gateway.ackAction({
       sessionId: session, epoch, requestId, actionId,
       result, ...(appliedTick !== undefined && appliedTick !== null ? { appliedTick } : {}),
@@ -544,6 +592,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const reason = asString(body.reason) ?? 'human-input';
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
     const result = options.gateway.yieldSession(session, epoch, reason, Date.now());
     // A yielded/closed link must also invalidate the AGENT lease; an old
     // process can never renew authority after a human takeover.
@@ -560,6 +609,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     // F3/close: closing a session is an authorized operation too. A different
     // allowed origin with the same token must not force-close another session.
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap)) return ownerDenied(res);
     const leaseId = asString(body.leaseId);
     if (leaseId) leases.release(leaseId);
     const result = options.gateway.closeSession(session, Date.now());

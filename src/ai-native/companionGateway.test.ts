@@ -105,7 +105,7 @@ describe('CompanionGateway', () => {
     expect(decided.ok).toBe(true);
     expect(companion.decide({ session, epoch, suggestionId: id, decision: 'reject', tick: 101 }))
       .toMatchObject({ ok: false, code: 'E_RETRYABLE' });
-    const applied = companion.markApplied(session, id);
+    const applied = companion.markApplied(session, id, 102);
     expect(applied.ok).toBe(true);
     if (!applied.ok) return;
     expect(applied.value.applied).toBe(true);

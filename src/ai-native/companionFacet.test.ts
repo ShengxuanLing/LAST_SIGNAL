@@ -311,7 +311,8 @@ describe('CompanionOwnerLedger capability', () => {
     expect(ledger.decide({ ...base, capability: cap }))
       .toMatchObject({ ok: false, code: 'E_LINK_UNAVAILABLE' });
     f.setLink('connected');
-    // The fallback/disconnect cancelled the suggestion, so it is expired now.
+    // The fallback/disconnect cancelled the suggestion, so it is no longer
+    // confirmable (target-destroyed for the ledger).
     expect(ledger.decide({ ...base, capability: cap }))
       .toMatchObject({ ok: false, code: 'E_TARGET_DESTROYED' });
 
@@ -346,7 +347,7 @@ describe('CompanionOwnerLedger capability', () => {
     expect(ledger.decide({
       capability: authority.mint(), suggestionId: s.suggestionId,
       decision: 'confirm', epoch: 1, tick: s.expiresAtTick
-    })).toMatchObject({ ok: false, code: 'E_TARGET_DESTROYED' });
+    })).toMatchObject({ ok: false, code: 'E_ACTION_EXPIRED' });
     expect(ledger.list()).toHaveLength(0);
   });
 

@@ -13,6 +13,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
 import { startWorldBridge } from './worldBridgeServer';
+import { TEST_OWNER_KEY_HASH } from './ownerAuthFixture';
 import { WorldGateway } from './worldGateway';
 import { WORLD_PROTOCOL_VERSION } from './worldProtocol';
 
@@ -72,7 +73,7 @@ async function main(): Promise<void> {
   // ---- 3) Rendered link: bridge + human handshake -> help/status -> quit ----
   const token = randomBytes(24).toString('hex');
   const gateway = new WorldGateway();
-  const bridge = await startWorldBridge({ gateway, token, allowedOrigins: ['http://localhost:5335'] });
+  const bridge = await startWorldBridge({ gateway, token, ownerKeyHash: TEST_OWNER_KEY_HASH, allowedOrigins: ['http://localhost:5335'] });
   try {
     const hs = await fetch(`${bridge.url}/world-link/handshake`, {
       method: 'POST',

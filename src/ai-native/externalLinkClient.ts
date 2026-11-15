@@ -22,6 +22,8 @@ export interface ExternalLinkClientOptions {
   readonly epoch: number;
   readonly fetchImpl?: typeof fetch;
   readonly timeoutMs?: number;
+  /** HUMAN-entered host-private pairing key; used only by the handshake. */
+  readonly ownerKey: string;
 }
 
 export interface ExternalClientObservation {
@@ -61,6 +63,9 @@ export class ExternalLinkClient {
    *  locally proposed values so every later request uses the real ones. */
   private liveSession: string;
   private liveEpoch: number;
+  /** Renderer-only capability issued by the handshake; never sent to agents. */
+  #ownerCap = '';
+  #ownerKey: string;
 
   constructor(options: ExternalLinkClientOptions) {
     this.options = {
@@ -73,6 +78,7 @@ export class ExternalLinkClient {
     };
     this.liveSession = options.session;
     this.liveEpoch = options.epoch;
+    this.#ownerKey = options.ownerKey;
   }
 
   get session(): string { return this.liveSession; }
@@ -95,15 +101,19 @@ export class ExternalLinkClient {
     const response = await this.request(`${this.options.bridgeUrl}/world-link/handshake`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION })
+      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION, ownerKey: this.#ownerKey })
     });
+    // The raw pairing key is one-shot: never retained after the handshake.
+    this.#ownerKey = '';
     if (!response || !response.ok) return { ok: false };
-    const payload = (await response.json()) as { ok?: boolean; session?: string; epoch?: number };
-    if (!payload || payload.ok !== true || !payload.session || typeof payload.epoch !== 'number') {
+    const payload = (await response.json()) as { ok?: boolean; session?: string; epoch?: number; ownerCap?: string };
+    if (!payload || payload.ok !== true || !payload.session || typeof payload.epoch !== 'number'
+      || typeof payload.ownerCap !== 'string' || !/^[0-9a-f]{64}$/.test(payload.ownerCap)) {
       return { ok: false };
     }
     this.liveSession = payload.session;
     this.liveEpoch = payload.epoch;
+    this.#ownerCap = payload.ownerCap;
     return { ok: true, session: payload.session, epoch: payload.epoch };
   }
 
@@ -120,7 +130,7 @@ export class ExternalLinkClient {
   /** Fetch the next external intent, if any. */
   async nextIntent(afterActionId?: string): Promise<ExternalNextIntent | null> {
     const after = afterActionId ? `&after=${encodeURIComponent(afterActionId)}` : '';
-    const url = `${this.options.bridgeUrl}/world-link/next-action?session=${encodeURIComponent(this.liveSession)}&epoch=${this.liveEpoch}${after}`;
+    const url = `${this.options.bridgeUrl}/world-link/next-action?session=${encodeURIComponent(this.liveSession)}&epoch=${this.liveEpoch}&ownerCap=${encodeURIComponent(this.#ownerCap)}${after}`;
     const response = await this.request(url, { method: 'GET' });
     if (!response || !response.ok) return null;
     const payload = (await response.json()) as { ok?: boolean; action?: ExternalNextIntent | null };
@@ -167,16 +177,18 @@ export class ExternalLinkClient {
     return ok;
   }
 
-  /** Drop the in-memory token (the socket/link is already gone). */
+  /** Drop the in-memory token/capability (the socket/link is already gone). */
   forgetCredentials(): void {
     (this.options as { token: string }).token = '';
+    this.#ownerCap = '';
+    this.#ownerKey = '';
   }
 
   private async post(path: string, body: unknown): Promise<boolean> {
     const response = await this.request(`${this.options.bridgeUrl}${path}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ ...(body as Record<string, unknown>), ownerCap: this.#ownerCap })
     });
     return !!response && response.ok;
   }
