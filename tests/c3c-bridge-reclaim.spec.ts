@@ -11,7 +11,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
-import { TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
+import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { WORLD_PROTOCOL_VERSION } from '../src/ai-native/worldProtocol';
 
@@ -65,9 +65,9 @@ async function authorize(page: Page, bridgeUrl: string, token: string): Promise<
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
   // Credentials are injected AFTER the pause menu opens (the link degrades on
   // pause and drops the one-shot page config).
-  await page.evaluate(({ bridgeUrl: url, token: t }) => {
-    (window as any).__externalLinkConfig = { bridgeUrl: url, token: t };
-  }, { bridgeUrl, token });
+  await page.evaluate(({ bridgeUrl: url, token: t, ownerKey: k }) => {
+    (window as any).__externalLinkConfig = { bridgeUrl: url, token: t, ownerKey: k };
+  }, { bridgeUrl, token, ownerKey: TEST_OWNER_KEY });
   const pos = await page.evaluate(() => {
     const ps = (window as any).__game.scene.getScene('PauseScene');
     const t = ps.children.list.find((c: any) => c.type === 'Text' && (c.text || '').startsWith('AUTHORIZE EXTERNAL AGENT'));
@@ -153,7 +153,7 @@ test('a live connected link cannot be silently replaced (duplicate still 409)', 
     const hs = await fetch(`${bridge.url}/world-link/handshake`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}`, origin: ORIGIN },
-      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION })
+      body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION, ownerKey: TEST_OWNER_KEY })
     });
     expect(hs.status, 'a LIVE link must not be silently replaced').toBe(409);
     const body = (await hs.json()) as { messageKey?: string };

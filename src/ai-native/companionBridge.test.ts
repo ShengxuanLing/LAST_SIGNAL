@@ -101,9 +101,13 @@ describe('Companion bridge Owner isolation', () => {
       // Disconnect needs the capability; disconnects to NO_MODEL.
       const disc = await call(bridge.url, '/world-link/companion-disconnect', { session, ownerCap: cap }, ORIGIN);
       expect(disc.json.fallback).toBe('NO_MODEL');
-      // The old capability is cleared by disconnect; status reads with it are rejected.
-      const st = await get(bridge.url, `/world-link/companion-status?session=${session}&epoch=${epoch}&ownerCap=${cap}`);
-      expect(st.status).toBe(403);
+      // echo_status is Agent readonly (token-only): reports real fallback link.
+      const st = await get(bridge.url, `/world-link/companion-status?session=${session}&epoch=${epoch}`);
+      expect(st.status).toBe(200);
+      expect(st.json.value?.status?.link).toBe('fallback');
+      // The old capability is cleared; an Owner MUTATION with it is rejected.
+      const staleMode = await call(bridge.url, '/world-link/companion-mode', { session, epoch, ownerMode: 'human', ownerCap: cap }, ORIGIN);
+      expect(staleMode.status).toBe(403);
     } finally { await bridge.close(); }
   }, 60_000);
 });

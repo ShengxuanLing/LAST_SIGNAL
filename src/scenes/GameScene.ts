@@ -56,6 +56,8 @@ export class GameScene extends Phaser.Scene {
   /** P3-b A: browser-held owner capability (never exposed to the agent). */
   companionLink: CompanionLink | null = null;
   private companionFrame = 0;
+  /** Confirmed companion suggestion awaiting its post-commit receipt. */
+  private pendingCompanionReceipt: { suggestionId: string; enqueuedTick: number } | null = null;
   private txtHelp!: Phaser.GameObjects.Text;
   /** Compact-viewport HUD layout (F-06): larger logical fonts, no z-index tricks. */
   private hudLayout = {
@@ -395,6 +397,13 @@ export class GameScene extends Phaser.Scene {
     const intent = this.world.player.sampleIntent();
     this.world.stepFrame(delta, intent);
     if (intent.interact) this.world.tryInteract(this.world.player);
+    // Companion receipt: only AFTER a real core tick consumed the confirmed
+    // intent (never early, never while paused with no tick).
+    if (this.pendingCompanionReceipt && this.world.sim.tick > this.pendingCompanionReceipt.enqueuedTick) {
+      const { suggestionId } = this.pendingCompanionReceipt;
+      this.pendingCompanionReceipt = null;
+      void this.companionLink?.postApplied(suggestionId, this.world.sim.tick);
+    }
     if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
     // C3-b: after the tick, ACK any executed external intent with the real
     // post-commit tick and push the post-commit observation.
@@ -818,18 +827,13 @@ export class GameScene extends Phaser.Scene {
    * capability. This NEVER attaches an external Player controller and never
    * changes protagonist ownership; the agent MCP attaches later with its token.
    */
-  async authorizeCompanionFromConfig(): Promise<boolean> {
-    const config = (globalThis as unknown as {
-      __externalLinkConfig?: { bridgeUrl?: string; token?: string; ownerKey?: string };
-    }).__externalLinkConfig;
-    const bridgeUrl = (config?.bridgeUrl ?? '').replace(/\/$/, '');
-    const token = config?.token ?? '';
-    const pairing = peekOwnerPairing(this);
-    const stashedKey = pairing ? pairing.consumeKey() : '';
-    const ownerKey = stashedKey || (config?.ownerKey ?? '');
+  /** HUMAN authorize the companion from explicit form parameters (no global).
+   *  Used by the Pause menu owner pairing form. bridgeUrl/token/ownerKey come
+   *  directly from the masked form fields; nothing is stored globally. */
+  async authorizeCompanion(bridgeUrl: string, token: string, ownerKey: string): Promise<boolean> {
     if (!bridgeUrl || !token || !ownerKey) return false;
     try {
-      const res = await fetch(`${bridgeUrl}/world-link/handshake`, {
+      const res = await fetch(`${bridgeUrl.replace(/\/$/, '')}/world-link/handshake`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -843,27 +847,53 @@ export class GameScene extends Phaser.Scene {
         clearOwnerPairing(this);
         return false;
       }
-      pairing?.swapCap(hs.ownerCap);
       this.companionLink = new CompanionLink({
-        bridgeUrl, token, origin: location.origin,
+        bridgeUrl: bridgeUrl.replace(/\/$/, ''), token, origin: location.origin,
         session: hs.session, epoch: hs.epoch, ownerCap: hs.ownerCap,
         observation: () => this.world.echoView() as unknown as Record<string, unknown> | null,
-        apply: (kind, target) => this.world.enqueueCompanionAction(kind, target),
+        heartbeatIntervalMs: 1500,
+        apply: (kind, target, suggestionId) => {
+          const ok = this.world.enqueueCompanionAction(kind, target);
+          if (ok && suggestionId) this.pendingCompanionReceipt = { suggestionId, enqueuedTick: this.world.sim.tick };
+          return ok;
+        },
         appliedTick: () => this.world.sim.tick
       });
       return await this.companionLink.authorize();
     } catch {
-      clearOwnerPairing(this);
       return false;
     }
   }
 
-  /** HUMAN re-authorization: requires the private key and swaps the capability. */
+  /** HUMAN authorize: reads bridgeUrl/token/ownerKey from the page-level
+   *  config wrapper (compat path for host pre-injected config). Normal UI
+   *  should call authorizeCompanion(bridgeUrl, token, ownerKey) directly and
+   *  never rely on a global. */
+  async authorizeCompanionFromConfig(): Promise<boolean> {
+    const config = (globalThis as unknown as {
+      __externalLinkConfig?: { bridgeUrl?: string; token?: string; ownerKey?: string };
+    }).__externalLinkConfig;
+    const bridgeUrl = (config?.bridgeUrl ?? '').replace(/\/$/, '');
+    const token = config?.token ?? '';
+    const ownerKey = config?.ownerKey ?? '';
+    return await this.authorizeCompanion(bridgeUrl, token, ownerKey);
+  }
+
+  /** HUMAN re-authorization on an existing live companion link: requires the
+   *  private key and atomically swaps the capability (old cap stops working,
+   *  pending unconfirmed suggestions cancelled). Wrong key does not break the
+   *  active connection. When no live companion link exists, falls through to
+   *  a fresh handshake requiring explicit Owner grant. */
   async reauthorizeCompanion(ownerKey: string): Promise<boolean> {
-    if (!this.companionLink || !ownerKey) return false;
-    const ok = await this.companionLink.authorize('human', ownerKey);
-    if (ok) clearOwnerPairing(this);
-    return ok;
+    if (!ownerKey) return false;
+    const link = this.companionLink;
+    if (link && link.status === 'CONNECTED') {
+      const ok = await link.authorize('human', ownerKey);
+      if (ok) clearOwnerPairing(this);
+      return ok;
+    }
+    // No live link: a fresh handshake requires explicit Owner grant.
+    return false;
   }
 
   get companionStatus(): string {

@@ -19,10 +19,13 @@ export interface CompanionLinkConfig {
   readonly ownerCap: string;
   /** Echo-legal observation from World.echoView(), no hidden fields. */
   readonly observation: () => Record<string, unknown> | null;
-  /** Human confirmation enqueues a real core command; returns false if illegal. */
-  readonly apply: (kind: string, target?: { x: number; y: number }) => boolean;
+  /** Human confirmation enqueues a real core command; returns false if illegal.
+   *  The receipt is posted LATER by the Scene after the core tick commits it. */
+  readonly apply: (kind: string, target?: { x: number; y: number }, suggestionId?: string) => boolean;
   /** Real post-commit tick after the confirmed intent was consumed by core. */
   readonly appliedTick: () => number;
+  /** Heartbeat interval in ms (bounded, no unbounded reconnect). */
+  readonly heartbeatIntervalMs?: number;
 }
 
 export type CompanionLinkState = 'OFF' | 'CONNECTED' | 'FALLBACK:NO_MODEL' | 'READ_ONLY';
@@ -32,14 +35,19 @@ export class CompanionLink {
   #state: CompanionLinkState = 'OFF';
   #lastError = '';
   #inFlight = false;
+  /** Bounded heartbeat: on failure the link degrades to FALLBACK:NO_MODEL. */
+  #heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
+  #heartbeatIntervalMs: number;
 
   constructor(private readonly config: CompanionLinkConfig) {
     this.#cap = config.ownerCap;
+    this.#heartbeatIntervalMs = config.heartbeatIntervalMs ?? 5000;
   }
 
   get status(): CompanionLinkState { return this.#state; }
   get error(): string { return this.#lastError; }
   get session(): string { return this.config.session; }
+  get epoch(): number { return this.config.epoch; }
 
   /** No enumerable secrets even under dev diagnostics / JSON.stringify. */
   toJSON(): Record<string, never> { return {}; }
@@ -57,11 +65,53 @@ export class CompanionLink {
     return res.json();
   }
   private async get(path: string): Promise<any> {
+    // Send the capability when present. echo_status / echo_memory ignore it;
+    // Owner suggestion reads (companion-suggestions) require it.
     const separator = path.includes('?') ? '&' : '?';
-    const res = await fetch(`${this.config.bridgeUrl}${path}${separator}ownerCap=${encodeURIComponent(this.#cap)}`, {
+    const cap = this.#cap ? `${separator}ownerCap=${encodeURIComponent(this.#cap)}` : '';
+    const res = await fetch(`${this.config.bridgeUrl}${path}${cap}`, {
       headers: { authorization: `Bearer ${this.config.token}`, origin: this.config.origin }
     });
     return res.json();
+  }
+
+  /** Start bounded heartbeat: failure degrades to FALLBACK:NO_MODEL. */
+  startHeartbeat(): void {
+    this.stopHeartbeat();
+    this.#heartbeatTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`${this.config.bridgeUrl}/world-link/companion-status?session=${this.config.session}&epoch=${this.config.epoch}`, {
+          headers: { authorization: `Bearer ${this.config.token}`, origin: this.config.origin }
+        });
+        if (!res.ok) {
+          this.#setFallback();
+          return;
+        }
+        const json = await res.json();
+        if (!json.ok || (json.value as any)?.status?.link === 'fallback') {
+          this.#setFallback();
+          return;
+        }
+      } catch {
+        this.#setFallback();
+        return;
+      }
+      this.#heartbeatTimer = setTimeout(() => this.startHeartbeat(), this.#heartbeatIntervalMs);
+    }, this.#heartbeatIntervalMs);
+  }
+
+  stopHeartbeat(): void {
+    if (this.#heartbeatTimer) {
+      clearTimeout(this.#heartbeatTimer);
+      this.#heartbeatTimer = null;
+    }
+  }
+
+  #setFallback(): void {
+    this.stopHeartbeat();
+    this.#cap = '';
+    this.#state = 'FALLBACK:NO_MODEL';
+    this.#lastError = 'E_LINK_UNAVAILABLE companion.link_fallback';
   }
 
   /**
@@ -83,6 +133,7 @@ export class CompanionLink {
     }
     if (typeof r.ownerCap === 'string') this.#cap = r.ownerCap;
     this.#state = ownerMode === 'human' ? 'CONNECTED' : 'READ_ONLY';
+    if (ownerMode === 'human') this.startHeartbeat();
     return true;
   }
 
@@ -121,16 +172,22 @@ export class CompanionLink {
     });
     if (!r.ok) { this.#lastError = `${r.code} ${r.messageKey}`; return false; }
     if (decision === 'reject') return true;
-    if (!this.config.apply(suggestion.kind, suggestion.target ?? undefined)) {
+    if (!this.config.apply(suggestion.kind, suggestion.target ?? undefined, suggestion.suggestionId)) {
       this.#lastError = 'E_PERMISSION companion.action_not_applicable';
       return false;
     }
-    const appliedTick = this.config.appliedTick();
-    const receipt = await this.post('/world-link/companion-applied', {
-      session: this.config.session, suggestionId: suggestion.suggestionId, appliedTick
-    });
-    if (!receipt.ok) { this.#lastError = `${receipt.code} ${receipt.messageKey}`; return false; }
+    // Receipt is posted by the Scene AFTER the core tick actually commits it.
     return true;
+  }
+
+  /** Post the post-commit receipt once the core consumed the confirmed intent.
+   *  Idempotent on the bridge; called from the rendered frame, never early. */
+  async postApplied(suggestionId: string, appliedTick: number): Promise<boolean> {
+    if (this.#state !== 'CONNECTED' || !this.#cap) return false;
+    const receipt = await this.post('/world-link/companion-applied', {
+      session: this.config.session, suggestionId, appliedTick
+    });
+    return !!receipt.ok;
   }
 
   setOwnerMode(ownerMode: 'human' | 'ai' | 'external'): void {
@@ -143,6 +200,7 @@ export class CompanionLink {
 
   /** Explicit disconnect: NO_MODEL fallback, never a fake connected state. */
   disconnect(): void {
+    this.stopHeartbeat();
     if (this.#state === 'OFF') return;
     void this.post('/world-link/companion-disconnect', { session: this.config.session });
     this.#cap = '';

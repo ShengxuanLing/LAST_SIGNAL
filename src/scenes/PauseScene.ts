@@ -4,7 +4,7 @@ import { UPGRADES } from '../config/upgrades';
 import { WEAPONS } from '../config/weapons';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
-import { clearOwnerPairing, peekOwnerPairing, stashOwnerPairing } from '../ai-native/ownerPairing';
+import { clearOwnerPairing, peekOwnerPairing } from '../ai-native/ownerPairing';
 import { GameScene } from './GameScene';
 
 export class PauseScene extends Phaser.Scene {
@@ -16,7 +16,9 @@ export class PauseScene extends Phaser.Scene {
   private lastExternalSig = '';
   /** Native DOM form for the loopback bridge URL + masked token + OWNER key. */
   private externalLinkForm: HTMLElement | null = null;
-  private linkFormMode: 'external' | 'companion' = 'external';
+  private linkFormMode: 'external' | 'companion' | 'companion-reauth' = 'external';
+  private lastCompanionSig = '';
+  private companionStatusText: Phaser.GameObjects.Text | null = null;
 
   constructor() { super('PauseScene'); }
 
@@ -52,6 +54,32 @@ export class PauseScene extends Phaser.Scene {
     if (this.controlText) {
       const control = world.player.control;
       this.controlText.setText(`CONTROL  ${owner.toUpperCase()} · ${owner === 'external' ? 'EXTERNAL AGENT' : control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`);
+    }
+    // Bounded heartbeat: when paused and companion is CONNECTED, refresh status
+    // so the link degrades to FALLBACK:NO_MODEL on heartbeat failure. This
+    // does not advance the game tick (paused) — it only reports real bridge
+    // state.
+    const parent = this.scene.get<GameScene>('GameScene');
+    const link = parent?.companionLink;
+    if (link && link.status === 'CONNECTED') {
+      link.startHeartbeat();
+    }
+    if (parent?.companionLink) {
+      const cSig = `${parent.companionLink.status}|${parent.companionLink.error}`;
+      if (cSig !== this.lastCompanionSig) {
+        this.lastCompanionSig = cSig;
+        if (!this.companionStatusText) {
+          this.companionStatusText = this.add.text(GAME.WINDOW_W / 2, 420, '', {
+            fontFamily: 'monospace', fontSize: '14px', color: '#eafaff'
+          }).setOrigin(0.5);
+        }
+        this.companionStatusText.setText(
+          parent.companionLink.status === 'CONNECTED' ? 'COMPANION  CONNECTED'
+          : parent.companionLink.status === 'FALLBACK:NO_MODEL' ? 'COMPANION  NO_MODEL'
+          : parent.companionLink.status === 'READ_ONLY' ? 'COMPANION  READ_ONLY'
+          : 'COMPANION  OFF');
+        this.companionStatusText.setColor(parent.companionLink.status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c');
+      }
     }
   }
 
@@ -358,8 +386,16 @@ export class PauseScene extends Phaser.Scene {
 
     this._button(GAME.WINDOW_W / 2, 340, 'ENABLE / RE-AUTHORIZE (HUMAN)', () => {
       if (!parent.world.echoActor) parent.world.enableEcho();
-      // The host-private pairing key is entered into a masked DOM form; it is
-      // never injected into a global config or shown to an Agent route.
+      const link = parent.companionLink;
+      if (link && link.status === 'CONNECTED') {
+        // Live link: re-authorize with a fresh Owner pairing key (atomically
+        // swaps capability, cancels old suggestions). Wrong key does not break
+        // the active connection.
+        this.linkFormMode = 'companion-reauth';
+        this.openExternalLinkForm('companion');
+        return;
+      }
+      // No live link: first-time authorization via explicit form params.
       this.linkFormMode = 'companion';
       this.openExternalLinkForm('companion');
     }, 0x274a55);
@@ -605,13 +641,25 @@ export class PauseScene extends Phaser.Scene {
         return;
       }
       // Clear BOTH secrets from the DOM immediately; the raw key goes only
-      // into a module-private WeakMap (#private fields), never a global config.
+      // into a module-private #private field, never a global config.
       tokenInput.value = '';
       ownerKeyInput.value = '';
-      stashOwnerPairing(parent, ownerKey);
+      if (this.linkFormMode === 'companion-reauth') {
+        // Re-authorize on an existing live link: swap capability atomically.
+        void parent.reauthorizeCompanion(ownerKey).then((ok) => {
+          clearOwnerPairing(parent);
+          if (ok) {
+            setStatus('RE-AUTHORIZED · capability swapped', '#7ff0ff');
+            this.closeExternalLinkForm();
+          } else {
+            setStatus('RE-AUTH FAILED — active connection unchanged', '#ff8a3c');
+          }
+        });
+        return;
+      }
       if (this.linkFormMode === 'companion') {
         setStatus('PAIRING OWNER…', '#ffd233');
-        void parent.authorizeCompanionFromConfig().then((ok) => {
+        void parent.authorizeCompanion(bridgeUrl, token, ownerKey).then((ok) => {
           if (ok) {
             setStatus('CONNECTED · Owner authority registered', '#7ff0ff');
             this.closeExternalLinkForm();

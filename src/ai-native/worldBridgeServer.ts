@@ -144,9 +144,10 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   }
   function companionStatus(req: IncomingMessage, res: ServerResponse): void {
     const { session, epoch } = companionQuery(req);
-    const cap = new URL(req.url ?? '/', 'http://127.0.0.1').searchParams.get('ownerCap');
     if (!session || epoch === null) return badRequest(res);
-    if (!capOk(session, cap, epoch)) return ownerDenied(res);
+    // echo_status: Agent readonly token/lease可调用，不要求Origin/ownerCap。
+    // Owner mutations (authorize/mode/observation/decision/applied/disconnect)
+    // stay on their own Origin+cap routes and are unaffected.
     companionResult(res, companions.status(session, epoch));
   }
   function companionMemory(req: IncomingMessage, res: ServerResponse): void {
@@ -161,6 +162,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const cap = new URL(req.url ?? '/', 'http://127.0.0.1').searchParams.get('ownerCap');
     if (!session || epoch === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    // Owner suggestion read: requires the issued capability (Owner UI only).
     if (!capOk(session, cap, epoch)) return ownerDenied(res);
     companionResult(res, companions.pending(session, epoch));
   }

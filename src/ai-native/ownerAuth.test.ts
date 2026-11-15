@@ -177,14 +177,26 @@ expect(dec.status).not.toBe(200);
     const bridge = await makeBridge();
     try {
       const human = await humanHandshake(bridge);
+      // Register the Owner capability first so a real companion session exists.
+      const auth = await attack(bridge, '/world-link/companion-authorize', {
+        session: human.session, epoch: human.epoch, ownerCap: human.ownerCap, ownerMode: 'human'
+      });
+      expect(auth.status).toBe(200);
+      const cap = auth.json.ownerCap as string;
       const d = await attack(bridge, '/world-link/companion-disconnect', {
-        session: human.session, ownerCap: human.ownerCap
+        session: human.session, ownerCap: cap
       });
       expect(d.status).toBe(200);
       expect(d.json.fallback).toBe('NO_MODEL');
+      // echo_status is Agent readonly (token-only): it reports the real
+      // fallback link; the OLD capability is still cleared for MUTATIONS.
       const st = await getAttack(bridge, `/world-link/companion-status?session=${human.session}&epoch=${human.epoch}`);
-      expect(st.status).toBe(403);
+      expect(st.status).toBe(200);
       expect((st.json.value?.status?.link ?? 'fallback')).toBe('fallback');
+      const staleMutation = await attack(bridge, '/world-link/companion-mode', {
+        session: human.session, epoch: human.epoch, ownerMode: 'human', ownerCap: cap
+      });
+      expect(staleMutation.status).toBe(403);
     } finally { await bridge.close(); }
   });
 });

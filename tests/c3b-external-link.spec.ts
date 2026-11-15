@@ -10,7 +10,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
 import { startWorldBridge, type RunningWorldBridge } from '../src/ai-native/worldBridgeServer';
-import { TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
+import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { WorldClient } from '../src/ai-native/worldClient';
 
@@ -23,9 +23,9 @@ const TOKEN = randomBytes(24).toString('hex');
 async function setupLinkedRun(page: Page, bridge: RunningWorldBridge): Promise<WorldClient> {
   await page.goto('/');
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
-  await page.evaluate(({ bridgeUrl, token }) => {
-    (window as any).__externalLinkConfig = { bridgeUrl, token };
-  }, { bridgeUrl: bridge.url, token: TOKEN });
+  await page.evaluate(({ bridgeUrl, token, ownerKey }) => {
+    (window as any).__externalLinkConfig = { bridgeUrl, token, ownerKey };
+  }, { bridgeUrl: bridge.url, token: TOKEN, ownerKey: TEST_OWNER_KEY });
   const newRun = await page.evaluate(() => {
     const g: any = (window as any).__game;
     for (const s of Object.values(g.scene.scenes) as any[]) {
@@ -91,15 +91,16 @@ test('human authorization links the rendered world to the bridge; actions commit
   const bridge = await startWorldBridge({
     gateway,
     token: TOKEN,
+    ownerKeyHash: TEST_OWNER_KEY_HASH,
     allowedOrigins: [ORIGIN]
   });
   try {
     await page.goto('/');
     await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
     // The host page provides the bridge configuration (never hard-coded in the game).
-    await page.evaluate(({ bridgeUrl, token }) => {
-      (window as any).__externalLinkConfig = { bridgeUrl, token };
-    }, { bridgeUrl: bridge.url, token: TOKEN });
+    await page.evaluate(({ bridgeUrl, token, ownerKey }) => {
+      (window as any).__externalLinkConfig = { bridgeUrl, token, ownerKey };
+    }, { bridgeUrl: bridge.url, token: TOKEN, ownerKey: TEST_OWNER_KEY });
 
     const newRun = await page.evaluate(() => {
       const g: any = (window as any).__game;
@@ -217,9 +218,9 @@ test('takeover / overlay / agent disconnect yield the link; no automatic re-take
   try {
     await page.goto('/');
     await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
-    await page.evaluate(({ bridgeUrl, token }) => {
-      (window as any).__externalLinkConfig = { bridgeUrl, token };
-    }, { bridgeUrl: bridge.url, token: TOKEN });
+    await page.evaluate(({ bridgeUrl, token, ownerKey }) => {
+      (window as any).__externalLinkConfig = { bridgeUrl, token, ownerKey };
+    }, { bridgeUrl: bridge.url, token: TOKEN, ownerKey: TEST_OWNER_KEY });
     const newRun = await page.evaluate(() => {
       const g: any = (window as any).__game;
       for (const s of Object.values(g.scene.scenes) as any[]) {
@@ -238,9 +239,9 @@ test('takeover / overlay / agent disconnect yield the link; no automatic re-take
       // The page-level config is cleared whenever the link degrades (including
       // on pause). Re-inject AFTER the pause menu is open, exactly like the
       // in-game form entering credentials while paused.
-      await page.evaluate(({ bridgeUrl, token }) => {
-        (window as any).__externalLinkConfig = { bridgeUrl, token };
-      }, { bridgeUrl: bridge.url, token: TOKEN });
+      await page.evaluate(({ bridgeUrl, token, ownerKey }) => {
+        (window as any).__externalLinkConfig = { bridgeUrl, token, ownerKey };
+      }, { bridgeUrl: bridge.url, token: TOKEN, ownerKey: TEST_OWNER_KEY });
       const pos = await page.evaluate(() => {
         const ps = (window as any).__game.scene.getScene('PauseScene');
         const t = ps.children.list.find((c: any) => c.type === 'Text' && (c.text || '').startsWith('AUTHORIZE EXTERNAL AGENT'));

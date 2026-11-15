@@ -154,6 +154,8 @@ export class World {
   private pendingCompanionIntent: SimulationIntent | null = null;
   private echoSprite: Phaser.GameObjects.Container | null = null;
   private echoLine: Phaser.GameObjects.Graphics | null = null;
+  private signalSprite: Phaser.GameObjects.Container | null = null;
+  private signalLine: Phaser.GameObjects.Graphics | null = null;
   /** Latest committed supply receipts, keyed by transaction id (session-only). */
   private supplyReceipts = new Map<string, { transactionId: string; offerKey: string; roomId: number; ok: boolean; reason?: string; price: number; currency: number; hp: number; weaponKey: string }>();
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
@@ -1357,6 +1359,7 @@ export class World {
   private syncCoreEntities(dt: number): void {
     this.player.syncVisual(dt);
     this.syncEchoVisual();
+    this.syncSignalVisual();
     this.syncCoreLoot();
     for (const drone of this._sim.drones) {
       const enemy = this.enemies.find((e) => e._id === drone.id);
@@ -1418,6 +1421,51 @@ export class World {
       const t = this.worldToScreen(target.x, target.y);
       this.echoLine.lineStyle(1, 0x33e0ff, this.echoController.assistConfirmed ? 0.6 : 0.25);
       this.echoLine.lineBetween(screen.x, screen.y, t.x, t.y);
+    }
+  }
+
+  /** Code-native relay visual: device sprite coloured by relay state plus a
+   *  target line from ECHO to the relay when alive and discovered/in range.
+   *  No hidden state. */
+  private syncSignalVisual(): void {
+    const sig = this._sim.signal;
+    if (!sig) {
+      if (this.signalSprite) { this.signalSprite.destroy(); this.signalSprite = null; }
+      if (this.signalLine) { this.signalLine.destroy(); this.signalLine = null; }
+      return;
+    }
+    const color = sig.relay === 'ACTIVE' ? 0x00ff77
+      : sig.relay === 'JAMMED' ? 0xff3333
+      : sig.relay === 'DISABLED' ? 0x444444
+      : 0x7777ff;
+    if (!this.signalSprite) {
+      const g = this.scene.add.graphics();
+      g.fillStyle(color, 1); g.fillCircle(0, 0, 9);
+      g.lineStyle(2, 0xffffff, 0.9); g.strokeCircle(0, 0, 9);
+      g.fillStyle(0xeafaff, 1); g.fillTriangle(10, 0, 2, -5, 2, 5);
+      this.signalSprite = this.scene.add.container(0, 0, [g]).setDepth(75);
+    } else {
+      const g = this.signalSprite.getAt(0) as Phaser.GameObjects.Graphics;
+      g.clear();
+      g.fillStyle(color, 1); g.fillCircle(0, 0, 9);
+      g.lineStyle(2, 0xffffff, 0.9); g.strokeCircle(0, 0, 9);
+      g.fillStyle(0xeafaff, 1); g.fillTriangle(10, 0, 2, -5, 2, 5);
+    }
+    const screen = this.worldToScreen(sig.x, sig.y);
+    this.signalSprite.setPosition(screen.x, screen.y);
+
+    const echo = this._sim.echo;
+    if (!this.signalLine) this.signalLine = this.scene.add.graphics().setDepth(74);
+    this.signalLine.clear();
+    if (echo && echo.data.hp > 0) {
+      const discovered = sig.evidence.some((e) => e.id === sig.deviceId);
+      const within = Math.hypot(echo.x - sig.x, echo.y - sig.y) <= 12;
+      if (discovered || within) {
+        const t = this.worldToScreen(sig.x, sig.y);
+        const eScreen = this.worldToScreen(echo.x, echo.y);
+        this.signalLine.lineStyle(1, color, sig.relay === 'ACTIVE' ? 0.8 : 0.5);
+        this.signalLine.lineBetween(eScreen.x, eScreen.y, t.x, t.y);
+      }
     }
   }
 
