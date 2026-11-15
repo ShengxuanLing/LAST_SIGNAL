@@ -458,4 +458,54 @@ describe('External agent signal permission (Task C item 3)', () => {
     expect(result.ok).toBe(true);
     expect(s.signal!.actors.player.energy.energy).toBe(90);
   });
+
+  it('echo E_PERMISSION rejects with no progress, no cost, no queue consumption', () => {
+    const s = state();
+    spawnRelay(s);
+    spawnEcho(s);
+    const echoEnergyBefore = s.signal!.actors.echo.energy.energy;
+    const echoScanCdBefore = s.signal!.actors.echo.cooldowns.scanCooldownTicks;
+    const evidenceBefore = s.signal!.evidence.length;
+
+    // Echo command from external agent: rejected at core level
+    const result = commitSignalScan(s.signal!, 'echo', s.tick, false, {
+      actorPosition: () => null,
+      hasLineOfSight: () => true
+    });
+    expect(result.ok).toBe(false);
+    expect(result.code).toBe('E_PERMISSION');
+
+    // No progress: energy unchanged, cooldown unchanged, evidence unchanged
+    expect(s.signal!.actors.echo.energy.energy).toBe(echoEnergyBefore);
+    expect(s.signal!.actors.echo.cooldowns.scanCooldownTicks).toBe(echoScanCdBefore);
+    expect(s.signal!.evidence.length).toBe(evidenceBefore);
+    // No canonical state change (no new signal event committed)
+    expect(s.signal!.actors.player.energy.energy).toBe(100);
+  });
+
+  it('v2 player scan/jam has real effect via core commit', () => {
+    const s = state();
+    spawnRelay(s);
+    const beforePlayer = s.signal!.actors.player.energy.energy;
+
+    // Player scan via core command (simulating v2 world_action with actor=player)
+    const result = commitSignalScan(s.signal!, 'player', s.tick, false, {
+      actorPosition: () => ({ x: s.player.x, y: s.player.y }),
+      hasLineOfSight: () => true
+    });
+    expect(result.ok).toBe(true);
+    expect(s.signal!.actors.player.energy.energy).toBeLessThan(beforePlayer);
+    expect(s.signal!.actors.echo.energy.energy).toBe(100); // echo unchanged
+    expect(s.signal!.evidence.length).toBeGreaterThan(0);
+
+    // Player jam via core command
+    const beforeJam = s.signal!.actors.player.energy.energy;
+    const jamResult = commitSignalJam(s.signal!, 'player', s.tick, false, {
+      actorPosition: () => ({ x: s.player.x, y: s.player.y }),
+      hasLineOfSight: () => true
+    });
+    expect(jamResult.ok).toBe(true);
+    expect(s.signal!.actors.player.energy.energy).toBeLessThan(beforeJam);
+    expect(s.signal!.relay).toBe('JAMMED');
+  });
 });

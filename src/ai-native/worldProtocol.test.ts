@@ -2,9 +2,9 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  WORLD_LIMITS, WORLD_PROTOCOL_VERSION, WORLD_SCHEMA_V1, parseWorldAction,
-  parseWorldActionBatch, parseWorldObservation, worldActionFingerprint,
-  worldBatchFingerprint
+  WORLD_LIMITS, WORLD_PROTOCOL_VERSION, WORLD_SCHEMA_V1, WORLD_SCHEMA_V2,
+  parseWorldAction, parseWorldActionBatch, parseWorldActionV2,
+  parseWorldObservation, worldActionFingerprint, worldBatchFingerprint
 } from './worldProtocol';
 
 const aid = (n: number) => `aid_${n.toString(16).padStart(24, '0')}`;
@@ -109,5 +109,47 @@ describe('C3-a WorldObservationV1 whitelist', () => {
     expect(parseWorldObservation({ ...observation(), tick: -1 }).ok).toBe(false);
     expect(parseWorldObservation({ ...observation(), player: { ...observation().player, hp: Number.NaN } }).ok).toBe(false);
     expect(parseWorldObservation({ ...observation(), availableActions: ['scan'] }).ok).toBe(false);
+  });
+});
+
+describe('C3-a WorldActionV2 strict schema (signal actions)', () => {
+  it('v2 accepts scan/jam with explicit actor player/echo', () => {
+    const v2Actions = [
+      { type: 'scan', actionId: aid(1), actor: 'player', ticks: 10 },
+      { type: 'scan', actionId: aid(2), actor: 'echo', ticks: 10 },
+      { type: 'jam', actionId: aid(3), actor: 'player', ticks: 10 },
+      { type: 'jam', actionId: aid(4), actor: 'echo', ticks: 10 }
+    ];
+    for (const action of v2Actions) {
+      const result = parseWorldActionV2(action);
+      expect(result.ok, JSON.stringify(action)).toBe(true);
+    }
+  });
+
+  it('v2 rejects scan/jam without actor (v1-style scan must stay rejected)', () => {
+    for (const bad of [
+      { type: 'scan', actionId: aid(9) },
+      { type: 'scan', actionId: aid(10), ticks: 10 },
+      { type: 'jam', actionId: aid(11) },
+      { type: 'jam', actionId: aid(12), ticks: 10 },
+      { type: 'scan', actionId: aid(13), actor: 'bot', ticks: 10 },
+      { type: 'scan', actionId: aid(14), actor: 'player', ticks: WORLD_LIMITS.MAX_ACTION_TICKS + 1 }
+    ]) {
+      const result = parseWorldActionV2(bad);
+      expect(result.ok, JSON.stringify(bad)).toBe(false);
+      if (!result.ok) expect(result.code).toBe('E_SCHEMA');
+    }
+  });
+
+  it('v1 still rejects scan/jam without actor (schema boundary unchanged)', () => {
+    for (const bad of [
+      { type: 'scan', actionId: aid(20) },
+      { type: 'jam', actionId: aid(21) },
+      { type: 'scan', actionId: aid(22), actor: 'player' }
+    ]) {
+      const result = parseWorldAction(bad);
+      expect(result.ok, JSON.stringify(bad)).toBe(false);
+      if (!result.ok) expect(result.code).toBe('E_SCHEMA');
+    }
   });
 });

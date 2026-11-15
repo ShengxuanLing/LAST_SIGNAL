@@ -78,9 +78,10 @@ class CliChannel {
     this.child.stdin.write(`${JSON.stringify(command)}\n`);
   }
 
-  /** Bounded wait: protocol readiness, not a fixed sleep. On timeout, the
-   *  channel kills and reaps its own child so no process is leaked. */
-  next(timeoutMs = 15_000): Promise<Record<string, unknown>> {
+  /** Bounded wait: protocol readiness, not a fixed sleep. The first call pays
+   *  vite-node cold start; subsequent calls are warm. On timeout, the channel
+   *  kills and reaps its own child so no process is leaked. */
+  next(timeoutMs = 30_000): Promise<Record<string, unknown>> {
     const buffered = this.queue.shift();
     if (buffered !== undefined) return Promise.resolve(JSON.parse(buffered) as Record<string, unknown>);
     return new Promise((resolve, reject) => {
