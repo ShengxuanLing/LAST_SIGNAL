@@ -162,7 +162,7 @@ async function hudRects(page: Page) {
     const ax = (px.x - p0.x) / 100, bx = p0.x;
     const ay = (py.y - p0.y) / 100, by = p0.y;
     const names = ['txtWeapon', 'txtRoom', 'txtEnemies', 'txtControl', 'txtAiAction', 'txtAiTarget',
-      'txtAgentLink', 'txtHp', 'txtXp', 'txtCurrency', 'txtLevel', 'timer', 'txtStats', 'txtHelp'];
+      'txtAgentLink', 'txtEcho', 'txtHp', 'txtXp', 'txtCurrency', 'txtLevel', 'timer', 'txtStats', 'txtHelp'];
     return names.map((n) => {
       const o = gs[n];
       if (!o) return null;
@@ -733,8 +733,8 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       }
       // The right-hand status column must not overlap itself.
       const column = rects.filter((r) =>
-        ['txtWeapon', 'txtRoom', 'txtEnemies', 'txtControl', 'txtAiAction', 'txtAiTarget', 'txtAgentLink'].includes(r.name));
-      expect(column.length, 'all right-column HUD rows present').toBe(7);
+        ['txtWeapon', 'txtRoom', 'txtEnemies', 'txtControl', 'txtAiAction', 'txtAiTarget', 'txtAgentLink', 'txtEcho'].includes(r.name));
+      expect(column.length, 'all right-column HUD rows present').toBe(8);
       for (let i = 0; i < column.length; i++) {
         for (let j = i + 1; j < column.length; j++) {
           const a = column[i], b = column[j];
@@ -1254,5 +1254,184 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     await page.screenshot({ path: path.join(OUT, 'c1-rendered-rules-1280x720.png') });
     expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
     saveLog('c1-rendered-rules-1280x720');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// P3-a: independent echo companion (real rendered World, real core actor).
+// The echo is enabled/controlled ONLY through the Pause menu entry; it has its
+// own actor identity, HP, cooldown, facing and 12-tile/LOS perception.
+// ---------------------------------------------------------------------------
+test.describe('P3-a echo companion', () => {
+  test('enable via pause, follow/hold, confirm-before-fire, real damage', async ({ page }) => {
+    test.setTimeout(180000);
+    const errors: string[] = [];
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+
+    const probe = () => page.evaluate(() => {
+      const gs: any = (window as any).__game.scene.getScene('GameScene');
+      const w: any = gs.world;
+      const e: any = w.echoActor;
+      return {
+        echo: e ? { x: e.x, y: e.y, hp: e.data.hp, maxHp: e.data.maxHp, actorId: e.actorId } : null,
+        mode: w.echoMode,
+        assist: w.echoAssistArmed,
+        suggestion: w.echoSuggestion,
+        player: { x: w.playerX, y: w.playerY, hp: w.playerDataSnapshot.hp },
+        hud: gs.txtEcho.text,
+        echoShots: w.echoShotsFired,
+        echoSprite: !!(w as any).echoSprite,
+        echoSeen: w.echoView()?.drones.length ?? 0,
+        drones: w.sim.drones.map((d: any) => ({ id: d.id, x: d.x, y: d.y, hp: d.hp })),
+        active: (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key)
+      };
+    });
+
+    await bootRun(page);
+    await stabilizeEvidenceRun(page);
+    await clearLevelUp(page);
+
+    const before = await probe();
+    expect(before.echo, 'no echo in a normal solo run').toBeNull();
+    expect(before.hud).toContain('ECHO OFF');
+
+    // Enable through the real Pause menu entry.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(600);
+    await clickLogical(page, 140, 200); // ECHO COMPANION >
+    await page.waitForTimeout(600);
+    expect(await sceneTexts(page, 'PauseScene')).toContain('ECHO COMPANION');
+    await clickLogical(page, 640, 300); // ENABLE ECHO
+    await page.waitForTimeout(600);
+    await clickLogical(page, 640, 592); // BACK -> resume
+    await page.waitForTimeout(900);
+    await clearLevelUp(page);
+
+    const enabled = await probe();
+    expect(enabled.echo, 'echo enabled').not.toBeNull();
+    expect(enabled.echo!.actorId, 'echo is a distinct actor, not the player').not.toBe(0);
+    expect(enabled.hud, 'HUD shows the echo state').toContain('ECHO');
+    expect(enabled.mode).toBe('follow');
+    expect(enabled.echoSprite, 'rendered echo sprite exists').toBe(true);
+    await page.screenshot({ path: path.join(OUT, 'p3a-echo-1-enabled-1280x720.png') });
+
+    // FOLLOW: move the protagonist; the echo must move too and never overlap.
+    await page.keyboard.down('KeyD');
+    await page.waitForTimeout(900);
+    await page.keyboard.up('KeyD');
+    await page.waitForTimeout(400);
+    const followed = await probe();
+    expect(followed.player.x, 'protagonist moved').not.toBe(enabled.player.x);
+    expect(followed.echo!.x, 'echo followed').not.toBe(enabled.echo!.x);
+    const dist = Math.hypot(followed.echo!.x - followed.player.x, followed.echo!.y - followed.player.y);
+    expect(dist, 'echo keeps a standoff and never overlaps the player').toBeGreaterThan(0.5);
+
+    // HOLD: the echo must stay put while the protagonist keeps moving.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(600);
+    await clickLogical(page, 140, 200);
+    await page.waitForTimeout(600);
+    await clickLogical(page, 640, 412); // MODE: HOLD POSITION
+    await page.waitForTimeout(500);
+    await clickLogical(page, 640, 592); // BACK
+    await page.waitForTimeout(700);
+    const held = await probe();
+    expect(held.mode).toBe('hold');
+    await page.keyboard.down('KeyA');
+    await page.waitForTimeout(900);
+    await page.keyboard.up('KeyA');
+    await page.waitForTimeout(400);
+    const afterHold = await probe();
+    expect(afterHold.player.x, 'protagonist moved during hold').not.toBe(held.player.x);
+    expect(afterHold.echo!.x, 'held echo did not chase').toBeCloseTo(held.echo!.x, 1);
+    expect(afterHold.echo!.y).toBeCloseTo(held.echo!.y, 1);
+
+    // Spawn a real drone next to the echo through the normal spawn queue.
+    await page.evaluate(() => {
+      const gs: any = (window as any).__game.scene.getScene('GameScene');
+      const w: any = gs.world;
+      const e = w.echoActor;
+      w.enqueueSpawnEnemy('drone', e.x + 0.5, e.y, w.currentRoom()?.id ?? 0, 1);
+    });
+    await page.waitForTimeout(900);
+
+    // No fire before the human confirms assist.
+    const armedBefore = await probe();
+    expect(armedBefore.drones.length, 'real drone spawned').toBeGreaterThan(0);
+    await page.waitForTimeout(1500);
+    const notFired = await probe();
+    expect(notFired.echoShots, 'echo must not fire without confirm').toBe(0);
+
+    // Confirm assist through the pause panel, then the echo fires for real.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(600);
+    await clickLogical(page, 140, 200);
+    await page.waitForTimeout(600);
+    await clickLogical(page, 640, 524); // CONFIRM ASSIST FIRE
+    await page.waitForTimeout(500);
+    await clickLogical(page, 640, 592); // BACK
+    await page.waitForTimeout(700);
+    const armed = await probe();
+    expect(armed.assist, 'assist armed by the human').toBe(true);
+    await page.screenshot({ path: path.join(OUT, 'p3a-echo-2-armed-1280x720.png') });
+
+    let shots = 0;
+    let droneHurt = false;
+    const totalHp = (list: Array<{ hp: number }>) => list.reduce((sum, d) => sum + d.hp, 0);
+    // Baseline is the pre-confirm view: the echo may kill the drone before the
+    // first post-confirm probe.
+    const baselineTotal = totalHp(notFired.drones);
+    const baselineCount = notFired.drones.length;
+    expect(baselineCount, 'a real drone existed before confirm').toBeGreaterThan(0);
+    for (let i = 0; i < 40; i++) {
+      await page.waitForTimeout(300);
+      const now = await probe();
+      shots = Math.max(shots, now.echoShots);
+      droneHurt = totalHp(now.drones) < baselineTotal - 1e-6 || now.drones.length < baselineCount;
+      if (shots > 0 && droneHurt) break;
+    }
+    expect(shots, 'echo fired after confirm').toBeGreaterThan(0);
+    expect(droneHurt, 'echo shots damaged/killed a real drone').toBe(true);
+    await page.screenshot({ path: path.join(OUT, 'p3a-echo-3-killed-1280x720.png') });
+
+    // Independent damage: revoke assist (so the echo stops shooting), spawn a
+    // fresh real drone next to it, move the protagonist far away and let the
+    // drone hit the echo.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(600);
+    await clickLogical(page, 140, 200);
+    await page.waitForTimeout(600);
+    if ((await probe()).assist) {
+      await clickLogical(page, 640, 524); // revoke
+      await page.waitForTimeout(500);
+    }
+    await clickLogical(page, 640, 592); // BACK
+    await page.waitForTimeout(700);
+    expect((await probe()).assist, 'assist revoked').toBe(false);
+    await page.evaluate(() => {
+      const gs: any = (window as any).__game.scene.getScene('GameScene');
+      const w: any = gs.world;
+      const e = w.echoActor;
+      w.enqueueSpawnEnemy('drone', e.x + 0.5, e.y, w.currentRoom()?.id ?? 0, 1);
+      w.setPlayerPositionForTest(e.x + 12, e.y);
+    });
+    await page.waitForTimeout(900);
+    const hpBefore = (await probe()).echo!.hp;
+    const playerHpBefore = (await probe()).player.hp;
+    for (let i = 0; i < 50; i++) {
+      await page.waitForTimeout(300);
+      const now = await probe();
+      if (now.echo!.hp < hpBefore) break;
+    }
+    const hurt = await probe();
+    expect(hurt.echo!.hp, 'echo takes real damage independently').toBeLessThan(hpBefore);
+    expect(hurt.player.hp, 'protagonist HP is unaffected by echo damage').toBe(playerHpBefore);
+    expect(hurt.hud, 'HUD still reports the echo').toContain('ECHO');
+
+    await page.screenshot({ path: path.join(OUT, 'p3a-echo-4-hurt-1280x720.png') });
+    record('p3a-echo', { enabled, followed, held, afterHold, armed, hurt, shots });
+    expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0);
+    saveLog('p3a-echo-1280x720');
   });
 });

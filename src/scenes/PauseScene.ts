@@ -60,7 +60,7 @@ export class PauseScene extends Phaser.Scene {
     return `${world.player.data.weaponKey}|${world.getPendingEquipWeapon() ?? ''}`;
   }
 
-  create(config?: { mode?: 'pause' | 'inventory' }): void {
+  create(config?: { mode?: 'pause' | 'inventory' | 'echo' }): void {
     const mode = config?.mode ?? 'pause';
     const parent = this.scene.get<GameScene>('GameScene');
     const player = parent.world.player;
@@ -185,6 +185,8 @@ export class PauseScene extends Phaser.Scene {
       });
 
       this._button(GAME.WINDOW_W / 2, GAME.WINDOW_H - 60, 'CLOSE', close, 0x274a55);
+    } else if (mode === 'echo') {
+      this.echoPanel(parent, close);
     } else {
       // pause menu
       this.add.text(GAME.WINDOW_W / 2, 150, 'PAUSED', { fontFamily: 'monospace', fontSize: '48px', color: '#33e0ff', fontStyle: 'bold', letterSpacing: 6 }).setOrigin(0.5, 0.5);
@@ -249,10 +251,63 @@ export class PauseScene extends Phaser.Scene {
       this.add.text(GAME.WINDOW_W / 2, 625, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL', {
         fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
       }).setOrigin(0.5);
+      const echoLink = this.add.text(140, 200, 'ECHO COMPANION >', {
+        fontFamily: 'monospace', fontSize: '16px', color: '#33e0ff', backgroundColor: '#274a55'
+      }).setOrigin(0, 0).setPadding(10, 8, 10, 8).setInteractive({ useHandCursor: true });
+      echoLink.on('pointerdown', () => {
+        audio.ui();
+        this.scene.restart({ mode: 'echo' });
+      });
       this.add.text(GAME.WINDOW_W / 2, 655, 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
         fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8'
       }).setOrigin(0.5);
     }
+  }
+
+  /**
+   * P3-a echo panel. Every command goes through this pause entry, so no gameplay
+   * key binding is stolen. The human is always the protagonist's controller.
+   */
+  private echoPanel(parent: GameScene, close: () => void): void {
+    const world = parent.world;
+    const title = (y: number, text: string, size: string, color: string) =>
+      this.add.text(GAME.WINDOW_W / 2, y, text, { fontFamily: 'monospace', fontSize: size, color }).setOrigin(0.5);
+    title(130, 'ECHO COMPANION', '40px', '#33e0ff');
+    title(172, 'Independent actor · own 12-tile perception · never driven by an external agent', '13px', '#8fb8c8');
+
+    const echo = world.echoActor;
+    const status = !echo ? 'DISABLED — the original solo run is unchanged'
+      : echo.data.hp <= 0 ? `DOWN — HP 0/${echo.data.maxHp} (the protagonist is unaffected)`
+      : `HP ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${world.echoMode.toUpperCase()} · ${world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE'}`;
+    title(210, status, '15px', echo && echo.data.hp > 0 ? '#eafaff' : '#ff8a3c');
+
+    const suggestion = parent.suggestEcho();
+    title(240, suggestion === 'fire'
+      ? 'ASSIST READY: an enemy is inside the echo perception cone — confirm below'
+      : 'ASSIST: no perceived target — the echo will not fire', '13px', suggestion === 'fire' ? '#ffd233' : '#5a7480');
+
+    const redraw = () => this.scene.restart({ mode: 'echo' });
+    this._button(GAME.WINDOW_W / 2, 300, echo ? 'DISABLE ECHO' : 'ENABLE ECHO', () => {
+      if (echo) parent.disableEcho(); else parent.enableEcho();
+      redraw();
+    }, echo ? 0x5a2a3a : 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 356, `MODE: ${world.echoMode === 'follow' ? 'FOLLOW' : world.echoMode === 'hold' ? 'HOLD' : 'MOVE'}  >  FOLLOW`, () => {
+      parent.setEchoMode('follow'); redraw();
+    }, 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 412, 'MODE: HOLD POSITION', () => {
+      parent.setEchoMode('hold'); redraw();
+    }, 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 468, 'MODE: MOVE TO AIM', () => {
+      parent.setEchoMode('move-to'); redraw();
+    }, 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 524, world.echoAssistArmed ? 'ASSIST ARMED — CLICK TO REVOKE' : 'CONFIRM ASSIST FIRE', () => {
+      if (world.echoAssistArmed) parent.revokeEchoAssist(); else parent.confirmEchoAssist();
+      redraw();
+    }, suggestion === 'fire' ? 0x4a4420 : 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 592, 'BACK', close, 0x33e0ff);
+    this.add.text(GAME.WINDOW_W / 2, 650, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL OF THE PROTAGONIST', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
+    }).setOrigin(0.5);
   }
 
   private showSettings(): void {

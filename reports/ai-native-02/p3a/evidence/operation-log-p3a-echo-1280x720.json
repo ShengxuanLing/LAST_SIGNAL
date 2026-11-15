@@ -1,0 +1,165 @@
+[
+  {
+    "step": "p3a-echo",
+    "detail": {
+      "enabled": {
+        "echo": {
+          "x": 9,
+          "y": 45,
+          "hp": 100,
+          "maxHp": 100,
+          "actorId": 1
+        },
+        "mode": "follow",
+        "assist": false,
+        "suggestion": null,
+        "player": {
+          "x": 8,
+          "y": 45,
+          "hp": 100
+        },
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "echoShots": 0,
+        "echoSprite": true,
+        "echoSeen": 0,
+        "drones": [],
+        "active": [
+          "GameScene"
+        ]
+      },
+      "followed": {
+        "echo": {
+          "x": 8.481340941990009,
+          "y": 43.332018971614644,
+          "hp": 100,
+          "maxHp": 100,
+          "actorId": 1
+        },
+        "mode": "follow",
+        "assist": false,
+        "suggestion": null,
+        "player": {
+          "x": 11.093749999999968,
+          "y": 41.90625000000013,
+          "hp": 100
+        },
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "echoShots": 0,
+        "echoSprite": true,
+        "echoSeen": 0,
+        "drones": [],
+        "active": [
+          "GameScene"
+        ]
+      },
+      "held": {
+        "echo": {
+          "x": 8.481340941990009,
+          "y": 43.332018971614644,
+          "hp": 100,
+          "maxHp": 100,
+          "actorId": 1
+        },
+        "mode": "hold",
+        "assist": false,
+        "suggestion": null,
+        "player": {
+          "x": 11.093749999999968,
+          "y": 41.90625000000013,
+          "hp": 100
+        },
+        "hud": "ECHO 100/100 · HOLD · ASSIST SAFE",
+        "echoShots": 0,
+        "echoSprite": true,
+        "echoSeen": 0,
+        "drones": [],
+        "active": [
+          "GameScene"
+        ]
+      },
+      "afterHold": {
+        "echo": {
+          "x": 8.481340941990009,
+          "y": 43.332018971614644,
+          "hp": 100,
+          "maxHp": 100,
+          "actorId": 1
+        },
+        "mode": "hold",
+        "assist": false,
+        "suggestion": null,
+        "player": {
+          "x": 7.942708333333332,
+          "y": 45.057291666666664,
+          "hp": 100
+        },
+        "hud": "ECHO 100/100 · HOLD · ASSIST SAFE",
+        "echoShots": 0,
+        "echoSprite": true,
+        "echoSeen": 0,
+        "drones": [],
+        "active": [
+          "GameScene"
+        ]
+      },
+      "armed": {
+        "echo": {
+          "x": 7.731340941990009,
+          "y": 43.332018971614644,
+          "hp": 86,
+          "maxHp": 100,
+          "actorId": 1
+        },
+        "mode": "hold",
+        "assist": true,
+        "suggestion": null,
+        "player": {
+          "x": 7.942708333333332,
+          "y": 45.057291666666664,
+          "hp": 100
+        },
+        "hud": "ECHO 86/100 · HOLD · ASSIST ARMED",
+        "echoShots": 2,
+        "echoSprite": true,
+        "echoSeen": 0,
+        "drones": [],
+        "active": [
+          "GameScene"
+        ]
+      },
+      "hurt": {
+        "echo": {
+          "x": 6.981340941990009,
+          "y": 43.332018971614644,
+          "hp": 72,
+          "maxHp": 100,
+          "actorId": 1
+        },
+        "mode": "hold",
+        "assist": false,
+        "suggestion": null,
+        "player": {
+          "x": 19.73134094199001,
+          "y": 43.226100306711785,
+          "hp": 82
+        },
+        "hud": "ECHO 72/100 · HOLD · ASSIST SAFE",
+        "echoShots": 2,
+        "echoSprite": true,
+        "echoSeen": 1,
+        "drones": [
+          {
+            "id": 2,
+            "x": 8.207903441990009,
+            "y": 43.332018971614644,
+            "hp": 28
+          }
+        ],
+        "active": [
+          "GameScene"
+        ]
+      },
+      "shots": 2
+    }
+  }
+]

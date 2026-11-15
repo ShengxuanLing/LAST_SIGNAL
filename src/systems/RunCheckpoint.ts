@@ -70,6 +70,19 @@ export function validateCheckpoint(run: RunCheckpoint | undefined): run is RunCh
     const t = core.playerTimers;
     if (!isUint32(core.tick) || !isUint32(core.rngState) || !isCount(core.nextProjectileId) || !t ||
         !['dashTimer', 'invuln', 'hurtTimer', 'fireTimer', 'aimYaw'].every((k) => Number.isFinite((t as any)[k]))) return false;
+    // Optional echo actor: absent is valid (old checkpoint / solo run). Present
+    // must be finite and internally consistent; never allocate from the file.
+    const echo = (core as { echo?: unknown }).echo;
+    if (echo !== undefined) {
+      if (!echo || typeof echo !== 'object') return false;
+      const e = echo as Record<string, unknown>;
+      if (!Number.isFinite(e.x) || !Number.isFinite(e.y) || !Number.isFinite(e.actorId)) return false;
+      if (!['dashTimer', 'invuln', 'hurtTimer', 'fireTimer', 'aimYaw'].every((k) => Number.isFinite(e[k]))) return false;
+      const data = e.data as Record<string, unknown> | undefined;
+      if (!data || !Number.isFinite(data.hp) || !Number.isFinite(data.maxHp) ||
+          (data.maxHp as number) <= 0 || (data.hp as number) < 0 || (data.hp as number) > (data.maxHp as number)) return false;
+      if (data.weaponKey !== 'pulse' || !Array.isArray(data.weapons)) return false;
+    }
     // Optional processed-purchase ledger: absent is valid (old checkpoint),
     // present must be bounded, well-formed and duplicate-free.
     const ledger = (core as { purchaseTransactions?: unknown }).purchaseTransactions;

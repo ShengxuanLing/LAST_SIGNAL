@@ -49,11 +49,12 @@ export class GameScene extends Phaser.Scene {
   private txtAiAction!: Phaser.GameObjects.Text;
   private txtAiTarget!: Phaser.GameObjects.Text;
   private txtAgentLink!: Phaser.GameObjects.Text;
+  private txtEcho!: Phaser.GameObjects.Text;
   private txtHelp!: Phaser.GameObjects.Text;
   /** Compact-viewport HUD layout (F-06): larger logical fonts, no z-index tricks. */
   private hudLayout = {
     weaponY: 20, roomY: 44, enemiesY: 64,
-    controlY: 90, actionY: 110, targetY: 128, linkY: 146,
+    controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164,
     helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
     helpFont: '13px', helpColor: '#8fb8c8'
   };
@@ -283,13 +284,13 @@ export class GameScene extends Phaser.Scene {
     this.hudLayout = compact
       ? {
           weaponY: 16, roomY: 42, enemiesY: 68,
-          controlY: 96, actionY: 124, targetY: 152, linkY: 180,
+          controlY: 96, actionY: 124, targetY: 152, linkY: 180, echoY: 208,
           helpY: GAME.WINDOW_H - 52, baseRowFont: '17px', controlFont: '17px', rowFont: '17px',
           helpFont: '16px', helpColor: '#8fb8c8'
         }
       : {
           weaponY: 20, roomY: 44, enemiesY: 64,
-          controlY: 90, actionY: 110, targetY: 128, linkY: 146,
+          controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164,
           helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
           helpFont: '13px', helpColor: '#8fb8c8'
         };
@@ -320,6 +321,7 @@ export class GameScene extends Phaser.Scene {
     this.txtAiAction = add.text(GAME.WINDOW_W - 20, L.actionY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtAiTarget = add.text(GAME.WINDOW_W - 20, L.targetY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtAgentLink = add.text(GAME.WINDOW_W - 20, L.linkY, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtEcho = add.text(GAME.WINDOW_W - 20, L.echoY, 'ECHO OFF · PAUSE > ECHO COMPANION', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#33e0ff' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtBossHp = add.text(GAME.WINDOW_W / 2, 30, '', { fontFamily: 'monospace', fontSize: '20px', color: '#ff3355', fontStyle: 'bold' }).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     this.bossBarFill = add.rectangle(GAME.WINDOW_W / 2, 52, 0, 8, 0xff3355, 1).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
@@ -359,6 +361,7 @@ export class GameScene extends Phaser.Scene {
     place(this.txtAiAction, GAME.WINDOW_W - 20, L.actionY);
     place(this.txtAiTarget, GAME.WINDOW_W - 20, L.targetY);
     place(this.txtAgentLink, GAME.WINDOW_W - 20, L.linkY);
+    place(this.txtEcho, GAME.WINDOW_W - 20, L.echoY);
     place(this.txtHelp, 20, L.helpY);
     place(this.txtBossHp, GAME.WINDOW_W / 2, 30);
     place(this.bossBarFill, GAME.WINDOW_W / 2, 52);
@@ -459,6 +462,21 @@ export class GameScene extends Phaser.Scene {
     this.txtAgentLink.setText(control.externalAgentConnected
       ? `EXTERNAL AGENT CONNECTED · LAST ${control.lastAiAction ?? '—'}`
       : `${control.controllerLabel} DEMO · EXTERNAL NOT CONNECTED`);
+    const echo = this.world.echoActor;
+    if (!echo) {
+      this.txtEcho.setText('ECHO OFF · PAUSE > ECHO COMPANION');
+      this.txtEcho.setColor('#33e0ff');
+    } else if (echo.data.hp <= 0) {
+      this.txtEcho.setText('ECHO DOWN · INDEPENDENT OF YOU');
+      this.txtEcho.setColor('#ff5533');
+    } else {
+      const mode = this.world.echoMode === 'follow' ? 'FOLLOW'
+        : this.world.echoMode === 'hold' ? 'HOLD' : 'MOVE';
+      const assist = this.world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE';
+      const suggest = this.world.echoSuggestion ? ' · CONFIRM FIRE' : '';
+      this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}`);
+      this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
+    }
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.timer.setText(formatDuration(Math.max(0, secs)));
     const settings = saveSystem.getSettings();
@@ -498,6 +516,21 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateStats(): void {
+    const echo = this.world.echoActor;
+    if (!echo) {
+      this.txtEcho.setText('ECHO OFF · PAUSE > ECHO COMPANION');
+      this.txtEcho.setColor('#33e0ff');
+    } else if (echo.data.hp <= 0) {
+      this.txtEcho.setText('ECHO DOWN · INDEPENDENT OF YOU');
+      this.txtEcho.setColor('#ff5533');
+    } else {
+      const mode = this.world.echoMode === 'follow' ? 'FOLLOW'
+        : this.world.echoMode === 'hold' ? 'HOLD' : 'MOVE';
+      const assist = this.world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE';
+      const suggest = this.world.echoSuggestion ? ' · CONFIRM FIRE' : '';
+      this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}`);
+      this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
+    }
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.txtStats.setText(`KILLS ${this.enemiesKilled} · LOOT ${this.itemsCollected} · DMG ${Math.round(this.damageDealt)} · ${secs}s`);
   }
@@ -725,6 +758,48 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Dev entry for the real World, used by the Pause menu button. */
+  /** P3-a: human-driven echo commands (never reachable by an external agent). */
+  enableEcho(): void {
+    this.takeoverFromHumanInput();
+    this.world.enableEcho();
+    this.refreshHud();
+  }
+
+  disableEcho(): void {
+    this.world.disableEcho();
+    this.refreshHud();
+  }
+
+  setEchoMode(mode: 'follow' | 'hold' | 'move-to'): void {
+    if (mode === 'move-to') {
+      // "MOVE TO AIM": the human's current aim direction, 4 tiles ahead.
+      const a = this.world.playerAimYaw;
+      this.world.setEchoMode('move-to', {
+        x: this.world.playerX + Math.cos(a) * 4,
+        y: this.world.playerY + Math.sin(a) * 4
+      });
+    } else {
+      this.world.setEchoMode(mode);
+    }
+    this.refreshHud();
+  }
+
+  confirmEchoAssist(): void {
+    this.world.confirmEchoAssist();
+    this.refreshHud();
+  }
+
+  revokeEchoAssist(): void {
+    this.world.echoController.revokeAssist();
+    this.refreshHud();
+  }
+
+  /** Ask the policy for a suggestion using the echo's own perception. */
+  suggestEcho(): 'fire' | null {
+    const view = this.world.echoView();
+    return view ? this.world.echoController.suggest(view) : null;
+  }
+
   toggleAiControl(): boolean {
     const control = this.world.player.control;
     if (control.aiEnabled) {

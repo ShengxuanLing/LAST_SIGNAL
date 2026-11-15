@@ -18,13 +18,14 @@ import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/wor
 import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
 import { cloneCheckpoint } from '../systems/RunCheckpoint';
 import { ExternalLinkState, type ExternalActionReceipt } from '../ai-native/externalLink';
+import { EchoController, ECHO_LIMITS, type EchoMode, type EchoView } from '../ai-native/echo';
 import type { PlayerIntent } from '../ai-native/control';
 import {
-  createSimulationState, enqueueCommand, enqueuePlayerHit,
+  createSimulationState, enqueueCommand, enqueuePlayerHit, isWalkableFromState,
   enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState, processCommands,
   registerDrone, registerTarget,
   spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
-  type SimulationIntent, type SimulationState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
+  type SimulationIntent, type SimulationState, type SimEchoState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
 } from './sim/core';
 
 export interface WorldCallbacks {
@@ -139,6 +140,12 @@ export class World {
   private pendingRoomEnters = new Set<number>();
   /** C3-b: external agent link state (authorization, pending intents, receipts). */
   readonly externalLink = new ExternalLinkState();
+  /** P3-a: pure echo intent policy (no Phaser; shared with the Node parity driver). */
+  readonly echoController = new EchoController();
+  /** Real committed echo shots (observability only; no hidden state). */
+  echoShotsFired = 0;
+  private echoSprite: Phaser.GameObjects.Container | null = null;
+  private echoLine: Phaser.GameObjects.Graphics | null = null;
   /** Latest committed supply receipts, keyed by transaction id (session-only). */
   private supplyReceipts = new Map<string, { transactionId: string; offerKey: string; roomId: number; ok: boolean; reason?: string; price: number; currency: number; hp: number; weaponKey: string }>();
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
@@ -213,6 +220,64 @@ export class World {
   /** Read-only legal perception predicate (same crop as the player's view). */
   isPerceivablePosition(x: number, y: number): boolean {
     return this.isPerceivable(x, y);
+  }
+
+  // ---------- P3-a echo companion ----------
+
+  get echoActor(): SimEchoState | null { return this._sim?.echo ?? null; }
+  get echoMode(): EchoMode { return this.echoController.mode; }
+  get echoSuggestion(): 'fire' | null { return this.echoController.suggestion; }
+  get echoAssistArmed(): boolean { return this.echoController.assistConfirmed; }
+
+  /**
+   * The echo's OWN bounded perception: centred on the echo, 12 tiles, explored
+   * rooms and line of sight. It never reuses the player's crop or full map.
+   */
+  echoView(): EchoView | null {
+    const echo = this._sim.echo;
+    if (!echo) return null;
+    const center = { x: echo.x, y: echo.y };
+    const drones = this.enemies
+      .filter((enemy) => enemy.alive && enemy.hp > 0)
+      .filter((enemy) => gridLineOfSight({ x: enemy.x, y: enemy.y }, {
+        center,
+        radiusTiles: ECHO_LIMITS.perceptionTiles,
+        isExplored: (x, y) => this.isExploredCell(x, y),
+        isOpaque: (x, y) => this.isOpaqueCell(x, y),
+        stepTiles: WORLD_PERCEPTION.losStepTiles
+      }))
+      .map((enemy) => ({ id: enemy._id, x: enemy.x, y: enemy.y, hp: enemy.hp }));
+    return {
+      tick: this._sim.tick,
+      player: { x: this.player.x, y: this.player.y },
+      echo: { x: echo.x, y: echo.y, hp: echo.data.hp, maxHp: echo.data.maxHp, aimYaw: echo.aimYaw },
+      drones
+    };
+  }
+
+  /** Human request: spawn the companion next to the protagonist. */
+  enableEcho(): void {
+    if (this._sim.echo) return;
+    let spawn = { x: this.player.x + 1, y: this.player.y };
+    if (!isWalkableFromState(this._sim, spawn.x, spawn.y, 0.5)) spawn = { x: this.player.x, y: this.player.y };
+    enqueueCommand(this._sim, { type: 'spawn-echo', x: spawn.x, y: spawn.y });
+    this.bumpSimVersion();
+  }
+
+  disableEcho(): void {
+    if (!this._sim.echo) return;
+    this.echoController.clearIntent();
+    enqueueCommand(this._sim, { type: 'remove-echo' });
+    this.bumpSimVersion();
+  }
+
+  setEchoMode(mode: EchoMode, target: { x: number; y: number } | null = null): void {
+    this.echoController.setMode(mode, target);
+  }
+
+  /** Only the human confirms assist fire; the controller never arms itself. */
+  confirmEchoAssist(): void {
+    this.echoController.confirmAssist();
   }
 
   /** How many core ticks the active external action still needs. */
@@ -978,6 +1043,10 @@ export class World {
     if (ticks > 0) {
       // World-level spawns and ordinary room spawns commit at the tick boundary.
       this.processWorldSpawns();
+      // P3-a: the echo decides BEFORE the tick from its own perception, then the
+      // same core tick commits its move/fire. No separate state mutation.
+      const echoView = this.echoView();
+      const echoIntent = echoView ? this.echoController.decide(echoView) : undefined;
       // C3-b fix: an external action's intent must be delivered for EXACTLY
       // its remaining integer core ticks. If one frame contains more ticks than
       // the action has left, split the core call so the surplus ticks run with
@@ -985,17 +1054,17 @@ export class World {
       const active = this.externalLink.activeExecution;
       if (active && active.remainingTicks > 0 && ticks > active.remainingTicks) {
         const first = active.remainingTicks;
-        events = stepSimulationTicks(this._sim, first, intent);
+        events = stepSimulationTicks(this._sim, first, intent, echoIntent);
         this.externalLink.advanceExecution(first, this._sim.tick, this.externalLink.epoch);
         const rest = ticks - first;
         if (rest > 0) {
           const neutral: SimulationIntent = {
             move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false
           };
-          events.push(...stepSimulationTicks(this._sim, rest, neutral));
+          events.push(...stepSimulationTicks(this._sim, rest, neutral, echoIntent));
         }
       } else {
-        events = stepSimulationTicks(this._sim, ticks, intent);
+        events = stepSimulationTicks(this._sim, ticks, intent, echoIntent);
         if (active) {
           this.externalLink.advanceExecution(ticks, this._sim.tick, this.externalLink.epoch);
         }
@@ -1035,6 +1104,23 @@ export class World {
           break;
         case 'player-fired':
           this.player.playFireFeedback(event.spec.kind);
+          break;
+        case 'echo-fired':
+          this.echoController.suggestion = null;
+          this.echoShotsFired += 1;
+          break;
+        case 'echo-moved':
+          if (event.dashStarted) this.addShake(2);
+          break;
+        case 'echo-hurt':
+          this.addShake(3);
+          break;
+        case 'echo-death':
+          this.echoController.clearIntent();
+          this.addShake(6);
+          break;
+        case 'echo-spawned':
+        case 'echo-despawned':
           break;
         case 'drone-step': {
           const enemy = this.enemies.find((e) => e._id === event.droneId);
@@ -1162,6 +1248,7 @@ export class World {
 
   private syncCoreEntities(dt: number): void {
     this.player.syncVisual(dt);
+    this.syncEchoVisual();
     this.syncCoreLoot();
     for (const drone of this._sim.drones) {
       const enemy = this.enemies.find((e) => e._id === drone.id);
@@ -1188,6 +1275,41 @@ export class World {
       if (alive.has(id)) continue;
       if (view.spr.scene) view.spr.destroy();
       this.coreProjectileViews.delete(id);
+    }
+  }
+
+  /** Code-native companion visuals: distinct body, facing wedge, target line. */
+  private syncEchoVisual(): void {
+    const echo = this._sim.echo;
+    if (!echo) {
+      if (this.echoSprite) { this.echoSprite.destroy(); this.echoSprite = null; }
+      if (this.echoLine) { this.echoLine.destroy(); this.echoLine = null; }
+      return;
+    }
+    if (!this.echoSprite) {
+      const g = this.scene.add.graphics();
+      g.fillStyle(0x33e0ff, 1); g.fillCircle(0, 0, 10);
+      g.lineStyle(2, 0xffffff, 0.9); g.strokeCircle(0, 0, 10);
+      g.fillStyle(0xeafaff, 1); g.fillTriangle(11, 0, 2, -5, 2, 5);
+      this.echoSprite = this.scene.add.container(0, 0, [g]).setDepth(75);
+    }
+    const screen = this.worldToScreen(echo.x, echo.y);
+    this.echoSprite.setPosition(screen.x, screen.y);
+    this.echoSprite.setRotation(echo.aimYaw);
+    this.echoSprite.setAlpha(echo.data.hp > 0 ? 1 : 0.25);
+    if (!this.echoLine) this.echoLine = this.scene.add.graphics().setDepth(74);
+    this.echoLine.clear();
+    const view = this.echoView();
+    let target: { x: number; y: number } | null = null;
+    let bestD = Infinity;
+    for (const drone of view?.drones ?? []) {
+      const d = Math.hypot(drone.x - echo.x, drone.y - echo.y);
+      if (d < bestD) { target = drone; bestD = d; }
+    }
+    if (target) {
+      const t = this.worldToScreen(target.x, target.y);
+      this.echoLine.lineStyle(1, 0x33e0ff, this.echoController.assistConfirmed ? 0.6 : 0.25);
+      this.echoLine.lineBetween(screen.x, screen.y, t.x, t.y);
     }
   }
 
@@ -1318,7 +1440,9 @@ export class World {
           hurtTimer: this._sim.player.hurtTimer, fireTimer: this._sim.player.fireTimer, aimYaw: this._sim.player.aimYaw
         },
         nextProjectileId: this._sim.nextProjectileId,
-        purchaseTransactions: [...this._sim.purchaseTransactions]
+        purchaseTransactions: [...this._sim.purchaseTransactions],
+        // Optional echo snapshot: deep-copied by cloneCheckpoint.
+        ...(this._sim.echo ? { echo: this._sim.echo } : {})
       }
     });
   }
@@ -1374,6 +1498,12 @@ export class World {
       this._sim.purchaseTransactions = Array.isArray(run.coreState.purchaseTransactions)
         ? [...run.coreState.purchaseTransactions]
         : [];
+      // Old saves have no echo: leave the run solo-compatible.
+      if (run.coreState.echo) {
+        this._sim.echo = JSON.parse(JSON.stringify(run.coreState.echo)) as typeof this._sim.echo;
+      } else {
+        delete this._sim.echo;
+      }
     } else {
       // Legacy frame: re-derive the core RNG from the map seed so a restored
       // run still produces a deterministic core stream.
@@ -1398,6 +1528,11 @@ export class World {
     for (const l of this.loot) l.spr.destroy();
     this.loot = [];
     this.boss = null;
+    delete this._sim.echo;
+    this.echoController.clearIntent();
+    this.echoShotsFired = 0;
+    if (this.echoSprite) { this.echoSprite.destroy(); this.echoSprite = null; }
+    if (this.echoLine) { this.echoLine.destroy(); this.echoLine = null; }
   }
 
   statsSnapshot(): { enemies: number; items: number; dmg: number } {

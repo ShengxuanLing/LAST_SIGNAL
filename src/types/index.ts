@@ -100,6 +100,21 @@ export interface CoreCheckpointState {
   nextProjectileId: number;
   /** Processed supply transaction ids (bounded). Optional for old checkpoints. */
   purchaseTransactions?: string[];
+  /** Optional echo actor snapshot; absent in old saves and solo runs. */
+  echo?: EchoCheckpointState;
+}
+
+/** Structural copy of the core's SimEchoState (types cannot import the core). */
+export interface EchoCheckpointState {
+  actorId: number;
+  x: number;
+  y: number;
+  data: PlayerData;
+  dashTimer: number;
+  invuln: number;
+  hurtTimer: number;
+  fireTimer: number;
+  aimYaw: number;
 }
 
 export interface RunCheckpoint {
