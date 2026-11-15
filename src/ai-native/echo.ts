@@ -31,12 +31,20 @@ export interface EchoVisibleActor {
   hp: number;
 }
 
+/** Non-drone / Boss public state, still echo-perceived only. */
+export interface EchoVisibleTarget extends EchoVisibleActor {
+  kind: string;
+  isBoss: boolean;
+}
+
 /** The echo's own legal view. Only perceived actors are present. */
 export interface EchoView {
   tick: number;
   player: { x: number; y: number };
   echo: { x: number; y: number; hp: number; maxHp: number; aimYaw: number };
   drones: EchoVisibleActor[];
+  /** Non-drone / Boss public state; empty when none are perceived. */
+  targets?: readonly EchoVisibleTarget[];
 }
 
 export interface EchoMemoryEntry {
@@ -58,7 +66,7 @@ function unitToward(from: { x: number; y: number }, to: { x: number; y: number }
   return { x: dx / len, y: dy / len };
 }
 
-function nearest(actor: { x: number; y: number }, actors: EchoVisibleActor[]): EchoVisibleActor | null {
+function nearest(actor: { x: number; y: number }, actors: readonly EchoVisibleActor[]): EchoVisibleActor | null {
   let best: EchoVisibleActor | null = null;
   let bestD = Infinity;
   for (const candidate of actors) {
@@ -94,6 +102,20 @@ export class EchoController {
     this.suggestion = null;
   }
 
+  /**
+   * Full authority reset after checkpoint restore, restart, death or a stale
+   * epoch: follow mode, no assist, no suggestion, no memory, neutral intent.
+   */
+  reset(): void {
+    this.mode = 'follow';
+    this.moveTarget = null;
+    this.assistConfirmed = false;
+    this.suggestion = null;
+    this.memory.length = 0;
+    this.lastIntent = neutral();
+    this.lastAlive = true;
+  }
+
   /** Explicit human revoke of assist fire (never automatic). */
   revokeAssist(): void {
     this.assistConfirmed = false;
@@ -124,7 +146,7 @@ export class EchoController {
 
   /** Suggest assist fire; the user must still confirm it. */
   suggest(view: EchoView): 'fire' | null {
-    const target = nearest(view.echo, view.drones);
+    const target = nearest(view.echo, [...view.drones, ...(view.targets ?? [])]);
     this.suggestion = !this.assistConfirmed && target ? 'fire' : null;
     return this.suggestion;
   }
@@ -136,7 +158,7 @@ export class EchoController {
       this.lastIntent = neutral();
       return this.lastIntent;
     }
-    const target = nearest(view.echo, view.drones);
+    const target = nearest(view.echo, [...view.drones, ...(view.targets ?? [])]);
     const aim = target ? { x: target.x, y: target.y } : null;
     let move = { x: 0, y: 0 };
     if (this.mode === 'follow') {

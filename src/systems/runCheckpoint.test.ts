@@ -78,7 +78,7 @@ function echoFrame() {
     playerTimers: { dashTimer: 0, invuln: 0, hurtTimer: 0, fireTimer: 0.1, aimYaw: 0.5 },
     echo: {
       actorId: 1, x: 5, y: 6,
-      data: { ...run.player, hp: 80, maxHp: 100, upgrades: [], abilities: [] },
+      data: { ...run.player, hp: 80, maxHp: 100, currency: 0, upgrades: [], abilities: [] },
       dashTimer: 0, invuln: 0, hurtTimer: 0, fireTimer: 0.2, aimYaw: 1
     }
   };
@@ -121,6 +121,18 @@ describe('checkpoint echo actor', () => {
       run.coreState!.echo!.data.maxHp = data.maxHp;
       expect(validateCheckpoint(run)).toBe(false);
     }
+    const tamperedStats = echoFrame();
+    tamperedStats.coreState!.echo!.data.speed = 999999;
+    expect(validateCheckpoint(tamperedStats), 'speed beyond the base-only bound').toBe(false);
+    const tamperedArmor = echoFrame();
+    tamperedArmor.coreState!.echo!.data.armor = 5000;
+    expect(validateCheckpoint(tamperedArmor), 'armor beyond the base-only bound').toBe(false);
+    const tamperedSkills = echoFrame();
+    tamperedSkills.coreState!.echo!.data.upgrades.push({ key: 'damage', level: 1 });
+    expect(validateCheckpoint(tamperedSkills), 'no free upgrades from a save').toBe(false);
+    const tamperedWeapon = echoFrame();
+    tamperedWeapon.coreState!.echo!.data.weapons.push({ key: 'scatter', level: 1, ammo: 8, magazine: 8, reloading: false, reloadTimer: 0 });
+    expect(validateCheckpoint(tamperedWeapon), 'no extra weapons from a save').toBe(false);
     const wrongWeapon = echoFrame();
     wrongWeapon.coreState!.echo!.data.weaponKey = 'scatter';
     expect(validateCheckpoint(wrongWeapon)).toBe(false);

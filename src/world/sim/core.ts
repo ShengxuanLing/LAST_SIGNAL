@@ -116,13 +116,16 @@ export type SimCommand =
   | { type: 'purchase-supply'; transactionId: string; offerKey: string; roomId: number }
   | { type: 'set-player-data'; data: PlayerData }
   | { type: 'spawn-echo'; x: number; y: number }
-  | { type: 'remove-echo' };
+  | { type: 'remove-echo' }
+  | { type: 'echo-hit'; damage: number; fromX: number; fromY: number };
 
 export interface SimProjectile {
   id: number;
   ownerId: number;
   side: 'player' | 'enemy';
   source: 'player' | 'echo' | 'enemy';
+  /** Echo shots carry their actor id; never inferred from a numeric drone id. */
+  actorId?: number;
   kind: string;
   pos: Vec2;
   vel: Vec2;
@@ -170,16 +173,16 @@ export type SimEvent =
   | { type: 'player-fired'; spec: WeaponFireSpec }
   | { type: 'projectile-spawned'; projectile: SimProjectile }
   | { type: 'drone-step'; droneId: number; step: DroneAiResult }
-  | { type: 'enemy-hit'; enemyId: number; damage: number; crit: boolean; hit: EnemyHitResult }
+  | { type: 'enemy-hit'; enemyId: number; damage: number; crit: boolean; hit: EnemyHitResult; byActorId?: number }
   | { type: 'enemy-died'; enemyId: number; x: number; y: number }
   | { type: 'player-hurt'; damage: number; hit: PlayerHitResult }
   | { type: 'player-death' }
-  | { type: 'echo-moved'; position: Vec2; velocity: Vec2; dashTimer: number; dashStarted: boolean }
-  | { type: 'echo-fired'; spec: WeaponFireSpec }
-  | { type: 'echo-hurt'; damage: number; hit: PlayerHitResult }
-  | { type: 'echo-death' }
-  | { type: 'echo-spawned'; x: number; y: number }
-  | { type: 'echo-despawned' }
+  | { type: 'echo-moved'; actorId: number; position: Vec2; velocity: Vec2; dashTimer: number; dashStarted: boolean }
+  | { type: 'echo-fired'; actorId: number; spec: WeaponFireSpec }
+  | { type: 'echo-hurt'; actorId: number; damage: number; hit: PlayerHitResult }
+  | { type: 'echo-death'; actorId: number }
+  | { type: 'echo-spawned'; actorId: number; x: number; y: number }
+  | { type: 'echo-despawned'; actorId: number }
   | { type: 'player-healed'; amount: number; hp: number }
   | { type: 'currency-gained'; amount: number; currency: number }
   | { type: 'xp-gained'; amount: number; xp: number; level: number }
@@ -448,11 +451,16 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       }
       case 'spawn-echo': {
         registerEcho(state, command.x, command.y);
-        events.push({ type: 'echo-spawned', x: command.x, y: command.y });
+        events.push({ type: 'echo-spawned', actorId: ECHO_ACTOR_ID, x: command.x, y: command.y });
         break;
       }
       case 'remove-echo': {
-        if (removeEcho(state)) events.push({ type: 'echo-despawned' });
+        if (removeEcho(state)) events.push({ type: 'echo-despawned', actorId: ECHO_ACTOR_ID });
+        break;
+      }
+      case 'echo-hit': {
+        // Legal legacy melee damage is committed by the tick, never by the adapter.
+        if (state.echo) applyActorHit(state, state.echo, command.fromX, command.fromY, command.damage, events, 'echo');
         break;
       }
       case 'teleport-player': {
@@ -596,6 +604,12 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       }
     }
   }
+}
+
+export function enqueueEchoHit(
+  state: SimulationState, damage: number, fromX: number, fromY: number
+): void {
+  state.pendingCommands.push({ type: 'echo-hit', damage, fromX, fromY });
 }
 
 export function enqueuePlayerHit(
@@ -779,8 +793,9 @@ function fireActor(
     pixelToTile: GAME.PIXEL_TO_TILE
   });
   const projectile = toSimProjectile(data, source, spec.kind);
+  if (source === 'echo') projectile.actorId = ECHO_ACTOR_ID;
   state.projectiles.push(projectile);
-  events.push({ type: kind === 'player' ? 'player-fired' : 'echo-fired', spec });
+  events.push({ type: kind === 'player' ? 'player-fired' : 'echo-fired', ...(kind === 'echo' ? { actorId: ECHO_ACTOR_ID } : {}), spec } as SimEvent);
   events.push({ type: 'projectile-spawned', projectile: cloneEventValue(projectile) });
 }
 
@@ -826,7 +841,10 @@ function stepActorMovement(
   if (recovered.x !== p.x || recovered.y !== p.y) {
     p.x = recovered.x;
     p.y = recovered.y;
-    events.push({ type: movedType, position: recovered, velocity: { x: 0, y: 0 }, dashTimer: p.dashTimer, dashStarted: false } as SimEvent);
+    events.push({
+      type: movedType, ...(kind === 'echo' ? { actorId: ECHO_ACTOR_ID } : {}),
+      position: recovered, velocity: { x: 0, y: 0 }, dashTimer: p.dashTimer, dashStarted: false
+    } as SimEvent);
   }
   if (intent.aim) {
     const yaw = aimYawFromGrid({ x: p.x, y: p.y }, intent.aim);
@@ -848,7 +866,8 @@ function stepActorMovement(
     p.dashTimer = step.dashTimer;
     if (step.dashStarted) p.invuln = Math.max(p.invuln, p.data.dashDuration + 0.05);
     events.push({
-      type: movedType, position: step.position, velocity: step.velocity,
+      type: movedType, ...(kind === 'echo' ? { actorId: ECHO_ACTOR_ID } : {}),
+      position: step.position, velocity: step.velocity,
       dashTimer: step.dashTimer, dashStarted: step.dashStarted
     } as SimEvent);
   }
@@ -962,13 +981,15 @@ function applyActorHit(
   // Blocked hits are not hurt facts: no player-hurt event, no audio/shake, no
   // HP/position write. Only real damage becomes canonical.
   if (hit.blocked) return;
-  events.push({ type: kind === 'player' ? 'player-hurt' : 'echo-hurt', damage, hit } as SimEvent);
+  events.push({ type: kind === 'player' ? 'player-hurt' : 'echo-hurt', ...(kind === 'echo' ? { actorId: ECHO_ACTOR_ID } : {}), damage, hit } as SimEvent);
   p.data.hp = hit.hp;
   p.x = hit.position.x;
   p.y = hit.position.y;
   p.invuln = hit.invuln;
   p.hurtTimer = hit.hurtTimer;
-  if (p.data.hp <= 0) events.push({ type: kind === 'player' ? 'player-death' : 'echo-death' });
+  if (p.data.hp <= 0) {
+    events.push(kind === 'player' ? { type: 'player-death' } : { type: 'echo-death', actorId: ECHO_ACTOR_ID });
+  }
 }
 
 function applyCorePlayerHit(state: SimulationState, fromX: number, fromY: number, damage: number, events: SimEvent[]): void {
@@ -1047,7 +1068,10 @@ function stepProjectiles(state: SimulationState, dt: number, rng: RNG, events: S
           isWalkable: (x, y, radius) => isWalkableFromState(state, x, y, radius),
           pixelToTile: GAME.PIXEL_TO_TILE
         });
-        events.push({ type: 'enemy-hit', enemyId: drone.id, damage: projectile.damage, crit: projectile.crit, hit });
+        events.push({
+          type: 'enemy-hit', enemyId: drone.id, damage: projectile.damage, crit: projectile.crit, hit,
+          ...(projectile.source === 'echo' ? { byActorId: ECHO_ACTOR_ID } : {})
+        } as SimEvent);
         drone.hp = hit.hp;
         drone.x = hit.position.x;
         drone.y = hit.position.y;
@@ -1091,7 +1115,10 @@ function stepProjectiles(state: SimulationState, dt: number, rng: RNG, events: S
           target.x = hit.position.x;
           target.y = hit.position.y;
         }
-        events.push({ type: 'enemy-hit', enemyId: target.id, damage: projectile.damage, crit: projectile.crit, hit });
+        events.push({
+          type: 'enemy-hit', enemyId: target.id, damage: projectile.damage, crit: projectile.crit, hit,
+          ...(projectile.source === 'echo' ? { byActorId: ECHO_ACTOR_ID } : {})
+        } as SimEvent);
         if (target.hp <= 0) {
           events.push({ type: 'enemy-died', enemyId: target.id, x: target.x, y: target.y });
           awardEnemyKill(state, target.xpValue, target.isBoss, rng, events, target.x, target.y);

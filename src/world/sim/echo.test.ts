@@ -234,3 +234,33 @@ describe('P3-a echo actor core', () => {
     expect(GAME.PIXEL_TO_TILE).toBe(64);
   });
 });
+
+describe('P3-a echo damage commands', () => {
+  it('legacy melee damage is committed by the core tick, never by the adapter', () => {
+    const { state, spots } = makeState();
+    const echo = registerEcho(state, spots[1].x, spots[1].y);
+    const hp = echo.data.hp;
+    enqueueCommand(state, { type: 'echo-hit', damage: 7, fromX: spots[2].x, fromY: spots[2].y });
+    // Enqueue only: no state write before the tick.
+    expect(echo.data.hp).toBe(hp);
+    const events = stepSimulationTicks(state, 1, neutral(), neutral());
+    const hurt = events.find((e) => e.type === 'echo-hurt') as { actorId?: number; damage: number } | undefined;
+    expect(hurt).toBeTruthy();
+    expect(hurt!.damage).toBe(7);
+    expect(hurt!.actorId).toBe(ECHO_ACTOR_ID);
+    expect(echo.data.hp).toBe(hp - 7);
+  });
+
+  it('a dead echo ignores further queued hits and never emits twice', () => {
+    const { state, spots } = makeState();
+    const echo = registerEcho(state, spots[1].x, spots[1].y);
+    echo.data.hp = 1;
+    enqueueCommand(state, { type: 'echo-hit', damage: 50, fromX: 0, fromY: 0 });
+    const first = stepSimulationTicks(state, 1, neutral(), neutral());
+    expect(first.some((e) => e.type === 'echo-death')).toBe(true);
+    enqueueCommand(state, { type: 'echo-hit', damage: 50, fromX: 0, fromY: 0 });
+    const second = stepSimulationTicks(state, 1, neutral(), neutral());
+    expect(second.some((e) => e.type === 'echo-hurt' || e.type === 'echo-death')).toBe(false);
+    expect(echo.data.hp).toBeLessThanOrEqual(0);
+  });
+});

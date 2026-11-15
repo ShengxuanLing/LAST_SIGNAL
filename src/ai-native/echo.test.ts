@@ -97,3 +97,23 @@ describe('P3-a echo controller', () => {
     expect(c.decide(view({ drones: [{ id: 1, x: 1, y: 0, hp: 5 }] })).fire).toBe(false);
   });
 });
+
+describe('EchoController reset (restore/restart/death boundary)', () => {
+  it('clears assist, mode, memory, suggestion and intent in one step', () => {
+    const c = new EchoController();
+    c.setMode('move-to', { x: 5, y: 0 });
+    c.confirmAssist();
+    c.observe({ tick: 10, player: { x: 0, y: 0 }, echo: { x: 0, y: 0, hp: 100, maxHp: 100, aimYaw: 0 }, drones: [{ id: 1, x: 1, y: 0, hp: 5 }] });
+    c.decide({ tick: 10, player: { x: 0, y: 0 }, echo: { x: 0, y: 0, hp: 100, maxHp: 100, aimYaw: 0 }, drones: [{ id: 1, x: 1, y: 0, hp: 5 }] });
+    expect(c.assistConfirmed).toBe(true);
+    expect(c.memory.length).toBeGreaterThan(0);
+    c.reset();
+    expect(c.assistConfirmed).toBe(false);
+    expect(c.mode).toBe('follow');
+    expect(c.moveTarget).toBeNull();
+    expect(c.memory).toHaveLength(0);
+    expect(c.suggestion).toBeNull();
+    expect(c.lastIntent).toEqual({ move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    expect(c.decide({ tick: 11, player: { x: 0, y: 0 }, echo: { x: 0, y: 0, hp: 100, maxHp: 100, aimYaw: 0 }, drones: [{ id: 1, x: 1, y: 0, hp: 5 }] }).fire).toBe(false);
+  });
+});
