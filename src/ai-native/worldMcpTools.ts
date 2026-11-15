@@ -11,7 +11,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { readFile } from 'node:fs/promises';
 import { WorldClient } from './worldClient';
-import { WORLD_LIMITS } from './worldProtocol';
+import { WORLD_LIMITS, parseWorldActionBatch, type WorldActionV2 } from './worldProtocol';
 
 const RESULT_SCHEMA = 'last_signal.mcp.tool-result.v1';
 
@@ -49,6 +49,21 @@ const worldFireAction = z.strictObject({
   ticks: z.number().int().min(1).max(WORLD_LIMITS.MAX_ACTION_TICKS)
 });
 const worldInteractAction = z.strictObject({ type: z.literal('interact'), actionId: worldActionId });
+const worldScanAction = z.strictObject({
+  type: z.literal('scan'), actionId: worldActionId,
+  actor: z.enum(['player', 'echo']),
+  ticks: z.number().int().min(1).max(WORLD_LIMITS.MAX_ACTION_TICKS)
+});
+const worldJamAction = z.strictObject({
+  type: z.literal('jam'), actionId: worldActionId,
+  actor: z.enum(['player', 'echo']),
+  ticks: z.number().int().min(1).max(WORLD_LIMITS.MAX_ACTION_TICKS)
+});
+/** V2 action schema: v1 intents plus signal actions with explicit actor. */
+export const worldActionV2Schema = z.discriminatedUnion('type', [
+  worldMoveAction, worldStopAction, worldAimAction, worldFireAction, worldInteractAction,
+  worldScanAction, worldJamAction
+]);
 const worldAction = z.discriminatedUnion('type', [
   worldMoveAction, worldStopAction, worldAimAction, worldFireAction, worldInteractAction
 ]);
@@ -108,10 +123,10 @@ export function registerWorldTools(server: McpServer, client: WorldClient, regis
     });
 
   register(server, 'world_action',
-    'Submit intents to the rendered world. Queue-only: the browser executes them on a real core tick.',
+    'Submit intents to the rendered world. Queue-only: the browser executes them on a real core tick. V1 actions (move/stop/aim/fire/interact) plus V2 signal actions (scan/jam with actor). V1 scan/jam without actor is rejected by the gateway.',
     z.strictObject({
       requestId: worldRequestId,
-      actions: z.array(worldAction).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH),
+      actions: z.array(z.lazy(() => worldActionV2Schema)).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH),
       ttlTicks: z.number().int().min(1).max(WORLD_LIMITS.MAX_TTL_TICKS).optional()
     }),
     async (args) => {

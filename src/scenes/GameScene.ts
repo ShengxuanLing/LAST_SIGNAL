@@ -59,11 +59,10 @@ export class GameScene extends Phaser.Scene {
   private companionFrame = 0;
   /** Confirmed companion suggestion awaiting its post-commit receipt. */
   private pendingCompanionReceipt: { suggestionId: string; enqueuedTick: number } | null = null;
-  /** Player signal keys (Q=scan, E=jam, R=toggle relay), debounced per core tick. */
+  /** Player signal keys (independent, unoccupied keys: T=scan, Y=jam, R=toggle relay). */
   private signalKeyCooldown = false;
-  private signalKeyCooldownTick = 0;
-  private keyQ!: Phaser.Input.Keyboard.Key;
-  private keyE!: Phaser.Input.Keyboard.Key;
+  private keyT!: Phaser.Input.Keyboard.Key;
+  private keyY!: Phaser.Input.Keyboard.Key;
   private keyR!: Phaser.Input.Keyboard.Key;
   private txtHelp!: Phaser.GameObjects.Text;
   /** Compact-viewport HUD layout (F-06): larger logical fonts, no z-index tricks. */
@@ -193,6 +192,10 @@ export class GameScene extends Phaser.Scene {
     });
     this.input.keyboard!.on('keydown-Q', () => this.switchWeapon(-1));
     this.input.keyboard!.on('keydown-E', () => this.switchWeapon(1));
+    // Signal keys: independent, unoccupied by weapon switching. T=scan, Y=jam, R=toggle relay.
+    this.keyT = this.input.keyboard!.addKey('T');
+    this.keyY = this.input.keyboard!.addKey('Y');
+    this.keyR = this.input.keyboard!.addKey('R');
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       if (p.button !== 0) return;
       // UI click ownership: a pointerdown on an interactive overlay object
@@ -409,20 +412,38 @@ export class GameScene extends Phaser.Scene {
     this.world.stepFrame(delta, intent);
     if (intent.interact) this.world.tryInteract(this.world.player);
     // PLAYER signal actions (OWNER/human only), on the player's own energy account.
-    // Q = scan, E = jam, R = toggle relay. Debounced so one press = one commit,
-    // debounced until key release. Only the human owner (not AI/External) may
-    // issue these; they go through the same core commit path as every other
-    // player action, never bypassing permission checks.
-    if (this.world.sim.signal && !this.paused && !this.signalKeyCooldown && this.world.player.control.owner === 'human') {
+    // T = scan, Y = jam, R = toggle relay. Independent from Q/E weapon switching.
+    // Edge-triggered: one press = one commit, debounced until key release. A
+    // physical Signal press first reclaims control (humanTakeover), then the
+    // command goes through the same core commit path as every other player
+    // action, never bypassing permission checks. Pause/forms do not trigger.
+    if (this.world.sim.signal && !this.paused && !this.signalKeyCooldown) {
       const k = this.input.keyboard;
-      if (k && k.addKey('Q').isDown) { this.world.playerSignalScan(); this.signalKeyCooldown = true; }
-      else if (k && k.addKey('E').isDown) { this.world.playerSignalJam(); this.signalKeyCooldown = true; }
-      else if (k && k.addKey('R').isDown) { this.world.toggleRelay(); this.signalKeyCooldown = true; }
+      const issueScan = k && Phaser.Input.Keyboard.JustDown(this.keyT);
+      const issueJam = k && Phaser.Input.Keyboard.JustDown(this.keyY);
+      const issueToggle = k && Phaser.Input.Keyboard.JustDown(this.keyR);
+      if (issueScan || issueJam || issueToggle) {
+        // Reclaim control from AI/External before issuing a physical Signal command.
+        if (this.world.player.control.owner !== 'human') {
+          this.takeoverFromHumanInput();
+        }
+        if (this.world.player.control.owner === 'human') {
+          if (issueScan) this.world.playerSignalScan();
+          else if (issueJam) this.world.playerSignalJam();
+          else if (issueToggle) this.world.toggleRelay();
+          this.signalKeyCooldown = true;
+        }
+      }
     }
-    if (this.signalKeyCooldown && !(this.input.keyboard?.addKey('Q').isDown || this.input.keyboard?.addKey('E').isDown || this.input.keyboard?.addKey('R').isDown)) {
+    // Release clears the cooldown so the same key can be pressed again.
+    // On pause/resume the cooldown is cleared, so a held key cannot repeat
+    // after resume without a fresh press.
+    if (this.signalKeyCooldown && this.input.keyboard &&
+        !this.input.keyboard.addKey('T').isDown &&
+        !this.input.keyboard.addKey('Y').isDown &&
+        !this.input.keyboard.addKey('R').isDown) {
       this.signalKeyCooldown = false;
     }
-    // Companion receipt: only AFTER a real core tick consumed the confirmed
     // Companion receipt: only AFTER a real core tick consumed the confirmed
     // intent (never early, never while paused with no tick).
     if (this.pendingCompanionReceipt && this.world.sim.tick > this.pendingCompanionReceipt.enqueuedTick) {
@@ -591,14 +612,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private refreshSignalHud(): void {
-    const s = this.world.signalView() as { relay: string; echoEnergy?: number; playerEnergy?: number; scanCooldown?: number; jamCooldown?: number; exitOpen: boolean } | null;
+    const s = this.world.signalView() as { relay: string; echoEnergy?: number; playerEnergy?: number; playerScanCD?: number; playerJamCD?: number; echoScanCD?: number; echoJamCD?: number; exitOpen: boolean } | null;
     if (!s) {
       if (this.txtSignal) this.txtSignal.setText('RELAY OFF · NO DEVICE');
       return;
     }
     const e = s.echoEnergy ?? 0, p = s.playerEnergy ?? 0;
     let c = '';
-    if (s.echoEnergy !== undefined) c += ` echoScanCD:${s.scanCooldown}t/jamCD:${s.jamCooldown}t`;
+    if (s.echoEnergy !== undefined) c += ` echoScanCD:${s.echoScanCD}t/jamCD:${s.echoJamCD}t`;
+    if (s.playerEnergy !== undefined && s.playerEnergy > 0) c += ` playerScanCD:${s.playerScanCD}t/jamCD:${s.playerJamCD}t`;
     const exit = s.exitOpen ? 'EXIT OPEN' : 'EXIT CLOSED';
     let txt = `RELAY ${s.relay.toUpperCase()} | e:${e} p:${p}`;
     if (c) txt += c;

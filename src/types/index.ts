@@ -143,6 +143,9 @@ export interface SaveData {
     armorBonus: number; xpBonus: number; currencyBonus: number;
     unlockedWeapons: string[]; unlockedAbilities: string[];
     cores: number; runs: number; bossesDefeated: number; bestSeed: number;
+    /** Explicit opt-in to Signal Relay collaboration. Ordinary NEW RUNS stay
+     *  legacy (no device, no gating) until the human enables it in-game. */
+    signalCollaborationOptIn: boolean;
   };
   settings: {
     masterVolume: number; sfxVolume: number; mouseDpi: number;

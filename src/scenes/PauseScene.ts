@@ -486,6 +486,25 @@ export class PauseScene extends Phaser.Scene {
     });
     const hint = this.add.text(0, 175, 'ESC RESUME', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(0.5);
     const back = this.add.text(0, 140, 'BACK', { fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', backgroundColor: '#0d1822' }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
+    // Signal Collaboration opt-in: an explicit, persisted human choice.
+    // Ordinary NEW RUNS stay legacy (no Relay device, no gating) until enabled.
+    const optIn = save.permanent.signalCollaborationOptIn === true;
+    const signalToggle = this.add.text(0, 105, `SIGNAL COLLABORATION · ${optIn ? 'ON' : 'OFF'}`, {
+      fontFamily: 'monospace', fontSize: '14px', color: optIn ? '#00ff77' : '#8fb8c8',
+      backgroundColor: optIn ? '#004400' : '#274a55'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const gs = this.scene.get<GameScene>('GameScene');
+    signalToggle.on('pointerdown', () => {
+      audio.ui();
+      const next = !optIn;
+      const latest = saveSystem.load();
+      latest.permanent.signalCollaborationOptIn = next;
+      saveSystem.save(latest);
+      gs.world.setSignalCollaborationOptIn(next);
+      signalToggle.setText(`SIGNAL COLLABORATION · ${next ? 'ON' : 'OFF'}`);
+      signalToggle.setColor(next ? '#00ff77' : '#8fb8c8');
+      signalToggle.setBackgroundColor(next ? '#004400' : '#274a55');
+    });
     // Native input entry: a normal player can configure the local bridge
     // WITHOUT opening the browser console. The token is masked, never saved,
     // never logged and cleared from the DOM immediately after submission.

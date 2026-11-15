@@ -43,8 +43,9 @@ export interface ExternalNextIntent {
   readonly requestId: string;
   readonly applyByTick: number;
   readonly action: {
-    readonly type: 'move' | 'stop' | 'aim' | 'fire' | 'interact';
+    readonly type: 'move' | 'stop' | 'aim' | 'fire' | 'interact' | 'scan' | 'jam';
     readonly actionId: string;
+    readonly actor?: 'player' | 'echo';
     readonly dir?: { x: number; y: number };
     readonly target?: { x: number; y: number };
     readonly ticks?: number;

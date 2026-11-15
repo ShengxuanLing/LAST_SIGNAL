@@ -167,9 +167,13 @@ export class World {
   private _maxX = 0;
   private _maxY = 0;
   private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number; wx: number; wy: number } | null = null;
-  /** ONE real Relay device per run. Spawned on first room enter; absent =
-   *  legacy v1 run (portal always open). */
+  /** ONE real Relay device per run. Spawned on first room enter only when the
+   *  human has explicitly opted into Signal Collaboration; absent = legacy
+   *  v1 run (portal always open). */
   private signalDeviceSpawned = false;
+  /** Explicit human opt-in to Signal Collaboration (from save data). Ordinary
+   *  NEW RUNS stay legacy (no device, no gating) until enabled in-game. */
+  private signalCollaborationOptIn = false;
 
   /** Deep, frozen read-only snapshot. External adapters must never mutate this. */
   get sim(): SimulationState {
@@ -274,8 +278,10 @@ export class World {
       jammedUntilTick: s.jammedUntilTick,
       playerEnergy: s.actors.player.energy.energy,
       echoEnergy: s.actors.echo.energy.energy,
-      scanCooldown: s.actors.echo.cooldowns.scanCooldownTicks,
-      jamCooldown: s.actors.echo.cooldowns.jamCooldownTicks,
+      playerScanCD: s.actors.player.cooldowns.scanCooldownTicks,
+      playerJamCD: s.actors.player.cooldowns.jamCooldownTicks,
+      echoScanCD: s.actors.echo.cooldowns.scanCooldownTicks,
+      echoJamCD: s.actors.echo.cooldowns.jamCooldownTicks,
       evidence: s.evidence.length,
       exitOpen: s.relay === 'ACTIVE'
     };
@@ -296,10 +302,23 @@ export class World {
     return true;
   }
 
+  /** Human opt-in to Signal Collaboration. Persisted to save data by the
+   *  caller (GameScene). When enabled, the first room enter spawns the Relay
+   *  device; when false the run stays legacy (portal always open). */
+  setSignalCollaborationOptIn(enabled: boolean): void {
+    this.signalCollaborationOptIn = enabled;
+  }
+
   /** HUMAN PLAYER scan the Relay using the player's own finite energy account. */
   playerSignalScan(): boolean { return this.enqueueSignalCommand({ type: 'signal-scan', actor: 'player' }); }
   /** HUMAN PLAYER jam the relay emission (suppresses, never toggles manual/power). */
   playerSignalJam(): boolean { return this.enqueueSignalCommand({ type: 'signal-jam', actor: 'player' }); }
+  /** External agent / Companion-confirmed signal command on a named actor's
+   *  energy account. Committed by the next core tick; never a direct state
+   *  write. Returns false when no device exists or the command is unknown. */
+  enqueueSignalCommandByActor(command: {
+    type: 'signal-scan' | 'signal-jam'; actor: 'player' | 'echo'
+  }): boolean { return this.enqueueSignalCommand(command); }
   /** HUMAN OWNER manual relay + power toggle (JAM is preserved, not a switch). */
   toggleRelay(enabled?: boolean): boolean {
     return this.enqueueSignalCommand({ type: 'toggle-relay', enabled: enabled ?? !(this._sim.signal?.manualEnabled ?? false) });
@@ -435,6 +454,7 @@ export class World {
     this.scene = scene;
     this.map = map;
     this.callbacks = callbacks;
+    this.signalCollaborationOptIn = !!save.permanent?.signalCollaborationOptIn;
     this.rng = new RNG(map.seed * 7919 + 1);
     this.roomDepth.build(map);
     this._computeBounds();
@@ -735,8 +755,10 @@ export class World {
         this.pendingRoomEnters.add(r.id);
         this.callbacks.onRoomEntered(room);
         this.placePortal(r);
-        // ONE real Relay device per run, spawned on first room enter.
-        if (!this.signalDeviceSpawned) {
+        // ONE real Relay device per run, spawned on first room enter ONLY when
+        // the human has explicitly opted into Signal Collaboration. Ordinary
+        // NEW RUNS stay legacy (no device, no gating) until enabled in-game.
+        if (this.signalCollaborationOptIn && !this.signalDeviceSpawned) {
           this.signalDeviceSpawned = true;
           enqueueCommand(this._sim, {
             type: 'spawn-signal-device',

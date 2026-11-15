@@ -345,7 +345,7 @@ export class HeadlessWorldManager {
 
     const fromTick = record.world.tick;
     const eventsBefore = record.world.eventTotal;
-    const schedule: Array<{ ticks: number; intent: TypedIntent }> = [];
+    const schedule: Array<{ ticks: number; intent: TypedIntent | null }> = [];
     const applied: Array<{ actionId: string; requestId: string; startedTick: number; appliedTick: number; executedTicks: number }> = [];
     const rejected: Array<{ actionId: string; requestId: string; code: string; executedTicks?: number }> = [];
     let used = 0;
@@ -391,7 +391,7 @@ export class HeadlessWorldManager {
           const converted = intentFromWorldAction(peek.action);
           record.active = {
             actionId: peek.actionId, requestId: peek.requestId,
-            intent: converted.intent, actionType: peek.action.type,
+            intent: converted.intent!, actionType: peek.action.type,
             durationTicks: 1, remainingTicks: 1,
             startedTick: record.world.tick + used,
             applyByTick: peek.applyByTick, epoch
@@ -403,27 +403,45 @@ export class HeadlessWorldManager {
       if (!record.active) {
         const next = rawAction(this.gateway.nextAction({ sessionId: session, epoch, afterActionId: cursor, nowMs: Date.now() }));
         if (!next) break;
-        const converted = intentFromWorldAction(next.action);
+        const na = next.action as { type: string; actor?: 'player' | 'echo'; actionId: string; requestId: string; ticks?: number };
+        const converted = intentFromWorldAction(na as { type: 'move' | 'stop' | 'aim' | 'fire' | 'interact'; dir?: { x: number; y: number }; target?: { x: number; y: number }; ticks?: number });
         const startTick = record.world.tick + used;
         if (startTick + 1 > next.applyByTick) {
           ackRejected({
-            actionId: next.actionId, requestId: next.requestId, intent: converted.intent,
-            actionType: next.action.type, durationTicks: converted.ticks, remainingTicks: converted.ticks,
+            actionId: next.actionId, requestId: next.requestId, intent: converted.intent ?? neutralIntent(),
+            actionType: na.type, durationTicks: converted.ticks, remainingTicks: converted.ticks,
             startedTick: startTick, applyByTick: next.applyByTick, epoch
           }, 'E_ACTION_EXPIRED', 0);
           cursor = next.actionId;
           continue;
         }
+        // V2 Signal actions (scan/jam) are committed directly by the core tick
+        // on the named actor's energy account, not through PlayerIntents.
+        if (na.type === 'scan' || na.type === 'jam') {
+          const actor = na.actor ?? 'player';
+          record.world.enqueueSignalCommand({
+            type: na.type === 'scan' ? 'signal-scan' : 'signal-jam',
+            actor
+          });
+          record.active = {
+            actionId: next.actionId, requestId: next.requestId,
+            intent: neutralIntent(), actionType: na.type,
+            durationTicks: 1, remainingTicks: 1,
+            startedTick: startTick, applyByTick: next.applyByTick, epoch
+          };
+          cursor = next.actionId;
+          continue;
+        }
         record.active = {
           actionId: next.actionId, requestId: next.requestId,
-          intent: converted.intent, actionType: next.action.type,
+          intent: converted.intent ?? neutralIntent(), actionType: na.type,
           durationTicks: converted.ticks, remainingTicks: converted.ticks,
           startedTick: startTick, applyByTick: next.applyByTick, epoch
         };
         cursor = next.actionId;
       }
       // 4) Consume real ticks from the active action (never over-deliver).
-      const active = record.active;
+      const active = record.active!;
       const take = Math.min(boundedTicks - used, active.remainingTicks);
       if (take <= 0) break;
       schedule.push({ ticks: take, intent: active.intent });

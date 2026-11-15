@@ -186,14 +186,19 @@ describe('C3-c headless same-core runtime', () => {
   it('WorldActionV1 converts only to legal core intents', () => {
     const move = intentFromWorldAction({ type: 'move', dir: { x: 3, y: 4 }, ticks: 5 });
     expect(move.ticks).toBe(5);
-    expect(move.intent.move).toEqual({ x: 0.6, y: 0.8 });
-    expect(move.intent.fire).toBe(false);
+    expect(move.intent!).toEqual({ move: { x: 0.6, y: 0.8 }, dash: false, fire: false, aim: null, interact: false });
+    expect(move.intent!.fire).toBe(false);
     const fire = intentFromWorldAction({ type: 'fire', target: { x: 1, y: 2 }, ticks: 3 });
-    expect(fire.intent.fire).toBe(true);
-    expect(fire.intent.aim).toEqual({ x: 1, y: 2 });
+    expect(fire.intent!.fire).toBe(true);
+    expect(fire.intent!.aim).toEqual({ x: 1, y: 2 });
     expect(intentFromWorldAction({ type: 'stop' }).intent).toEqual(neutralIntent());
-    expect(intentFromWorldAction({ type: 'interact' }).intent.interact).toBe(true);
+    expect(intentFromWorldAction({ type: 'interact' }).intent!.interact).toBe(true);
+    // Signal actions return null intent (handled separately).
+    const scan = intentFromWorldAction({ type: 'scan', actor: 'player', ticks: 1 });
+    expect(scan.intent).toBeNull();
+    const jam = intentFromWorldAction({ type: 'jam', actor: 'echo', ticks: 1 });
+    expect(jam.intent).toBeNull();
     // No HP / seed / position override is expressible.
-    expect(Object.keys(move.intent).sort()).toEqual(['aim', 'dash', 'fire', 'interact', 'move']);
+    expect(Object.keys(move.intent!).sort()).toEqual(['aim', 'dash', 'fire', 'interact', 'move']);
   });
 });

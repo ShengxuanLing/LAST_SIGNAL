@@ -348,6 +348,25 @@ export class ExternalLinkState {
     return this.completed.splice(0, this.completed.length);
   }
 
+  /** ACK a directly-committed Signal command (scan/jam) that bypasses the
+   *  duration-based execution pipeline. Records a receipt with the real
+   *  post-commit tick. */
+  ackSignalCommand(
+    actionId: string, requestId: string, status: 'applied' | 'rejected',
+    appliedTick: number, code?: string
+  ): ExternalActionReceipt | null {
+    if (this._status !== 'CONNECTED') return null;
+    const receipt = this.record({
+      actionId, requestId, status,
+      appliedTick, completedTick: appliedTick,
+      executedTicks: status === 'applied' ? 1 : 0,
+      durationTicks: 1, code
+    });
+    if (status === 'applied') this._lastAppliedTick = appliedTick;
+    this.pushCompletion(actionId, requestId, this._epoch, receipt);
+    return receipt;
+  }
+
   /** Legacy completion path (kept for the direct unit API / no-active case). */
   commitApplied(actionId: string, appliedTick: number): ExternalActionReceipt | null {
     if (this.active?.actionId === actionId) {

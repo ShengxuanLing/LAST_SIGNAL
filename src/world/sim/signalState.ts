@@ -86,6 +86,7 @@ export function commitSignalScan(
   device: SimSignalDevice, actor: SignalActorKind, tick: number,
   paused: boolean, legality: SignalLegality
 ): SignalCommandResult {
+  if (!actor || !(actor in device.actors)) return { ok: false, code: 'E_PERMISSION' };
   const permitted = legalScan(device, actor, legality);
   const resources = device.actors[actor];
   const result = tryScan(resources, paused, false, permitted);

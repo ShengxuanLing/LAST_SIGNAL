@@ -65,7 +65,9 @@ interface LifecycleToken {
   readonly generation: number;
 }
 
-/** Convert a bridge action into a legal PlayerIntent. */
+/** Convert a bridge v1 action into a legal PlayerIntent. Signal actions
+ *  (scan/jam) are NOT intents — they are handled separately by the caller
+ *  via `enqueueSignalCommand`. */
 export function intentFromExternalAction(action: {
   type: 'move' | 'stop' | 'aim' | 'fire' | 'interact';
   dir?: { x: number; y: number };
@@ -89,6 +91,14 @@ export function intentFromExternalAction(action: {
     return { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: true };
   }
   return { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+}
+
+/** True when a bridge action is a V2 Signal command (scan/jam) rather than
+ *  a v1 movement intent. */
+export function isSignalAction(action: { type: string }): action is {
+  type: 'scan' | 'jam'; actor: 'player' | 'echo';
+} {
+  return action.type === 'scan' || action.type === 'jam';
 }
 
 /**
@@ -274,7 +284,7 @@ export class ExternalLinkController {
         if (!peek || peek.action.type !== 'stop') return; // normal FIFO
         world.externalLink.preemptActive(world.sim.tick, 'E_PREEMPTED');
         if (!this.live(token)) return;
-        const stopIntent = intentFromExternalAction(peek.action);
+        const stopIntent = intentFromExternalAction(peek.action as { type: 'stop'; actionId: string; });
         const stopReceipt = world.enqueueExternalIntent({
           actionId: peek.actionId,
           requestId: peek.requestId,
@@ -292,8 +302,28 @@ export class ExternalLinkController {
       const next = await token.client.nextIntent();
       if (!this.live(token)) return; // late callback: never start a stale action
       if (!next) return;
-      const durationTicks = durationForAction(next.action);
-      const intent = intentFromExternalAction(next.action);
+      // V2 Signal actions (scan/jam) are committed directly by the core tick
+      // on the named actor's energy account — they are NOT PlayerIntents.
+      const na = next.action as { type: string; actor?: 'player' | 'echo'; actionId: string; requestId: string };
+      if (na.type === 'scan' || na.type === 'jam') {
+        const ok = world.enqueueSignalCommandByActor({
+          type: na.type === 'scan' ? 'signal-scan' : 'signal-jam',
+          actor: na.actor ?? 'player'
+        });
+        // ACK immediately: signal commands are single-tick commits, not
+        // duration-based intents. A failed enqueue (no device) is rejected.
+        if (!this.live(token)) return;
+        world.externalLink.beginExecution(world.sim.tick, token.epoch);
+        const receipt = world.externalLink.ackSignalCommand(
+          next.actionId, next.requestId, ok ? 'applied' : 'rejected',
+          world.sim.tick, ok ? undefined : 'E_NOT_APPLICABLE'
+        );
+        void receipt;
+        return;
+      }
+      const v1Action = next.action as { type: 'move' | 'stop' | 'aim' | 'fire' | 'interact'; actionId: string; dir?: { x: number; y: number }; target?: { x: number; y: number }; ticks?: number };
+      const durationTicks = durationForAction(v1Action);
+      const intent = intentFromExternalAction(v1Action);
       const receipt = world.enqueueExternalIntent({
         actionId: next.actionId,
         requestId: next.requestId,

@@ -520,27 +520,34 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       case 'signal-scan': {
         const device = state.signal;
         if (!device) break;
-        const result = commitSignalScan(device, command.actor, state.tick, false, signalLegality(state, command.actor, device));
+        const actor = command.actor;
+        const validActor = actor === 'player' || actor === 'echo';
+        const result = commitSignalScan(device, actor, state.tick, false, signalLegality(state, actor, device));
+        const actorRes = validActor ? device.actors[actor] : null;
         events.push({
-          type: 'signal-scanned', actorId: command.actor === 'echo' ? ECHO_ACTOR_ID : 0,
-          found: result.found === true, energy: result.energy ?? device.actors[command.actor].energy.energy,
-          cooldownTicks: result.cooldownTicks ?? device.actors[command.actor].cooldowns.scanCooldownTicks,
-          evidence: result.ok ? cloneEventValue(device.evidence.filter((e) => e.observerActorId === command.actor)) : []
+          type: 'signal-scanned', actorId: actor === 'echo' ? ECHO_ACTOR_ID : 0,
+          found: result.found === true,
+          energy: result.energy ?? (actorRes ? actorRes.energy.energy : 0),
+          cooldownTicks: result.cooldownTicks ?? (actorRes ? actorRes.cooldowns.scanCooldownTicks : 0),
+          evidence: result.ok ? cloneEventValue(device.evidence.filter((e) => e.observerActorId === actor)) : []
         });
-        events.push(signalEnergyEvent(device, command.actor));
+        if (validActor) events.push(signalEnergyEvent(device, actor));
         break;
       }
       case 'signal-jam': {
         const device = state.signal;
         if (!device) break;
-        const result = commitSignalJam(device, command.actor, state.tick, false, signalLegality(state, command.actor, device));
+        const actor = command.actor;
+        const validActor = actor === 'player' || actor === 'echo';
+        const result = commitSignalJam(device, actor, state.tick, false, signalLegality(state, actor, device));
+        const actorRes = validActor ? device.actors[actor] : null;
         events.push({
-          type: 'signal-jammed', actorId: command.actor === 'echo' ? ECHO_ACTOR_ID : 0,
-          energy: result.energy ?? device.actors[command.actor].energy.energy,
-          cooldownTicks: result.cooldownTicks ?? device.actors[command.actor].cooldowns.jamCooldownTicks,
+          type: 'signal-jammed', actorId: actor === 'echo' ? ECHO_ACTOR_ID : 0,
+          energy: result.energy ?? (actorRes ? actorRes.energy.energy : 0),
+          cooldownTicks: result.cooldownTicks ?? (actorRes ? actorRes.cooldowns.jamCooldownTicks : 0),
           relay: device.relay, jamExpiresAtTick: device.jammedUntilTick
         });
-        events.push(signalEnergyEvent(device, command.actor));
+        if (validActor) events.push(signalEnergyEvent(device, actor));
         break;
       }
       case 'toggle-relay': {

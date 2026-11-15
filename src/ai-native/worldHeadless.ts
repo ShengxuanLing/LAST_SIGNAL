@@ -103,7 +103,10 @@ export interface HeadlessWorldFrame {
 
 export interface HeadlessRunStep {
   ticks: number;
-  intent: SimulationIntent;
+  /** Null for V2 Signal actions (scan/jam) which are committed directly, not
+   *  through intents. The caller must enqueue them via `enqueueSignalCommand`
+   *  before or after the step. */
+  intent: SimulationIntent | null;
   /**
    * P3-a owner/dev-only echo intent for the SAME core ticks. The Player MCP
    * surface never builds this field; only the Node parity driver / Dev do.
@@ -119,14 +122,21 @@ export function neutralIntent(): SimulationIntent {
   return { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
 }
 
-/** Pure WorldActionV1 -> core SimulationIntent. Mirrors the rendered C3-b
- *  conversion without importing any rendered/browser controller module. */
+/** Pure WorldActionV1/V2 -> core SimulationIntent. Mirrors the rendered C3-b
+ *  conversion without importing any rendered/browser controller module.
+ *  Signal actions (scan/jam) are returned as null intents — they are handled
+ *  separately by the caller via `enqueueSignalCommand`. */
 export function intentFromWorldAction(action: {
-  type: 'move' | 'stop' | 'aim' | 'fire' | 'interact';
+  type: 'move' | 'stop' | 'aim' | 'fire' | 'interact' | 'scan' | 'jam';
   dir?: { x: number; y: number };
   target?: { x: number; y: number };
   ticks?: number;
-}): { intent: SimulationIntent; ticks: number } {
+  actor?: 'player' | 'echo';
+}): { intent: SimulationIntent | null; ticks: number } {
+  if (action.type === 'scan' || action.type === 'jam') {
+    // Signal commands are committed directly, not through intents.
+    return { intent: null, ticks: Math.max(1, Math.min(WORLD_LIMITS.MAX_ACTION_TICKS, Math.floor(action.ticks ?? 1))) };
+  }
   const ticks = Math.max(1, Math.min(WORLD_LIMITS.MAX_ACTION_TICKS, Math.floor(action.ticks ?? 1)));
   if (action.type === 'move') {
     const dir = action.dir ?? { x: 0, y: 0 };
@@ -359,7 +369,10 @@ export class HeadlessWorld {
     return { ok: true };
   }
 
-  /** Bounded, real Signal state (no hidden fields). */
+  /** Bounded, real Signal state (no hidden fields). Byte-parity with the
+   *  rendered World.signalView(): separate player/echo cooldowns.
+   *  `scanCooldown`/`jamCooldown` are kept as echo-cooldown aliases for
+   *  existing consumers; `echoScanCD`/`echoJamCD` are the canonical names. */
   signalView(): Record<string, unknown> | null {
     const s = this.sim.signal;
     if (!s) return null;
@@ -369,6 +382,10 @@ export class HeadlessWorld {
       jammedUntilTick: s.jammedUntilTick,
       playerEnergy: s.actors.player.energy.energy,
       echoEnergy: s.actors.echo.energy.energy,
+      playerScanCD: s.actors.player.cooldowns.scanCooldownTicks,
+      playerJamCD: s.actors.player.cooldowns.jamCooldownTicks,
+      echoScanCD: s.actors.echo.cooldowns.scanCooldownTicks,
+      echoJamCD: s.actors.echo.cooldowns.jamCooldownTicks,
       scanCooldown: s.actors.echo.cooldowns.scanCooldownTicks,
       jamCooldown: s.actors.echo.cooldowns.jamCooldownTicks,
       evidence: s.evidence.length,
@@ -450,7 +467,7 @@ export class HeadlessWorld {
       const ticks = Math.max(0, Math.min(Math.floor(step.ticks), tickCap - used));
       if (ticks <= 0) break;
       used += ticks;
-      const events = stepSimulationTicks(this.sim, ticks, step.intent, step.echoIntent);
+      const events = stepSimulationTicks(this.sim, ticks, step.intent ?? neutralIntent(), step.echoIntent);
       for (const event of events) this.accountForEvent(event);
       collected.push(...events);
       this.totalEventCount += events.length;
