@@ -25,7 +25,6 @@
     "game:world": "vite-node src/ai-native/mcpServer.ts --world",
     "game:world:bridge": "vite-node scripts/c3b-bridge.mts",
     "game:world:console": "vite-node scripts/c3b-world-console.mts",
-    "game:signal:sdk": "vite-node scripts/c3c-signal-sdk.mts",
     "game:world:mcp-console": "vite-node scripts/c3b-mcp-console.mts",
     "game:world:headless": "vite-node src/ai-native/worldHeadlessMcpServer.ts",
     "game:world:headless:dev": "vite-node src/ai-native/worldHeadlessMcpServer.ts --dev",
