@@ -20,7 +20,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { WorldGateway, type WorldNextAction } from './worldGateway';
@@ -29,8 +29,9 @@ import { canonicalJson, payloadFingerprint } from './protocol';
 import { consumeExecutionTicks } from './actionExecution';
 import { HeadlessRequestLedger } from './headlessRequestLedger';
 import { publicEvents } from './headlessPublicEvents';
+import { hardenOwnerDirectory, hardenOwnerFile } from './secureTokenFile';
 import {
-  HEADLESS_MAX_SESSIONS, HEADLESS_MAX_TICKS_PER_STEP,
+  HEADLESS_MAX_FRAME_BYTES, HEADLESS_MAX_SESSIONS, HEADLESS_MAX_TICKS_PER_STEP,
   HeadlessWorld, isHeadlessFrame, isHistoryTruncated, intentFromWorldAction, neutralIntent,
   type HeadlessRunStep
 } from './worldHeadless';
@@ -126,6 +127,15 @@ function publicApplied(applied: ReadonlyArray<{ actionId: string; requestId: str
 function publicRejected(rejected: ReadonlyArray<{ actionId: string; requestId: string; code: string }>): Json[] {
   return rejected.map((r) => ({ actionId: r.actionId, requestId: r.requestId, code: r.code }));
 }
+/**
+ * Bytes actually put on the wire for one MCP tool result: the JSON envelope
+ * plus the text content and structuredContent (both carry the same body).
+ * UTF-8 encoded, so non-ASCII is counted at its real size.
+ */
+export function measureMcpResult(result: CallToolResult): number {
+  return Buffer.byteLength(JSON.stringify(result), 'utf8');
+}
+
 function publicActionReceipt(a: { actionId: string; status: string; applyByTick: number; code?: string }): Json {
   return {
     actionId: a.actionId, status: a.status, applyByTick: a.applyByTick,
@@ -510,18 +520,24 @@ export class HeadlessWorldManager {
     return record.active === null && this.pendingActions(session, record.epoch) === 0;
   }
 
-  /** Transport-budgeted response: refuses to emit a payload near the SDK limit. */
+  /**
+   * Transport-budgeted response. The budget is charged on the COMPLETE MCP
+   * result (JSON text content + structuredContent + envelope), in UTF-8 bytes,
+   * so non-ASCII and the text/structured duplication are counted exactly.
+   */
   private respond(data: Record<string, unknown>): CallToolResult {
     const body = { schema: RESULT_SCHEMA, ok: true, ...data };
-    const bytes = canonicalJson(body).length;
+    const result = payload(body);
+    const bytes = measureMcpResult(result);
     if (bytes > MAX_RESPONSE_BYTES) {
       return errPayload('E_PAYLOAD_TOO_LARGE', 'world.response_too_large', {
         bytes, maxBytes: MAX_RESPONSE_BYTES,
         hint: 'use world_headless_dev_events (paged), snapshot ref or frame export'
       });
     }
-    return payload(body);
+    return result;
   }
+
 
   /** Bounded in-process frame cache (owner refs; never multi-MB duplicates). */
   private storeFrameRef(ref: string, frame: unknown, bytes: number, session: string): void {
@@ -636,19 +652,24 @@ export class HeadlessWorldManager {
     const lostPrefix = effectiveOffset - requestedOffset;
     let pageSize = Math.max(1, Math.min(EVENTS_PAGE_MAX, Math.floor(limit)));
     let items = record.world.eventsSlice(effectiveOffset - windowStart, pageSize);
-    let body = {
-      session, epoch: record.epoch,
-      offset: effectiveOffset, requestedOffset, limit: pageSize,
-      total, retained, windowStart,
-      truncated: isHistoryTruncated(total, retained),
-      lostPrefix,
-      nextCursor: effectiveOffset + items.length < total ? effectiveOffset + items.length : null,
-      items
+    const build = (size: number) => {
+      const pageItems = record.world.eventsSlice(effectiveOffset - windowStart, size);
+      return {
+        session, epoch: record.epoch,
+        offset: effectiveOffset, requestedOffset, limit: size,
+        total, retained, windowStart,
+        truncated: isHistoryTruncated(total, retained),
+        lostPrefix,
+        nextCursor: effectiveOffset + pageItems.length < total ? effectiveOffset + pageItems.length : null,
+        items: pageItems
+      };
     };
-    while (canonicalJson({ schema: RESULT_SCHEMA, ok: true, ...body }).length > EVENTS_PAGE_BYTE_BUDGET && pageSize > 1) {
+    let body = build(pageSize);
+    // Shrink using the SAME full-result budget (envelope included), not the body.
+    while (pageSize > 1
+      && measureMcpResult(payload({ schema: RESULT_SCHEMA, ok: true, ...body })) > EVENTS_PAGE_BYTE_BUDGET) {
       pageSize = Math.max(1, Math.floor(pageSize / 2));
-      items = record.world.eventsSlice(effectiveOffset - windowStart, pageSize);
-      body = { ...body, limit: pageSize, nextCursor: effectiveOffset + items.length < total ? effectiveOffset + items.length : null, items };
+      body = build(pageSize);
     }
     return this.respond(body);
   }
@@ -731,8 +752,8 @@ export class HeadlessWorldManager {
     if (!found.ok) return errPayload(found.code, found.messageKey);
     const parsedSteps = parseSteps(steps);
     if (!parsedSteps) return errPayload('E_SCHEMA', 'world.headless_steps_invalid');
-    const file = this.resolveFrameFile(path);
-    if (!file.ok) return errPayload(file.code, file.messageKey);
+    const file = await this.resolveFrameFile(path);
+    if (!file.ok) return errPayload(file.code, file.messageKey, file.extra ?? {});
     let frame: unknown;
     try { frame = JSON.parse(await readFile(file.path, 'utf8')); }
     catch { return errPayload('E_SNAPSHOT_INVALID', 'world.frame_file_unreadable'); }
@@ -741,14 +762,48 @@ export class HeadlessWorldManager {
     return this.respond({ session, ...result });
   }
 
-  /** Resolve an owner-only frame path under FRAME_DIR. */
-  private resolveFrameFile(path: string): { ok: true; path: string } | { ok: false; code: string; messageKey: string } {
+  /**
+   * Resolve an owner-only frame path under FRAME_DIR.
+   *
+   * Rejects: `..`/absolute escapes, the frames root itself, non-regular
+   * files, symlinks / junctions / reparse points anywhere in the path (checked
+   * with `realpath` + `lstat`), and files larger than the 16 MiB frame cap
+   * BEFORE any read/parse.
+   */
+  private async resolveFrameFile(path: string): Promise<
+    { ok: true; path: string; size: number } | { ok: false; code: string; messageKey: string; extra?: Record<string, unknown> }
+  > {
     const base = resolve(FRAME_DIR);
-    const file = resolve(path);
-    if (file !== base && !file.startsWith(base + sep)) {
+    const lexical = resolve(path);
+    if (lexical === base || !lexical.startsWith(base + sep)) {
       return { ok: false, code: 'E_PERMISSION', messageKey: 'world.frame_path_forbidden' };
     }
-    return { ok: true, path: file };
+    let realBase: string;
+    let realFile: string;
+    try {
+      realBase = await realpath(base);
+      realFile = await realpath(lexical);
+    } catch {
+      // Missing path or a broken link: treat as forbidden, never fall back to
+      // the lexical path.
+      return { ok: false, code: 'E_PERMISSION', messageKey: 'world.frame_path_forbidden' };
+    }
+    if (realFile !== realBase && !realFile.startsWith(realBase + sep)) {
+      return { ok: false, code: 'E_PERMISSION', messageKey: 'world.frame_path_forbidden' };
+    }
+    let info;
+    try { info = await lstat(realFile); }
+    catch { return { ok: false, code: 'E_PERMISSION', messageKey: 'world.frame_path_forbidden' }; }
+    if (info.isSymbolicLink() || !info.isFile()) {
+      return { ok: false, code: 'E_PERMISSION', messageKey: 'world.frame_path_forbidden' };
+    }
+    if (info.size > HEADLESS_MAX_FRAME_BYTES) {
+      return {
+        ok: false, code: 'E_RESOURCE_LIMIT', messageKey: 'world.frame_file_too_large',
+        extra: { size: info.size, maxBytes: HEADLESS_MAX_FRAME_BYTES }
+      };
+    }
+    return { ok: true, path: realFile, size: info.size };
   }
 
   /** Dev: write the full frame to an owner-only local artifact (not the wire). */
@@ -772,8 +827,10 @@ export class HeadlessWorldManager {
     await mkdir(dir, { recursive: true });
     const file = resolve(dir, `${session}-${Date.now()}.frame.json`);
     await writeFile(file, text, 'utf8');
+    const aclDir = await hardenOwnerDirectory(dir);
+    const aclFile = await hardenOwnerFile(file);
     return this.respond({
-      session, path: file, bytes: text.length,
+      session, path: file, bytes: text.length, acl: aclFile, aclDir,
       eventsRetained: record.world.eventsCount,
       eventsTotal: record.world.eventTotal,
       eventsTruncated: isHistoryTruncated(record.world.eventTotal, record.world.eventsCount),
@@ -786,8 +843,9 @@ export class HeadlessWorldManager {
   async restoreFile(session: string, path: string): Promise<CallToolResult> {
     const found = this.devRecord(session);
     if (!found.ok) return errPayload(found.code, found.messageKey);
-    const file = this.resolveFrameFile(path);
-    if (!file.ok) return errPayload(file.code, file.messageKey);
+    const file = await this.resolveFrameFile(path);
+    if (!file.ok) return errPayload(file.code, file.messageKey, file.extra ?? {});
+    // Size was checked by resolveFrameFile BEFORE any read/parse.
     let parsed: unknown;
     try { parsed = JSON.parse(await readFile(file.path, 'utf8')); }
     catch { return errPayload('E_SNAPSHOT_INVALID', 'world.frame_file_unreadable'); }
@@ -870,8 +928,10 @@ export class HeadlessWorldManager {
     const file = resolve(dir, `${session}-${Date.now()}.failure.json`);
     const text = canonicalJson(bundle);
     await writeFile(file, text, 'utf8');
+    const aclDir = await hardenOwnerDirectory(dir);
+    const aclFile = await hardenOwnerFile(file);
     return this.respond({
-      session, path: file, bytes: text.length,
+      session, path: file, bytes: text.length, acl: aclFile, aclDir,
       boundary: diagnostics.boundary, replayable: diagnostics.replayable,
       eventsRetained, eventsTotal, eventsTruncated,
       stateFingerprint: diagnostics.stateFingerprint,

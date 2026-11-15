@@ -145,8 +145,7 @@ async function main(): Promise<void> {
           // Only Dev may pass a strict fixture intent as the second argument.
           const intent = headless && dev && rest[1] ? JSON.parse(rest[1]) : undefined;
           if (rest[1] && !(headless && dev)) {
-            process.stdout.write('NOTE: Player step has no direct intent; queue it with "act" first. Ignoring the intent argument.
-');
+            process.stdout.write('NOTE: Player step has no direct intent; queue it with "act" first. Ignoring the intent argument.' + String.fromCharCode(10));
           }
           const requestId = `req_${Date.now().toString(16).padStart(24, '0').slice(-24)}`;
           {

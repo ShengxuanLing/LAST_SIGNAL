@@ -50,7 +50,7 @@ async function main(): Promise<void> {
   }
   const client = new WorldClient({ bridgeUrl, token });
   const handshake = await client.handshake();
-  if (!('ok' in handshake)) {
+  if (handshake.ok !== true) {
     process.stderr.write(`FAIL attach: ${handshake.code} ${handshake.messageKey}\n`);
     process.exit(2);
   }
@@ -79,7 +79,7 @@ async function main(): Promise<void> {
           return;
         case 'observe': {
           const result = await client.observe();
-          if (!result.ok) { out({ ok: false, ...result }); return; }
+          if (!result.ok) { out(result); return; }
           const o = result.observation;
           out({
             tick: o.tick, roomId: o.roomId,

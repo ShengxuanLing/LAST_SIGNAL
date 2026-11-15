@@ -47,9 +47,11 @@ async function main(): Promise<void> {
   let maxResponseBytes = 0;
   const call = async (name: string, args: Record<string, unknown> = {}): Promise<Record<string, any>> => {
     const result = await client.callTool({ name, arguments: args });
-    const text = (result.content as Array<{ type: string; text?: string }>).find((c) => c.type === 'text')?.text ?? '';
-    maxResponseBytes = Math.max(maxResponseBytes, text.length);
-    if (text.length > MAX_RESPONSE_BYTES) fail(`${name}: response exceeds transport budget`, text.length);
+    // Budget is the COMPLETE MCP result (text + structuredContent + envelope),
+    // UTF-8 bytes, not just the text field.
+    const bytes = Buffer.byteLength(JSON.stringify(result), 'utf8');
+    maxResponseBytes = Math.max(maxResponseBytes, bytes);
+    if (bytes > MAX_RESPONSE_BYTES) fail(`${name}: full MCP result exceeds transport budget`, bytes);
     return (result.structuredContent as Record<string, any>) ?? { ok: false, code: 'E_SCHEMA' };
   };
   try {

@@ -59,6 +59,35 @@ async function lockFile(file: string): Promise<string> {
   }
 }
 
+/** Harden an OWNER file (POSIX 0600 / Windows current-SID-only ACL). */
+export async function hardenOwnerFile(file: string): Promise<string> {
+  return lockFile(file);
+}
+
+/** Harden an OWNER directory so new entries do not inherit broad users. */
+export async function hardenOwnerDirectory(dir: string): Promise<string> {
+  if (process.platform !== 'win32') {
+    await chmod(dir, 0o700);
+    return 'posix:chmod0700';
+  }
+  const sid = currentUserSid();
+  if (!sid) {
+    await chmod(dir, 0o700);
+    return 'win32:whoami-unavailable(best-effort-chmod0700)';
+  }
+  try {
+    const icacls = windowsExe('icacls.exe');
+    execFileSync(icacls, [dir, '/inheritance:r'], { stdio: 'ignore' });
+    // (OI)(CI): object + container inherit, so files created inside inherit the
+    // current-user-only ACL instead of the default built-in Users read ACE.
+    execFileSync(icacls, [dir, '/grant:r', `*${sid}:(OI)(CI)F`], { stdio: 'ignore' });
+    return `win32:icacls-inheritance-removed+grant-only-current-user-sid(${sid.slice(0, 12)}…)`;
+  } catch {
+    await chmod(dir, 0o700);
+    return 'win32:icacls-failed(best-effort-chmod0700)';
+  }
+}
+
 export interface SecureTokenFile {
   readonly path: string;
   readonly directory: string;

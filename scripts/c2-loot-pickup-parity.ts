@@ -13,7 +13,7 @@ import { createSimulationState, enqueueCommand, enqueueSpawnLoot, stepSimulation
   type SimulationState, type SimulationIntent } from '../src/world/sim/core';
 import { MapGenerator, assignRoles, guaranteeReachable } from '../src/world/MapGenerator';
 import { basePlayerData, GAME } from '../src/config/game';
-import type { PlayerData } from '../src/config/game';
+import type { PlayerData } from '../src/types';
 
 const NEUTRAL: SimulationIntent = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
 

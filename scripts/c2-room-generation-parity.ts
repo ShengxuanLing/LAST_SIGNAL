@@ -53,14 +53,14 @@ for (const seed of seeds) {
     const d = depth.of(room.id);
     const enemies: string[] = [];
     const eCount = enemyCount(room.kind, d);
-    const ePositions = [];
+    const ePositions: Array<{ x: number; y: number }> = [];
     for (let i = 0; i < eCount; i++) {
       enemies.push(pickEnemy(room.kind, room.id, d, ref));
       ePositions.push({ x: room.gx + 3 + (i % 3) * (room.w - 6) / 3, y: room.gy + 3 + Math.floor(i / 3) * (room.h - 6) });
     }
     const rCount = resourceCount(room.kind, d);
     const rKinds: string[] = [];
-    const rPositions = [];
+    const rPositions: Array<{ x: number; y: number }> = [];
     for (let i = 0; i < rCount; i++) {
       rKinds.push(ref.int(0, 1) === 0 ? 'currency' : 'health');
       rPositions.push({ x: room.gx + 2 + (i + 1) * 2, y: room.gy + 2 + (i % 2) * 2 });
