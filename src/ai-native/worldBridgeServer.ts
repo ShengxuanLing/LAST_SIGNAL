@@ -6,11 +6,12 @@
 // Scene. Tokens are never included in URLs, responses or logs.
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import { timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { WORLD_LIMITS, WORLD_PROTOCOL_VERSION } from './worldProtocol';
 import type { ErrorCodeV1 } from './protocol';
 import type { WorldGateway } from './worldGateway';
 import { AgentLeaseRegistry } from './agentLease';
+import { CompanionGateway } from './companionGateway';
 
 export interface WorldBridgeOptions {
   readonly gateway: WorldGateway;
@@ -42,9 +43,144 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
   const linkedByOrigin = new Map<string, string>();
   // Independent AGENT lease. The browser heartbeat is NOT allowed to renew it.
   const leases = new AgentLeaseRegistry();
+  const companions = new CompanionGateway(options.gateway);
+  /** Browser-held owner secret HASH only. The secret itself never leaves the UI. */
+  const ownerSecretHashes = new Map<string, string>();
+  const ownerSecretOk = (session: string, secret: unknown): boolean => {
+    const expected = ownerSecretHashes.get(session);
+    if (typeof secret !== 'string' || !expected) return false;
+    const actual = createHash('sha256').update(secret).digest('hex');
+    const a = Buffer.from(actual, 'hex');
+    const b = Buffer.from(expected, 'hex');
+    return a.length === b.length && timingSafeEqual(a, b);
+  };
   const server: Server = createServer((req, res) => { void handle(req, res); });
 
   const leaseStats = (): ReturnType<AgentLeaseRegistry['stats']> => leases.stats();
+
+  // ---------- P3-b A: Companion routes ----------
+  // Agent routes are token-only (no Origin). Renderer routes additionally
+  // require the handshake origin AND, for CONFIRM/APPLIED, the browser-held
+  // owner secret. An agent token or a forged Origin can never self-confirm.
+  function companionQuery(req: IncomingMessage): { session: string | null; epoch: number | null } {
+    const u = new URL(req.url ?? '/', 'http://127.0.0.1');
+    return { session: u.searchParams.get('session'), epoch: Number(u.searchParams.get('epoch')) };
+  }
+  function companionResult(res: ServerResponse, result: unknown): void {
+    const r = result as { ok: boolean; code?: string };
+    respond(res, r.ok ? 200 : statusFor((r.code ?? 'E_SCHEMA') as ErrorCodeV1), result);
+  }
+  async function companionAuthorize(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const session = asString(body.session);
+    const epoch = asInt(body.epoch);
+    const hash = asString(body.ownerSecretHash);
+    if (!session || epoch === null || !hash || !/^[0-9a-f]{64}$/.test(hash)) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    const mode = body.ownerMode === 'ai' || body.ownerMode === 'external' ? body.ownerMode : 'human';
+    const r = companions.authorize(session, epoch, mode);
+    if (!r.ok) return companionResult(res, r);
+    ownerSecretHashes.set(session, hash);
+    respond(res, 200, { ok: true, session, epoch, protocolVersion: WORLD_PROTOCOL_VERSION, companion: true });
+  }
+  async function companionObservation(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const session = asString(body.session);
+    const epoch = asInt(body.epoch);
+    if (!session || epoch === null) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    companionResult(res, companions.pushObservation(session, epoch, body.observation));
+  }
+  function companionObservationGet(req: IncomingMessage, res: ServerResponse): void {
+    const { session, epoch } = companionQuery(req);
+    if (!session || epoch === null) return badRequest(res);
+    companionResult(res, companions.observe(session, epoch));
+  }
+  async function companionSuggest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const r = companions.suggest({
+      session: asString(body.session) ?? '',
+      epoch: asInt(body.epoch) ?? -1,
+      requestId: asString(body.requestId) ?? '',
+      suggestionId: asString(body.suggestionId) ?? '',
+      kind: body.kind as never,
+      reason: body.reason as never,
+      target: body.target as { x: number; y: number } | undefined,
+      confidence: typeof body.confidence === 'number' ? body.confidence : undefined,
+      ttlTicks: typeof body.ttlTicks === 'number' ? body.ttlTicks : undefined
+    });
+    companionResult(res, r);
+  }
+  function companionStatus(req: IncomingMessage, res: ServerResponse): void {
+    const { session, epoch } = companionQuery(req);
+    if (!session || epoch === null) return badRequest(res);
+    companionResult(res, companions.status(session, epoch));
+  }
+  function companionMemory(req: IncomingMessage, res: ServerResponse): void {
+    const { session, epoch } = companionQuery(req);
+    if (!session || epoch === null) return badRequest(res);
+    const r = companions.status(session, epoch);
+    if (!r.ok) return companionResult(res, r);
+    respond(res, 200, { ok: true, session, epoch, memoryEntries: r.value.status.memoryEntries, memoryTtlTicks: 600 });
+  }
+  function companionSuggestions(req: IncomingMessage, res: ServerResponse): void {
+    const { session, epoch } = companionQuery(req);
+    if (!session || epoch === null) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    companionResult(res, companions.pending(session, epoch));
+  }
+  async function companionDecision(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const session = asString(body.session);
+    const epoch = asInt(body.epoch);
+    const tick = asInt(body.tick);
+    const suggestionId = asString(body.suggestionId);
+    const decision = body.decision === 'confirm' || body.decision === 'reject' ? body.decision : null;
+    if (!session || epoch === null || tick === null || !suggestionId || !decision) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    // REAL isolation: the agent never receives this secret (it lives only in
+    // the browser's Owner UI closure); a forged Origin + token is not enough.
+    if (!ownerSecretOk(session, body.ownerSecret)) {
+      return respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'companion.owner_capability_required' });
+    }
+    companionResult(res, companions.decide({ session, epoch, suggestionId, decision, tick }));
+  }
+  async function companionApplied(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const session = asString(body.session);
+    const suggestionId = asString(body.suggestionId);
+    if (!session || !suggestionId) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!ownerSecretOk(session, body.ownerSecret)) {
+      return respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'companion.owner_capability_required' });
+    }
+    companionResult(res, companions.markApplied(session, suggestionId));
+  }
+  async function companionMode(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const session = asString(body.session);
+    const epoch = asInt(body.epoch);
+    if (!session || epoch === null) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    const mode = body.ownerMode === 'ai' || body.ownerMode === 'external' ? body.ownerMode : 'human';
+    companionResult(res, companions.setOwnerMode(session, epoch, mode));
+  }
+  async function companionDisconnect(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const session = asString(body.session);
+    if (!session) return badRequest(res);
+    if (!originMatches(req, options.gateway, session) && !agentOriginOk(req, options.allowedOrigins)) return originDenied(res);
+    companions.disconnect(session);
+    ownerSecretHashes.delete(session);
+    respond(res, 200, { ok: true, session, fallback: 'NO_MODEL' });
+  }
 
   const closeBridge = async (): Promise<void> => {
     clearInterval(reaper);
@@ -67,6 +203,8 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     // lease must expire on a deadline. Cancel pending/executing actions, bump
     // the epoch, close the session and force the rendered game to HUMAN/LOST.
     for (const expiry of leases.reap(now)) {
+      companions.onLeaseExpired(expiry.sessionId);
+      ownerSecretHashes.delete(expiry.sessionId);
       const view = options.gateway.listSessions().find((s) => s.session === expiry.sessionId);
       if (view) {
         options.gateway.yieldSession(expiry.sessionId, view.epoch, 'agent-lease-expired', now);
@@ -92,7 +230,11 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
       (pathname === '/world-link/action-submit' && method === 'POST') ||
       (pathname === '/world-link/agent-disconnect' && method === 'POST') ||
       (pathname === '/world-link/agent-renew' && method === 'POST') ||
-      (pathname === '/world-link/agent-status' && method === 'GET');
+      (pathname === '/world-link/agent-status' && method === 'GET') ||
+      (pathname === '/world-link/companion-observation' && method === 'GET') ||
+      (pathname === '/world-link/companion-suggest' && method === 'POST') ||
+      (pathname === '/world-link/companion-status' && method === 'GET') ||
+      (pathname === '/world-link/companion-memory' && method === 'GET');
     if (typeof origin === 'string') {
       if (!allowed.has(origin)) {
         respond(res, 403, { ok: false, code: 'E_PERMISSION', messageKey: 'world.origin_denied' });
@@ -125,6 +267,17 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (pathname === '/world-link/action-ack' && req.method === 'POST') return actionAck(req, res);
     if (pathname === '/world-link/yield' && req.method === 'POST') return yieldLink(req, res);
     if (pathname === '/world-link/close' && req.method === 'POST') return closeLink(req, res);
+    if (pathname === '/world-link/companion-authorize' && req.method === 'POST') return companionAuthorize(req, res);
+    if (pathname === '/world-link/companion-observation' && req.method === 'POST') return companionObservation(req, res);
+    if (pathname === '/world-link/companion-observation' && req.method === 'GET') return companionObservationGet(req, res);
+    if (pathname === '/world-link/companion-suggest' && req.method === 'POST') return companionSuggest(req, res);
+    if (pathname === '/world-link/companion-status' && req.method === 'GET') return companionStatus(req, res);
+    if (pathname === '/world-link/companion-memory' && req.method === 'GET') return companionMemory(req, res);
+    if (pathname === '/world-link/companion-suggestions' && req.method === 'GET') return companionSuggestions(req, res);
+    if (pathname === '/world-link/companion-decision' && req.method === 'POST') return companionDecision(req, res);
+    if (pathname === '/world-link/companion-applied' && req.method === 'POST') return companionApplied(req, res);
+    if (pathname === '/world-link/companion-mode' && req.method === 'POST') return companionMode(req, res);
+    if (pathname === '/world-link/companion-disconnect' && req.method === 'POST') return companionDisconnect(req, res);
     respond(res, 404, { ok: false, code: 'E_NOT_APPLICABLE', messageKey: 'world.route_unknown' });
   }
 

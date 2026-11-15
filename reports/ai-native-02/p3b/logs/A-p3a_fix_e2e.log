@@ -1,0 +1,8 @@
+
+Running 3 tests using 1 worker
+
+  ok 1 [chromium] › tests\p3a-enemy-target.spec.ts:47:1 › legacy hunter legally targets and damages the echo, then re-selects the player (8.0s)
+  ok 2 [chromium] › tests\p3a-enemy-target.spec.ts:149:1 › all legacy enemy kinds and the Boss can legally select and hurt the echo (8.3s)
+  ok 3 [chromium] › tests\p3a-restore.spec.ts:28:1 › restore clears echo assist/memory/intent, keeps HP, and old saves need new confirmation (1.7s)
+
+  3 passed (19.0s)

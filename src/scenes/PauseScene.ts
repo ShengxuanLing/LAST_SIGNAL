@@ -60,7 +60,7 @@ export class PauseScene extends Phaser.Scene {
     return `${world.player.data.weaponKey}|${world.getPendingEquipWeapon() ?? ''}`;
   }
 
-  create(config?: { mode?: 'pause' | 'inventory' | 'echo' }): void {
+  create(config?: { mode?: 'pause' | 'inventory' | 'echo' | 'companion' }): void {
     const mode = config?.mode ?? 'pause';
     const parent = this.scene.get<GameScene>('GameScene');
     const player = parent.world.player;
@@ -187,6 +187,8 @@ export class PauseScene extends Phaser.Scene {
       this._button(GAME.WINDOW_W / 2, GAME.WINDOW_H - 60, 'CLOSE', close, 0x274a55);
     } else if (mode === 'echo') {
       this.echoPanel(parent, close);
+    } else if (mode === 'companion') {
+      this.companionPanel(parent);
     } else {
       // pause menu
       this.add.text(GAME.WINDOW_W / 2, 150, 'PAUSED', { fontFamily: 'monospace', fontSize: '48px', color: '#33e0ff', fontStyle: 'bold', letterSpacing: 6 }).setOrigin(0.5, 0.5);
@@ -251,6 +253,13 @@ export class PauseScene extends Phaser.Scene {
       this.add.text(GAME.WINDOW_W / 2, 625, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL', {
         fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
       }).setOrigin(0.5);
+      const companionLink = this.add.text(140, 230, 'LLM COMPANION >', {
+        fontFamily: 'monospace', fontSize: '16px', color: '#7ff0ff', backgroundColor: '#274a55'
+      }).setOrigin(0, 0).setPadding(10, 8, 10, 8).setInteractive({ useHandCursor: true });
+      companionLink.on('pointerdown', () => {
+        audio.ui();
+        this.scene.restart({ mode: 'companion' });
+      });
       const echoLink = this.add.text(140, 200, 'ECHO COMPANION >', {
         fontFamily: 'monospace', fontSize: '16px', color: '#33e0ff', backgroundColor: '#274a55'
       }).setOrigin(0, 0).setPadding(10, 8, 10, 8).setInteractive({ useHandCursor: true });
@@ -306,6 +315,65 @@ export class PauseScene extends Phaser.Scene {
     }, suggestion === 'fire' ? 0x4a4420 : 0x274a55);
     this._button(GAME.WINDOW_W / 2, 592, 'BACK', close, 0x33e0ff);
     this.add.text(GAME.WINDOW_W / 2, 650, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL OF THE PROTAGONIST', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
+    }).setOrigin(0.5);
+  }
+
+  /** P3-b A: Owner-only Companion panel. NO confirm capability leaves this scene. */
+  private companionPanel(parent: GameScene): void {
+    const title = (y: number, text: string, size: string, color: string) =>
+      this.add.text(GAME.WINDOW_W / 2, y, text, { fontFamily: 'monospace', fontSize: size, color }).setOrigin(0.5);
+    title(120, 'LLM COMPANION · OWNER CONFIRM', '34px', '#33e0ff');
+    title(160, 'Only a human here can confirm. The agent MCP has NO confirm tool.', '13px', '#8fb8c8');
+    const stateText = title(210, `STATE ${parent.companionStatus}`, '18px', '#eafaff');
+    const listText = title(270, 'WAITING FOR SUGGESTIONS', '15px', '#8fb8c8');
+
+    const redraw = (): void => {
+      stateText.setText(`STATE ${parent.companionStatus}`);
+      if (!parent.companionLink) {
+        listText.setText('NOT CONNECTED · NO MODEL (no fake connected state)');
+        return;
+      }
+      if (parent.companionStatus === 'READ_ONLY') {
+        listText.setText('READ ONLY · AI/External controls the protagonist');
+        return;
+      }
+      void parent.companionLink.pending().then((pending) => {
+        if (!pending.length) {
+          listText.setText('WAITING · no proposal / expired');
+          return;
+        }
+        listText.setText(pending.slice(0, 4).map((p) =>
+          `${p.kind.toUpperCase()} · ${p.reason} · ${p.target ? `(${p.target.x.toFixed(1)},${p.target.y.toFixed(1)})` : 'no target'}`
+        ).join('   |   '));
+      });
+    };
+    redraw();
+
+    this._button(GAME.WINDOW_W / 2, 340, 'ENABLE / RE-AUTHORIZE (HUMAN)', () => {
+      if (!parent.world.echoActor) parent.world.enableEcho();
+      void parent.authorizeCompanionFromConfig().then(redraw);
+    }, 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 400, 'REJECT FIRST PROPOSAL', () => {
+      const link = parent.companionLink;
+      if (!link) return;
+      void link.pending().then((pending) => {
+        if (pending.length) void link.decide(pending[0], 'reject').then(redraw);
+      });
+    }, 0x5a2a3a);
+    this._button(GAME.WINDOW_W / 2, 460, 'CONFIRM FIRST PROPOSAL (OWNER)', () => {
+      const link = parent.companionLink;
+      if (!link) return;
+      void link.pending().then((pending) => {
+        if (pending.length) void link.decide(pending[0], 'confirm').then(redraw);
+      });
+    }, 0x33e0ff);
+    this._button(GAME.WINDOW_W / 2, 520, 'DISCONNECT (NO MODEL)', () => {
+      parent.companionLink?.disconnect();
+      redraw();
+    }, 0x5a2a3a);
+    this._button(GAME.WINDOW_W / 2, 600, 'BACK', () => this.scene.restart({ mode: 'pause' }), 0x274a55);
+    this.add.text(GAME.WINDOW_W / 2, 650, 'CONFIRMED ACTIONS ARE COMMITTED BY THE NEXT CORE TICK · NO FORCED FLUSH', {
       fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
     }).setOrigin(0.5);
   }

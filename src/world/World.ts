@@ -150,6 +150,8 @@ export class World {
   readonly echoController = new EchoController();
   /** Real committed echo shots (observability only; no hidden state). */
   echoShotsFired = 0;
+  /** One Owner-confirmed companion intent, committed by the next core tick. */
+  private pendingCompanionIntent: SimulationIntent | null = null;
   private echoSprite: Phaser.GameObjects.Container | null = null;
   private echoLine: Phaser.GameObjects.Graphics | null = null;
   /** Latest committed supply receipts, keyed by transaction id (session-only). */
@@ -254,6 +256,49 @@ export class World {
       isOpaque: (x, y) => this.isOpaqueCell(x, y)
     });
   }
+
+  /**
+   * Owner-confirmed companion action -> a SINGLE queued core intent. It is
+   * consumed by the next stepFrame tick; no flush, no direct state write.
+   * `scan`/`jam` stay explicitly unsupported until the P3-b Signal wiring.
+   */
+  enqueueCompanionAction(kind: string, target?: { x: number; y: number }): boolean {
+    const echo = this._sim.echo;
+    if (!echo || echo.data.hp <= 0) return false;
+    const intent: SimulationIntent = {
+      move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false
+    };
+    switch (kind) {
+      case 'move': {
+        if (!target) return false;
+        const dx = target.x - echo.x, dy = target.y - echo.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 1e-6) return false;
+        intent.move = { x: dx / len, y: dy / len };
+        break;
+      }
+      case 'aim':
+        if (!target) return false;
+        intent.aim = { x: target.x, y: target.y };
+        break;
+      case 'fire':
+        intent.fire = true;
+        intent.aim = target ? { x: target.x, y: target.y } : null;
+        break;
+      case 'stop':
+        break;
+      case 'scan':
+      case 'jam':
+        return false; // Signal commands are not wired yet (P3-b B).
+      default:
+        return false;
+    }
+    this.pendingCompanionIntent = intent;
+    this.bumpSimVersion();
+    return true;
+  }
+
+  get hasPendingCompanionIntent(): boolean { return this.pendingCompanionIntent !== null; }
 
   /** Human request: spawn the companion next to the protagonist. */
   enableEcho(): void {
@@ -1047,8 +1092,9 @@ export class World {
       // same core tick commits its move/fire. No separate state mutation.
       // An explicit echo intent is used ONLY by the parity/diagnostic driver;
       // normal rendered play always takes the EchoController decision.
-      const echoIntent = echoIntentOverride
+      const echoIntent = this.pendingCompanionIntent ?? echoIntentOverride
         ?? (this.echoView() ? this.echoController.decide(this.echoView()!) : undefined);
+      this.pendingCompanionIntent = null;
       // C3-b fix: an external action's intent must be delivered for EXACTLY
       // its remaining integer core ticks. If one frame contains more ticks than
       // the action has left, split the core call so the surplus ticks run with
@@ -1594,6 +1640,7 @@ export class World {
     this.loot = [];
     this.boss = null;
     delete this._sim.echo;
+    this.pendingCompanionIntent = null;
     this.echoController.reset();
     this.echoShotsFired = 0;
     if (this.echoSprite) { this.echoSprite.destroy(); this.echoSprite = null; }

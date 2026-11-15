@@ -8,6 +8,8 @@ import { saveSystem, game } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { formatDuration } from '../core/formatDuration';
 import { ExternalLinkController, type ExternalLinkDegradeReason } from '../ai-native/externalLinkController';
+import { CompanionLink } from '../ai-native/companionLink';
+import { WORLD_PROTOCOL_VERSION } from '../ai-native/worldProtocol';
 import { Player } from '../entities/Player';
 import type { RunCheckpoint } from '../types';
 
@@ -50,6 +52,9 @@ export class GameScene extends Phaser.Scene {
   private txtAiTarget!: Phaser.GameObjects.Text;
   private txtAgentLink!: Phaser.GameObjects.Text;
   private txtEcho!: Phaser.GameObjects.Text;
+  /** P3-b A: browser-held owner capability (never exposed to the agent). */
+  companionLink: CompanionLink | null = null;
+  private companionFrame = 0;
   private txtHelp!: Phaser.GameObjects.Text;
   /** Compact-viewport HUD layout (F-06): larger logical fonts, no z-index tricks. */
   private hudLayout = {
@@ -416,6 +421,8 @@ export class GameScene extends Phaser.Scene {
       this.cam.shake(100, this.world.shakeAmount / GAME.WINDOW_W);
     }
 
+    this.companionFrame += 1;
+    if (this.companionLink && this.companionFrame % 30 === 0) void this.companionLink.pushObservation();
     this.refreshHud();
     this.refreshMinimap();
     this.refreshBoss();
@@ -474,7 +481,10 @@ export class GameScene extends Phaser.Scene {
         : this.world.echoMode === 'hold' ? 'HOLD' : 'MOVE';
       const assist = this.world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE';
       const suggest = this.world.echoSuggestion ? ' · CONFIRM FIRE' : '';
-      this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}`);
+      const link = this.companionStatus === 'CONNECTED' ? ' · COMPANION CONNECTED'
+        : this.companionStatus === 'FALLBACK:NO_MODEL' ? ' · COMPANION NO MODEL'
+        : this.companionStatus === 'READ_ONLY' ? ' · COMPANION READ ONLY' : '';
+      this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}${link}`);
       this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
     }
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
@@ -528,7 +538,10 @@ export class GameScene extends Phaser.Scene {
         : this.world.echoMode === 'hold' ? 'HOLD' : 'MOVE';
       const assist = this.world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE';
       const suggest = this.world.echoSuggestion ? ' · CONFIRM FIRE' : '';
-      this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}`);
+      const link = this.companionStatus === 'CONNECTED' ? ' · COMPANION CONNECTED'
+        : this.companionStatus === 'FALLBACK:NO_MODEL' ? ' · COMPANION NO MODEL'
+        : this.companionStatus === 'READ_ONLY' ? ' · COMPANION READ ONLY' : '';
+      this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}${link}`);
       this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
     }
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
@@ -794,6 +807,46 @@ export class GameScene extends Phaser.Scene {
     this.refreshHud();
   }
 
+  /**
+   * P3-b A HUMAN authorize: creates a bridge session + the browser-only Owner
+   * capability. This NEVER attaches an external Player controller and never
+   * changes protagonist ownership; the agent MCP attaches later with its token.
+   */
+  async authorizeCompanionFromConfig(): Promise<boolean> {
+    const config = (globalThis as unknown as {
+      __externalLinkConfig?: { bridgeUrl?: string; token?: string };
+    }).__externalLinkConfig;
+    const bridgeUrl = (config?.bridgeUrl ?? '').replace(/\/$/, '');
+    const token = config?.token ?? '';
+    if (!bridgeUrl || !token) return false;
+    try {
+      const res = await fetch(`${bridgeUrl}/world-link/handshake`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${token}`,
+          origin: location.origin
+        },
+        body: JSON.stringify({ authorized: true, protocolVersion: WORLD_PROTOCOL_VERSION })
+      });
+      const hs = await res.json() as { ok?: boolean; session?: string; epoch?: number };
+      if (!hs.ok || !hs.session || hs.epoch === undefined) return false;
+      this.companionLink = new CompanionLink({
+        bridgeUrl, token, origin: location.origin,
+        session: hs.session, epoch: hs.epoch,
+        observation: () => this.world.echoView() as unknown as Record<string, unknown> | null,
+        apply: (kind, target) => this.world.enqueueCompanionAction(kind, target)
+      });
+      return await this.companionLink.authorize();
+    } catch {
+      return false;
+    }
+  }
+
+  get companionStatus(): string {
+    return this.companionLink?.status ?? 'OFF';
+  }
+
   /** Ask the policy for a suggestion using the echo's own perception. */
   suggestEcho(): 'fire' | null {
     const view = this.world.echoView();
@@ -805,9 +858,11 @@ export class GameScene extends Phaser.Scene {
     if (control.aiEnabled) {
       control.disableAi('pause-menu');
       this.world.player.clearHeldInput();
+      this.companionLink?.setOwnerMode('human');
       return false;
     }
     control.enableAi(this.world.clock);
+    this.companionLink?.setOwnerMode('ai');
     this.refreshHud();
     return true;
   }

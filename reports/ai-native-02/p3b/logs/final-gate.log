@@ -1,0 +1,13 @@
+PASS | mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/p3b/logs/mcp_build.log
+PASS | typecheck | npm run typecheck | rc=0 | reports/ai-native-02/p3b/logs/typecheck.log
+PASS | unit | npx vitest run | rc=0 | reports/ai-native-02/p3b/logs/unit.log
+PASS | build | npm run build | rc=0 | reports/ai-native-02/p3b/logs/build.log
+PASS | build_test | npm run build:test | rc=0 | reports/ai-native-02/p3b/logs/build_test.log
+PASS | slice_unit | npx vitest run src/slice | rc=0 | reports/ai-native-02/p3b/logs/slice_unit.log
+PASS | owner_e2e | env PORT=5176 npx playwright test tests/p3b-companion-owner.spec.ts --workers=1 | rc=0 | reports/ai-native-02/p3b/logs/owner_e2e.log
+PASS | console_smoke | npx vite-node src/ai-native/companionConsoleSmoke.mts | rc=0 | reports/ai-native-02/p3b/logs/console_smoke.log
+PASS | p3a_e2e | env PORT=5176 npx playwright test tests/ai-native-world.spec.ts tests/p3a-restore.spec.ts tests/p3a-enemy-target.spec.ts --workers=1 | rc=0 | reports/ai-native-02/p3b/logs/p3a_e2e.log
+PASS | audit_dev | env PORT=5176 npx playwright test tests/audit.spec.ts --workers=1 | rc=0 | reports/ai-native-02/p3b/logs/audit_dev.log
+PASS | preview_regression | env PORT=5175 npx playwright test tests/checkpoint.spec.ts tests/economy.spec.ts tests/vs00.spec.ts tests/vs01.spec.ts --workers=1 | rc=0 | reports/ai-native-02/p3b/logs/preview_regression.log
+PASS | production_smoke | npx vite-node scripts/preview-entry-smoke.mts | rc=0 | reports/ai-native-02/p3b/logs/production_smoke.log
+FINAL_GATE_DONE
