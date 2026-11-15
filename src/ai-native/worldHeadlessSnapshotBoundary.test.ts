@@ -3,6 +3,8 @@
 // without cancelling/ACKing, so remaining ticks cannot be silently lost.
 
 import { describe, expect, it } from 'vitest';
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { HeadlessWorldManager } from './worldHeadlessMcpTools';
 
 const aid = (n: number) => `aid_${n.toString(16).padStart(24, '0')}`;
@@ -65,25 +67,32 @@ describe('C3c snapshot — action boundary only', () => {
     body(manager.step(session, epoch, rid(5), 10));
     const completed = body(manager.step(session, epoch, rid(6), 110));
     expect(completed.applied[0].executedTicks).toBe(120);
+    const beforeTick = body(manager.inspect(session)).inspect.tick as number;
     const snap = body(manager.snapshot(session));
     expect(snap.ok).toBe(true);
     expect(snap.boundary).toBe('action');
-    expect(snap.frame.boundary).toBe('action');
-    const restored = body(manager.restore(session, snap.frame));
+    expect(typeof snap.ref).toBe('string');
+    const restored = body(manager.restore(session, { ref: snap.ref }));
     expect(restored.ok).toBe(true);
     expect(restored.epoch).toBeGreaterThan(epoch);
-    expect(body(manager.observe(session)).tick).toBe(snap.frame.sim.tick);
+    expect(body(manager.observe(session)).tick).toBe(beforeTick);
   });
 
-  it('restore rejects a frame without the boundary marker and a mid-execution session', () => {
+  it('restore rejects a frame without the boundary marker and a mid-execution session', async () => {
     const manager = dev();
     const { session, epoch, drone } = setup(manager);
-    // Reach a boundary, then build a raw (unmarked) frame.
+    // Reach a boundary, export the frame to an owner-only file, strip the
+    // boundary marker and try to restore it: refused.
     const boundary = body(manager.snapshot(session));
     expect(boundary.ok).toBe(true);
-    const rawFrame = { ...boundary.frame } as Record<string, unknown>;
+    const exported = body(await manager.frameExport(session, { ref: boundary.ref }));
+    expect(exported.ok).toBe(true);
+    const framePath = exported.path as string;
+    const rawFrame = JSON.parse(await readFile(framePath, 'utf8')) as Record<string, unknown>;
     delete rawFrame.boundary;
-    const rejectedFrame = body(manager.restore(session, rawFrame));
+    const strippedPath = resolve('reports/ai-native-02/c3c/frames', `stripped-${Date.now()}.frame.json`);
+    await writeFile(strippedPath, JSON.stringify(rawFrame), 'utf8');
+    const rejectedFrame = body(await manager.restoreFile(session, strippedPath));
     expect(rejectedFrame.ok).toBe(false);
     expect(rejectedFrame.messageKey).toBe('world.snapshot_requires_action_boundary');
 
@@ -93,7 +102,7 @@ describe('C3c snapshot — action boundary only', () => {
       { type: 'fire', actionId: aid(7), target: { x: drone.x, y: drone.y }, ticks: 120 }
     ], 600));
     body(manager.step(session, epoch, rid(8), 10));
-    const rejectedBusy = body(manager.restore(session, boundary.frame));
+    const rejectedBusy = body(manager.restore(session, { ref: boundary.ref }));
     expect(rejectedBusy.ok).toBe(false);
     expect(rejectedBusy.messageKey).toBe('world.restore_requires_action_boundary');
     // The in-flight action is untouched.
@@ -112,7 +121,7 @@ describe('C3c snapshot — action boundary only', () => {
       let currentEpoch = epoch;
       if (withRestore) {
         const snap = body(manager.snapshot(session));
-        const restored = body(manager.restore(session, snap.frame));
+        const restored = body(manager.restore(session, { ref: snap.ref }));
         currentEpoch = restored.epoch;
       }
       body(manager.action(session, currentEpoch, rid(13), [
@@ -122,8 +131,8 @@ describe('C3c snapshot — action boundary only', () => {
       // Events are immutable value DTOs, so the FULL history (baseline + new
       // segment) must match. This no longer relies on a "subsequent only" view.
       return {
-        canonical: after.canonicalState as string,
-        events: after.canonicalEvents as string,
+        canonical: after.stateFingerprint as string,
+        events: after.eventsFingerprint as string,
         stepEvents: JSON.stringify(after.events),
         tick: after.toTick
       };

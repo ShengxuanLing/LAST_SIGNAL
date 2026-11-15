@@ -1,0 +1,9 @@
+BUILD production
+BUILD test-mode
+BUILD custom mode (staging) must be treated as production
+(node:19516) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+PASS custom_mode_no_game_handle
+PASS production_no_game_handle
+PASS test_mode_keeps_game_handle
+F03_PRODUCTION_GATE_PASS

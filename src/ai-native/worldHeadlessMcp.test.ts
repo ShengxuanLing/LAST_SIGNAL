@@ -132,11 +132,14 @@ describe('C3-c headless MCP manager — Dev surface', () => {
     const manager = devManager();
     const created = body(manager.createSession(424242));
     const snapshot = body(manager.snapshot(created.session));
-    expect(snapshot.frame.schema).toBe('last_signal.world-headless.frame.v1');
-    expect(snapshot.frame.sim.rngState).toBeDefined();
-    const expectedTick = snapshot.frame.sim.tick;
+    expect(typeof snapshot.ref).toBe('string');
+    expect(snapshot.boundary).toBe('action');
+    const stateView = body(manager.devState(created.session));
+    expect(stateView.canonicalState).toContain('"seed"');
+    expect(typeof stateView.stateFingerprint).toBe('string');
+    const expectedTick = stateView.tick;
     body(manager.step(created.session, created.epoch, rid(1), 20));
-    const restored = body(manager.restore(created.session, snapshot.frame));
+    const restored = body(manager.restore(created.session, { ref: snapshot.ref }));
     expect(restored.ok).toBe(true);
     expect(restored.epoch).toBeGreaterThan(created.epoch);
     expect(restored.observation.tick).toBe(expectedTick);

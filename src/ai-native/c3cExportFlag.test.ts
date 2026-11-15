@@ -88,12 +88,12 @@ describe('C3c export flag — boundary and mid-execution', () => {
     const snap = body(manager.snapshot(created.session));
     expect(snap.ok).toBe(true);
     expect(snap.eventsTruncated).toBe(true);
-    expect(snap.frame.eventTotal).toBeGreaterThan((snap.frame.events as unknown[]).length);
+    expect(snap.eventsTotal).toBeGreaterThan(snap.eventsRetained);
     // The flag is about the HISTORY window, not the future state. (A 20k-event
     // frame can exceed the separate 2 MiB frame-size cap, so this test does not
     // assert restore of that oversized frame; `restore` reports E_RESOURCE_LIMIT
     // honestly instead of truncating state.)
-    const restored = body(manager.restore(created.session, snap.frame));
+    const restored = body(manager.restore(created.session, { ref: snap.ref }));
     if (!restored.ok) expect(restored.code).toBe('E_RESOURCE_LIMIT');
   }, 120_000);
 });

@@ -75,9 +75,10 @@ describe('C3c fix — Player output allowlist', () => {
     expect(step.ok).toBe(true);
     expectNoOwnerKeys(step);
     expect(Object.keys(step).sort()).toEqual([
-      'applied', 'blockTicks', 'epoch', 'eventCount', 'events', 'executing', 'fromTick',
-      'observation', 'ok', 'rejected', 'replayed', 'requestId', 'schema', 'session',
-      'status', 'ticks', 'toTick'
+      'applied', 'blockTicks', 'epoch', 'eventCount', 'eventTotal', 'events',
+      'eventsFingerprint', 'eventsRetained', 'eventsTruncated', 'executing', 'fromTick',
+      'nextCursor', 'observation', 'ok', 'rejected', 'replayed', 'requestId', 'schema',
+      'session', 'stateFingerprint', 'status', 'ticks', 'toTick'
     ].sort());
     expect(step.canonicalState).toBeUndefined();
     expect(step.canonicalEvents).toBeUndefined();
@@ -98,10 +99,15 @@ describe('C3c fix — Player output allowlist', () => {
     const created = body(manager.createSession(424242));
     expect(created.seed).toBe(424242);
     const step = body(manager.step(created.session, created.epoch, rid(1), 5));
-    expect(typeof step.canonicalState).toBe('string');
-    expect(typeof step.canonicalEvents).toBe('string');
+    // Dev step returns hashes + a bounded window, never the full canonical text.
+    expect(typeof step.stateFingerprint).toBe('string');
+    expect(typeof step.eventsFingerprint).toBe('string');
+    expect(step.canonicalState).toBeUndefined();
+    expect(step.canonicalEvents).toBeUndefined();
     const snapshot = body(manager.snapshot(created.session));
-    expect(snapshot.frame.sim.map).toBeDefined();
+    expect(typeof snapshot.ref).toBe('string');
+    const stateView = body(manager.devState(created.session));
+    expect(stateView.canonicalState).toContain('"seed"');
     const inspect = body(manager.inspect(created.session));
     expect(typeof inspect.inspect.rngState).toBe('number');
   });
@@ -201,8 +207,8 @@ describe('C3c fix — cross-step execution (shared duration rule)', () => {
     expect(second.executing).toBeNull();
     expect(one.applied[0].executedTicks).toBe(120);
     expect(second.toTick).toBe(one.toTick);
-    expect(second.canonicalState).toBe(one.canonicalState);
-    expect(second.canonicalEvents).toBe(one.canonicalEvents);
+    expect(second.stateFingerprint).toBe(one.stateFingerprint);
+    expect(second.eventsFingerprint).toBe(one.eventsFingerprint);
     expect(second.status).toBe(one.status);
   });
 

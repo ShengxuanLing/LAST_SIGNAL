@@ -193,9 +193,13 @@ async function main(): Promise<void> {
     log('PASS dev_inspect', { tick: inspect.inspect.tick, mapHash: inspect.inspect.mapHash });
 
     const snapshot = await call(client, 'world_headless_dev_snapshot', { session });
-    assert(snapshot.ok === true && snapshot.frame.schema === 'last_signal.world-headless.frame.v1', 'snapshot frame', snapshot.frameBytes);
-    assert(snapshot.frame.sim.pendingCommands !== undefined && snapshot.frame.sim.rngState !== undefined, 'frame has pending+RNG');
-    log('PASS dev_snapshot', { bytes: snapshot.frameBytes });
+    assert(snapshot.ok === true && typeof snapshot.ref === 'string' && snapshot.boundary === 'action', 'snapshot ref', snapshot);
+    const stateView = await call(client, 'world_headless_dev_state', { session });
+    assert(stateView.ok === true && typeof stateView.canonicalState === 'string'
+      && stateView.canonicalState.includes('"seed"'), 'dev state', { bytes: String(stateView.canonicalState).length });
+    // The frame itself must NOT be inline (transport budget).
+    assert(snapshot.frame === undefined, 'snapshot does not inline the frame');
+    log('PASS dev_snapshot', { ref: snapshot.ref, bytes: snapshot.frameBytes });
 
     const rooms = await call(client, 'world_headless_dev_inspect', { session });
     const roomId = rooms.inspect.roomId as number;
@@ -228,7 +232,7 @@ async function main(): Promise<void> {
     const replaySession = (await call(client, 'world_headless_create_session', { seed: 424242 })).session as string;
     const replayEpoch = (await call(client, 'world_list_sessions')).sessions
       .find((s: any) => s.session === replaySession)?.epoch as number;
-    const replayFrame = (await call(client, 'world_headless_dev_snapshot', { session: replaySession })).frame;
+    const replayRef = (await call(client, 'world_headless_dev_snapshot', { session: replaySession })).ref as string;
     const replaySteps = [{ ticks: 20, intent: { move: { x: 1, y: 0 }, dash: false, fire: false, aim: null, interact: false } }];
     for (let i = 0; i < replaySteps.length; i += 1) {
       const r = await call(client, 'world_headless_step', {
@@ -236,7 +240,7 @@ async function main(): Promise<void> {
       });
       assert(r.ok === true, 'replay-source step', r);
     }
-    const replay = await call(client, 'world_headless_dev_replay', { session: replaySession, frame: replayFrame, steps: replaySteps });
+    const replay = await call(client, 'world_headless_dev_replay', { session: replaySession, ref: replayRef, steps: replaySteps });
     assert(replay.ok === true && replay.sameState === true && replay.sameEvents === true, 'deterministic replay reproduces the session', replay);
     log('PASS dev_replay', { sameState: replay.sameState, sameEvents: replay.sameEvents, firstDivergence: replay.firstDivergence });
     await call(client, 'world_close', { session: replaySession });
@@ -268,7 +272,7 @@ async function main(): Promise<void> {
       liveTicks: perf.result.liveCombatTicks
     });
 
-    const restored = await call(client, 'world_headless_dev_restore', { session, frame: snapshot.frame });
+    const restored = await call(client, 'world_headless_dev_restore', { session, ref: snapshot.ref });
     assert(restored.ok === true && restored.epoch > epoch, 'restore bumps epoch', restored);
     log('PASS dev_restore_epoch', { epoch: restored.epoch });
 
@@ -297,19 +301,26 @@ async function main(): Promise<void> {
     assert(snap110.applied[0].executedTicks === 120, 'action completed at 120', snap110.applied);
     const boundarySnap = await call(client, 'world_headless_dev_snapshot', { session: snapSession });
     assert(boundarySnap.ok === true && boundarySnap.boundary === 'action'
-      && boundarySnap.frame.boundary === 'action', 'boundary snapshot', boundarySnap);
+      && typeof boundarySnap.ref === 'string' && boundarySnap.frame === undefined, 'boundary snapshot ref', boundarySnap);
     // Mid-run replay: continue 15 real ticks after the boundary frame, then
     // replay the SAME interval. History baseline + new segment must match.
     const cont15 = await call(client, 'world_headless_step', { session: snapSession, epoch: snapEpoch, requestId: rid(83), ticks: 15 });
     assert(cont15.ok === true && cont15.ticks === 15, 'continuation step', cont15);
     const histSteps = [{ ticks: 15, intent: { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false } }];
-    const histReplay = await call(client, 'world_headless_dev_replay', { session: snapSession, frame: boundarySnap.frame, steps: histSteps });
+    const histReplay = await call(client, 'world_headless_dev_replay', { session: snapSession, ref: boundarySnap.ref, steps: histSteps });
     assert(histReplay.ok === true && histReplay.sameState === true && histReplay.sameEvents === true
       && histReplay.firstDivergence === null, 'mid-run replay over the frame baseline', histReplay);
     assert(histReplay.historyPreserved === true && histReplay.baselineEvents > 0, 'history baseline preserved', histReplay);
-    const tampered = JSON.parse(JSON.stringify(boundarySnap.frame));
-    tampered.events[0] = { type: 'player-moved', position: { x: 1.5, y: 2.5 } };
-    const badReplay = await call(client, 'world_headless_dev_replay', { session: snapSession, frame: tampered, steps: histSteps });
+    // Tamper the baseline history through the owner-only frame FILE (the frame
+    // is not inline), then replay the tampered file.
+    const frameFile = await call(client, 'world_headless_dev_frame_export', { session: snapSession, ref: boundarySnap.ref });
+    assert(frameFile.ok === true && typeof frameFile.path === 'string', 'frame export path', frameFile);
+    const { readFile, writeFile } = await import('node:fs/promises');
+    const frameJson = JSON.parse(await readFile(frameFile.path as string, 'utf8'));
+    frameJson.events[0] = { type: 'player-moved', position: { x: 1.5, y: 2.5 } };
+    const tamperedPath = String(frameFile.path).replace(/\.frame\.json$/, '-tampered.frame.json');
+    await writeFile(tamperedPath, JSON.stringify(frameJson), 'utf8');
+    const badReplay = await call(client, 'world_headless_dev_replay_file', { session: snapSession, path: tamperedPath, steps: histSteps });
     assert(badReplay.ok === true && badReplay.sameEvents === false && badReplay.firstDivergence === 0,
       'tampered baseline history is detected at index 0', badReplay);
     log('PASS dev_replay_history', {
@@ -318,7 +329,7 @@ async function main(): Promise<void> {
       tamperDivergence: badReplay.firstDivergence
     });
 
-    const boundaryRestore = await call(client, 'world_headless_dev_restore', { session: snapSession, frame: boundarySnap.frame });
+    const boundaryRestore = await call(client, 'world_headless_dev_restore', { session: snapSession, ref: boundarySnap.ref });
     assert(boundaryRestore.ok === true && boundaryRestore.epoch > snapEpoch, 'restore bumps epoch', boundaryRestore);
     await call(client, 'world_close', { session: snapSession });
     log('PASS dev_snapshot_boundary', { midRejected: true, restoredEpoch: boundaryRestore.epoch });

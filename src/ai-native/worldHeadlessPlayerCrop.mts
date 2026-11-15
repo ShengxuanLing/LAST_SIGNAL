@@ -30,9 +30,10 @@ const ALLOWED_TOP_KEYS = new Set([
   'schema', 'ok', 'code', 'messageKey', 'path', 'session', 'epoch', 'tick', 'status',
   'observation', 'requestId', 'acceptedTick', 'applyByTick', 'replayed', 'actions',
   'actionId', 'startedTick', 'appliedTick', 'executedTicks', 'executed', 'applied', 'rejected',
-  'fromTick', 'toTick', 'ticks', 'blockTicks', 'eventCount', 'sessions', 'combat',
-  'executing', 'events', 'type', 'enemyId', 'crit', 'position', 'projectile', 'offerKey',
-  'price', 'amount', 'currency', 'xp', 'key',
+  'fromTick', 'toTick', 'ticks', 'blockTicks', 'eventCount', 'eventTotal',
+  'eventsRetained', 'eventsTruncated', 'nextCursor', 'stateFingerprint', 'eventsFingerprint',
+  'sessions', 'combat', 'executing', 'events', 'type', 'enemyId', 'crit', 'position',
+  'projectile', 'offerKey', 'price', 'amount', 'currency', 'xp', 'key',
   'closed', 'key', 'level', 'kind', 'amount', 'x', 'y', 'hp', 'state', 'id',
   'player', 'drones', 'projectiles', 'availableActions', 'roomId', 'protocolVersion',
   'vx', 'vy', 'side', 'damage', 'lifetime', 'maxHp', 'aimYaw', 'weaponKey', 'ammo', 'magazine'
@@ -189,10 +190,15 @@ async function devSurface(): Promise<void> {
     const epoch = created.epoch as number;
     const step = await callRaw(client, 'world_headless_step', { session, epoch, requestId: rid(1), ticks: 10 }, true);
     assert(step.ok === true, 'dev step', step);
-    assert(typeof step.canonicalState === 'string', 'dev step KEEPS canonicalState');
-    assert(typeof step.canonicalEvents === 'string', 'dev step KEEPS canonicalEvents');
+    // Dev step is transport-budgeted: hashes + bounded tail, never full canonical.
+    assert(step.canonicalState === undefined && step.canonicalEvents === undefined, 'dev step does NOT inline canonical');
+    assert(typeof step.stateFingerprint === 'string' && typeof step.eventsFingerprint === 'string', 'dev step KEEPS state/events fingerprints');
+    const stateView = await callRaw(client, 'world_headless_dev_state', { session }, true);
+    assert(stateView.ok === true && String(stateView.canonicalState).includes('"seed"'), 'dev state keeps the canonical projection');
     const snapshot = await callRaw(client, 'world_headless_dev_snapshot', { session }, true);
-    assert(snapshot.ok === true && snapshot.frame?.sim?.map, 'dev snapshot keeps full owner frame');
+    assert(snapshot.ok === true && typeof snapshot.ref === 'string' && snapshot.frame === undefined, 'dev snapshot returns an owner ref, not inline frame');
+    const exported = await callRaw(client, 'world_headless_dev_frame_export', { session, ref: snapshot.ref }, true);
+    assert(exported.ok === true && typeof exported.path === 'string', 'dev frame export writes an owner file');
     const inspect = await callRaw(client, 'world_headless_dev_inspect', { session }, true);
     assert(inspect.ok === true && inspect.inspect.rngState !== undefined, 'dev inspect keeps RNG');
     log('PASS dev_surface_keeps_owner_detail');

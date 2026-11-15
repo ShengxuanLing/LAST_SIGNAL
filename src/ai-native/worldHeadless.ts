@@ -46,7 +46,9 @@ export const HEADLESS_MAX_TICKS_PER_STEP = 1000;
 export const HEADLESS_MAX_SESSIONS = WORLD_LIMITS.MAX_SESSIONS;
 export const HEADLESS_MAX_EVENTS = 20_000;
 export const HEADLESS_MAX_ACTION_LOG = 4_096;
-export const HEADLESS_MAX_FRAME_BYTES = 2 * 1024 * 1024;
+// In-process owner frame cap (NOT a transport limit): a full 20k-event frame
+// is ~5 MiB and is restored via a ref/file, never inline over MCP.
+export const HEADLESS_MAX_FRAME_BYTES = 16 * 1024 * 1024;
 
 /**
  * Immutable-history helper: the owner frame must never share nested objects
@@ -404,6 +406,13 @@ export class HeadlessWorld {
   /** Canonical state/event projections (the SAME functions Node parity uses). */
   canonicalState(): string { return canonicalSimulationState(this.sim); }
   canonicalEvents(): string { return canonicalSimulationEvents(this.events); }
+  canonicalStateHash(): string { return payloadFingerprint(canonicalSimulationState(this.sim)); }
+  canonicalEventsHash(): string { return payloadFingerprint(canonicalSimulationEvents(this.events)); }
+  /** Bounded page over the RETAINED event window (index 0 = oldest retained). */
+  eventsSlice(start: number, count: number): SimEvent[] {
+    const from = Math.max(0, Math.min(this.events.length, Math.floor(start)));
+    return this.events.slice(from, from + Math.max(0, Math.floor(count)));
+  }
 
   /**
    * Build a headless world from a RAW `SimulationState` (e.g. a rendered owner

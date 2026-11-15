@@ -20,8 +20,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { resolve, sep } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { WorldGateway, type WorldNextAction } from './worldGateway';
 import { WORLD_LIMITS, parseWorldActionBatch } from './worldProtocol';
@@ -41,6 +41,20 @@ import {
 import type { EnemyKind } from '../types';
 
 const RESULT_SCHEMA = 'last_signal.mcp.tool-result.v1';
+/**
+ * TRANSPORT BUDGET: no single MCP response may approach the ~4 MB SDK/stdio
+ * limit. Full canonical state/events are NEVER returned inline; they are
+ * hashed, windowed, paged or written to an owner-only local artifact.
+ */
+const MAX_RESPONSE_BYTES = 512 * 1024;
+const EVENTS_PAGE_DEFAULT = 128;
+const EVENTS_PAGE_MAX = 512;
+const EVENTS_PAGE_BYTE_BUDGET = 384 * 1024;
+const STEP_EVENT_TAIL = 64;
+const MAX_FRAME_INGRESS_BYTES = 512 * 1024;
+const FRAME_REF_MAX = 2;
+const FRAME_REF_MAX_BYTES = 16 * 1024 * 1024;
+const FRAME_DIR = 'reports/ai-native-02/c3c/frames';
 const HEADLESS_MAX_BATCH_SEEDS = 8;
 
 function payload(data: Record<string, unknown>, isError = false): CallToolResult {
@@ -145,6 +159,8 @@ interface HeadlessSession {
 export class HeadlessWorldManager {
   private readonly gateway = new WorldGateway({ maxSessions: HEADLESS_MAX_SESSIONS });
   private readonly sessions = new Map<string, HeadlessSession>();
+  /** Bounded owner-only frame refs (LRU by insertion order, capped by bytes). */
+  private readonly frameRefs = new Map<string, { frame: unknown; bytes: number; session: string }>();
   private seedCounter = 0;
 
   constructor(private readonly dev: boolean, private readonly seedProvider: () => number) {}
@@ -418,7 +434,16 @@ export class HeadlessWorldManager {
         }
       : null;
     const observation = record.world.observation(epoch);
-    const publicEvts = publicEvents(stepEvents, (x, y) => record.world.isPerceivablePosition(x, y));
+    const eventsRetained = record.world.eventsCount;
+    const eventsTotal = record.world.eventTotal;
+    const eventsTruncated = isHistoryTruncated(eventsTotal, eventsRetained);
+    // DEV: bounded raw tail + a pagination cursor. PLAYER: the legal public
+    // projection of THIS step, also bounded. Never the full event history.
+    const eventTail = this.dev
+      ? record.world.eventsSlice(Math.max(0, eventsRetained - STEP_EVENT_TAIL), STEP_EVENT_TAIL)
+      : publicEvents(stepEvents, (x, y) => record.world.isPerceivablePosition(x, y)).slice(-STEP_EVENT_TAIL);
+    // Transport-budgeted step result: hashes + bounded window + cursor, never
+    // the multi-MB canonical state/events.
     const result: Record<string, unknown> = {
       session, epoch, requestId,
       fromTick, toTick: record.world.tick, ticks: record.world.tick - fromTick,
@@ -428,15 +453,17 @@ export class HeadlessWorldManager {
       applied,
       rejected,
       observation: publicObservation(observation),
-      eventCount: record.world.eventTotal - eventsBefore,
-      events: this.dev ? stepEvents : publicEvts,
-      ...(this.dev ? {
-        canonicalState: record.world.canonicalState(),
-        canonicalEvents: record.world.canonicalEvents()
-      } : {})
+      eventCount: eventsTotal - eventsBefore,
+      eventTotal: eventsTotal,
+      eventsRetained,
+      eventsTruncated,
+      events: eventTail,
+      nextCursor: eventsTotal,
+      stateFingerprint: record.world.canonicalStateHash(),
+      eventsFingerprint: record.world.canonicalEventsHash()
     };
     record.ledger.store(requestId, result);
-    return okPayload({ ...result, replayed: false });
+    return this.respond({ ...result, replayed: false });
   }
 
   close(session: string): CallToolResult {
@@ -483,13 +510,69 @@ export class HeadlessWorldManager {
     return record.active === null && this.pendingActions(session, record.epoch) === 0;
   }
 
+  /** Transport-budgeted response: refuses to emit a payload near the SDK limit. */
+  private respond(data: Record<string, unknown>): CallToolResult {
+    const body = { schema: RESULT_SCHEMA, ok: true, ...data };
+    const bytes = canonicalJson(body).length;
+    if (bytes > MAX_RESPONSE_BYTES) {
+      return errPayload('E_PAYLOAD_TOO_LARGE', 'world.response_too_large', {
+        bytes, maxBytes: MAX_RESPONSE_BYTES,
+        hint: 'use world_headless_dev_events (paged), snapshot ref or frame export'
+      });
+    }
+    return payload(body);
+  }
+
+  /** Bounded in-process frame cache (owner refs; never multi-MB duplicates). */
+  private storeFrameRef(ref: string, frame: unknown, bytes: number, session: string): void {
+    this.frameRefs.set(ref, { frame, bytes, session });
+    const total = (): number => {
+      let n = 0;
+      for (const e of this.frameRefs.values()) n += e.bytes;
+      return n;
+    };
+    while (this.frameRefs.size > 1 && (this.frameRefs.size > FRAME_REF_MAX || total() > FRAME_REF_MAX_BYTES)) {
+      const oldest = this.frameRefs.keys().next().value as string | undefined;
+      if (oldest === undefined) break;
+      this.frameRefs.delete(oldest);
+    }
+  }
+
+  private resolveFrame(input: { ref?: unknown; frame?: unknown }): { ok: true; frame: unknown } | { ok: false; code: string; messageKey: string; extra?: Record<string, unknown> } {
+    if (typeof input.ref === 'string' && input.ref.length > 0) {
+      const entry = this.frameRefs.get(input.ref);
+      if (!entry) return { ok: false, code: 'E_SNAPSHOT_INVALID', messageKey: 'world.frame_ref_unknown' };
+      return { ok: true, frame: entry.frame };
+    }
+    if (input.frame !== undefined) {
+      if (!isHeadlessFrame(input.frame)) return { ok: false, code: 'E_SNAPSHOT_INVALID', messageKey: 'world.headless_frame_invalid' };
+      const bytes = canonicalJson(input.frame).length;
+      if (bytes > MAX_FRAME_INGRESS_BYTES) {
+        return {
+          ok: false, code: 'E_PAYLOAD_TOO_LARGE', messageKey: 'world.frame_too_large_for_transport',
+          extra: { bytes, maxBytes: MAX_FRAME_INGRESS_BYTES, hint: 'use a snapshot ref or restore_file' }
+        };
+      }
+      return { ok: true, frame: input.frame };
+    }
+    return { ok: false, code: 'E_SCHEMA', messageKey: 'world.frame_required' };
+  }
+
   inspect(session: string): CallToolResult {
     const found = this.devRecord(session);
     if (!found.ok) return errPayload(found.code, found.messageKey);
     const record = found.record;
     const queuedActions = this.queuedCount(record, session);
-    return okPayload({
+    const eventsRetained = record.world.eventsCount;
+    const eventsTotal = record.world.eventTotal;
+    return this.respond({
       session, epoch: record.epoch,
+      // `canonicalState` is small (map is a hash); the EVENT history is paged.
+      canonicalState: record.world.canonicalState(),
+      stateFingerprint: record.world.canonicalStateHash(),
+      eventsFingerprint: record.world.canonicalEventsHash(),
+      eventsRetained, eventsTotal,
+      eventsTruncated: isHistoryTruncated(eventsTotal, eventsRetained),
       inspect: record.world.inspect(),
       manager: {
         boundary: record.active === null && queuedActions === 0 ? 'action' : 'mid_execution',
@@ -507,6 +590,69 @@ export class HeadlessWorldManager {
     });
   }
 
+  /** Dev: full canonical STATE (small) without the event history. */
+  devState(session: string): CallToolResult {
+    const found = this.devRecord(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    const record = found.record;
+    const eventsRetained = record.world.eventsCount;
+    const eventsTotal = record.world.eventTotal;
+    return this.respond({
+      session, epoch: record.epoch, tick: record.world.tick,
+      canonicalState: record.world.canonicalState(),
+      stateFingerprint: record.world.canonicalStateHash(),
+      eventsFingerprint: record.world.canonicalEventsHash(),
+      eventsRetained, eventsTotal,
+      eventsTruncated: isHistoryTruncated(eventsTotal, eventsRetained)
+    });
+  }
+
+  devEventsSummary(session: string): CallToolResult {
+    const found = this.devRecord(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    const record = found.record;
+    const retained = record.world.eventsCount;
+    const total = record.world.eventTotal;
+    return this.respond({
+      session, epoch: record.epoch,
+      eventTotal: total, eventsRetained: retained,
+      windowStart: total - retained,
+      eventsTruncated: isHistoryTruncated(total, retained),
+      eventsFingerprint: record.world.canonicalEventsHash()
+    });
+  }
+
+  /** Dev: bounded, cursor-paged events. No silent loss: a lost prefix is
+   *  reported via `truncated`/`lostPrefix`/`windowStart`. */
+  devEvents(session: string, offset: number, limit: number): CallToolResult {
+    const found = this.devRecord(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    const record = found.record;
+    const retained = record.world.eventsCount;
+    const total = record.world.eventTotal;
+    const windowStart = total - retained;
+    const requestedOffset = Math.max(0, Math.floor(offset));
+    const effectiveOffset = Math.max(requestedOffset, windowStart);
+    const lostPrefix = effectiveOffset - requestedOffset;
+    let pageSize = Math.max(1, Math.min(EVENTS_PAGE_MAX, Math.floor(limit)));
+    let items = record.world.eventsSlice(effectiveOffset - windowStart, pageSize);
+    let body = {
+      session, epoch: record.epoch,
+      offset: effectiveOffset, requestedOffset, limit: pageSize,
+      total, retained, windowStart,
+      truncated: isHistoryTruncated(total, retained),
+      lostPrefix,
+      nextCursor: effectiveOffset + items.length < total ? effectiveOffset + items.length : null,
+      items
+    };
+    while (canonicalJson({ schema: RESULT_SCHEMA, ok: true, ...body }).length > EVENTS_PAGE_BYTE_BUDGET && pageSize > 1) {
+      pageSize = Math.max(1, Math.floor(pageSize / 2));
+      items = record.world.eventsSlice(effectiveOffset - windowStart, pageSize);
+      body = { ...body, limit: pageSize, nextCursor: effectiveOffset + items.length < total ? effectiveOffset + items.length : null, items };
+    }
+    return this.respond(body);
+  }
+
   snapshot(session: string): CallToolResult {
     const found = this.devRecord(session);
     if (!found.ok) return errPayload(found.code, found.messageKey);
@@ -520,29 +666,27 @@ export class HeadlessWorldManager {
     const eventsRetained = record.world.eventsCount;
     const eventsTotal = record.world.eventTotal;
     const frame = { ...record.world.snapshot(), boundary: 'action' as const };
-    return okPayload({
+    const bytes = canonicalJson(frame).length;
+    const ref = `frameref_${randomBytes(12).toString('hex')}`;
+    this.storeFrameRef(ref, frame, bytes, session);
+    // The frame itself is NOT transported inline (it can be many MB); the owner
+    // receives an in-process ref plus size/hash/truncation metadata.
+    return this.respond({
       session, epoch: record.epoch, boundary: 'action',
-      // Same exact truncation flag as replay/exportFailure. A truncated
-      // HISTORY does not invalidate the (complete) future STATE, but it is
-      // never presented as a full-history reproduction.
+      ref, frameBytes: bytes,
       eventsRetained, eventsTotal,
       eventsTruncated: isHistoryTruncated(eventsTotal, eventsRetained),
-      frameBytes: canonicalJson(frame).length, frame
+      stateFingerprint: record.world.canonicalStateHash(),
+      eventsFingerprint: record.world.canonicalEventsHash()
     });
   }
 
-  restore(session: string, frame: unknown): CallToolResult {
-    const found = this.devRecord(session);
-    if (!found.ok) return errPayload(found.code, found.messageKey);
-    const record = found.record;
+  private applyRestore(record: HeadlessSession, session: string, frame: unknown): CallToolResult {
     if (!isHeadlessFrame(frame)) return errPayload('E_SNAPSHOT_INVALID', 'world.headless_frame_invalid');
-    // Only an ACTION-BOUNDARY frame may be restored. A mid-execution frame is
-    // explicitly refused (never silently drops remaining ticks/actions).
+    // Only an ACTION-BOUNDARY frame may be restored.
     if ((frame as { boundary?: unknown }).boundary !== 'action') {
       return errPayload('E_NOT_APPLICABLE', 'world.snapshot_requires_action_boundary');
     }
-    // The CURRENT session must also be at a boundary, otherwise restoring would
-    // silently discard an in-flight/queued action.
     if (!this.atActionBoundary(record, session)) {
       return errPayload('E_NOT_APPLICABLE', 'world.restore_requires_action_boundary');
     }
@@ -551,21 +695,104 @@ export class HeadlessWorldManager {
     const rebind = this.gateway.rebindSession(session, Date.now());
     if (!rebind.ok) return errPayload(rebind.code, rebind.messageKey);
     record.epoch = rebind.epoch;
-    // A new epoch starts with a clean request namespace and no active action.
     record.active = null;
     record.ledger.clear();
     this.gateway.pushObservation(session, record.epoch, record.world.observation(record.epoch), Date.now());
-    return okPayload({ session, epoch: record.epoch, status: record.world.runStatus, observation: record.world.observation(record.epoch) });
+    return this.respond({
+      session, epoch: record.epoch, status: record.world.runStatus,
+      stateFingerprint: record.world.canonicalStateHash(),
+      eventsFingerprint: record.world.canonicalEventsHash(),
+      observation: record.world.observation(record.epoch)
+    });
   }
 
-  replay(session: string, frame: unknown, steps: unknown): CallToolResult {
+  restore(session: string, input: { ref?: unknown; frame?: unknown }): CallToolResult {
+    const found = this.devRecord(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    const resolved = this.resolveFrame(input);
+    if (!resolved.ok) return errPayload(resolved.code, resolved.messageKey, resolved.extra ?? {});
+    return this.applyRestore(found.record, session, resolved.frame);
+  }
+
+  replay(session: string, input: { ref?: unknown; frame?: unknown }, steps: unknown): CallToolResult {
     const found = this.devRecord(session);
     if (!found.ok) return errPayload(found.code, found.messageKey);
     const record = found.record;
+    const resolved = this.resolveFrame(input);
+    if (!resolved.ok) return errPayload(resolved.code, resolved.messageKey, resolved.extra ?? {});
     const parsedSteps = parseSteps(steps);
     if (!parsedSteps) return errPayload('E_SCHEMA', 'world.headless_steps_invalid');
-    const result = record.world.replay(frame, parsedSteps);
-    return okPayload({ session, ...result });
+    const result = record.world.replay(resolved.frame, parsedSteps);
+    return this.respond({ session, ...result });
+  }
+
+  async replayFile(session: string, path: string, steps: unknown): Promise<CallToolResult> {
+    const found = this.devRecord(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    const parsedSteps = parseSteps(steps);
+    if (!parsedSteps) return errPayload('E_SCHEMA', 'world.headless_steps_invalid');
+    const file = this.resolveFrameFile(path);
+    if (!file.ok) return errPayload(file.code, file.messageKey);
+    let frame: unknown;
+    try { frame = JSON.parse(await readFile(file.path, 'utf8')); }
+    catch { return errPayload('E_SNAPSHOT_INVALID', 'world.frame_file_unreadable'); }
+    if (!isHeadlessFrame(frame)) return errPayload('E_SNAPSHOT_INVALID', 'world.headless_frame_invalid');
+    const result = found.record.world.replay(frame, parsedSteps);
+    return this.respond({ session, ...result });
+  }
+
+  /** Resolve an owner-only frame path under FRAME_DIR. */
+  private resolveFrameFile(path: string): { ok: true; path: string } | { ok: false; code: string; messageKey: string } {
+    const base = resolve(FRAME_DIR);
+    const file = resolve(path);
+    if (file !== base && !file.startsWith(base + sep)) {
+      return { ok: false, code: 'E_PERMISSION', messageKey: 'world.frame_path_forbidden' };
+    }
+    return { ok: true, path: file };
+  }
+
+  /** Dev: write the full frame to an owner-only local artifact (not the wire). */
+  async frameExport(session: string, input: { ref?: unknown; frame?: unknown }): Promise<CallToolResult> {
+    const found = this.devRecord(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    const record = found.record;
+    let frame: unknown;
+    if (typeof input.ref === 'string' || input.frame !== undefined) {
+      const resolved = this.resolveFrame(input);
+      if (!resolved.ok) return errPayload(resolved.code, resolved.messageKey, resolved.extra ?? {});
+      frame = resolved.frame;
+    } else {
+      if (!this.atActionBoundary(record, session)) {
+        return errPayload('E_NOT_APPLICABLE', 'world.snapshot_requires_action_boundary');
+      }
+      frame = { ...record.world.snapshot(), boundary: 'action' as const };
+    }
+    const text = canonicalJson(frame);
+    const dir = resolve(FRAME_DIR);
+    await mkdir(dir, { recursive: true });
+    const file = resolve(dir, `${session}-${Date.now()}.frame.json`);
+    await writeFile(file, text, 'utf8');
+    return this.respond({
+      session, path: file, bytes: text.length,
+      eventsRetained: record.world.eventsCount,
+      eventsTotal: record.world.eventTotal,
+      eventsTruncated: isHistoryTruncated(record.world.eventTotal, record.world.eventsCount),
+      stateFingerprint: record.world.canonicalStateHash(),
+      eventsFingerprint: record.world.canonicalEventsHash()
+    });
+  }
+
+  /** Dev: restore from an owner-only frame file (request carries only a path). */
+  async restoreFile(session: string, path: string): Promise<CallToolResult> {
+    const found = this.devRecord(session);
+    if (!found.ok) return errPayload(found.code, found.messageKey);
+    const file = this.resolveFrameFile(path);
+    if (!file.ok) return errPayload(file.code, file.messageKey);
+    let parsed: unknown;
+    try { parsed = JSON.parse(await readFile(file.path, 'utf8')); }
+    catch { return errPayload('E_SNAPSHOT_INVALID', 'world.frame_file_unreadable'); }
+    // A local owner file bypasses the TRANSPORT ingress limit, not validation.
+    return this.applyRestore(found.record, session, parsed);
   }
 
   loadRoom(session: string, roomId: number, kinds: readonly EnemyKind[]): CallToolResult {
@@ -577,11 +804,10 @@ export class HeadlessWorldManager {
     const rebind = this.gateway.rebindSession(session, Date.now());
     if (!rebind.ok) return errPayload(rebind.code, rebind.messageKey);
     record.epoch = rebind.epoch;
-    // A new epoch starts with a clean request namespace and no active action.
     record.active = null;
     record.ledger.clear();
     this.gateway.pushObservation(session, record.epoch, record.world.observation(record.epoch), Date.now());
-    return okPayload({ session, epoch: record.epoch, roomId, spawned: loaded.spawned, observation: record.world.observation(record.epoch) });
+    return this.respond({ session, epoch: record.epoch, roomId, spawned: loaded.spawned, observation: record.world.observation(record.epoch) });
   }
 
   spawnEnemies(session: string, kinds: readonly EnemyKind[]): CallToolResult {
@@ -593,11 +819,10 @@ export class HeadlessWorldManager {
     const rebind = this.gateway.rebindSession(session, Date.now());
     if (!rebind.ok) return errPayload(rebind.code, rebind.messageKey);
     record.epoch = rebind.epoch;
-    // A new epoch starts with a clean request namespace and no active action.
     record.active = null;
     record.ledger.clear();
     this.gateway.pushObservation(session, record.epoch, record.world.observation(record.epoch), Date.now());
-    return okPayload({ session, epoch: record.epoch, spawned: spawned.spawned });
+    return this.respond({ session, epoch: record.epoch, spawned: spawned.spawned });
   }
 
   async exportFailure(session: string, reason: string): Promise<CallToolResult> {
@@ -626,31 +851,30 @@ export class HeadlessWorldManager {
         : null,
       queuedActions,
       ledger: record.ledger.stats(),
-      // History window: the retained event log is bounded. A truncated history
-      // is reported explicitly so a "same prefix" claim is never faked.
       eventsRetained,
       eventsTotal,
       eventsTruncated,
+      stateFingerprint: record.world.canonicalStateHash(),
+      eventsFingerprint: record.world.canonicalEventsHash(),
       note: eventsTruncated
         ? 'HISTORY TRUNCATED (eventTotal > retained events): the retained window alone is not a full reproduction and cannot be claimed replayable'
         : boundary
           ? 'action-boundary export: full future state captured and replayable'
           : 'INCOMPLETE reproduction: active/queued actions are still pending; remaining ticks are NOT in the frame'
     };
-    // Only a boundary export gets the restorable marker; a mid-execution export
-    // must never masquerade as a complete reproducible frame.
     const frame = base.frame as Record<string, unknown> | undefined;
-    // The restorable marker is only for a truly replayable boundary export.
     if (replayable && frame) frame.boundary = 'action';
     const bundle = { ...base, manager: diagnostics };
     const dir = resolve('reports/ai-native-02/c3c/failures');
     await mkdir(dir, { recursive: true });
     const file = resolve(dir, `${session}-${Date.now()}.failure.json`);
-    await writeFile(file, canonicalJson(bundle), 'utf8');
-    return okPayload({
-      session, path: file, bytes: canonicalJson(bundle).length,
+    const text = canonicalJson(bundle);
+    await writeFile(file, text, 'utf8');
+    return this.respond({
+      session, path: file, bytes: text.length,
       boundary: diagnostics.boundary, replayable: diagnostics.replayable,
       eventsRetained, eventsTotal, eventsTruncated,
+      stateFingerprint: diagnostics.stateFingerprint,
       diagnostics
     });
   }
@@ -816,15 +1040,38 @@ export function registerHeadlessWorldTools(server: McpServer, manager: HeadlessW
   register(server, 'world_headless_dev_inspect', 'DEV: bounded debug projection (seed/rng/pending/ledger/map hash).',
     z.strictObject({ session: sessionId }), (args) => manager.inspect(args.session as string));
 
-  register(server, 'world_headless_dev_snapshot', 'DEV: action-boundary owner frame (state/commands/RNG/ledger/map identity). Refused mid-execution.',
+  register(server, 'world_headless_dev_snapshot', 'DEV: action-boundary snapshot; returns a bounded frame REF + size/hash/truncation (frame is not inline). Refused mid-execution.',
     z.strictObject({ session: sessionId }), (args) => manager.snapshot(args.session as string));
 
-  register(server, 'world_headless_dev_restore', 'DEV: restore an ACTION-BOUNDARY owner frame only; atomically bumps the epoch.',
-    z.strictObject({ session: sessionId, frame: z.unknown() }), (args) => manager.restore(args.session as string, args.frame));
+  register(server, 'world_headless_dev_state', 'DEV: full canonical STATE (small) + hashes; event history is paged separately.',
+    z.strictObject({ session: sessionId }), (args) => manager.devState(args.session as string));
 
-  register(server, 'world_headless_dev_replay', 'DEV: deterministic replay from a start frame; returns REAL divergence info.',
-    z.strictObject({ session: sessionId, frame: z.unknown(), steps: z.array(z.strictObject({ ticks: z.number().int().min(1), intent: intentSchema })).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH) }),
-    (args) => manager.replay(args.session as string, args.frame, args.steps));
+  register(server, 'world_headless_dev_events_summary', 'DEV: bounded event-history summary (total/retained/windowStart/truncated/hash).',
+    z.strictObject({ session: sessionId }), (args) => manager.devEventsSummary(args.session as string));
+
+  register(server, 'world_headless_dev_events', 'DEV: cursor-paged events (offset,limit) with total/truncated/nextCursor. Bounded response.',
+    z.strictObject({ session: sessionId, offset: z.number().int().min(0), limit: z.number().int().min(1).max(EVENTS_PAGE_MAX).optional() }),
+    (args) => manager.devEvents(args.session as string, args.offset as number, (args.limit as number | undefined) ?? EVENTS_PAGE_DEFAULT));
+
+  register(server, 'world_headless_dev_restore', 'DEV: restore an ACTION-BOUNDARY frame by ref (preferred) or a <=512KiB inline frame; bumps the epoch.',
+    z.strictObject({ session: sessionId, ref: z.string().min(1).max(128).optional(), frame: z.unknown().optional() }),
+    (args) => manager.restore(args.session as string, { ref: args.ref, frame: args.frame }));
+
+  register(server, 'world_headless_dev_replay', 'DEV: deterministic replay from a boundary frame ref/inline frame; returns REAL divergence info.',
+    z.strictObject({ session: sessionId, ref: z.string().min(1).max(128).optional(), frame: z.unknown().optional(), steps: z.array(z.strictObject({ ticks: z.number().int().min(1), intent: intentSchema })).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH) }),
+    (args) => manager.replay(args.session as string, { ref: args.ref, frame: args.frame }, args.steps));
+
+  register(server, 'world_headless_dev_replay_file', 'DEV: replay from an owner-only frame file under reports/ai-native-02/c3c/frames/.',
+    z.strictObject({ session: sessionId, path: z.string().min(1).max(512), steps: z.array(z.strictObject({ ticks: z.number().int().min(1), intent: intentSchema })).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH) }),
+    (args) => manager.replayFile(args.session as string, args.path as string, args.steps));
+
+  register(server, 'world_headless_dev_frame_export', 'DEV: write the full frame to an owner-only local artifact; returns a path (not the payload).',
+    z.strictObject({ session: sessionId, ref: z.string().min(1).max(128).optional() }),
+    (args) => manager.frameExport(args.session as string, { ref: args.ref }));
+
+  register(server, 'world_headless_dev_restore_file', 'DEV: restore from an owner-only frame file under reports/ai-native-02/c3c/frames/.',
+    z.strictObject({ session: sessionId, path: z.string().min(1).max(512) }),
+    (args) => manager.restoreFile(args.session as string, args.path as string));
 
   register(server, 'world_headless_dev_load_room', 'DEV: load a REAL generated room and spawn REAL enemies.',
     z.strictObject({ session: sessionId, roomId: z.number().int().min(0).max(4096), kinds: z.array(enemyKind).min(1).max(WORLD_LIMITS.MAX_ACTIONS_PER_BATCH) }),
