@@ -330,6 +330,27 @@ export class CompanionFacet {
     return ok({ ...candidate, replayed: false });
   }
 
+  /** Diagnostic snapshot (no restore: policy authority must never be re-armed). */
+  snapshot(): CompanionSnapshot {
+    return cloneAndFreeze({
+      schema: COMPANION_SCHEMA,
+      session: this.session,
+      epoch: this.currentEpoch,
+      actorId: COMPANION_ACTOR_ID,
+      link: this.link,
+      fallbackLabel: this.fallbackLabel,
+      ownerMode: this.ownerMode,
+      lastObservationTick: this.lastObservationTick,
+      memory: this.memoryValue.map((entry) => ({ ...entry })),
+      pending: [...this.suggestions.values()].map((entry) => entry.suggestion),
+      dedupRecords: this.dedupRecords,
+      dedupLimit: this.maxDedupRecords,
+      suggestionLimit: this.maxUnconfirmed,
+      suggestionTtlTicks: COMPANION_LIMITS.SUGGESTION_TTL_TICKS,
+      memoryTtlTicks: COMPANION_LIMITS.MEMORY_TTL_TICKS
+    });
+  }
+
   /** `echo_status`: bounded, truthful link/owner state (never a fake connected). */
   status(): CompanionStatus {
     return cloneAndFreeze({
@@ -416,4 +437,117 @@ export class CompanionFacet {
       this.memoryValue = this.memoryValue.slice(-COMPANION_LIMITS.MEMORY_ENTRIES);
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Owner confirmation capability (pure contract, NOT a gateway/UI registration)
+// ---------------------------------------------------------------------------
+
+/**
+ * Module-private symbol: an agent process cannot mint this from a token, an
+ * Origin header, JSON or a string. It is created only by the local human UI
+ * process. Origin is NOT authentication; a Node agent can forge any Origin.
+ */
+const OWNER_CAPABILITY = Symbol('last_signal.companion.owner.v1');
+
+export interface CompanionOwnerCapability {
+  readonly kind: 'OWNER';
+  readonly session: string;
+  readonly [OWNER_CAPABILITY]: true;
+}
+
+/** Owner-side factory. Never callable from the agent transport surface. */
+export function createOwnerCapability(session: string): CompanionOwnerCapability {
+  return Object.freeze({ kind: 'OWNER' as const, session, [OWNER_CAPABILITY]: true as const });
+}
+
+export function isOwnerCapability(value: unknown): value is CompanionOwnerCapability {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string | symbol, unknown>;
+  return candidate.kind === 'OWNER'
+    && typeof candidate.session === 'string'
+    && candidate[OWNER_CAPABILITY] === true;
+}
+
+export interface OwnerDecision {
+  readonly suggestionId: string;
+  readonly decision: 'confirm' | 'reject';
+  readonly session: string;
+  readonly epoch: number;
+  readonly actorId: typeof COMPANION_ACTOR_ID;
+  readonly decidedAtTick: number;
+}
+
+/**
+ * Owner-only decision ledger. It RECORDS a human decision; it never executes a
+ * suggestion and never grants the agent an execution path. Every external
+ * suggestion (including `move`) needs one of these decisions before any later
+ * core command may be built. Local `follow` remains a legal default policy,
+ * but it is not an implicit confirmation of an external suggestion.
+ */
+export class CompanionOwnerLedger {
+  private readonly decisions = new Map<string, OwnerDecision>();
+
+  constructor(private readonly facet: CompanionFacet) {}
+
+  decide(input: {
+    capability: unknown;
+    suggestionId: string;
+    decision: 'confirm' | 'reject';
+    epoch: number;
+    /** Current authoritative core tick for TTL evaluation (no wall clock). */
+    tick: number;
+  }): CompanionResult<OwnerDecision> {
+    if (!isOwnerCapability(input.capability)) {
+      return fail('E_PERMISSION', 'companion.owner_capability_required');
+    }
+    if (input.capability.session !== this.facet.session) {
+      return fail('E_PERMISSION', 'companion.owner_session_mismatch');
+    }
+    const status = this.facet.status();
+    if (input.epoch !== status.epoch) return fail('E_STALE_EPOCH', 'companion.stale_epoch');
+    if (status.link !== 'connected') return fail('E_LINK_UNAVAILABLE', 'companion.link_fallback');
+    if (status.ownerMode !== 'human' || status.readOnly) {
+      return fail('E_PERMISSION', 'companion.owner_mode_readonly');
+    }
+    if (!Number.isFinite(input.tick)) return fail('E_SCHEMA', 'companion.tick_invalid');
+    if (this.decisions.has(input.suggestionId)) return fail('E_RETRYABLE', 'companion.decision_exists');
+    this.facet.advanceTo(input.tick);
+    const suggestion = this.facet.pendingSuggestions().find((s) => s.suggestionId === input.suggestionId);
+    if (!suggestion) return fail('E_TARGET_DESTROYED', 'companion.suggestion_expired');
+    if (input.tick >= suggestion.expiresAtTick) return fail('E_ACTION_EXPIRED', 'companion.suggestion_expired');
+    const decided: OwnerDecision = Object.freeze({
+      suggestionId: input.suggestionId,
+      decision: input.decision,
+      session: this.facet.session,
+      epoch: input.epoch,
+      actorId: COMPANION_ACTOR_ID,
+      decidedAtTick: input.tick
+    });
+    this.decisions.set(input.suggestionId, decided);
+    return ok(decided);
+  }
+
+  list(): readonly OwnerDecision[] {
+    return Object.freeze([...this.decisions.values()]);
+  }
+}
+
+/** Diagnostic snapshot: necessary state only, never hidden state or auth. */
+export interface CompanionSnapshot {
+  readonly schema: typeof COMPANION_SCHEMA;
+  readonly session: string;
+  readonly epoch: number;
+  readonly actorId: typeof COMPANION_ACTOR_ID;
+  readonly link: CompanionLinkState;
+  readonly fallbackLabel: CompanionFallbackLabel;
+  readonly ownerMode: CompanionOwnerMode;
+  readonly lastObservationTick: number | null;
+  readonly memory: readonly CompanionMemoryEntry[];
+  readonly pending: readonly CompanionSuggestion[];
+  readonly dedupRecords: number;
+  readonly dedupLimit: number;
+  readonly suggestionLimit: number;
+  readonly suggestionTtlTicks: number;
+  readonly memoryTtlTicks: number;
 }

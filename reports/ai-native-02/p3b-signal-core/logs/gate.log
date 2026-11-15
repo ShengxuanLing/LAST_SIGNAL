@@ -1,0 +1,11 @@
+PASS | core_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_typecheck.log
+PASS | core_unit | npx vitest run | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_unit.log
+PASS | core_signal_unit | npx vitest run src/signal/signalCore.test.ts | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_signal_unit.log
+PASS | core_slice_unit | npx vitest run src/slice | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_slice_unit.log
+PASS | core_companion_unit | npx vitest run src/ai-native/companionFacet.test.ts | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_companion_unit.log
+PASS | core_build | npm run build | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_build.log
+PASS | core_build_test | npm run build:test | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_build_test.log
+PASS | core_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_mcp_build.log
+PASS | core_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_headless_smoke.log
+PASS | core_console_smoke | npx vite-node src/ai-native/worldConsoleSmoke.mts | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_console_smoke.log
+P3B_SIGNAL_CORE_GATE_DONE

@@ -213,11 +213,150 @@ describe('CompanionFacet honesty / exclusion', () => {
       ...Object.getOwnPropertyNames(Object.getPrototypeOf(f))
     ]);
     for (const forbidden of ['confirm', 'reject', 'accept', 'execute', 'step', 'stepPlayer', 'toggleRelay',
-      'setPlayerData', 'snapshot', 'restore', 'replay', 'injectFixture', 'dev', 'devTools']) {
+      'setPlayerData', 'restore', 'restoreSnapshot', 'replay', 'injectFixture', 'dev', 'devTools']) {
       expect(names.has(forbidden), `CompanionFacet must not expose ${forbidden}`).toBe(false);
     }
     for (const allowed of ['observe', 'suggest', 'status', 'pendingSuggestions', 'advanceTo', 'setLink', 'setOwnerMode', 'rebindEpoch']) {
       expect(names.has(allowed), `CompanionFacet exposes ${allowed}`).toBe(true);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Owner confirmation contract (pure; no gateway or UI registration)
+// ---------------------------------------------------------------------------
+import {
+  COMPANION_SUGGESTION_KINDS, CompanionOwnerLedger,
+  createOwnerCapability, isOwnerCapability
+} from './companionFacet';
+
+function proposed(f: CompanionFacet, kind: string = 'scan') {
+  f.observe(view({ relay: { id: 'relay', x: 2, y: 0, state: 'INACTIVE' } }));
+  const r = f.suggest({ kind: kind as never, reason: 'perceived_relay' });
+  if (!r.ok) throw new Error(`suggest failed: ${r.code}`);
+  return r.value;
+}
+
+describe('CompanionOwnerLedger capability', () => {
+  it('a token, Origin header, JSON or plain object can NEVER become the owner capability', () => {
+    const real = createOwnerCapability('ses_aaaaaaaaaaaaaaaaaaaaaaaa');
+    expect(isOwnerCapability(real)).toBe(true);
+    for (const forged of [
+      { kind: 'OWNER', session: 'ses_aaaaaaaaaaaaaaaaaaaaaaaa', token: 'secret', origin: 'http://localhost:5335' },
+      { kind: 'OWNER', session: 'ses_aaaaaaaaaaaaaaaaaaaaaaaa' },
+      { kind: 'OWNER', session: 'ses_aaaaaaaaaaaaaaaaaaaaaaaa', [Symbol('other')]: true },
+      'Bearer secret', null, undefined, 42,
+      JSON.parse(JSON.stringify(real))
+    ]) {
+      expect(isOwnerCapability(forged), `forged owner proof rejected: ${JSON.stringify(forged)}`).toBe(false);
+    }
+  });
+
+  it('owner decisions need the capability, matching session/epoch, human mode and a live link', () => {
+    const f = facet();
+    const s = proposed(f);
+    const ledger = new CompanionOwnerLedger(f);
+    const cap = createOwnerCapability(f.session);
+    const base = { suggestionId: s.suggestionId, decision: 'confirm' as const, epoch: 1, tick: s.createdAtTick + 1 };
+
+    expect(ledger.decide({ ...base, capability: { token: 'x', origin: 'http://localhost:5335' } }))
+      .toMatchObject({ ok: false, code: 'E_PERMISSION' });
+    expect(ledger.decide({ ...base, capability: createOwnerCapability('ses_bbbbbbbbbbbbbbbbbbbbbbbb') }))
+      .toMatchObject({ ok: false, code: 'E_PERMISSION' });
+    expect(ledger.decide({ ...base, capability: cap, epoch: 99 }))
+      .toMatchObject({ ok: false, code: 'E_STALE_EPOCH' });
+
+    f.setOwnerMode('ai');
+    expect(ledger.decide({ ...base, capability: cap }))
+      .toMatchObject({ ok: false, code: 'E_PERMISSION' });
+    f.setOwnerMode('human');
+    f.setLink('fallback');
+    expect(ledger.decide({ ...base, capability: cap }))
+      .toMatchObject({ ok: false, code: 'E_LINK_UNAVAILABLE' });
+    f.setLink('connected');
+    // The fallback/disconnect cancelled the suggestion, so it is expired now.
+    expect(ledger.decide({ ...base, capability: cap }))
+      .toMatchObject({ ok: false, code: 'E_TARGET_DESTROYED' });
+
+    const fresh = proposed(f);
+    const okDecision = ledger.decide({
+      capability: cap, suggestionId: fresh.suggestionId, decision: 'confirm',
+      epoch: 1, tick: fresh.createdAtTick + 1
+    });
+    expect(okDecision.ok).toBe(true);
+    if (!okDecision.ok) return;
+    expect(okDecision.value).toMatchObject({ suggestionId: fresh.suggestionId, decision: 'confirm', actorId: 1 });
+    expect(ledger.decide({ capability: cap, suggestionId: fresh.suggestionId, decision: 'reject', epoch: 1, tick: 101 }))
+      .toMatchObject({ ok: false, code: 'E_RETRYABLE' });
+    // A decision RECORDS authority; it never executes and never changes the
+    // suggestion status. The facet still has no executor.
+    expect(f.pendingSuggestions()[0].status).toBe('proposed');
+    expect(ledger.list()).toHaveLength(1);
+    const names = new Set([
+      ...Object.getOwnPropertyNames(f),
+      ...Object.getOwnPropertyNames(Object.getPrototypeOf(f))
+    ]);
+    for (const forbidden of ['confirm', 'reject', 'execute', 'step', 'stepPlayer']) {
+      expect(names.has(forbidden)).toBe(false);
+    }
+  });
+
+  it('expired suggestions cannot be confirmed (TTL is a real contract)', () => {
+    const f = facet();
+    const s = proposed(f);
+    const ledger = new CompanionOwnerLedger(f);
+    expect(ledger.decide({
+      capability: createOwnerCapability(f.session), suggestionId: s.suggestionId,
+      decision: 'confirm', epoch: 1, tick: s.expiresAtTick
+    })).toMatchObject({ ok: false, code: 'E_TARGET_DESTROYED' });
+    expect(ledger.list()).toHaveLength(0);
+  });
+
+  it('EVERY external suggestion kind, including move, stays proposed until a decision', () => {
+    const f = facet();
+    const ledger = new CompanionOwnerLedger(f);
+    for (const kind of COMPANION_SUGGESTION_KINDS) {
+      const s = proposed(f, kind);
+      expect(s.status).toBe('proposed');
+      expect(s.kind).toBe(kind);
+    }
+    expect(f.pendingSuggestions()).toHaveLength(COMPANION_SUGGESTION_KINDS.length);
+    expect(ledger.list(), 'no implicit confirmations').toHaveLength(0);
+    expect(COMPANION_LIMITS.SUGGESTION_TTL_TICKS).toBe(600);
+  });
+
+  it('snapshot carries necessary state and hard bounds, never hidden state or auth', () => {
+    const f = facet();
+    const s = proposed(f);
+    const snap = f.snapshot();
+    expect(snap).toMatchObject({
+      session: f.session, epoch: 1, actorId: 1, link: 'connected',
+      dedupLimit: COMPANION_LIMITS.MAX_DEDUP_RECORDS,
+      suggestionLimit: COMPANION_LIMITS.MAX_UNCONFIRMED,
+      suggestionTtlTicks: COMPANION_LIMITS.SUGGESTION_TTL_TICKS,
+      memoryTtlTicks: COMPANION_LIMITS.MEMORY_TTL_TICKS
+    });
+    expect(snap.pending.map((p) => p.suggestionId)).toContain(s.suggestionId);
+    expect(snap.pending[0].status).toBe('proposed');
+    expect(Object.isFrozen(snap)).toBe(true);
+    const text = JSON.stringify(snap);
+    for (const hidden of ['seed', 'rngState', 'map', 'capability', 'OWNER_CAPABILITY', 'token']) {
+      expect(text).not.toContain(`"${hidden}"`);
+    }
+    // Diagnostic only: no restore entry point that could re-arm authority.
+    expect(Object.getOwnPropertyNames(Object.getPrototypeOf(f))).not.toContain('restoreSnapshot');
+  });
+
+  it('old epoch and disconnect fallback are visible in the snapshot and block decisions', () => {
+    const f = facet();
+    proposed(f);
+    const cap = createOwnerCapability(f.session);
+    const ledger = new CompanionOwnerLedger(f);
+    f.rebindEpoch(2);
+    expect(ledger.decide({ capability: cap, suggestionId: f.pendingSuggestions()[0]?.suggestionId ?? 'x', decision: 'confirm', epoch: 1, tick: 101 }))
+      .toMatchObject({ ok: false });
+    expect(f.snapshot()).toMatchObject({ epoch: 2, pending: [] });
+    f.setLink('fallback');
+    expect(f.snapshot()).toMatchObject({ link: 'fallback', fallbackLabel: 'NO_MODEL' });
   });
 });
