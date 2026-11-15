@@ -1,0 +1,16 @@
+
+> last-signal@0.1.0 game:mcp:build
+> vite build --config vite.mcp.config.ts
+
+[36mvite v5.4.21 [32mbuilding SSR bundle for production...[36m[39m
+transforming...
+[32m✓[39m 40 modules transformed.
+rendering chunks...
+[2mdist-mcp/[22m[36mworldMcpServer.mjs                         [39m[1m[2m  0.43 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mworldHeadlessMcpServer.mjs                 [39m[1m[2m  0.61 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mchunks/enemies-AcIuFQjI.mjs                [39m[1m[2m  6.64 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mchunks/worldMcpTools-BXdXYyT2.mjs          [39m[1m[2m 14.93 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mchunks/worldProtocol-BwN0He0A.mjs          [39m[1m[2m 53.14 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mchunks/worldHeadlessMcpTools-D0gGytuh.mjs  [39m[1m[2m142.92 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mmcpServer.mjs                              [39m[1m[2m252.98 kB[22m[1m[22m
+[32m✓ built in 961ms[39m

@@ -1,0 +1,41 @@
+
+> last-signal@0.1.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[1m[33m[plugin:vite:esbuild][39m[22m [33m[plugin vite:esbuild] src/world/World.ts: [33mThis case clause will never be evaluated because it duplicates an earlier case clause[33m
+1118|            this.player.syncVisual();
+1119|            break;
+1120|          case 'enemy-spawned':
+   |               ^
+1121|            this.spawnEnemyFromCore(event as any);
+1122|            break;
+[39m
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+[32m✓[39m 156 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                        [39m[1m[2m    1.50 kB[22m[1m[22m[2m │ gzip:   0.78 kB[22m
+[2mdist/[22m[32mstation-zero.html                 [39m[1m[2m    2.95 kB[22m[1m[22m[2m │ gzip:   1.17 kB[22m
+[2mdist/[22m[35massets/station-zero-DsKR4JaN.css  [39m[1m[2m    2.56 kB[22m[1m[22m[2m │ gzip:   0.96 kB[22m
+[2mdist/[22m[36massets/station-zero-B4fukMsc.js   [39m[1m[2m   53.43 kB[22m[1m[22m[2m │ gzip:  16.95 kB[22m
+[2mdist/[22m[36massets/main-Dj46FVj1.js           [39m[1m[2m  266.73 kB[22m[1m[22m[2m │ gzip:  78.72 kB[22m
+[2mdist/[22m[36massets/iso-CBmtTHWJ.js            [39m[1m[33m1,493.14 kB[39m[22m[2m │ gzip: 345.51 kB[22m
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 8.04s[39m

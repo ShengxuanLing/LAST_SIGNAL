@@ -23,7 +23,7 @@ import {
 import { RNG } from '../../core/random';
 import type { EnemyData, MapData, PlayerData, ProjectileData, Tile, Vec2 } from '../../types';
 import type { GridPoint } from './rules';
-import { payloadFingerprint } from '../../ai-native/protocol';
+import { canonicalJson, payloadFingerprint } from '../../ai-native/protocol';
 import {
   advanceProjectile, aimYawFromGrid, buildWeaponSpec, createEnemyProjectileData,
   createProjectileData, projectileHitsTarget, resolveBossHit, resolveEnemyHit,
@@ -1026,7 +1026,11 @@ export interface CanonicalSimulationState {
 }
 
 export function canonicalSimulationState(state: SimulationState): string {
-  return JSON.stringify({
+  // STABLE canonical projection: recursive key sorting (`canonicalJson`) so a
+  // value-identical object reconstructed in a different insertion order (e.g.
+  // restored from a JSON transport) hashes identically. Arrays keep their order
+  // and numbers keep full precision; nothing is rounded or re-sequenced.
+  return canonicalJson({
     seed: state.seed,
     tick: state.tick,
     rngState: state.rngState,
@@ -1056,7 +1060,7 @@ export function canonicalSimulationState(state: SimulationState): string {
  *  orientation only and is excluded; all damage/velocity/position/tick facts stay
  *  exact (no rounding). */
 export function canonicalSimulationEvents(events: SimEvent[]): string {
-  return JSON.stringify(events.map((event) => {
+  return canonicalJson(events.map((event) => {
     if (event.type !== 'drone-step') return event;
     const { faceAngle: _faceAngle, ...step } = event.step;
     return { ...event, step };
