@@ -22,6 +22,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
 import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
+import { openLlm, resumeGame } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
@@ -78,7 +79,7 @@ async function clickText(page: Page, text: string): Promise<void> {
 async function authorizeCompanion(page: Page, bridgeUrl: string): Promise<void> {
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
-  await clickText(page, 'LLM COMPANION >');
+  await openLlm(page);
   await page.waitForTimeout(300);
   await clickText(page, 'ENABLE / RE-AUTHORIZE');
   await page.waitForSelector('[data-testid="external-link-form"]', { timeout: 15000 });
@@ -131,8 +132,7 @@ test('real portal retires old-room suggestions: no stale confirm, no execution; 
   try {
     await bootRun(page);
     await authorizeCompanion(page, bridge.url);
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
     await enableEcho(page);
 
     sdk = await (async () => {
@@ -280,8 +280,7 @@ test('pause/resume with no room change never cancels a live proposal', async ({ 
   try {
     await bootRun(page);
     await authorizeCompanion(page, bridge.url);
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
     await enableEcho(page);
 
     const transport = new StdioClientTransport({
@@ -313,8 +312,7 @@ test('pause/resume with no room change never cancels a live proposal', async ({ 
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
       await page.waitForTimeout(250);
-      await page.keyboard.press('Escape');
-      await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+      await resumeGame(page);
       await page.waitForTimeout(250);
     }
     const status = (await client.callTool({ name: 'echo_status', arguments: {} })).structuredContent as any;

@@ -13,6 +13,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
 import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
+import { openLlm, resumeGame, waitForButton } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
@@ -103,7 +104,7 @@ test('real form: paused session survives 15s, official SDK observes/suggests, Ow
     // Owner opens the companion panel and fills the masked form (no global).
     await page.keyboard.press('Escape');
     await page.waitForTimeout(400);
-    await clickText(page, 'LLM COMPANION >');
+    await openLlm(page);
     await page.waitForTimeout(400);
     await clickText(page, 'ENABLE / RE-AUTHORIZE');
     await fillOwnerForm(page, bridge.url, TOKEN, TEST_OWNER_KEY);
@@ -143,6 +144,7 @@ test('real form: paused session survives 15s, official SDK observes/suggests, Ow
     expect(proposed.ok, `echo_suggest: ${JSON.stringify(proposed)}`).toBe(true);
 
     // Human Owner CONFIRM in the real Pause UI (paused; no tick yet).
+    await waitForButton(page, 'CONFIRM FIRST PROPOSAL');
     await clickText(page, 'CONFIRM FIRST PROPOSAL');
     await page.waitForFunction(() => {
       const gs: any = (window as any).__game.scene.getScene('GameScene');
@@ -151,8 +153,7 @@ test('real form: paused session survives 15s, official SDK observes/suggests, Ow
 
     // Resume: the next NORMAL core tick must commit the echo action (no forced
     // step). Then the receipt + memory update are real.
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
     const tickBefore = await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.sim.tick);
     await page.waitForFunction((tb: number) => {
       const gs: any = (window as any).__game.scene.getScene('GameScene');
@@ -185,14 +186,13 @@ test('Agent hard-kill degrades the companion; a fresh Owner grant reconnects (no
     await page.waitForFunction(() => !!((window as any).__game.scene.getScene('GameScene').world.echoActor));
     await page.keyboard.press('Escape');
     await page.waitForTimeout(400);
-    await clickText(page, 'LLM COMPANION >');
+    await openLlm(page);
     await page.waitForTimeout(400);
     await clickText(page, 'ENABLE / RE-AUTHORIZE');
     await fillOwnerForm(page, bridge.url, TOKEN, TEST_OWNER_KEY);
     await page.waitForFunction(() => (window as any).__game.scene.getScene('GameScene').companionStatus === 'CONNECTED', undefined, { timeout: 15000 });
     // Resume so the HUD updates.
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
     // Hard failure: close the bridge. Heartbeat must degrade to NO_MODEL.
     await bridge.close();
     await page.waitForFunction(() => (window as any).__game.scene.getScene('GameScene').companionStatus === 'FALLBACK:NO_MODEL', undefined, { timeout: 12000 });

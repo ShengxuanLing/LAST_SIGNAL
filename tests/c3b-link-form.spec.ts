@@ -10,6 +10,7 @@ import { randomBytes } from 'node:crypto';
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
 import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
+import { resumeGame, openAiHub, clickLabel, openExternalLinkSetup } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
@@ -51,9 +52,8 @@ async function bootRun(page: Page): Promise<void> {
 
 async function openFormFromSettings(page: Page): Promise<void> {
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
-  await clickLogical(page, 640, 420); // SETTINGS
-  await page.waitForTimeout(250);
-  await clickLogical(page, 640, 510); // EXTERNAL LINK SETUP
+  // UI-REWORK-01: SETTINGS is its own page; EXTERNAL LINK SETUP lives on it.
+  await openExternalLinkSetup(page);
   await expect(page.getByTestId('external-link-form')).toBeVisible({ timeout: 5000 });
 }
 
@@ -69,10 +69,10 @@ test('the form is reachable without the console, masks the token and isolates ty
   // Turn the local AI demo on so a keyboard leak would be observable.
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
-  await clickLogical(page, 640, 540); // AI CONTROL
+  await openAiHub(page);
+  await clickLabel(page, 'PauseScene', 'AI CONTROL');
   await page.waitForTimeout(250);
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+  await resumeGame(page);
   expect(await owner(page), 'AI owns control').toBe('ai');
 
   await page.keyboard.press('Escape');
@@ -85,13 +85,22 @@ test('the form is reachable without the console, masks the token and isolates ty
   await url.fill('');
   await url.type('wasd space', { delay: 10 });
   await url.press('Escape');
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(250);
   expect(await page.evaluate(() => (window as any).__game.scene.isActive('PauseScene')), 'pause menu still open').toBe(true);
   expect(await owner(page), 'typing did not take over').toBe('ai');
-  await expect(page.getByTestId('external-link-form')).toBeVisible();
+  // UI-REWORK-01 contract: ESC inside the masked form cancels ONLY the form; the
+  // Pause overlay and the control owner are untouched.
+  await expect(page.getByTestId('external-link-form')).toHaveCount(0);
+  expect(await page.evaluate(() => {
+    const g: any = (window as any).__game;
+    return g.scene.getScene('PauseScene').page;
+  }), 'ESC in the form stays on the settings page').toBe('settings');
 
+  // The CANCEL button closes only the form as well.
+  await openFormFromSettings(page);
   await page.getByRole('button', { name: 'CANCEL' }).click();
   await expect(page.getByTestId('external-link-form')).toHaveCount(0);
+  expect(await page.evaluate(() => (window as any).__game.scene.isActive('PauseScene')), 'pause menu still open after CANCEL').toBe(true);
   expect(errors).toEqual([]);
 });
 
@@ -124,8 +133,7 @@ test('AUTHORIZE from the form links the rendered world; a wrong token shows a RE
     // The token must not remain in the DOM.
     const leaked = await page.evaluate(() => document.body.innerHTML.includes('wrong-token-value'));
     expect(leaked).toBe(false);
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
   } finally {
     await bridge.close();
   }
@@ -147,8 +155,7 @@ test('the connection form fits and stays usable at five viewports', async ({ pag
     expect(box!.y + box!.height, `bottom inside ${w}x${h}`).toBeLessThanOrEqual(h + 1);
     await page.getByRole('button', { name: 'CANCEL' }).click();
     await expect(page.getByTestId('external-link-form')).toHaveCount(0);
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
   }
   await page.setViewportSize({ width: 1280, height: 720 });
 });

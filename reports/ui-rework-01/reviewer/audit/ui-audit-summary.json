@@ -1,0 +1,437 @@
+{
+  "startedAt": "2026-11-16T19:42:09.450Z",
+  "sourceHashesBefore": {
+    "src/scenes/PauseScene.ts": "3f01ebae1ffb5a4e",
+    "src/ui/menuKit.ts": "c20131b2a402db12",
+    "src/scenes/GameScene.ts": "aec3ff04e443fba8",
+    "tests/ui-menu-layout.spec.ts": "54abfa0133dbe5df"
+  },
+  "viewports": {
+    "800x600": {
+      "scale": 0.625,
+      "canvas": {
+        "x": 0,
+        "y": 75,
+        "w": 800,
+        "h": 450
+      },
+      "checks": [
+        {
+          "name": "boot + pause open",
+          "ok": true,
+          "detail": "page=pause, scale=0.625, canvas=800x450"
+        },
+        {
+          "name": "HUD hidden while paused",
+          "ok": true,
+          "detail": "GameScene HUD visible flag"
+        },
+        {
+          "name": "settings keyboard focuses only real controls",
+          "ok": true,
+          "detail": "buttons=9 reached=9 stray=0 labels=[\"◀\",\"▶\",\"◀\",\"▶\",\"RESET AUDIO\",\"SCREEN SHAKE: ON\",\"SIGNAL COLLABORATION · OFF\",\"EXTERNAL LINK SETUP\",\"BACK\"]"
+        },
+        {
+          "name": "settings volume arrows keyboard-reachable",
+          "ok": true,
+          "detail": "arrows=4 reached=4"
+        },
+        {
+          "name": "settings focus stable 3s (no timer steal)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "inventory EQUIP rows preserved (x=420, y=186/230/274)",
+          "ok": true,
+          "detail": "[{\"text\":\"EQUIPPED\",\"x\":420,\"y\":186,\"enabled\":false}]"
+        },
+        {
+          "name": "inventory keyboard focuses only buttons",
+          "ok": true,
+          "detail": "[\"CLOSE\"]"
+        },
+        {
+          "name": "ESC from inventory returns to pause root (no resume)",
+          "ok": true,
+          "detail": "page=pause"
+        },
+        {
+          "name": "keyboard ENTER activates focused control",
+          "ok": true,
+          "detail": "ENTER on BACK"
+        },
+        {
+          "name": "echo focus stable 3s",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "LLM disabled CONFIRM/REJECT not focusable",
+          "ok": true,
+          "detail": "[\"DISCONNECT (NO MODEL)\",\"BACK\",\"ENABLE / RE-AUTHORIZE (HUMAN)\"]"
+        },
+        {
+          "name": "LLM focus stable 3s with no proposal",
+          "ok": true,
+          "detail": "no live link -> statically B4 applies only with pending proposals"
+        },
+        {
+          "name": "ESC walks one level back (llm->ai->pause)",
+          "ok": true,
+          "detail": "page=pause"
+        },
+        {
+          "name": "DOM pairing form opens",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "form fully occludes canvas (all sample points inside form)",
+          "ok": true,
+          "detail": "{\"inside\":35,\"total\":35,\"rootZ\":\"2147483000\",\"canvasZ\":\"auto\",\"types\":[\"text\",\"password\",\"password\"],\"covers\":true}"
+        },
+        {
+          "name": "token/ownerKey inputs are type=password (url is text)",
+          "ok": true,
+          "detail": "[\"text\",\"password\",\"password\"]"
+        },
+        {
+          "name": "clicks under the form do not reach the pause menu",
+          "ok": true,
+          "detail": "form=true"
+        },
+        {
+          "name": "screenshot shows only bullets (same-length secrets render identically)",
+          "ok": true,
+          "detail": "sameLen=true lenDiffers=true"
+        },
+        {
+          "name": "secrets never appear in visible text / console",
+          "ok": true,
+          "detail": "{\"textHas\":false,\"globals\":\"[]\"}"
+        },
+        {
+          "name": "CANCEL closes the form, pause stays open",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "ESC closes the pairing form only (pause stays open)",
+          "ok": true,
+          "detail": "{\"reopened\":true,\"escClosedForm\":true,\"pauseStillOpen\":true}"
+        },
+        {
+          "name": "HUD restored only after the fade completes",
+          "ok": true,
+          "detail": "{\"midClose\":{\"active\":true,\"hud\":false},\"endClose\":{\"active\":false,\"hud\":true}}"
+        },
+        {
+          "name": "HUD announcement hides and restores with the HUD",
+          "ok": true,
+          "detail": "{\"annRunning\":true,\"annPaused\":false,\"annRestored\":true}"
+        },
+        {
+          "name": "HUD restored while running",
+          "ok": true,
+          "detail": "visible=true"
+        },
+        {
+          "name": "compact flips on resize and relayouts cleanly",
+          "ok": true,
+          "detail": "compact=false findings=0 minCss=11.25"
+        },
+        {
+          "name": "no overlapping visible elements",
+          "ok": true,
+          "detail": "overlaps=0 []"
+        },
+        {
+          "name": "no visible element outside 1280x720",
+          "ok": true,
+          "detail": "oob=0"
+        },
+        {
+          "name": "all menu text >= 10 CSS px",
+          "ok": true,
+          "detail": "min=10.00css below10=0 [[\"pause\",10],[\"settings\",10],[\"inventory\",10],[\"ai\",10],[\"echo\",10],[\"llm\",10]]"
+        },
+        {
+          "name": "no console/page errors",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "errors": [],
+      "geometry": {
+        "pause": [],
+        "settings": [],
+        "inventory": [],
+        "ai": [],
+        "echo": [],
+        "llm": []
+      },
+      "fonts": {
+        "pause": {
+          "min": 10,
+          "below10": 0,
+          "below10sample": []
+        },
+        "settings": {
+          "min": 10,
+          "below10": 0,
+          "below10sample": []
+        },
+        "inventory": {
+          "min": 10,
+          "below10": 0,
+          "below10sample": []
+        },
+        "ai": {
+          "min": 10,
+          "below10": 0,
+          "below10sample": []
+        },
+        "echo": {
+          "min": 10,
+          "below10": 0,
+          "below10sample": []
+        },
+        "llm": {
+          "min": 10,
+          "below10": 0,
+          "below10sample": []
+        }
+      },
+      "screenshots": [
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\run-hud.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\pause.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\settings.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\inventory.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\ai.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\echo.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\llm.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\form-secret-typed.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\800x600\\after-resume.png"
+      ],
+      "hudVisibleBeforeMenu": true
+    },
+    "1024x768": {
+      "scale": 0.8,
+      "canvas": {
+        "x": 0,
+        "y": 96,
+        "w": 1024,
+        "h": 576
+      },
+      "checks": [
+        {
+          "name": "boot + pause open",
+          "ok": true,
+          "detail": "page=pause, scale=0.800, canvas=1024x576"
+        },
+        {
+          "name": "HUD hidden while paused",
+          "ok": true,
+          "detail": "GameScene HUD visible flag"
+        },
+        {
+          "name": "settings keyboard focuses only real controls",
+          "ok": true,
+          "detail": "buttons=9 reached=9 stray=0 labels=[\"◀\",\"▶\",\"◀\",\"▶\",\"RESET AUDIO\",\"SCREEN SHAKE: ON\",\"SIGNAL COLLABORATION · OFF\",\"EXTERNAL LINK SETUP\",\"BACK\"]"
+        },
+        {
+          "name": "settings volume arrows keyboard-reachable",
+          "ok": true,
+          "detail": "arrows=4 reached=4"
+        },
+        {
+          "name": "settings focus stable 3s (no timer steal)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "inventory EQUIP rows preserved (x=420, y=186/230/274)",
+          "ok": true,
+          "detail": "[{\"text\":\"EQUIPPED\",\"x\":420,\"y\":186,\"enabled\":false}]"
+        },
+        {
+          "name": "inventory keyboard focuses only buttons",
+          "ok": true,
+          "detail": "[\"CLOSE\"]"
+        },
+        {
+          "name": "ESC from inventory returns to pause root (no resume)",
+          "ok": true,
+          "detail": "page=pause"
+        },
+        {
+          "name": "keyboard ENTER activates focused control",
+          "ok": true,
+          "detail": "ENTER on BACK"
+        },
+        {
+          "name": "echo focus stable 3s",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "LLM disabled CONFIRM/REJECT not focusable",
+          "ok": true,
+          "detail": "[\"DISCONNECT (NO MODEL)\",\"BACK\",\"ENABLE / RE-AUTHORIZE (HUMAN)\"]"
+        },
+        {
+          "name": "LLM focus stable 3s with no proposal",
+          "ok": true,
+          "detail": "no live link -> statically B4 applies only with pending proposals"
+        },
+        {
+          "name": "ESC walks one level back (llm->ai->pause)",
+          "ok": true,
+          "detail": "page=pause"
+        },
+        {
+          "name": "DOM pairing form opens",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "form fully occludes canvas (all sample points inside form)",
+          "ok": true,
+          "detail": "{\"inside\":35,\"total\":35,\"rootZ\":\"2147483000\",\"canvasZ\":\"auto\",\"types\":[\"text\",\"password\",\"password\"],\"covers\":true}"
+        },
+        {
+          "name": "token/ownerKey inputs are type=password (url is text)",
+          "ok": true,
+          "detail": "[\"text\",\"password\",\"password\"]"
+        },
+        {
+          "name": "clicks under the form do not reach the pause menu",
+          "ok": true,
+          "detail": "form=true"
+        },
+        {
+          "name": "screenshot shows only bullets (same-length secrets render identically)",
+          "ok": true,
+          "detail": "sameLen=true lenDiffers=true"
+        },
+        {
+          "name": "secrets never appear in visible text / console",
+          "ok": true,
+          "detail": "{\"textHas\":false,\"globals\":\"[]\"}"
+        },
+        {
+          "name": "CANCEL closes the form, pause stays open",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "ESC closes the pairing form only (pause stays open)",
+          "ok": true,
+          "detail": "{\"reopened\":true,\"escClosedForm\":true,\"pauseStillOpen\":true}"
+        },
+        {
+          "name": "HUD restored only after the fade completes",
+          "ok": true,
+          "detail": "{\"midClose\":{\"active\":true,\"hud\":false},\"endClose\":{\"active\":false,\"hud\":true}}"
+        },
+        {
+          "name": "HUD announcement hides and restores with the HUD",
+          "ok": true,
+          "detail": "{\"annRunning\":true,\"annPaused\":false,\"annRestored\":true}"
+        },
+        {
+          "name": "HUD restored while running",
+          "ok": true,
+          "detail": "visible=true"
+        },
+        {
+          "name": "compact flips on resize and relayouts cleanly",
+          "ok": true,
+          "detail": "compact=false findings=0 minCss=11.25"
+        },
+        {
+          "name": "no overlapping visible elements",
+          "ok": true,
+          "detail": "overlaps=0 []"
+        },
+        {
+          "name": "no visible element outside 1280x720",
+          "ok": true,
+          "detail": "oob=0"
+        },
+        {
+          "name": "all menu text >= 10 CSS px",
+          "ok": true,
+          "detail": "min=12.80css below10=0 [[\"pause\",12.8],[\"settings\",12.8],[\"inventory\",12.8],[\"ai\",12.8],[\"echo\",12.8],[\"llm\",12.8]]"
+        },
+        {
+          "name": "no console/page errors",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "errors": [],
+      "geometry": {
+        "pause": [],
+        "settings": [],
+        "inventory": [],
+        "ai": [],
+        "echo": [],
+        "llm": []
+      },
+      "fonts": {
+        "pause": {
+          "min": 12.8,
+          "below10": 0,
+          "below10sample": []
+        },
+        "settings": {
+          "min": 12.8,
+          "below10": 0,
+          "below10sample": []
+        },
+        "inventory": {
+          "min": 12.8,
+          "below10": 0,
+          "below10sample": []
+        },
+        "ai": {
+          "min": 12.8,
+          "below10": 0,
+          "below10sample": []
+        },
+        "echo": {
+          "min": 12.8,
+          "below10": 0,
+          "below10sample": []
+        },
+        "llm": {
+          "min": 12.8,
+          "below10": 0,
+          "below10sample": []
+        }
+      },
+      "screenshots": [
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\run-hud.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\pause.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\settings.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\inventory.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\ai.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\echo.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\llm.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\form-secret-typed.png",
+        "D:\\Project\\LAST_SIGNAL\\reports\\ui-rework-01\\reviewer\\audit\\1024x768\\after-resume.png"
+      ],
+      "hudVisibleBeforeMenu": true
+    }
+  },
+  "sourceHashesAfter": {
+    "src/scenes/PauseScene.ts": "3f01ebae1ffb5a4e",
+    "src/ui/menuKit.ts": "c20131b2a402db12",
+    "src/scenes/GameScene.ts": "aec3ff04e443fba8",
+    "tests/ui-menu-layout.spec.ts": "54abfa0133dbe5df"
+  },
+  "sourceChangedDuringRun": false,
+  "finishedAt": "2026-11-16T19:43:11.077Z"
+}

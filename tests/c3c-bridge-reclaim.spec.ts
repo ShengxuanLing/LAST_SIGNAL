@@ -14,6 +14,7 @@ import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
 import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { WORLD_PROTOCOL_VERSION } from '../src/ai-native/worldProtocol';
+import { openAiHub, labelCenter, resumeGame } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
@@ -61,8 +62,7 @@ async function bootRun(page: Page, bridgeUrl: string): Promise<void> {
 }
 
 async function authorize(page: Page, bridgeUrl: string, token: string): Promise<void> {
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
+  await openAiHub(page);
   // Credentials are injected AFTER the pause menu opens (the link degrades on
   // pause and drops the one-shot page config).
   await page.evaluate(({ bridgeUrl: url, token: t, ownerKey: k }) => {
@@ -78,8 +78,7 @@ async function authorize(page: Page, bridgeUrl: string, token: string): Promise<
   await expect.poll(async () => page.evaluate(() =>
     (window as any).__game.scene.getScene('GameScene').world.player.control.owner
   ), { timeout: 15000 }).toBe('external');
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+  await resumeGame(page);
 }
 
 async function linkSnapshot(page: Page): Promise<any> {

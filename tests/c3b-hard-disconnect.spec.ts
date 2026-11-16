@@ -20,6 +20,7 @@ import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthF
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { WorldClient } from '../src/ai-native/worldClient';
 import { writeSecureTokenFile, deleteSecureTokenFile } from '../src/ai-native/secureTokenFile';
+import { openAiHub, labelCenter, resumeGame } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
@@ -49,8 +50,7 @@ async function bootAndAuthorize(page: Page, bridgeUrl: string, token: string): P
 }
 
 async function authorizeViaMenu(page: Page, bridgeUrl?: string, token?: string): Promise<void> {
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
+  await openAiHub(page);
   if (bridgeUrl && token) {
     // The page-level config is cleared whenever the link degrades (incl. the
     // pause that opens this menu). Inject AFTER the menu is open.
@@ -68,8 +68,7 @@ async function authorizeViaMenu(page: Page, bridgeUrl?: string, token?: string):
   await expect.poll(async () => page.evaluate(() =>
     (window as any).__game.scene.getScene('GameScene').world.player.control.owner
   ), { timeout: 15000 }).toBe('external');
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+  await resumeGame(page);
 }
 
 async function linkState(page: Page): Promise<any> {

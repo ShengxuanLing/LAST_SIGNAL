@@ -5,457 +5,857 @@ import { WEAPONS } from '../config/weapons';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { clearOwnerPairing, peekOwnerPairing } from '../ai-native/ownerPairing';
+import {
+  MenuPage, UI_NORMAL, UI_COMPACT, resolveUITokens,
+  type UITokens, type Focusable, type ButtonHandle
+} from '../ui/menuKit';
 import { GameScene } from './GameScene';
 
+/**
+ * UI-REWORK-01 — unified Pause navigator.
+ *
+ * One page is on screen at a time; leaving a page destroys every object it
+ * created, so a hidden page is never interactive and re-opening a page never
+ * stacks duplicates. ESC walks one level back (root ESC resumes); the direct
+ * `KeyI` inventory overlay behaves as a single-level overlay (ESC/I resume).
+ *
+ * Compact tokens: at 800x600/1024x768 the FIT scale is < 0.85, so a compact
+ * token set raises the logical font sizes to keep the effective CSS size
+ * readable (same criterion as GameScene F-06).
+ */
+type Page = 'pause' | 'ai' | 'echo' | 'llm' | 'inventory' | 'settings';
+
+const PARENT_PAGE: Record<Page, Page | null> = {
+  pause: null,
+  ai: 'pause',
+  echo: 'ai',
+  llm: 'ai',
+  inventory: 'pause',
+  settings: 'pause'
+};
+
+interface StatusModel {
+  owner: string;
+  aiOn: boolean;
+  ext: string;
+  echoHp: number | null;
+  echoMax: number | null;
+  echoMode: string;
+  echoAssist: boolean;
+  echoSuggestion: boolean;
+  linkStatus: string;
+  linkError: string;
+  optIn: boolean;
+  relay: string | null;
+}
+
 export class PauseScene extends Phaser.Scene {
+  private gameScene!: GameScene;
+  private page: Page = 'pause';
+  private pageHandle: MenuPage | null = null;
+  private dim!: Phaser.GameObjects.Rectangle;
+  private closing = false;
+  private inventoryFromPause = false;
+  private frame = 0;
+  private tokens: UITokens = UI_NORMAL;
+  private compact = false;
+
+  /** Native DOM form for the loopback bridge URL + masked token + OWNER key. */
+  private domForm: HTMLElement | null = null;
+  /** Phaser-side click absorber while the DOM form is open, so a pointer that
+   *  escapes the DOM bubble cannot activate a menu button underneath. */
+  private formBlocker: Phaser.GameObjects.Rectangle | null = null;
+  private linkFormMode: 'external' | 'companion' | 'companion-reauth' = 'external';
+
+  // Dynamic state (reset on every page change).
   private inventoryRefresh: (() => void) | null = null;
   private lastInventorySig = '';
-  /** C3-b: live external-link status / owner labels rendered by this overlay. */
-  private externalStatusText: Phaser.GameObjects.Text | null = null;
-  private controlText: Phaser.GameObjects.Text | null = null;
-  private lastExternalSig = '';
-  /** Native DOM form for the loopback bridge URL + masked token + OWNER key. */
-  private externalLinkForm: HTMLElement | null = null;
-  private linkFormMode: 'external' | 'companion' | 'companion-reauth' = 'external';
+  private lastStatusSig = '';
   private lastCompanionSig = '';
-  private companionStatusText: Phaser.GameObjects.Text | null = null;
+  private lastPendingSig: string | null = null;
+  private statusTexts: Record<string, Phaser.GameObjects.Text> = {};
+  private llmState: Phaser.GameObjects.Text | null = null;
+  private llmNotice: Phaser.GameObjects.Text | null = null;
+  private llmPending: Phaser.GameObjects.Text | null = null;
+  private llmFooter: Phaser.GameObjects.Text | null = null;
+  private confirmBtn: ButtonHandle | null = null;
+  private rejectBtn: ButtonHandle | null = null;
+  private decideEnabled = false;
+  private selectedSuggestionId: string | null = null;
+  private aiNotice: Phaser.GameObjects.Text | null = null;
+  private echoStatus: Phaser.GameObjects.Text | null = null;
+  private echoModeText: Phaser.GameObjects.Text | null = null;
+  private echoSuggest: Phaser.GameObjects.Text | null = null;
+  private btnEchoAssist: ButtonHandle | null = null;
+  private pageCleanups: Array<() => void> = [];
+  /** Cached Signal opt-in for the status footer (avoids a per-frame save parse). */
+  private optInCache = false;
+
+  // Stable handgrips (also used by the UI-REWORK-01 test surface).
+  btnResume: ButtonHandle | null = null;
+  btnInventory: ButtonHandle | null = null;
+  btnSettings: ButtonHandle | null = null;
+  btnAi: ButtonHandle | null = null;
+  btnQuit: ButtonHandle | null = null;
+  btnAiControl: ButtonHandle | null = null;
+  btnEcho: ButtonHandle | null = null;
+  btnLlm: ButtonHandle | null = null;
+  btnAuthorizeExternal: ButtonHandle | null = null;
+  btnAiBack: ButtonHandle | null = null;
+  btnEchoToggle: ButtonHandle | null = null;
+  btnEchoBack: ButtonHandle | null = null;
+  btnInventoryClose: ButtonHandle | null = null;
+  btnSettingsBack: ButtonHandle | null = null;
+  btnLinkSetup: ButtonHandle | null = null;
+  btnEnable: ButtonHandle | null = null;
+  btnDisconnect: ButtonHandle | null = null;
+  btnLlmBack: ButtonHandle | null = null;
+  btnResetAudio: ButtonHandle | null = null;
+  btnShake: ButtonHandle | null = null;
+  btnSignalCollab: ButtonHandle | null = null;
+  /** Owner decision controls (ButtonHandle: .rect/.label/.enabled). */
+  get confirmHandle(): ButtonHandle | null { return this.confirmBtn; }
+  get rejectHandle(): ButtonHandle | null { return this.rejectBtn; }
+  /** Backward-compatible read-only aliases (no duplicate controls). */
+  get llmConfirm(): ButtonHandle | null { return this.confirmBtn; }
+  get llmReject(): ButtonHandle | null { return this.rejectBtn; }
+
+  /** Read-only UI observation interface for the UI-REWORK-01 test surface. */
+  get currentPage(): Page { return this.page; }
+  get uiObjects(): Phaser.GameObjects.GameObject[] { return this.pageHandle ? this.pageHandle.objects : []; }
+  get uiButtons(): ButtonHandle[] { return this.pageHandle ? this.pageHandle.buttons : []; }
 
   constructor() { super('PauseScene'); }
 
-  /** The inventory overlay is not itself paused, so it can observe the core
-   *  commit that happens on the resume tick and refresh its labels. */
+  create(config?: { mode?: Page }): void {
+    this.closing = false;
+    this.frame = 0;
+    this.gameScene = this.scene.get<GameScene>('GameScene');
+    this.optInCache = saveSystem.load().permanent.signalCollaborationOptIn === true;
+    this.applyTokens(resolveUITokens());
+
+    const dim = this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, 0x04060b, 0.9).setOrigin(0, 0);
+    dim.setAlpha(0);
+    this.dim = dim;
+    this.tweens.add({ targets: dim, alpha: 0.9, duration: 150 });
+
+    this.input.keyboard?.on('keydown-ESC', this.onEsc);
+    this.input.keyboard?.on('keydown-I', this.onInventoryKey);
+    this.scale.on('resize', this.onResize);
+    this.events.once('shutdown', () => {
+      this.input.keyboard?.off('keydown-ESC', this.onEsc);
+      this.input.keyboard?.off('keydown-I', this.onInventoryKey);
+      this.scale.off('resize', this.onResize);
+      this.destroyPage();
+      this.closeExternalLinkForm();
+      this.lastStatusSig = '';
+      this.lastCompanionSig = '';
+      this.lastPendingSig = null;
+      this.gameScene?.setHudVisible(true);
+    });
+
+    this.gameScene?.setHudVisible(false);
+    this.inventoryFromPause = false;
+    this.navigate(config?.mode ?? 'pause');
+  }
+
   update(): void {
-    this.refreshExternalLabels();
-    if (!this.inventoryRefresh) return;
-    const sig = this.inventorySig();
-    if (sig !== this.lastInventorySig) {
-      this.lastInventorySig = sig;
-      this.inventoryRefresh();
+    this.frame += 1;
+    // Bounded heartbeat: keep a paused companion session alive and let it
+    // degrade to a real NO_MODEL state on heartbeat failure. Never advances the
+    // game tick.
+    const link = this.gameScene?.companionLink;
+    if (link && link.status === 'CONNECTED') link.startHeartbeat();
+    this.pageHandle?.refresh?.();
+  }
+
+  private applyTokens(next: UITokens): void {
+    this.tokens = next;
+    this.compact = next === UI_COMPACT;
+  }
+
+  /** Re-resolve tokens on a real viewport change; only rebuild on a compact flip. */
+  private onResize = (): void => {
+    if (this.closing) return;
+    const next = resolveUITokens();
+    if ((next === UI_COMPACT) === this.compact) return;
+    this.applyTokens(next);
+    this.navigate(this.page);
+  };
+
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
+
+  private onEsc = (event: KeyboardEvent): void => {
+    if (event.repeat || this.closing) return;
+    if (this.domForm) return;
+    if (this.page === 'inventory') { this.closeInventory(); return; }
+    const parent = PARENT_PAGE[this.page];
+    if (parent) { this.navigate(parent); return; }
+    this.close();
+  };
+
+  private onInventoryKey = (event: KeyboardEvent): void => {
+    if (event.repeat || this.closing || this.domForm) return;
+    if (this.page === 'inventory') this.closeInventory();
+  };
+
+  private navigate(page: Page): void {
+    this.destroyPage();
+    this.page = page;
+    const p = new MenuPage(this, this.tokens);
+    this.pageHandle = p;
+    this.statusTexts = {};
+    this.lastStatusSig = '';
+    this.lastCompanionSig = '';
+    this.selectedSuggestionId = null;
+    switch (page) {
+      case 'pause': this.buildPause(p); break;
+      case 'ai': this.buildAi(p); break;
+      case 'echo': this.buildEcho(p); break;
+      case 'llm': this.buildLlm(p); break;
+      case 'inventory': this.buildInventory(p); break;
+      case 'settings': this.buildSettings(p); break;
+    }
+    p.finishButtons();
+  }
+
+  private destroyPage(): void {
+    for (const cleanup of this.pageCleanups) { try { cleanup(); } catch { /* ignore */ } }
+    this.pageCleanups = [];
+    this.pageHandle?.destroy();
+    this.pageHandle = null;
+    this.inventoryRefresh = null;
+    this.lastInventorySig = '';
+    this.llmState = null;
+    this.llmPending = null;
+    this.llmNotice = null;
+    this.llmFooter = null;
+    this.confirmBtn = null;
+    this.rejectBtn = null;
+    this.decideEnabled = false;
+    this.selectedSuggestionId = null;
+    this.lastPendingSig = null;
+    this.aiNotice = null;
+    this.echoStatus = null;
+    this.echoModeText = null;
+    this.echoSuggest = null;
+    this.btnEchoAssist = null;
+    this.btnResume = null;
+    this.btnInventory = null;
+    this.btnSettings = null;
+    this.btnAi = null;
+    this.btnQuit = null;
+    this.btnAiControl = null;
+    this.btnEcho = null;
+    this.btnLlm = null;
+    this.btnAuthorizeExternal = null;
+    this.btnAiBack = null;
+    this.btnEchoToggle = null;
+    this.btnEchoBack = null;
+    this.btnInventoryClose = null;
+    this.btnSettingsBack = null;
+    this.btnLinkSetup = null;
+    this.btnEnable = null;
+    this.btnDisconnect = null;
+    this.btnLlmBack = null;
+    this.btnResetAudio = null;
+    this.btnShake = null;
+    this.btnSignalCollab = null;
+  }
+
+  private closeInventory(): void {
+    if (this.inventoryFromPause) this.navigate('pause');
+    else this.close();
+  }
+
+  private close(): void {
+    if (this.closing) return;
+    this.closing = true;
+    this.destroyPage();
+    this.closeExternalLinkForm();
+    const gs = this.gameScene;
+    // Restore the HUD only after the fade completes (shutdown runs at stop()).
+    this.tweens.add({ targets: this.dim, alpha: 0, duration: 120, onComplete: () => {
+      this.scene.stop();
+      gs?.onResume();
+    }});
+  }
+
+  private quitToMenu(): void {
+    this.gameScene?.saveCheckpoint();
+    this.destroyPage();
+    this.closeExternalLinkForm();
+    // scene.start() only shuts down the calling scene; GameScene would stay
+    // active (and paused) underneath the menu, so stop it explicitly.
+    this.scene.stop('GameScene');
+    this.scene.start('MainMenuScene', {});
+  }
+
+  // ---------------------------------------------------------------------------
+  // Shared status model (honest, real state only)
+  // ---------------------------------------------------------------------------
+
+  private statusModel(): StatusModel {
+    const gs = this.gameScene;
+    const world = gs.world;
+    const control = world.player.control;
+    const ext = world.externalLink.snapshot().status;
+    const echo = world.echoActor;
+    const link = gs.companionLink;
+    const signal = world.signalView() as { relay?: string } | null;
+    return {
+      owner: control.owner,
+      aiOn: control.aiEnabled,
+      ext,
+      echoHp: echo ? echo.data.hp : null,
+      echoMax: echo ? echo.data.maxHp : null,
+      echoMode: world.echoMode,
+      echoAssist: world.echoAssistArmed,
+      echoSuggestion: world.echoSuggestion === 'fire',
+      linkStatus: link?.status ?? 'OFF',
+      linkError: link?.error ?? '',
+      optIn: this.optInCache,
+      relay: signal?.relay ?? null
+    };
+  }
+
+  private controlLine(m: StatusModel): string {
+    return `CONTROL  ${m.owner === 'external' ? 'EXTERNAL AGENT' : m.aiOn ? 'AI · LOCAL DEMO' : 'HUMAN'}`;
+  }
+
+  private aiLine(m: StatusModel): string {
+    return `AI CONTROL: ${m.aiOn ? 'ON · LOCAL DETERMINISTIC DEMO' : 'OFF'}`;
+  }
+
+  private aiModeLine(m: StatusModel): string {
+    return `AI MODE  ${m.aiOn ? 'LOCAL DETERMINISTIC DEMO' : 'OFF'}`;
+  }
+
+  private externalLine(m: StatusModel): string {
+    return m.ext === 'CONNECTED' ? 'EXTERNAL AGENT  CONNECTED'
+      : m.ext === 'LOST' ? 'EXTERNAL AGENT  LINK LOST'
+      : m.ext === 'YIELDED' ? 'EXTERNAL AGENT  YIELDED'
+      : 'EXTERNAL AGENT  NOT CONNECTED';
+  }
+
+  private echoLine(m: StatusModel): string {
+    if (m.echoHp === null) return 'ECHO  OFF · NO ACTOR';
+    if (m.echoHp <= 0) return `ECHO  DOWN · HP 0/${m.echoMax}`;
+    const mode = m.echoMode === 'follow' ? 'FOLLOW' : m.echoMode === 'hold' ? 'HOLD' : 'MOVE';
+    const assist = m.echoAssist ? 'ASSIST ARMED' : 'ASSIST SAFE';
+    const suggest = m.echoSuggestion ? ' · CONFIRM FIRE' : '';
+    return `ECHO  HP ${Math.ceil(m.echoHp)}/${m.echoMax} · ${mode} · ${assist}${suggest}`;
+  }
+
+  private companionLine(m: StatusModel): string {
+    return `ECHO  ${m.echoHp === null ? 'OFF' : 'ON'} · LLM COMPANION  ${m.linkStatus}`;
+  }
+
+  private signalLine(m: StatusModel): string {
+    return `SIGNAL COLLABORATION · ${m.optIn ? 'ON' : 'OFF'} · RELAY ${m.relay ?? 'OFF'}`;
+  }
+
+  private refreshStatusTexts(): void {
+    const m = this.statusModel();
+    const sig = [m.owner, m.aiOn, m.ext, m.echoHp, m.echoMode, m.echoAssist, m.echoSuggestion,
+      m.linkStatus, m.optIn, m.relay].join('|');
+    if (sig === this.lastStatusSig) return;
+    this.lastStatusSig = sig;
+    const t = this.statusTexts;
+    if (t.control) { t.control.setText(this.controlLine(m)); t.control.setColor(m.owner === 'human' ? '#8fb8c8' : '#7ff0ff'); }
+    if (t.ai) { t.ai.setText(this.aiLine(m)); t.ai.setColor(m.aiOn ? '#7ff0ff' : '#8fb8c8'); }
+    if (t.aiMode) { t.aiMode.setText(this.aiModeLine(m)); t.aiMode.setColor(m.aiOn ? '#7ff0ff' : '#8fb8c8'); }
+    if (t.external) { t.external.setText(this.externalLine(m)); t.external.setColor(m.ext === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c'); }
+    if (t.echo) { t.echo.setText(this.echoLine(m)); t.echo.setColor(m.echoHp === null ? '#8fb8c8' : '#33e0ff'); }
+    if (t.companion) { t.companion.setText(this.companionLine(m)); t.companion.setColor(m.linkStatus === 'CONNECTED' ? '#7ff0ff' : '#8fb8c8'); }
+    if (t.llmLink) { t.llmLink.setText(`LLM LINK  ${m.linkStatus}`); t.llmLink.setColor(m.linkStatus === 'CONNECTED' ? '#7ff0ff' : m.linkStatus === 'OFF' ? '#8fb8c8' : '#ff8a3c'); }
+    if (t.signal) { t.signal.setText(this.signalLine(m)); t.signal.setColor(m.optIn ? '#00ff77' : '#8fb8c8'); }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pause root
+  // ---------------------------------------------------------------------------
+
+  private buildPause(p: MenuPage): void {
+    const c = this.compact;
+    const fx = (n: number, k: number) => (c ? k : n);
+    p.title('PAUSED', fx(62, 56));
+    p.text(GAME.WINDOW_W / 2, fx(104, 100), 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+    });
+    const y0 = fx(168, 152);
+    const stride = this.tokens.BTN_STRIDE;
+    this.btnResume = p.button({ y: y0, label: 'RESUME', tone: 'primary', onClick: () => this.close() });
+    this.btnInventory = p.button({ y: y0 + stride, label: 'INVENTORY', onClick: () => {
+      this.inventoryFromPause = true;
+      this.navigate('inventory');
+    }});
+    this.btnSettings = p.button({ y: y0 + stride * 2, label: 'SETTINGS', onClick: () => this.navigate('settings') });
+    this.btnAi = p.button({ y: y0 + stride * 3, label: 'AI & COMPANION', onClick: () => this.navigate('ai') });
+    this.btnQuit = p.button({ y: y0 + stride * 4, label: 'QUIT TO MENU', tone: 'danger', onClick: () => this.quitToMenu() });
+
+    // Independent status footer (never a fake claim, never a control). The
+    // rows share words with the AI page on purpose but avoid repeating the same
+    // fact twice (control owner + AI mode + link + echo/llm + signal).
+    p.head('STATUS', fx(474, 436));
+    const rows: Array<[string, number, number]> = [
+      ['control', 500, 462], ['ai', 520, 486], ['external', 540, 510],
+      ['companion', 560, 534], ['signal', 580, 558]
+    ];
+    for (const [key, ny, cy] of rows) {
+      this.statusTexts[key] = p.text(GAME.WINDOW_W / 2, fx(ny, cy), '', {
+        fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+      });
+    }
+    p.text(GAME.WINDOW_W / 2, fx(698, 690), 'ESC RESUME · ↑↓ SELECT · ENTER ACTIVATE', {
+      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+    });
+    p.refresh = () => this.refreshStatusTexts();
+    this.refreshStatusTexts();
+  }
+
+  // ---------------------------------------------------------------------------
+  // AI & Companion hub
+  // ---------------------------------------------------------------------------
+
+  private buildAi(p: MenuPage): void {
+    const c = this.compact;
+    const fx = (n: number, k: number) => (c ? k : n);
+    p.title('AI & COMPANION', fx(54, 56));
+    p.text(GAME.WINDOW_W / 2, fx(86, 100), 'HUMAN ALWAYS RETAINS CONTROL · ANY MOVE / FIRE / F RE-CLAIMS IT', {
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+    });
+    p.text(GAME.WINDOW_W / 2, fx(110, 128), 'MODES  HUMAN · LOCAL DETERMINISTIC DEMO · EXTERNAL AGENT', {
+      fontSize: this.tokens.SMALL_FONT, color: '#5a7480'
+    });
+    const rows: Array<[string, number, number]> = [
+      ['control', 136, 156], ['aiMode', 160, 182], ['external', 184, 208],
+      ['echo', 208, 234], ['llmLink', 232, 260], ['signal', 256, 286]
+    ];
+    for (const [key, ny, cy] of rows) {
+      this.statusTexts[key] = p.text(GAME.WINDOW_W / 2, fx(ny, cy), '', {
+        fontSize: this.tokens.BODY_FONT, color: '#cfe8ef'
+      });
+    }
+    this.aiNotice = p.text(GAME.WINDOW_W / 2, fx(280, 314), '', {
+      fontSize: this.tokens.SMALL_FONT, color: '#ff8a3c'
+    });
+
+    const control = this.gameScene.world.player.control;
+    const y0 = fx(316, 348);
+    const stride = this.tokens.BTN_STRIDE;
+    this.btnAiControl = p.button({
+      y: y0, label: `AI CONTROL: ${control.aiEnabled ? 'ON · LOCAL DEMO' : 'OFF'}`,
+      onClick: () => { this.gameScene.toggleAiControl(); this.navigate('ai'); }
+    });
+    this.btnEcho = p.button({ y: y0 + stride, label: 'ECHO COMPANION >', onClick: () => this.navigate('echo') });
+    this.btnLlm = p.button({ y: y0 + stride * 2, label: 'LLM COMPANION >', onClick: () => this.navigate('llm') });
+    this.btnAuthorizeExternal = p.button({
+      y: y0 + stride * 3, label: 'AUTHORIZE EXTERNAL AGENT',
+      onClick: () => this.authorizeExternalFromConfig()
+    });
+    this.btnAiBack = p.button({ y: y0 + stride * 4, label: 'BACK', onClick: () => this.navigate('pause') });
+    p.text(GAME.WINDOW_W / 2, fx(690, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
+      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+    });
+    p.refresh = () => this.refreshStatusTexts();
+    this.refreshStatusTexts();
+  }
+
+  /** HUMAN action: read the host-injected one-shot config and authorize. */
+  private authorizeExternalFromConfig(): void {
+    const config = (globalThis as unknown as {
+      __externalLinkConfig?: { bridgeUrl?: string; token?: string; ownerKey?: string };
+    }).__externalLinkConfig;
+    const bridgeUrl = config?.bridgeUrl;
+    const token = config?.token;
+    if (!bridgeUrl || !token) {
+      this.aiNotice?.setText('NO BRIDGE CONFIGURED — CONTROL STAYS HUMAN');
+      return;
+    }
+    const stashedKey = peekOwnerPairing(this.gameScene)?.consumeKey() ?? '';
+    const ownerKey = stashedKey || (config?.ownerKey ?? '');
+    this.aiNotice?.setText('AUTHORIZING…');
+    void this.gameScene.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
+      if (!ok) {
+        clearOwnerPairing(this.gameScene);
+        this.aiNotice?.setText('EXTERNAL LINK FAILED — CONTROL STAYS HUMAN');
+      } else {
+        this.aiNotice?.setText('');
+      }
+      this.lastStatusSig = '';
+      this.refreshStatusTexts();
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // ECHO companion
+  // ---------------------------------------------------------------------------
+
+  private buildEcho(p: MenuPage): void {
+    const gs = this.gameScene;
+    const world = gs.world;
+    const c = this.compact;
+    const fx = (n: number, k: number) => (c ? k : n);
+    p.title('ECHO COMPANION', fx(52, 56));
+    p.text(GAME.WINDOW_W / 2, fx(84, 100), 'INDEPENDENT ACTOR · OWN 12-TILE PERCEPTION · NEVER DRIVEN BY AN EXTERNAL AGENT', {
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+    });
+    this.echoStatus = p.text(GAME.WINDOW_W / 2, fx(124, 132), '', { fontSize: this.tokens.BODY_FONT, color: '#eafaff' });
+    this.echoModeText = p.text(GAME.WINDOW_W / 2, fx(148, 160), '', { fontSize: this.tokens.BODY_FONT, color: '#cfe8ef' });
+    this.echoSuggest = p.text(GAME.WINDOW_W / 2, fx(172, 188), '', { fontSize: this.tokens.SMALL_FONT, color: '#5a7480' });
+
+    const y0 = fx(214, 224);
+    const stride = this.tokens.BTN_STRIDE;
+    this.btnEchoToggle = p.button({
+      y: y0, label: world.echoActor ? 'DISABLE ECHO' : 'ENABLE ECHO',
+      tone: world.echoActor ? 'danger' : 'neutral',
+      onClick: () => {
+        if (this.gameScene.world.echoActor) this.gameScene.disableEcho();
+        else this.gameScene.enableEcho();
+        this.navigate('echo');
+      }
+    });
+    p.button({ y: y0 + stride, label: 'MODE: FOLLOW', onClick: () => { gs.setEchoMode('follow'); this.navigate('echo'); } });
+    p.button({ y: y0 + stride * 2, label: 'MODE: HOLD POSITION', onClick: () => { gs.setEchoMode('hold'); this.navigate('echo'); } });
+    p.button({ y: y0 + stride * 3, label: 'MODE: MOVE TO AIM', onClick: () => { gs.setEchoMode('move-to'); this.navigate('echo'); } });
+    this.btnEchoAssist = p.button({
+      y: y0 + stride * 4, label: 'CONFIRM ASSIST FIRE',
+      onClick: () => {
+        if (this.gameScene.world.echoAssistArmed) gs.revokeEchoAssist(); else gs.confirmEchoAssist();
+        this.navigate('echo');
+      }
+    });
+    this.btnEchoBack = p.button({ y: y0 + stride * 4 + fx(78, 70), label: 'BACK', onClick: () => this.navigate('ai') });
+    p.text(GAME.WINDOW_W / 2, fx(698, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
+      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+    });
+    p.refresh = () => this.refreshEcho();
+    this.refreshEcho(true);
+  }
+
+  private refreshEcho(force = false): void {
+    if (!force && this.frame % 10 !== 0) return;
+    const gs = this.gameScene;
+    const world = gs.world;
+    const echo = world.echoActor;
+    if (this.echoStatus) {
+      if (!echo) {
+        this.echoStatus.setText('STATUS  DISABLED');
+        this.echoStatus.setColor('#ff8a3c');
+      } else if (echo.data.hp <= 0) {
+        this.echoStatus.setText(`STATUS  DOWN — HP 0/${echo.data.maxHp}`);
+        this.echoStatus.setColor('#ff8a3c');
+      } else {
+        this.echoStatus.setText(`STATUS  HP ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${world.echoMode.toUpperCase()}`);
+        this.echoStatus.setColor('#eafaff');
+      }
+    }
+    if (this.echoModeText) {
+      this.echoModeText.setText(`MOVEMENT  ${world.echoMode.toUpperCase()} · ${world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE'}`);
+    }
+    const suggestion = gs.suggestEcho();
+    if (this.echoSuggest) {
+      this.echoSuggest.setText(suggestion === 'fire'
+        ? 'ASSIST READY: an enemy is inside the echo perception cone — confirm below'
+        : 'ASSIST: no perceived target — the echo will not fire');
+      this.echoSuggest.setColor(suggestion === 'fire' ? '#ffd233' : '#5a7480');
+    }
+    if (this.btnEchoAssist) {
+      this.btnEchoAssist.setLabel(world.echoAssistArmed ? 'ASSIST ARMED — CLICK TO REVOKE' : 'CONFIRM ASSIST FIRE');
+      this.btnEchoAssist.setTone(suggestion === 'fire' || world.echoAssistArmed ? 'primary' : 'neutral');
     }
   }
 
-  /** The overlay stays alive while paused, so the link/owner labels must
-   *  reflect the real state (a human AUTHORIZE click happens right here). */
-  private refreshExternalLabels(): void {
-    const world = this.scene.get<GameScene>('GameScene')?.world;
-    if (!world) return;
-    const status = world.externalLink.snapshot().status;
-    const owner = world.player.control.owner;
-    const sig = `${status}|${owner}`;
-    if (sig === this.lastExternalSig) return;
-    this.lastExternalSig = sig;
-    if (this.externalStatusText) {
-      this.externalStatusText.setText(status === 'CONNECTED' ? 'EXTERNAL AGENT  CONNECTED'
-        : status === 'LOST' ? 'EXTERNAL AGENT  LINK LOST'
-        : status === 'YIELDED' ? 'EXTERNAL AGENT  YIELDED'
-        : 'EXTERNAL AGENT  NOT CONNECTED');
-      this.externalStatusText.setColor(status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c');
-    }
-    if (this.controlText) {
-      const control = world.player.control;
-      this.controlText.setText(`CONTROL  ${owner.toUpperCase()} · ${owner === 'external' ? 'EXTERNAL AGENT' : control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`);
-    }
-    // Bounded heartbeat: when paused and companion is CONNECTED, refresh status
-    // so the link degrades to FALLBACK:NO_MODEL on heartbeat failure. This
-    // does not advance the game tick (paused) — it only reports real bridge
-    // state.
-    const parent = this.scene.get<GameScene>('GameScene');
-    const link = parent?.companionLink;
-    if (link && link.status === 'CONNECTED') {
-      link.startHeartbeat();
-    }
-    if (parent?.companionLink) {
-      const cSig = `${parent.companionLink.status}|${parent.companionLink.error}`;
-      if (cSig !== this.lastCompanionSig) {
-        this.lastCompanionSig = cSig;
-        if (!this.companionStatusText) {
-          this.companionStatusText = this.add.text(GAME.WINDOW_W / 2, 420, '', {
-            fontFamily: 'monospace', fontSize: '14px', color: '#eafaff'
-          }).setOrigin(0.5);
-        }
-        this.companionStatusText.setText(
-          parent.companionLink.status === 'CONNECTED' ? 'COMPANION  CONNECTED'
-          : parent.companionLink.status === 'FALLBACK:NO_MODEL' ? 'COMPANION  NO_MODEL'
-          : parent.companionLink.status === 'READ_ONLY' ? 'COMPANION  READ_ONLY'
-          : 'COMPANION  OFF');
-        this.companionStatusText.setColor(parent.companionLink.status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c');
+  // ---------------------------------------------------------------------------
+  // LLM companion (Owner confirm)
+  // ---------------------------------------------------------------------------
+
+  private buildLlm(p: MenuPage): void {
+    const c = this.compact;
+    const fx = (n: number, k: number) => (c ? k : n);
+    p.title('LLM COMPANION', fx(50, 48));
+    p.text(GAME.WINDOW_W / 2, fx(82, 78), 'ONLY A HUMAN HERE CAN CONFIRM · THE AGENT HAS NO CONFIRM TOOL', {
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+    });
+    p.head('CONNECTION', fx(108, 104));
+    this.llmState = p.text(GAME.WINDOW_W / 2, fx(130, 126), '', { fontSize: this.tokens.BODY_FONT, color: '#eafaff' });
+    this.llmNotice = p.text(GAME.WINDOW_W / 2, 150, '', { fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8' });
+    this.btnEnable = p.button({
+      y: fx(186, 184), label: 'ENABLE / RE-AUTHORIZE (HUMAN)',
+      onClick: () => this.openOwnerForm()
+    });
+
+    p.head('PENDING PROPOSAL', fx(232, 228));
+    this.llmPending = p.text(410, fx(256, 254), '', {
+      origin: [0, 0], fontSize: this.compact ? 16 : 13, color: '#8fb8c8', align: 'left', wrapWidth: 460
+    });
+
+    const y0 = fx(348, 344);
+    const stride = this.tokens.BTN_STRIDE;
+    this.rejectBtn = p.button({
+      y: y0, label: 'REJECT FIRST PROPOSAL', tone: 'danger', disabled: true,
+      onClick: () => this.decide(false)
+    });
+    this.confirmBtn = p.button({
+      y: y0 + stride, label: 'CONFIRM FIRST PROPOSAL (OWNER)', tone: 'primary', disabled: true,
+      onClick: () => this.decide(true)
+    });
+    this.btnDisconnect = p.button({
+      y: y0 + stride * 2, label: 'DISCONNECT (NO MODEL)', tone: 'danger',
+      onClick: () => { this.gameScene.companionLink?.disconnect(); this.lastCompanionSig = ''; this.refreshLlm(true); }
+    });
+    this.btnLlmBack = p.button({ y: y0 + stride * 3, label: 'BACK', onClick: () => this.navigate('ai') });
+    this.llmFooter = p.text(GAME.WINDOW_W / 2, fx(690, 686), 'CONFIRM ACTS ON THE ▶ LINE ONLY · COMMIT ON THE NEXT CORE TICK', {
+      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+    });
+    p.refresh = () => { this.refreshStatusTexts(); this.refreshLlm(); };
+    this.refreshStatusTexts();
+    this.refreshLlm(true);
+  }
+
+  private openOwnerForm(): void {
+    const gs = this.gameScene;
+    if (!gs.world.echoActor) gs.world.enableEcho();
+    const link = gs.companionLink;
+    // The live-link case MUST reach GameScene.reauthorizeCompanion (atomic
+    // capability swap, old suggestions cancelled). openExternalLinkForm sets
+    // the mode from its argument, so pass the correct mode here.
+    this.openExternalLinkForm(link && link.status === 'CONNECTED' ? 'companion-reauth' : 'companion');
+  }
+
+  private decide(confirm: boolean): void {
+    const id = this.selectedSuggestionId;
+    if (!id) { this.setActionMsg('NO SELECTED PROPOSAL', '#ff8a3c'); return; }
+    const link = this.gameScene.companionLink;
+    if (!link) return;
+    void link.pending().then((pending) => {
+      const suggestion = pending.find((s) => s.suggestionId === id);
+      if (!suggestion) {
+        // Never silently switch to a different pending[0]: the id the human saw
+        // is gone (expired or replaced). Refuse and refresh the real list.
+        this.selectedSuggestionId = null;
+        this.setActionMsg('PROPOSAL CHANGED OR EXPIRED — NOT SENT', '#ff8a3c');
+        this.refreshLlm(true);
+        return;
+      }
+      void link.decide(suggestion, confirm ? 'confirm' : 'reject').then(() => {
+        this.lastCompanionSig = '';
+        this.refreshLlm(true);
+      });
+    });
+  }
+
+  private setActionMsg(text: string, color: string): void {
+    if (this.llmFooter) { this.llmFooter.setText(text); this.llmFooter.setColor(color); }
+  }
+
+  private refreshLlm(force = false): void {
+    const gs = this.gameScene;
+    const link = gs.companionLink;
+    const status = gs.companionStatus;
+    const error = link?.error ?? '';
+    const sig = `${status}|${error}`;
+    if (force || sig !== this.lastCompanionSig) {
+      this.lastCompanionSig = sig;
+      if (this.llmState) {
+        this.llmState.setText(`STATE  ${status}`);
+        this.llmState.setColor(status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c');
+      }
+      if (this.llmNotice) {
+        this.llmNotice.setText(status === 'CONNECTED'
+          ? 'MODEL  CONNECTED — human confirm required'
+          : status === 'FALLBACK:NO_MODEL' ? `MODEL  OFFLINE${error ? ` · ${error}` : ''}`
+          : status === 'READ_ONLY' ? 'MODEL  READ ONLY — an external agent controls the protagonist'
+          : 'MODEL  NOT CONNECTED');
+        this.llmNotice.setColor(status === 'CONNECTED' ? '#8fb8c8' : '#ff8a3c');
       }
     }
+    if (force || this.frame % 60 === 0) this.refreshPending();
+  }
+
+  private refreshPending(): void {
+    const link = this.gameScene.companionLink;
+    if (!this.llmPending) return;
+    if (!link || link.status !== 'CONNECTED') {
+      this.llmPending.setText('No pending proposal.');
+      this.llmPending.setColor('#8fb8c8');
+      this.selectedSuggestionId = null;
+      this.setDecideEnabled(false);
+      return;
+    }
+    void link.pending().then((pending) => {
+      if (this.page !== 'llm' || !this.llmPending) return;
+      const sig = pending.map((s) => s.suggestionId).join(',');
+      if (this.lastPendingSig === sig) return;
+      this.lastPendingSig = sig;
+      if (!pending.length) {
+        this.llmPending.setText('No pending proposal.');
+        this.llmPending.setColor('#8fb8c8');
+        this.selectedSuggestionId = null;
+        this.setDecideEnabled(false);
+        return;
+      }
+      // Bind the rendered first row to its id: Confirm/Reject can only ever act
+      // on the id shown with ▶.
+      this.selectedSuggestionId = pending[0].suggestionId;
+      this.llmPending.setText(pending.slice(0, 3).map((s, i) => {
+        const marker = i === 0 ? '▶ ' : '   ';
+        const target = s.target ? `tgt ${s.target.x.toFixed(1)},${s.target.y.toFixed(1)}` : 'no target';
+        const resource = s.kind === 'scan' ? 'energy · SCAN' : s.kind === 'jam' ? 'energy · JAM'
+          : s.kind === 'fire' ? 'projectile' : 'movement';
+        return `${marker}${s.kind.toUpperCase()} · ${s.reason} · ${target} · ${resource}`;
+      }).join('\n'));
+      this.llmPending.setColor('#eafaff');
+      this.setDecideEnabled(true);
+    });
+  }
+
+  private setDecideEnabled(enabled: boolean): void {
+    this.confirmBtn?.setDisabled(!enabled);
+    this.rejectBtn?.setDisabled(!enabled);
+    // Never steal focus to CONFIRM: the human must navigate there explicitly.
+    this.decideEnabled = enabled;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Inventory (equip is a queued core command; labels are honest)
+  // ---------------------------------------------------------------------------
+
+  private buildInventory(p: MenuPage): void {
+    const gs = this.gameScene;
+    const player = gs.world.player;
+    const c = this.compact;
+    const subFont = c ? 16 : 13;
+    p.text(GAME.WINDOW_W / 2, 90, 'INVENTORY', { fontSize: 30, color: '#33e0ff', bold: true });
+    // Weapons / stats / upgrades form one scrollable region; the title and the
+    // CLOSE control stay fixed. The region only scrolls when a very long run
+    // makes it overflow (the normal 1280x720 layout fits).
+    p.beginRegion();
+
+    p.text(120, 150, 'WEAPON ARSENAL', { origin: [0, 0], fontSize: 18, color: '#ff8a3c' });
+    const description = p.text(120, 390, '', { origin: [0, 0], fontSize: c ? 16 : 14, color: '#8fb8c8', wrapWidth: 350 });
+    const equipWeapon = (key: string): void => {
+      if (this.closing || !player.equipWeapon(key)) return;
+      audio.ui();
+      refreshWeapons();
+    };
+    const pendingEquip = (): string | null => gs.world.getPendingEquipWeapon();
+    const shortcuts = ['ONE', 'TWO', 'THREE', 'FOUR'];
+    const refreshWeaponRows = player.data.weapons.map((w, i) => {
+      const def = WEAPONS[w.key];
+      const y = 186 + i * 44;
+      const name = p.text(120, y, def?.name ?? w.key, { origin: [0, 0], fontSize: 18 });
+      p.text(120, y + 20, `level ${w.level} · ${w.magazine > 0 ? `${w.ammo}/${w.magazine}` : '∞ energy'}`, {
+        origin: [0, 0], fontSize: subFont, color: '#8fb8c8'
+      });
+      // The equip control is an interactive Text (stable handgrip for the
+      // existing checkpoint test: y = 186/230/274, label EQUIP/EQUIPPED,
+      // input.enabled toggles). It is also keyboard-focusable via a focus
+      // adapter; focus is shown with the text background, not a new rectangle.
+      const equip = p.text(420, y, '', { origin: [0.5, 0], fontSize: subFont });
+      equip.setPadding(8, 3, 8, 3);
+      equip.setInteractive({ useHandCursor: true });
+      equip.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+        event?.stopPropagation?.();
+        equipWeapon(w.key);
+      });
+      let equipFocused = false;
+      const item: Focusable = {
+        enabled: true,
+        setFocused: (focused) => { equipFocused = focused; paint(); },
+        activate: () => { if (item.enabled) equipWeapon(w.key); }
+      };
+      p.addFocusable(item);
+      const shortcut = shortcuts[i];
+      if (shortcut) {
+        const eventName = `keydown-${shortcut}`;
+        const onKey = (event: KeyboardEvent) => { if (!event.repeat) equipWeapon(w.key); };
+        this.input.keyboard?.on(eventName, onKey);
+        this.pageCleanups.push(() => this.input.keyboard?.off(eventName, onKey));
+      }
+      function paint(): void {
+        const active = player.data.weaponKey === w.key;
+        const queued = !active && pendingEquip() === w.key;
+        item.enabled = !active;
+        name.setColor(active ? '#ffd233' : '#cfe8ef');
+        const label = active ? 'EQUIPPED' : queued ? 'QUEUED' : 'EQUIP';
+        if (active) equip.disableInteractive();
+        else equip.setInteractive({ useHandCursor: true });
+        if (equipFocused && !active) equip.setText(label).setColor('#04060b').setBackgroundColor('#33e0ff');
+        else equip.setText(label).setColor(active ? '#7ff0ff' : queued ? '#ffd233' : '#eafaff').setBackgroundColor(active ? '#00000000' : '#274a55');
+      }
+      return paint;
+    });
+    const refreshWeapons = (): void => {
+      refreshWeaponRows.forEach((refresh) => refresh());
+      description.setText(player.weapon.description);
+    };
+    refreshWeapons();
+    this.inventoryRefresh = refreshWeapons;
+    this.lastInventorySig = this.inventorySig();
+    if (player.data.weapons.length > 1) {
+      p.text(120, 355, `1–${Math.min(player.data.weapons.length, shortcuts.length)} EQUIP`, {
+        origin: [0, 0], fontSize: c ? 16 : 13, color: '#7ff0ff'
+      });
+    }
+
+    const s = player.data;
+    p.text(520, 150, 'STATS', { origin: [0, 0], fontSize: 18, color: '#ff8a3c' });
+    const stats = [
+      `Level ${s.level}`, `HP ${Math.ceil(s.hp)}/${s.maxHp}`, `Speed ${Math.round(s.speed)}`,
+      `Damage ${s.damage.toFixed(2)}`, `Crit ${Math.round(s.critChance * 100)}%`, `Crit Dmg ${s.critDamage.toFixed(2)}x`,
+      `Armor ${s.armor}`, `Pierce ${s.pierceCount}`, `Regen ${s.hpRegen}/s`, `Magnet ${Math.round(s.pickupRange)}`,
+      `Run credits ${s.currency}`
+    ];
+    stats.forEach((txt, i) => p.text(520, 186 + i * 26, txt, { origin: [0, 0], fontSize: c ? 16 : 15, color: '#eafaff' }));
+
+    const activeUp = player.data.upgrades.filter((u) => u.level > 0);
+    p.text(900, 150, 'RUN UPGRADES', { origin: [0, 0], fontSize: 18, color: '#ff8a3c' });
+    if (activeUp.length === 0) p.text(900, 186, 'none yet', { origin: [0, 0], fontSize: c ? 16 : 15, color: '#8fb8c8' });
+    activeUp.forEach((u, i) => {
+      const def = UPGRADES[u.key];
+      p.text(900, 186 + i * 30, `${def ? def.name : u.key}  ${u.level}/${def?.maxLevel ?? 1}`, {
+        origin: [0, 0], fontSize: c ? 16 : 15, color: '#eafaff'
+      });
+    });
+
+    p.endRegion(GAME.WINDOW_H - 52, Math.max(490, 208 + Math.max(0, activeUp.length - 1) * 30));
+    this.btnInventoryClose = p.button({ y: GAME.WINDOW_H - 60, label: 'CLOSE', w: 340, onClick: () => this.closeInventory() });
+    p.refresh = () => {
+      if (!this.inventoryRefresh) return;
+      const sig = this.inventorySig();
+      if (sig !== this.lastInventorySig) {
+        this.lastInventorySig = sig;
+        this.inventoryRefresh();
+      }
+    };
   }
 
   private inventorySig(): string {
-    const parent = this.scene.get('GameScene') as GameScene | undefined;
-    const world = parent?.world;
+    const world = this.gameScene?.world;
     if (!world) return '';
     return `${world.player.data.weaponKey}|${world.getPendingEquipWeapon() ?? ''}`;
   }
 
-  create(config?: { mode?: 'pause' | 'inventory' | 'echo' | 'companion' }): void {
-    const mode = config?.mode ?? 'pause';
-    const parent = this.scene.get<GameScene>('GameScene');
-    const player = parent.world.player;
+  // ---------------------------------------------------------------------------
+  // Settings (grouped by the real persisted settings object)
+  // ---------------------------------------------------------------------------
 
-    // dim overlay (not interactive, so it cannot steal clicks from the buttons)
-    const dim = this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, 0x04060b, 0.82)
-      .setOrigin(0, 0);
-    dim.setAlpha(0);
-    this.tweens.add({ targets: dim, alpha: 0.82, duration: 150 });
-
-    let closing = false;
-    const close = () => {
-      if (closing) return;
-      closing = true;
-      this.tweens.add({ targets: dim, alpha: 0, duration: 150, onComplete: () => {
-        this.scene.stop();
-        if (parent) parent.onResume();
-      }});
-    };
-    const closeFromKey = (event: KeyboardEvent) => {
-      if (!event.repeat) close();
-    };
-    this.input.keyboard?.on('keydown-ESC', closeFromKey);
-    if (mode === 'inventory') this.input.keyboard?.on('keydown-I', closeFromKey);
-    this.events.once('shutdown', () => {
-      this.input.keyboard?.off('keydown-ESC', closeFromKey);
-      this.input.keyboard?.off('keydown-I', closeFromKey);
-      this.inventoryRefresh = null;
-      this.lastInventorySig = '';
-      // Scene instances are reused across restart(): clear references to
-      // destroyed Text objects, otherwise update() can touch a stale object.
-      this.externalStatusText = null;
-      this.controlText = null;
-      this.lastExternalSig = '';
-      this.closeExternalLinkForm();
-    });
-
-    if (mode === 'inventory') {
-      this.add.text(GAME.WINDOW_W / 2, 90, 'INVENTORY', { fontFamily: 'monospace', fontSize: '30px', color: '#33e0ff', fontStyle: 'bold' }).setOrigin(0.5, 0.5);
-
-      // weapons
-      this.add.text(120, 150, 'WEAPON ARSENAL', { fontFamily: 'monospace', fontSize: '18px', color: '#ff8a3c' });
-      const description = this.add.text(120, 390, '', {
-        fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', wordWrap: { width: 350 }
-      });
-      const equipWeapon = (key: string) => {
-        if (closing || !player.equipWeapon(key)) return;
-        audio.ui();
-        refreshWeapons();
-      };
-      // The inventory overlay pauses the world, so an equip command commits on
-      // the first normal tick after the overlay closes. Until then the UI must
-      // show the requested selection as PENDING instead of pretending it is
-      // already equipped (the core state is unchanged until the commit).
-      const pendingEquip = () => parent.world.getPendingEquipWeapon();
-      const shortcuts = ['ONE', 'TWO', 'THREE', 'FOUR'];
-      const refreshWeaponRows = player.data.weapons.map((w, i) => {
-        const def = WEAPONS[w.key];
-        const y = 186 + i * 44;
-        const name = this.add.text(120, y, def?.name ?? w.key, { fontFamily: 'monospace', fontSize: '18px' });
-        this.add.text(120, y + 20, `level ${w.level} · ${w.magazine > 0 ? `${w.ammo}/${w.magazine}` : '∞ energy'}`, { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' });
-        const equip = this.add.text(420, y, '', {
-          fontFamily: 'monospace', fontSize: '13px', padding: { x: 8, y: 3 }
-        }).setOrigin(0.5, 0);
-        equip.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
-          event.stopPropagation();
-          equipWeapon(w.key);
-        });
-        const shortcut = shortcuts[i];
-        if (shortcut) {
-          const eventName = `keydown-${shortcut}`;
-          const onKey = (event: KeyboardEvent) => {
-            if (!event.repeat) equipWeapon(w.key);
-          };
-          this.input.keyboard?.on(eventName, onKey);
-          this.events.once('shutdown', () => this.input.keyboard?.off(eventName, onKey));
-        }
-        return () => {
-          const active = player.data.weaponKey === w.key;
-          const queued = !active && pendingEquip() === w.key;
-          name.setColor(active ? '#ffd233' : '#cfe8ef');
-          const label = active ? 'EQUIPPED' : queued ? 'QUEUED' : 'EQUIP';
-          equip.setText(label)
-            .setColor(active ? '#7ff0ff' : queued ? '#ffd233' : '#eafaff')
-            .setBackgroundColor(active ? '#00000000' : '#274a55');
-          if (active) equip.disableInteractive();
-          else equip.setInteractive({ useHandCursor: true });
-        };
-      });
-      const refreshWeapons = () => {
-        refreshWeaponRows.forEach((refresh) => refresh());
-        description.setText(player.weapon.description);
-      };
-      refreshWeapons();
-      // Committed state may change on the resume tick; keep the labels in sync.
-      this.inventoryRefresh = refreshWeapons;
-      this.lastInventorySig = this.inventorySig();
-      if (player.data.weapons.length > 1) {
-        this.add.text(120, 355, `1–${Math.min(player.data.weapons.length, shortcuts.length)} EQUIP`, {
-          fontFamily: 'monospace', fontSize: '13px', color: '#7ff0ff'
-        });
-      }
-
-      // stats
-      const s = player.data;
-      this.add.text(520, 150, 'STATS', { fontFamily: 'monospace', fontSize: '18px', color: '#ff8a3c' });
-      const stats = [
-        `Level ${s.level}`, `HP ${Math.ceil(s.hp)}/${s.maxHp}`, `Speed ${Math.round(s.speed)}`,
-        `Damage ${s.damage.toFixed(2)}`, `Crit ${Math.round(s.critChance * 100)}%`, `Crit Dmg ${s.critDamage.toFixed(2)}x`,
-        `Armor ${s.armor}`, `Pierce ${s.pierceCount}`, `Regen ${s.hpRegen}/s`, `Magnet ${Math.round(s.pickupRange)}`,
-        `Run credits ${s.currency}`
-      ];
-      stats.forEach((txt, i) => this.add.text(520, 186 + i * 26, txt, { fontFamily: 'monospace', fontSize: '15px', color: '#eafaff' }));
-
-      // upgrades
-      const activeUp = player.data.upgrades.filter((u) => u.level > 0);
-      this.add.text(900, 150, 'RUN UPGRADES', { fontFamily: 'monospace', fontSize: '18px', color: '#ff8a3c' });
-      if (activeUp.length === 0) this.add.text(900, 186, 'none yet', { fontFamily: 'monospace', fontSize: '15px', color: '#8fb8c8' });
-      activeUp.forEach((u, i) => {
-        const def = UPGRADES[u.key];
-        this.add.text(900, 186 + i * 30, `${def ? def.name : u.key}  ${u.level}/${def?.maxLevel ?? 1}`, { fontFamily: 'monospace', fontSize: '15px', color: '#eafaff' });
-      });
-
-      this._button(GAME.WINDOW_W / 2, GAME.WINDOW_H - 60, 'CLOSE', close, 0x274a55);
-    } else if (mode === 'echo') {
-      this.echoPanel(parent, close);
-    } else if (mode === 'companion') {
-      this.companionPanel(parent);
-    } else {
-      // pause menu
-      this.add.text(GAME.WINDOW_W / 2, 150, 'PAUSED', { fontFamily: 'monospace', fontSize: '48px', color: '#33e0ff', fontStyle: 'bold', letterSpacing: 6 }).setOrigin(0.5, 0.5);
-      this._button(GAME.WINDOW_W / 2, 300, 'RESUME', close, 0x33e0ff);
-      this._button(GAME.WINDOW_W / 2, 360, 'INVENTORY', () => this.scene.restart({ mode: 'inventory' }), 0x274a55);
-      this._button(GAME.WINDOW_W / 2, 420, 'SETTINGS', () => this.showSettings(), 0x274a55);
-      this._button(GAME.WINDOW_W / 2, 480, 'QUIT TO MENU', () => {
-        parent.saveCheckpoint();
-        // scene.start() only shuts down the calling scene; GameScene would stay
-        // active (and paused) underneath the menu. Stop it explicitly so a later
-        // NEW RUN boots a fresh, unpaused run.
-        this.scene.stop('GameScene');
-        this.scene.start('MainMenuScene', {});
-      }, 0x5a2a3a);
-      // AI-NATIVE-02 P1 development entry in the real World. It is honestly
-      // labelled as a local deterministic demo; no external agent is attached.
-      const control = parent.world.player.control;
-      this._button(GAME.WINDOW_W / 2, 540, `AI CONTROL: ${control.aiEnabled ? 'ON · LOCAL DEMO' : 'OFF'}`, () => {
-        parent.toggleAiControl();
-        this.scene.restart({ mode: 'pause' });
-      }, 0x274a55);
-      this.controlText = this.add.text(GAME.WINDOW_W / 2, 585, `CONTROL  ${control.owner.toUpperCase()} · ${control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`, {
-        fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8'
-      }).setOrigin(0.5);
-      // C3-b: the human explicitly authorizes an external agent link. The
-      // bridge URL/token come from the host page configuration (never typed
-      // here, never logged, never part of the scene text).
-      const externalState = parent.world.externalLink.snapshot();
-      const externalLabel = externalState.status === 'CONNECTED' ? 'EXTERNAL AGENT  CONNECTED'
-        : externalState.status === 'LOST' ? 'EXTERNAL AGENT  LINK LOST'
-        : externalState.status === 'YIELDED' ? 'EXTERNAL AGENT  YIELDED'
-        : 'EXTERNAL AGENT  NOT CONNECTED';
-      this.externalStatusText = this.add.text(GAME.WINDOW_W / 2, 605, externalLabel, {
-        fontFamily: 'monospace', fontSize: '12px', color: externalState.status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c'
-      }).setOrigin(0.5);
-      const authorizeExternal = this.add.text(GAME.WINDOW_W / 2, 622, 'AUTHORIZE EXTERNAL AGENT', {
-        fontFamily: 'monospace', fontSize: '12px', color: '#eafaff', backgroundColor: '#274a55'
-      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-      authorizeExternal.on('pointerdown', () => {
-        audio.ui();
-        const config = (globalThis as unknown as {
-          __externalLinkConfig?: { bridgeUrl?: string; token?: string };
-        }).__externalLinkConfig;
-        const bridgeUrl = config?.bridgeUrl;
-        const token = config?.token;
-        if (!bridgeUrl || !token) {
-          this.add.text(GAME.WINDOW_W / 2, 638, 'NO BRIDGE CONFIGURED — CONTROL STAYS HUMAN', {
-            fontFamily: 'monospace', fontSize: '11px', color: '#ff8a3c'
-          }).setOrigin(0.5);
-          return;
-        }
-        const stashedKey = peekOwnerPairing(parent)?.consumeKey() ?? '';
-        const configKey = (config as { ownerKey?: string })?.ownerKey ?? '';
-        const ownerKey = stashedKey || configKey;
-        void parent.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
-          if (!ok) clearOwnerPairing(parent);
-          this.lastExternalSig = '';
-          this.refreshExternalLabels();
-          if (!ok) {
-            this.add.text(GAME.WINDOW_W / 2, 638, 'EXTERNAL LINK FAILED — CONTROL STAYS HUMAN', {
-              fontFamily: 'monospace', fontSize: '11px', color: '#ff8a3c'
-            }).setOrigin(0.5);
-          }
-        });
-      });
-      this.add.text(GAME.WINDOW_W / 2, 625, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL', {
-        fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
-      }).setOrigin(0.5);
-      const companionLink = this.add.text(140, 230, 'LLM COMPANION >', {
-        fontFamily: 'monospace', fontSize: '16px', color: '#7ff0ff', backgroundColor: '#274a55'
-      }).setOrigin(0, 0).setPadding(10, 8, 10, 8).setInteractive({ useHandCursor: true });
-      companionLink.on('pointerdown', () => {
-        audio.ui();
-        this.scene.restart({ mode: 'companion' });
-      });
-      const echoLink = this.add.text(140, 200, 'ECHO COMPANION >', {
-        fontFamily: 'monospace', fontSize: '16px', color: '#33e0ff', backgroundColor: '#274a55'
-      }).setOrigin(0, 0).setPadding(10, 8, 10, 8).setInteractive({ useHandCursor: true });
-      echoLink.on('pointerdown', () => {
-        audio.ui();
-        this.scene.restart({ mode: 'echo' });
-      });
-      this.add.text(GAME.WINDOW_W / 2, 655, 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
-        fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8'
-      }).setOrigin(0.5);
-    }
-  }
-
-  /**
-   * P3-a echo panel. Every command goes through this pause entry, so no gameplay
-   * key binding is stolen. The human is always the protagonist's controller.
-   */
-  private echoPanel(parent: GameScene, close: () => void): void {
-    const world = parent.world;
-    const title = (y: number, text: string, size: string, color: string) =>
-      this.add.text(GAME.WINDOW_W / 2, y, text, { fontFamily: 'monospace', fontSize: size, color }).setOrigin(0.5);
-    title(130, 'ECHO COMPANION', '40px', '#33e0ff');
-    title(172, 'Independent actor · own 12-tile perception · never driven by an external agent', '13px', '#8fb8c8');
-
-    const echo = world.echoActor;
-    const status = !echo ? 'DISABLED — the original solo run is unchanged'
-      : echo.data.hp <= 0 ? `DOWN — HP 0/${echo.data.maxHp} (the protagonist is unaffected)`
-      : `HP ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${world.echoMode.toUpperCase()} · ${world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE'}`;
-    title(210, status, '15px', echo && echo.data.hp > 0 ? '#eafaff' : '#ff8a3c');
-
-    const suggestion = parent.suggestEcho();
-    title(240, suggestion === 'fire'
-      ? 'ASSIST READY: an enemy is inside the echo perception cone — confirm below'
-      : 'ASSIST: no perceived target — the echo will not fire', '13px', suggestion === 'fire' ? '#ffd233' : '#5a7480');
-
-    const redraw = () => this.scene.restart({ mode: 'echo' });
-    this._button(GAME.WINDOW_W / 2, 300, echo ? 'DISABLE ECHO' : 'ENABLE ECHO', () => {
-      if (echo) parent.disableEcho(); else parent.enableEcho();
-      redraw();
-    }, echo ? 0x5a2a3a : 0x274a55);
-    this._button(GAME.WINDOW_W / 2, 356, `MODE: ${world.echoMode === 'follow' ? 'FOLLOW' : world.echoMode === 'hold' ? 'HOLD' : 'MOVE'}  >  FOLLOW`, () => {
-      parent.setEchoMode('follow'); redraw();
-    }, 0x274a55);
-    this._button(GAME.WINDOW_W / 2, 412, 'MODE: HOLD POSITION', () => {
-      parent.setEchoMode('hold'); redraw();
-    }, 0x274a55);
-    this._button(GAME.WINDOW_W / 2, 468, 'MODE: MOVE TO AIM', () => {
-      parent.setEchoMode('move-to'); redraw();
-    }, 0x274a55);
-    this._button(GAME.WINDOW_W / 2, 524, world.echoAssistArmed ? 'ASSIST ARMED — CLICK TO REVOKE' : 'CONFIRM ASSIST FIRE', () => {
-      if (world.echoAssistArmed) parent.revokeEchoAssist(); else parent.confirmEchoAssist();
-      redraw();
-    }, suggestion === 'fire' ? 0x4a4420 : 0x274a55);
-    this._button(GAME.WINDOW_W / 2, 592, 'BACK', close, 0x33e0ff);
-    this.add.text(GAME.WINDOW_W / 2, 650, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL OF THE PROTAGONIST', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
-    }).setOrigin(0.5);
-  }
-
-  /** P3-b A: Owner-only Companion panel. NO confirm capability leaves this scene. */
-  private companionPanel(parent: GameScene): void {
-    const title = (y: number, text: string, size: string, color: string) =>
-      this.add.text(GAME.WINDOW_W / 2, y, text, { fontFamily: 'monospace', fontSize: size, color }).setOrigin(0.5);
-    title(120, 'LLM COMPANION · OWNER CONFIRM', '34px', '#33e0ff');
-    title(160, 'Only a human here can confirm. The agent MCP has NO confirm tool.', '13px', '#8fb8c8');
-    const stateText = title(210, `STATE ${parent.companionStatus}`, '18px', '#eafaff');
-    const listText = title(270, 'WAITING FOR SUGGESTIONS', '15px', '#8fb8c8');
-
-    const redraw = (): void => {
-      stateText.setText(`STATE ${parent.companionStatus}`);
-      if (!parent.companionLink) {
-        listText.setText('NOT CONNECTED · NO MODEL (no fake connected state)');
-        return;
-      }
-      if (parent.companionStatus === 'READ_ONLY') {
-        listText.setText('READ ONLY · AI/External controls the protagonist');
-        return;
-      }
-      void parent.companionLink.pending().then((pending) => {
-        if (!pending.length) {
-          listText.setText('WAITING · no proposal / expired');
-          return;
-        }
-        listText.setText(pending.slice(0, 4).map((p) =>
-          `${p.kind.toUpperCase()} · ${p.reason} · ${p.target ? `(${p.target.x.toFixed(1)},${p.target.y.toFixed(1)})` : 'no target'}`
-        ).join('   |   '));
-      });
-    };
-    redraw();
-
-    this._button(GAME.WINDOW_W / 2, 340, 'ENABLE / RE-AUTHORIZE (HUMAN)', () => {
-      if (!parent.world.echoActor) parent.world.enableEcho();
-      const link = parent.companionLink;
-      if (link && link.status === 'CONNECTED') {
-        // Live link: re-authorize with a fresh Owner pairing key (atomically
-        // swaps capability, cancels old suggestions). Wrong key does not break
-        // the active connection.
-        this.linkFormMode = 'companion-reauth';
-        this.openExternalLinkForm('companion');
-        return;
-      }
-      // No live link: first-time authorization via explicit form params.
-      this.linkFormMode = 'companion';
-      this.openExternalLinkForm('companion');
-    }, 0x274a55);
-    this._button(GAME.WINDOW_W / 2, 400, 'REJECT FIRST PROPOSAL', () => {
-      const link = parent.companionLink;
-      if (!link) return;
-      void link.pending().then((pending) => {
-        if (pending.length) void link.decide(pending[0], 'reject').then(redraw);
-      });
-    }, 0x5a2a3a);
-    this._button(GAME.WINDOW_W / 2, 460, 'CONFIRM FIRST PROPOSAL (OWNER)', () => {
-      const link = parent.companionLink;
-      if (!link) return;
-      void link.pending().then((pending) => {
-        if (pending.length) void link.decide(pending[0], 'confirm').then(redraw);
-      });
-    }, 0x33e0ff);
-    this._button(GAME.WINDOW_W / 2, 520, 'DISCONNECT (NO MODEL)', () => {
-      parent.companionLink?.disconnect();
-      redraw();
-    }, 0x5a2a3a);
-    this._button(GAME.WINDOW_W / 2, 600, 'BACK', () => this.scene.restart({ mode: 'pause' }), 0x274a55);
-    this.add.text(GAME.WINDOW_W / 2, 650, 'CONFIRMED ACTIONS ARE COMMITTED BY THE NEXT CORE TICK · NO FORCED FLUSH', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
-    }).setOrigin(0.5);
-  }
-
-  private showSettings(): void {
+  private buildSettings(p: MenuPage): void {
     const save = saveSystem.load();
-    // Transparent input blocker: Phaser input is top-only, so this swallows clicks
-    // that would otherwise land on the pause-menu buttons underneath.
-    const blocker = this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, 0x000000, 0)
-      .setOrigin(0, 0).setInteractive();
-    const panel = this.add.rectangle(GAME.WINDOW_W / 2, 403, 780, 310, 0x0d1822);
-    const wrap = this.add.container(GAME.WINDOW_W / 2, 300);
-
-    const vol = this.add.text(0, 0, `MASTER ${Math.round(save.settings.masterVolume * 100)}%`, { fontFamily: 'monospace', fontSize: '18px', color: '#eafaff' }).setOrigin(0.5, 0.5);
-    const sfx = this.add.text(0, 40, `SFX ${Math.round(save.settings.sfxVolume * 100)}%`, { fontFamily: 'monospace', fontSize: '18px', color: '#eafaff' }).setOrigin(0.5, 0.5);
-    wrap.add([vol, sfx]);
-
-    const arrow = (x: number, y: number, label: string) => this.add.text(x, y, label, {
-      fontFamily: 'monospace', fontSize: '24px', color: '#33e0ff', backgroundColor: '#0d1822'
-    }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    const masterLeft = arrow(-160, 0, '◀');
-    const masterRight = arrow(160, 0, '▶');
-    const sfxLeft = arrow(-160, 40, '◀');
-    const sfxRight = arrow(160, 40, '▶');
-    wrap.add([masterLeft, masterRight, sfxLeft, sfxRight]);
+    const c = this.compact;
+    const fx = (n: number, k: number) => (c ? k : n);
+    p.title('SETTINGS', 52);
+    p.text(GAME.WINDOW_W / 2, 84, 'APPLIED IMMEDIATELY · SAVED LOCALLY', { fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8' });
 
     let master = save.settings.masterVolume;
     let sfxVol = save.settings.sfxVolume;
     let screenShake = save.settings.screenShake;
-    const shake = this.add.text(0, 70, '', {
-      fontFamily: 'monospace', fontSize: '16px', color: '#eafaff', backgroundColor: '#274a55'
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    shake.setText(`SCREEN SHAKE ${screenShake ? 'ON' : 'OFF'}`);
-    wrap.add(shake);
-    const apply = () => {
-      vol.setText(`MASTER ${Math.round(master * 100)}%`);
-      sfx.setText(`SFX ${Math.round(sfxVol * 100)}%`);
+
+    const apply = (): void => {
       audio.setVolumes(master, sfxVol);
       const latest = saveSystem.load();
       latest.settings.masterVolume = master;
@@ -463,87 +863,87 @@ export class PauseScene extends Phaser.Scene {
       latest.settings.screenShake = screenShake;
       saveSystem.save(latest);
     };
-    const step = (v: number, delta: number) => Math.max(0, Math.min(1, Math.round((v + delta) * 10) / 10));
-    masterLeft.on('pointerdown', () => { master = step(master, -0.1); apply(); audio.ui(); });
-    masterRight.on('pointerdown', () => { master = step(master, 0.1); apply(); audio.ui(); });
-    sfxLeft.on('pointerdown', () => { sfxVol = step(sfxVol, -0.1); apply(); audio.ui(); });
-    sfxRight.on('pointerdown', () => { sfxVol = step(sfxVol, 0.1); apply(); audio.ui(); });
+    const step = (v: number, delta: number): number => Math.max(0, Math.min(1, Math.round((v + delta) * 10) / 10));
 
-    shake.on('pointerdown', () => {
-      screenShake = !screenShake;
-      shake.setText(`SCREEN SHAKE ${screenShake ? 'ON' : 'OFF'}`);
-      apply();
-      audio.ui();
-    });
-    const reset = this.add.text(0, 105, 'RESET AUDIO', {
-      fontFamily: 'monospace', fontSize: '14px', color: '#eafaff', backgroundColor: '#274a55'
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    reset.on('pointerdown', () => {
+    p.head('AUDIO', fx(116, 118));
+    const volRow = (label: string, y: number, get: () => number, set: (v: number) => void): void => {
+      p.text(400, y, label, { origin: [0, 0.5], fontSize: this.tokens.BODY_FONT, color: '#eafaff' });
+      const value = p.text(780, y, `${Math.round(get() * 100)}%`, { fontSize: 18, color: '#eafaff' });
+      const applyDelta = (delta: number) => { set(step(get(), delta)); apply(); value.setText(`${Math.round(get() * 100)}%`); };
+      p.button({ x: 700, y, w: 40, h: 30, label: '◀', fontSize: 22, tone: 'neutral', onClick: () => applyDelta(-0.1) });
+      p.button({ x: 860, y, w: 40, h: 30, label: '▶', fontSize: 22, tone: 'neutral', onClick: () => applyDelta(0.1) });
+    };
+    volRow('MASTER', fx(148, 148), () => master, (v) => { master = v; });
+    volRow('SFX', fx(180, 182), () => sfxVol, (v) => { sfxVol = v; });
+    this.btnResetAudio = p.button({ y: 222, w: 300, h: 44, label: 'RESET AUDIO', onClick: () => {
       master = DEFAULT_SETTINGS.masterVolume;
       sfxVol = DEFAULT_SETTINGS.sfxVolume;
       apply();
-      audio.ui();
+      this.navigate('settings');
+    }});
+
+    p.head('DISPLAY', fx(268, 276));
+    this.btnShake = p.button({ y: fx(300, 308), w: 340, h: 44, label: `SCREEN SHAKE: ${screenShake ? 'ON' : 'OFF'}`, onClick: () => {
+      screenShake = !screenShake;
+      apply();
+      this.btnShake?.setLabel(`SCREEN SHAKE: ${screenShake ? 'ON' : 'OFF'}`);
+    }});
+
+    p.head('SIGNAL', fx(348, 362));
+    let optIn = save.permanent.signalCollaborationOptIn === true;
+    this.btnSignalCollab = p.button({
+      y: fx(380, 394), w: 420, h: 44, tone: optIn ? 'primary' : 'neutral',
+      label: `SIGNAL COLLABORATION · ${optIn ? 'ON' : 'OFF'}`,
+      onClick: () => {
+        optIn = !optIn;
+        this.optInCache = optIn;
+        const latest = saveSystem.load();
+        latest.permanent.signalCollaborationOptIn = optIn;
+        saveSystem.save(latest);
+        this.gameScene.world.setSignalCollaborationOptIn(optIn);
+        this.btnSignalCollab?.setLabel(`SIGNAL COLLABORATION · ${optIn ? 'ON' : 'OFF'}`);
+        this.btnSignalCollab?.setTone(optIn ? 'primary' : 'neutral');
+        this.lastStatusSig = '';
+      }
     });
-    const hint = this.add.text(0, 175, 'ESC RESUME', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(0.5);
-    const back = this.add.text(0, 140, 'BACK', { fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', backgroundColor: '#0d1822' }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    // Signal Collaboration opt-in: an explicit, persisted human choice.
-    // Ordinary NEW RUNS stay legacy (no Relay device, no gating) until enabled.
-    const optIn = save.permanent.signalCollaborationOptIn === true;
-    const signalToggle = this.add.text(0, 105, `SIGNAL COLLABORATION · ${optIn ? 'ON' : 'OFF'}`, {
-      fontFamily: 'monospace', fontSize: '14px', color: optIn ? '#00ff77' : '#8fb8c8',
-      backgroundColor: optIn ? '#004400' : '#274a55'
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    const gs = this.scene.get<GameScene>('GameScene');
-    signalToggle.on('pointerdown', () => {
-      audio.ui();
-      const next = !optIn;
-      const latest = saveSystem.load();
-      latest.permanent.signalCollaborationOptIn = next;
-      saveSystem.save(latest);
-      gs.world.setSignalCollaborationOptIn(next);
-      signalToggle.setText(`SIGNAL COLLABORATION · ${next ? 'ON' : 'OFF'}`);
-      signalToggle.setColor(next ? '#00ff77' : '#8fb8c8');
-      signalToggle.setBackgroundColor(next ? '#004400' : '#274a55');
+
+    p.head('CONNECTION', fx(428, 448));
+    this.btnLinkSetup = p.button({ y: fx(460, 480), w: 380, h: 44, label: 'EXTERNAL LINK SETUP', onClick: () => {
+      this.openExternalLinkForm('external');
+    }});
+    p.text(GAME.WINDOW_W / 2, fx(496, 518), 'HUMAN OWNER FORM · TOKEN + PAIRING KEY MASKED · NEVER STORED', {
+      fontSize: this.tokens.SMALL_FONT, color: '#5a7480'
     });
-    // Native input entry: a normal player can configure the local bridge
-    // WITHOUT opening the browser console. The token is masked, never saved,
-    // never logged and cleared from the DOM immediately after submission.
-    const linkSetup = this.add.text(0, 210, 'EXTERNAL LINK SETUP', {
-      fontFamily: 'monospace', fontSize: '14px', color: '#eafaff', backgroundColor: '#274a55'
-    }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    linkSetup.on('pointerdown', () => {
-      audio.ui();
-      this.openExternalLinkForm();
-    });
-    wrap.add([reset, hint, back, linkSetup]);
-    back.on('pointerdown', () => {
-      audio.ui();
-      this.closeExternalLinkForm();
-      blocker.destroy();
-      panel.destroy();
-      wrap.destroy();
-      this.scene.restart({ mode: 'pause' });
+    this.btnSettingsBack = p.button({ y: fx(548, 566), w: 300, label: 'BACK', onClick: () => this.navigate('pause') });
+    p.text(GAME.WINDOW_W / 2, fx(690, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
+      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Native DOM external-link / owner-pairing form (unchanged contract)
+  // ---------------------------------------------------------------------------
+
   /** Tear down the DOM form (idempotent). */
   private closeExternalLinkForm(): void {
-    if (this.externalLinkForm && this.externalLinkForm.parentNode) {
-      this.externalLinkForm.parentNode.removeChild(this.externalLinkForm);
+    if (this.domForm && this.domForm.parentNode) {
+      this.domForm.parentNode.removeChild(this.domForm);
     }
-    this.externalLinkForm = null;
+    this.domForm = null;
+    this.formBlocker?.destroy();
+    this.formBlocker = null;
   }
 
   /**
    * Minimal native DOM form (no framework). It is appended to <body> and only
-   * lives while the Settings panel is open. Typing is isolated from Phaser's
-   * window keyboard listeners so W/A/S/D/SPACE/ESC cannot take over or close
-   * the pause menu while the player enters a URL/token.
+   * lives while the Settings/LLM panel is open. Typing is isolated from Phaser's
+   * window keyboard listeners so W/A/S/D/SPACE cannot take over the pause menu
+   * while the player enters a URL/token; ESC closes only this form.
    */
-  private openExternalLinkForm(mode: 'external' | 'companion' = 'external'): void {
-    if (this.externalLinkForm) return;
+  private openExternalLinkForm(mode: 'external' | 'companion' | 'companion-reauth' = 'external'): void {
+    if (this.domForm) return;
     this.linkFormMode = mode;
-    const parent = this.scene.get<GameScene>('GameScene');
+    const parent = this.gameScene;
     const existing = (globalThis as unknown as { __externalLinkConfig?: { bridgeUrl?: string; token?: string } })
       .__externalLinkConfig;
 
@@ -564,12 +964,12 @@ export class PauseScene extends Phaser.Scene {
     ].join(';');
 
     const title = document.createElement('div');
-    title.textContent = mode === 'companion' ? 'COMPANION · HUMAN OWNER PAIRING' : 'EXTERNAL AGENT LINK';
+    title.textContent = mode !== 'external' ? 'COMPANION · HUMAN OWNER PAIRING' : 'EXTERNAL AGENT LINK';
     title.style.cssText = 'font-size:18px;font-weight:700;letter-spacing:2px;color:#33e0ff';
     const note = document.createElement('div');
-    note.textContent = mode === 'companion'
-      ? 'Enter the host-private OWNER_KEY_FILE value. It is masked, used once, then cleared. Only this human can authorize the companion.'
-      : 'Local bridge only. Token and Owner pairing key are masked, never saved and never logged. You must click AUTHORIZE.';
+    note.textContent = mode !== 'external'
+      ? 'Enter the host-private OWNER pairing key. It is masked, used once, then cleared. Only this human can authorize the companion. ESC cancels.'
+      : 'Local bridge only. Token and Owner pairing key are masked, never saved and never logged. You must click AUTHORIZE. ESC cancels.';
     note.style.cssText = 'font-size:12px;line-height:1.5;color:#8fb8c8';
 
     const label = (text: string): HTMLLabelElement => {
@@ -624,13 +1024,20 @@ export class PauseScene extends Phaser.Scene {
       label('OWNER PAIRING KEY · from host private OWNER_KEY_FILE'), ownerKeyInput, status, row);
     root.append(panel);
     // Bubble-phase stop: the input still receives typing, but Phaser's window
-    // keyboard listeners never see it (no takeover, no ESC close).
+    // keyboard listeners never see it (no takeover). ESC closes ONLY this form.
     for (const type of ['keydown', 'keyup', 'keypress']) {
       root.addEventListener(type, (event) => event.stopPropagation());
     }
     for (const type of ['pointerdown', 'pointerup', 'click']) {
       root.addEventListener(type, (event) => event.stopPropagation());
     }
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        this.closeExternalLinkForm();
+      }
+    });
     root.addEventListener('submit', (event) => event.preventDefault());
 
     const setStatus = (text: string, color: string): void => {
@@ -638,9 +1045,7 @@ export class PauseScene extends Phaser.Scene {
       status.style.color = color;
     };
 
-    cancel.addEventListener('click', () => {
-      this.closeExternalLinkForm();
-    });
+    cancel.addEventListener('click', () => { this.closeExternalLinkForm(); });
 
     panel.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -659,19 +1064,31 @@ export class PauseScene extends Phaser.Scene {
         setStatus('OWNER PAIRING KEY must be 64 hex characters from OWNER_KEY_FILE', '#ff8a3c');
         return;
       }
-      // Clear BOTH secrets from the DOM immediately; the raw key goes only
-      // into a module-private #private field, never a global config.
+      // Clear BOTH secrets from the DOM immediately; the raw key goes only into
+      // the module-private link, never a global.
       tokenInput.value = '';
       ownerKeyInput.value = '';
       if (this.linkFormMode === 'companion-reauth') {
-        // Re-authorize on an existing live link: swap capability atomically.
+        // Re-authorize the EXISTING live link: atomic capability swap, old
+        // suggestions cancelled. Never creates a second CompanionLink.
+        setStatus('RE-AUTHORIZING…', '#ffd233');
         void parent.reauthorizeCompanion(ownerKey).then((ok) => {
           clearOwnerPairing(parent);
           if (ok) {
             setStatus('RE-AUTHORIZED · capability swapped', '#7ff0ff');
             this.closeExternalLinkForm();
+            this.lastCompanionSig = '';
+            this.refreshLlm(true);
           } else {
-            setStatus('RE-AUTH FAILED — active connection unchanged', '#ff8a3c');
+            // Be honest about the real post-failure state: the renderer may have
+            // degraded the link (CompanionLink.authorize clears its cap on a
+            // rejected reauth). Never claim "unchanged" when it is not.
+            const real = parent.companionStatus;
+            setStatus(real === 'CONNECTED'
+              ? 'RE-AUTH FAILED — active connection unchanged'
+              : `RE-AUTH FAILED — link ${real}`, '#ff8a3c');
+            this.lastCompanionSig = '';
+            this.refreshLlm(true);
           }
         });
         return;
@@ -682,19 +1099,20 @@ export class PauseScene extends Phaser.Scene {
           if (ok) {
             setStatus('CONNECTED · Owner authority registered', '#7ff0ff');
             this.closeExternalLinkForm();
+            this.lastCompanionSig = '';
           } else {
             setStatus('FAILED · owner pairing rejected — control stays human', '#ff8a3c');
           }
         });
         return;
       }
-      (globalThis as unknown as { __externalLinkConfig?: { bridgeUrl: string; token: string } })
-        .__externalLinkConfig = { bridgeUrl, token };
+      // External agent link: use the explicit form parameters only. Never write
+      // bridgeUrl/token into a window global.
       setStatus('AUTHORIZING…', '#ffd233');
       void parent.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
         if (ok) {
-          this.lastExternalSig = '';
-          this.refreshExternalLabels();
+          this.lastStatusSig = '';
+          this.refreshStatusTexts();
           setStatus('CONNECTED · external agent link is live', '#7ff0ff');
           this.closeExternalLinkForm();
         } else {
@@ -708,17 +1126,11 @@ export class PauseScene extends Phaser.Scene {
     });
 
     document.body.append(root);
-    this.externalLinkForm = root;
+    this.domForm = root;
+    // Absorb any pointer event that escapes the DOM bubble so it can never
+    // activate a Pause button at the same screen position.
+    this.formBlocker = this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, 0x000000, 0)
+      .setOrigin(0, 0).setDepth(10000).setInteractive();
     urlInput.focus();
-  }
-
-  private _button(cx: number, y: number, label: string, cb: () => void, color: number): void {
-    const w = 340;
-    const g = this.add.rectangle(cx, y, w, 46, color, 0.35).setOrigin(0.5, 0.5).setStrokeStyle(2, 0x33e0ff, 0.7);
-    const t = this.add.text(cx, y, label, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff', fontStyle: 'bold', letterSpacing: 3 }).setOrigin(0.5, 0.5);
-    const hit = this.add.rectangle(cx, y, w, 46, 0x000000, 0).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    hit.on('pointerdown', () => { audio.ui(); cb(); });
-    hit.on('pointerover', () => g.setFillStyle(color, 0.6));
-    hit.on('pointerout', () => g.setFillStyle(color, 0.35));
   }
 }
