@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 
 const SHOT_DIR = path.resolve(process.env.LS_SHOT_DIR ?? 'screens');
+const PORT = Number(process.env.PORT ?? 5173);
 
 // Boss-room regression: a real kind==='boss' room of the seed-1 map, player and
 // boss on the walkable tile closest to the room centre, zoom 1.25 and a
@@ -17,7 +18,7 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 
   mkdirSync(SHOT_DIR, { recursive: true });
-  await page.goto('http://localhost:5173/');
+  await page.goto(`http://localhost:${PORT}/`);
   await page.waitForFunction(() => !!(window as any).__game, { timeout: 10000 });
   await page.waitForTimeout(1000);
 

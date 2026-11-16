@@ -1017,6 +1017,9 @@ export class World {
       });
       e.attachSimTarget(target);
     }
+    // A direct core spawn is a committed mutation: invalidate the public
+    // read-only snapshot so the next `world.sim` reflects the new actor.
+    this.bumpSimVersion();
     return e;
   }
 
@@ -1036,6 +1039,7 @@ export class World {
       xpValue: ENEMY_STATS.boss_warden.xpValue, currencyValue: ENEMY_STATS.boss_warden.currencyValue
     });
     this.boss.attachSimTarget(target);
+    this.bumpSimVersion();
   }
 
   boss: Boss | null = null;
