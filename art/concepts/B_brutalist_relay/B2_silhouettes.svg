@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="'Bahnschrift', 'Microsoft YaHei', sans-serif">
+  <title>CONCEPT B · BRUTALIST RELAY — silhouette sheet</title>
+  <defs>
+    <filter id="sil"><feColorMatrix type="matrix" values="0 0 0 0 0.91  0 0 0 0 0.92  0 0 0 0 0.91  0 0 0 1 0"/></filter>
+    <pattern id="hz" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#1c1c1b"/><rect width="5" height="10" fill="#c9922f"/></pattern>
+    <!-- EXECUTOR: boxy signal-white workwear, battery pack, patina visor -->
+    <symbol id="exec" viewBox="-40 -110 80 120" overflow="visible">
+      <path d="M-9,0 V-26 M9,0 V-26" stroke="#c8ccc8" stroke-width="11"/>
+      <rect x="-20" y="-66" width="40" height="42" rx="5" fill="#e9ecea"/>
+      <rect x="-30" y="-64" width="12" height="30" fill="#9aa09b"/>
+      <rect x="-14" y="-90" width="28" height="24" rx="4" fill="#e9ecea"/>
+      <rect x="-6" y="-84" width="18" height="9" fill="#5fd3c4"/>
+      <circle cx="0" cy="-46" r="4" fill="#cfe8ff"/>
+      <path d="M12,-44 L50,-42" stroke="#222" stroke-width="8"/>
+    </symbol>
+    <!-- DRONE: inspection quadcopter with arm booms -->
+    <symbol id="drone" viewBox="-40 -80 80 90" overflow="visible">
+      <rect x="-20" y="-60" width="40" height="22" fill="#3a3b39"/>
+      <path d="M-38,-62 h22 M16,-62 h22" stroke="#555" stroke-width="5"/>
+      <path d="M-30,-66 v8 M30,-66 v8" stroke="#555" stroke-width="3"/>
+      <circle cx="0" cy="-49" r="6" fill="#e8452c"/>
+      <path d="M-10,-38 L-14,-24 M10,-38 L14,-24" stroke="#3a3b39" stroke-width="3"/>
+    </symbol>
+    <!-- STALKER: hydraulic floor grabber, hazard skirt -->
+    <symbol id="stalker" viewBox="-50 -50 100 60" overflow="visible">
+      <polygon points="-34,0 34,0 24,-28 -24,-28" fill="#3a3b39"/>
+      <rect x="-34" y="-8" width="68" height="8" fill="url(#hz)"/>
+      <path d="M-24,-28 l-20,-18 M24,-28 l20,-18" stroke="#555" stroke-width="7"/>
+      <rect x="-9" y="-24" width="18" height="5" fill="#e8452c"/>
+    </symbol>
+    <!-- HUNTER: crane pod on a cable -->
+    <symbol id="hunter" viewBox="-60 -90 120 100" overflow="visible">
+      <path d="M0,-90 V-60" stroke="#111" stroke-width="3"/>
+      <polygon points="-26,-60 26,-60 32,-32 0,-14 -32,-32" fill="#3a3b39"/>
+      <rect x="-26" y="-60" width="52" height="8" fill="url(#hz)"/>
+      <circle cx="0" cy="-34" r="7" fill="#e8452c"/>
+    </symbol>
+    <!-- SENTINEL: stamping press turret, enormous mass -->
+    <symbol id="sentinel" viewBox="-50 -140 100 150" overflow="visible">
+      <rect x="-40" y="-16" width="80" height="16" fill="#2a2b2a"/>
+      <rect x="-30" y="-110" width="60" height="94" fill="#3a3b39"/>
+      <rect x="-40" y="-130" width="80" height="22" fill="#55554f"/>
+      <rect x="-12" y="-80" width="24" height="10" fill="#e8452c"/>
+      <rect x="-30" y="-30" width="60" height="8" fill="url(#hz)"/>
+    </symbol>
+    <!-- WARDEN: relay gantry walker; three relay masts = shield nodes -->
+    <symbol id="warden" viewBox="-130 -230 260 240" overflow="visible">
+      <path d="M-90,0 L-60,-90 M90,0 L60,-90 M-40,0 L-30,-90 M40,0 L30,-90" stroke="#2a2b2a" stroke-width="12"/>
+      <rect x="-110" y="-130" width="220" height="44" fill="#3a3b39"/>
+      <rect x="-110" y="-96" width="220" height="10" fill="url(#hz)"/>
+      <rect x="-30" y="-176" width="60" height="50" fill="#55554f"/>
+      <circle cx="0" cy="-150" r="12" fill="#e8452c"/>
+      <g fill="#55554f"><rect x="-100" y="-210" width="10" height="80"/><rect x="90" y="-210" width="10" height="80"/><rect x="-5" y="-228" width="10" height="54"/></g>
+      <g fill="#eaf4ff"><circle cx="-95" cy="-214" r="7"/><circle cx="95" cy="-214" r="7"/><circle cx="0" cy="-230" r="7"/></g>
+    </symbol>
+  </defs>
+  <rect width="1600" height="900" fill="#121212"/>
+  <text x="40" y="52" fill="#e9ecea" font-size="24" letter-spacing="2">B · BRUTALIST RELAY — SILHOUETTES 轮廓表</text>
+  <text x="40" y="78" fill="#9a9a90" font-size="13">Row 1 = pure silhouette test. Row 2 = styled. Scale ≈ 2.4× in-game. 概念样稿，非实机截图。</text>
+  <path d="M40,370 H1560 M40,740 H1560" stroke="#55554f"/>
+  <g filter="url(#sil)">
+    <use href="#exec" x="80" y="150" width="160" height="240"/>
+    <use href="#drone" x="300" y="210" width="160" height="180"/>
+    <use href="#stalker" x="500" y="270" width="200" height="120"/>
+    <use href="#hunter" x="720" y="170" width="240" height="200"/>
+    <use href="#sentinel" x="960" y="90" width="200" height="300"/>
+    <use href="#warden" x="1180" y="25" width="390" height="360"/>
+  </g>
+  <rect x="40" y="420" width="1520" height="340" fill="#2f2f2d"/>
+  <ellipse cx="420" cy="600" rx="420" ry="150" fill="#ffb347" opacity="0.08"/>
+  <g>
+    <use href="#exec" x="80" y="520" width="160" height="240"/>
+    <use href="#drone" x="300" y="580" width="160" height="180"/>
+    <use href="#stalker" x="500" y="640" width="200" height="120"/>
+    <use href="#hunter" x="720" y="540" width="240" height="200"/>
+    <use href="#sentinel" x="960" y="460" width="200" height="300"/>
+    <use href="#warden" x="1180" y="395" width="390" height="360"/>
+  </g>
+  <g fill="#e9ecea" font-size="12" font-family="'Microsoft YaHei', sans-serif">
+    <text x="90" y="800">EXECUTOR 作业员</text><text x="90" y="818" fill="#9a9a90">方块工装 · 电池背包</text>
+    <text x="300" y="800">DRONE 巡检旋翼</text><text x="300" y="818" fill="#9a9a90">横向机臂 · 远程</text>
+    <text x="520" y="800">STALKER 液压抓取机</text><text x="520" y="818" fill="#9a9a90">梯形低底盘 · 警示裙边</text>
+    <text x="760" y="800">HUNTER 吊舱</text><text x="760" y="818" fill="#9a9a90">悬索 · 俯射</text>
+    <text x="990" y="800">SENTINEL 冲压塔</text><text x="990" y="818" fill="#9a9a90">最大体量 · 重甲</text>
+    <text x="1250" y="800">WARDEN 中继龙门</text><text x="1250" y="818" fill="#9a9a90">三根中继桅 = 护盾节点</text>
+  </g>
+  <text x="40" y="880" fill="#9a9a90" font-size="11">Risk noted: drone/stalker/sentinel share the rectangular "industrial box" class — silhouettes separate less than A; hazard paint carries identity instead of outline.</text>
+</svg>

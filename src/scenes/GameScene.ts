@@ -13,6 +13,7 @@ import { clearOwnerPairing, peekOwnerPairing } from '../ai-native/ownerPairing';
 import { WORLD_PROTOCOL_VERSION } from '../ai-native/worldProtocol';
 import { Player } from '../entities/Player';
 import type { RunCheckpoint } from '../types';
+import { CSS, DEPTH, FONT, INK, TIME } from '../art/survey/tokens';
 
 interface SceneConfig {
   seed?: number;
@@ -29,11 +30,12 @@ export class GameScene extends Phaser.Scene {
   fireHeld = false;
   paused = false;
 
-  // HUD elements
-  private hpBar!: Phaser.GameObjects.Graphics;
-  private hpFill!: Phaser.GameObjects.Rectangle;
-  private xpBar!: Phaser.GameObjects.Graphics;
-  private xpFill!: Phaser.GameObjects.Rectangle;
+  // HUD elements (AR-02: one per-frame Graphics + texts, Direction A field-manual style)
+  private hud!: Phaser.GameObjects.Graphics;
+  private hpShown = -1;
+  private previousHp = -1;
+  private hpLossFlash = 0;
+  private banners: Array<{ t: Phaser.GameObjects.Text; x: number; y: number }> = [];
   private txtHp!: Phaser.GameObjects.Text;
   private txtXp!: Phaser.GameObjects.Text;
   private txtCurrency!: Phaser.GameObjects.Text;
@@ -42,11 +44,11 @@ export class GameScene extends Phaser.Scene {
   private txtRoom!: Phaser.GameObjects.Text;
   private txtEnemies!: Phaser.GameObjects.Text;
   private txtBossHp!: Phaser.GameObjects.Text;
-  private bossBar!: Phaser.GameObjects.Graphics;
   private bossBarFill!: Phaser.GameObjects.Rectangle;
-  private minimap!: Phaser.GameObjects.Graphics;
+  private txtMap!: Phaser.GameObjects.Text;
   private txtStats!: Phaser.GameObjects.Text;
   private timer!: Phaser.GameObjects.Text;
+  private txtVitals!: Phaser.GameObjects.Text;
   // AI-NATIVE-02 P1 control HUD (honest local-demo labelling).
   private txtControl!: Phaser.GameObjects.Text;
   private txtAiAction!: Phaser.GameObjects.Text;
@@ -218,7 +220,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.setupHud();
-    this.setupMinimap();
     // P1: fresh run starts with human control; no AI state is carried over from
     // a previous run / scene instance. Explicit rather than relying on defaults.
     this.world.player.control.onRunStart();
@@ -277,7 +278,7 @@ export class GameScene extends Phaser.Scene {
     this.world.player.control.humanTakeover('human-input');
     this.world.player.clearHeldInput();
     this.fireHeld = false;
-    this.refreshHud();
+    this.refreshHud(0);
   }
 
   private setupHud(): void {
@@ -288,14 +289,15 @@ export class GameScene extends Phaser.Scene {
     // Placing elements individually (instead of in a scaled container) keeps the far-right
     // text inside the camera's culling bounds. HUD_DEPTH sits above the lighting overlay (1)
     // and all world entities.
-    const HUD_DEPTH = 500;
-    const style = { fontFamily: 'monospace', fontStyle: 'bold' };
+    // AR-02 Direction A "field survey manual" (A4): hairline frames + corner ticks,
+    // monospace numerals, segmented vitals. Priority: vitals (top-left) > hostiles /
+    // weapon (top-right) > survey map (bottom-right) > run stats (bottom-left).
+    // The 480x320 combat core stays clear (03 §4).
+    const HUD_DEPTH = DEPTH.hud;
     const add = this.add;
     // F-06: FIT scales the 1280x720 canvas down (0.625 at 800x600). Use larger
     // logical fonts and more vertical room in compact viewports instead of
     // hiding rows, relying on z-index, or calling 7.5 CSS px "readable".
-    // Phaser's displayScale is not a reliable FIT ratio across builds; use the
-    // actual viewport-to-logical-canvas ratio (FIT + CENTER_BOTH).
     const scale = Math.min(
       window.innerWidth / GAME.WINDOW_W,
       window.innerHeight / GAME.WINDOW_H
@@ -304,7 +306,7 @@ export class GameScene extends Phaser.Scene {
     this.hudLayout = compact
       ? {
           weaponY: 16, roomY: 42, enemiesY: 68,
-          controlY: 96, actionY: 124, targetY: 152, linkY: 180, echoY: 208, signalY: 226,
+          controlY: 96, actionY: 124, targetY: 152, linkY: 180, echoY: 208, signalY: 236,
           helpY: GAME.WINDOW_H - 52, baseRowFont: '17px', controlFont: '17px', rowFont: '17px',
           helpFont: '16px', helpColor: '#8fb8c8'
         }
@@ -314,29 +316,35 @@ export class GameScene extends Phaser.Scene {
           helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
           helpFont: '13px', helpColor: '#8fb8c8'
         };
-
-    // Graphics bars: fillRect() draws at fixed local offsets with origin (0,0), so the bar
-    // origin (x,y) is the rect's top-left. lockHud pins it to that point via the camera
-    // transform, so fillRect() lands on-screen. (originX/Y set directly: Graphics.setOrigin
-    // is not present in this Phaser build.)
-    this.hpBar = add.graphics().setDepth(HUD_DEPTH);
-    (this.hpBar as any).originX = 0; (this.hpBar as any).originY = 0;
-    this.xpBar = add.graphics().setDepth(HUD_DEPTH);
-    (this.xpBar as any).originX = 0; (this.xpBar as any).originY = 0;
-    this.bossBar = add.graphics().setDepth(HUD_DEPTH);
-    (this.bossBar as any).originX = 0; (this.bossBar as any).originY = 0;
-
-    // Rectangles + texts: their origin is placed at the target screen position by lockHud.
-    this.hpFill = add.rectangle(0, 0, 0, 12, 0xff3355, 1).setOrigin(0, 0.5).setDepth(HUD_DEPTH);
-    this.txtHp = add.text(128, 20, 'HP 100', { ...style, fontSize: '16px', color: '#eafaff' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
-    this.xpFill = add.rectangle(0, 0, 0, 6, 0x33e0ff, 1).setOrigin(0, 0.5).setDepth(HUD_DEPTH);
-    this.txtXp = add.text(128, 40, 'XP 0', { ...style, fontSize: '12px', color: '#8fb8c8' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
-    this.txtCurrency = add.text(20, 60, 'CREDITS 0', { fontFamily: 'monospace', fontSize: '14px', color: '#ffd233' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
-    this.txtLevel = add.text(20, 80, 'LV 1', { fontFamily: 'monospace', fontSize: '14px', color: '#33e0ff' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
     const L = this.hudLayout;
-    this.txtWeapon = add.text(GAME.WINDOW_W - 20, L.weaponY, '', { fontFamily: 'monospace', fontSize: L.baseRowFont, color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtRoom = add.text(GAME.WINDOW_W - 20, L.roomY, '', { fontFamily: 'monospace', fontSize: L.baseRowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtEnemies = add.text(GAME.WINDOW_W - 20, L.enemiesY, '', { fontFamily: 'monospace', fontSize: L.baseRowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    const mono = (size: number, color: string, bold = false) =>
+      ({ fontFamily: FONT.mono, fontSize: `${size}px`, color, fontStyle: bold ? 'bold' : 'normal' });
+    const art = compact
+      ? { tiny: 16, small: 16, body: 17, title: 17, boss: 18 }
+      : { tiny: 10, small: 11, body: 12, title: 14, boss: 16 };
+    // One Graphics for every HUD shape; pinned at screen (0,0) by lockHud.
+    this.hud = add.graphics().setDepth(HUD_DEPTH);
+    (this.hud as any).originX = 0; (this.hud as any).originY = 0;
+    this.hpShown = -1; this.previousHp = -1; this.hpLossFlash = 0;
+
+    this.txtVitals = add.text(20, 14, 'EX-17 · VITALS', mono(art.tiny, CSS.knownLow)).setLetterSpacing(2).setDepth(HUD_DEPTH);
+    this.txtHp = add.text(230, 25, '100 / 100', mono(compact ? 17 : 15, CSS.known, true)).setOrigin(0, 0).setDepth(HUD_DEPTH);
+    this.txtXp = add.text(230, 44, 'XP 0/30', mono(art.small, CSS.knownMid)).setOrigin(0, 0).setDepth(HUD_DEPTH);
+    this.txtCurrency = add.text(20, 58, 'CREDITS 0', mono(art.body, CSS.known)).setOrigin(0, 0).setDepth(HUD_DEPTH);
+    this.txtLevel = add.text(20, 76, 'LV 1', mono(art.body, CSS.known, true)).setOrigin(0, 0).setDepth(HUD_DEPTH);
+    this.timer = add.text(20, 98, '', mono(art.small, CSS.knownMid)).setOrigin(0, 0).setDepth(HUD_DEPTH);
+    this.txtWeapon = add.text(GAME.WINDOW_W - 20, L.weaponY, '', mono(compact ? 17 : 14, CSS.known, true)).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtRoom = add.text(GAME.WINDOW_W - 20, L.roomY, '', mono(art.small, CSS.knownMid)).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtEnemies = add.text(GAME.WINDOW_W - 20, L.enemiesY, '', mono(art.body, CSS.known, true)).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtBossHp = add.text(GAME.WINDOW_W / 2, 30, '', mono(art.boss, CSS.known, true)).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
+    // Boss fill: left edge pinned (displayOrigin set in refreshBoss) so it drains to the
+    // right and stays inside its frame (audit 7.9: fill used to start at the centre).
+    this.bossBarFill = add.rectangle(GAME.WINDOW_W / 2, 52, 0, 8, INK.hostile, 1).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
+    this.txtMap = add.text(GAME.WINDOW_W - 20, GAME.WINDOW_H - 132, '', mono(art.tiny, CSS.knownMid)).setOrigin(1, 0).setLetterSpacing(1).setDepth(HUD_DEPTH);
+    this.txtStats = add.text(20, GAME.WINDOW_H - 22, '', mono(art.small, CSS.knownLow)).setOrigin(0, 0).setDepth(HUD_DEPTH);
+
+    // AI-NATIVE-02 control rows (kept from the authoritative world branch, merged
+    // with the survey HUD layout rather than replacing it).
     this.txtControl = add.text(GAME.WINDOW_W - 20, L.controlY, '', { fontFamily: 'monospace', fontSize: L.controlFont, fontStyle: 'bold', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtAiAction = add.text(GAME.WINDOW_W - 20, L.actionY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtAiTarget = add.text(GAME.WINDOW_W - 20, L.targetY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
@@ -344,36 +352,24 @@ export class GameScene extends Phaser.Scene {
     this.txtEcho = add.text(GAME.WINDOW_W - 20, L.echoY, 'ECHO OFF · PAUSE > ECHO COMPANION', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#33e0ff' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtSignal = add.text(GAME.WINDOW_W - 20, L.signalY, 'RELAY OFF · NO DEVICE', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
-    this.txtBossHp = add.text(GAME.WINDOW_W / 2, 30, '', { fontFamily: 'monospace', fontSize: '20px', color: '#ff3355', fontStyle: 'bold' }).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
-    this.bossBarFill = add.rectangle(GAME.WINDOW_W / 2, 52, 0, 8, 0xff3355, 1).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
-    this.timer = add.text(20, 104, '', { fontFamily: 'monospace', fontSize: '12px', color: '#5a7480' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
-    this.txtStats = add.text(20, GAME.WINDOW_H - 20, '', { fontFamily: 'monospace', fontSize: '12px', color: '#3d535d' }).setOrigin(0, 0).setDepth(HUD_DEPTH);
   }
 
   private lockHud(): void {
     const z = this.cam.zoom || 1;
     const iz = 1 / z;
     const world = (sx: number, sy: number) => this.cam.getWorldPoint(sx, sy);
-    // Graphics bars: their fillRect() draws at fixed local offsets with origin (0,0), so
-    // pin the element origin to the rect's top-left in world space.
-    const p = world(18, 16);
-    this.hpBar.x = p.x; this.hpBar.y = p.y; this.hpBar.scaleX = iz; this.hpBar.scaleY = iz;
-    const q = world(18, 38);
-    this.xpBar.x = q.x; this.xpBar.y = q.y; this.xpBar.scaleX = iz; this.xpBar.scaleY = iz;
-    const rb = world(GAME.WINDOW_W / 2 - 160, 44);
-    this.bossBar.x = rb.x; this.bossBar.y = rb.y; this.bossBar.scaleX = iz; this.bossBar.scaleY = iz;
-    // Everything else: place the element's origin at its on-screen target via the camera's
-    // own transform, so it stays fixed on screen regardless of scroll/zoom.
+    // Place each element's origin at its on-screen target via the camera's own
+    // transform, so it stays fixed on screen regardless of scroll/zoom.
     const place = (o: { x: number; y: number; scaleX: number; scaleY: number }, tx: number, ty: number) => {
       const w = world(tx, ty);
       o.x = w.x; o.y = w.y; o.scaleX = iz; o.scaleY = iz;
     };
-    place(this.hpFill, 20, 24);
-    place(this.txtHp, 128, 20);
-    place(this.xpFill, 20, 44);
-    place(this.txtXp, 128, 40);
-    place(this.txtCurrency, 20, 60);
-    place(this.txtLevel, 20, 80);
+    place(this.hud, 0, 0);
+    place(this.txtVitals, 20, 14);
+    place(this.txtHp, 230, 25);
+    place(this.txtXp, 230, 44);
+    place(this.txtCurrency, 20, 58);
+    place(this.txtLevel, 20, 76);
     const L = this.hudLayout;
     place(this.txtWeapon, GAME.WINDOW_W - 20, L.weaponY);
     place(this.txtRoom, GAME.WINDOW_W - 20, L.roomY);
@@ -387,15 +383,29 @@ export class GameScene extends Phaser.Scene {
     place(this.txtHelp, 20, L.helpY);
     place(this.txtBossHp, GAME.WINDOW_W / 2, 30);
     place(this.bossBarFill, GAME.WINDOW_W / 2, 52);
-    place(this.timer, 20, 104);
-    place(this.txtStats, 20, GAME.WINDOW_H - 20);
-    const m = world(GAME.WINDOW_W - 160, GAME.WINDOW_H - 140);
-    this.minimap.x = m.x; this.minimap.y = m.y; this.minimap.scaleX = iz; this.minimap.scaleY = iz;
+    place(this.timer, 20, 98);
+    place(this.txtMap, GAME.WINDOW_W - 20, GAME.WINDOW_H - 132);
+    place(this.txtStats, 20, GAME.WINDOW_H - 22);
+    for (const b of this.banners) if (b.t.scene) place(b.t, b.x, b.y);
   }
 
-  private setupMinimap(): void {
-    this.minimap = this.add.graphics().setDepth(500);
-    (this.minimap as any).originX = 0; (this.minimap as any).originY = 0;
+  /**
+   * Screen-locked banner in the top band (03 §4: never over the player's head).
+   * Text objects are pinned every frame by lockHud and fade over TIME.toast.
+   */
+  private banner(title: string, sub: string, color: string = CSS.known): void {
+    this.banners = this.banners.filter((b) => b.t.scene);
+    for (const b of this.banners) b.t.destroy();
+    this.banners = [];
+    const mk = (y: number, text: string, size: number, col: string, bold: boolean) => {
+      const t = this.add.text(0, 0, text, { fontFamily: FONT.mono, fontSize: `${size}px`, color: col, fontStyle: bold ? 'bold' : 'normal' })
+        .setOrigin(0.5, 0.5).setLetterSpacing(bold ? 4 : 1).setDepth(DEPTH.hud);
+      this.banners.push({ t, x: GAME.WINDOW_W / 2, y });
+      this.tweens.add({ targets: t, alpha: { from: 1, to: 0 }, delay: TIME.toast * 0.55, duration: TIME.toast * 0.45, onComplete: () => t.destroy() });
+    };
+    mk(108, title, 16, color, true);
+    if (sub) mk(128, sub, 11, CSS.knownMid, false);
+    // lockHud() pins these before the next render (update always runs first).
   }
 
   update(_time: number, delta: number): void {
@@ -484,40 +494,87 @@ export class GameScene extends Phaser.Scene {
 
     this.companionFrame += 1;
     if (this.companionLink && this.companionFrame % 30 === 0) void this.companionLink.pushObservation();
-    this.refreshHud();
+    this.refreshHud(Math.max(0, delta) / 1000);
     this.refreshMinimap();
     this.refreshBoss();
     this.updateStats();
   }
 
-  private refreshHud(): void {
+  /** Hairline frame corner ticks (survey-manual frame language, A4). */
+  private ticks(x0: number, y0: number, x1: number, y1: number, len = 6, alpha = 0.55): void {
+    const g = this.hud;
+    g.lineStyle(1, INK.known, alpha);
+    for (const [x, y, sx, sy] of [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]]) {
+      g.lineBetween(x, y, x + sx * len, y); g.lineBetween(x, y, x, y + sy * len);
+    }
+  }
+
+  private refreshHud(dt: number): void {
+    const g = this.hud;
+    g.clear();
     const p = this.world.player;
     const w = p.weapon;
-    const hpRatio = p.data.hp / p.data.maxHp;
-    this.hpBar.clear();
-    this.hpBar.fillStyle(0x0d1822, 1);
-    // Graphics bars are pinned by lockHud() at their screen-space top-left,
-    // so draw from the local origin instead of adding the screen offset twice.
-    this.hpBar.fillRect(0, 0, 108, 16);
-    this.hpFill.width = 104 * hpRatio;
-    this.txtHp.setText(`HP ${Math.ceil(p.data.hp)}/${p.data.maxHp}`);
-    const xpRatio = p.data.xp / p.data.xpToNext;
-    this.xpBar.clear();
-    this.xpBar.fillStyle(0x0d1822, 1);
-    this.xpBar.fillRect(0, 0, 108, 10);
-    this.xpFill.width = 104 * xpRatio;
+
+    // ---- vitals: segmented HP (10 HP / segment), recent loss flashes vermilion then drains
+    g.fillStyle(INK.panel, 0.55); g.fillRect(12, 8, 300, 112);
+    this.ticks(12, 8, 312, 120);
+    const hp = Math.max(0, p.data.hp), max = p.data.maxHp;
+    if (this.hpShown < 0 || hp > this.hpShown) this.hpShown = hp;
+    if (this.previousHp >= 0 && hp < this.previousHp) this.hpLossFlash = TIME.lowHpPulse / 3000;
+    this.previousHp = hp;
+    this.hpLossFlash = Math.max(0, this.hpLossFlash - dt);
+    if (this.hpLossFlash <= 0) this.hpShown = Math.max(hp, this.hpShown - max * dt * 1.5);
+    const n = Math.max(5, Math.min(20, Math.round(max / 10)));
+    const bx = 20, by = 28, bw = 200, bh = 11, gap = 2;
+    const sw = (bw - gap * (n - 1)) / n;
+    const low = hp / max < 0.3;
+    const pulse = low ? 0.5 + 0.5 * Math.sin((this.world.clock * 2 * Math.PI * 1000) / TIME.lowHpPulse) : 0;
+    for (let i = 0; i < n; i++) {
+      const x = bx + i * (sw + gap);
+      const segLo = (i / n) * max, segHi = ((i + 1) / n) * max;
+      g.fillStyle(INK.mass, 1); g.fillRect(x, by, sw, bh);
+      const fill = Math.max(0, Math.min(1, (hp - segLo) / (segHi - segLo)));
+      const lost = Math.max(0, Math.min(1, (this.hpShown - segLo) / (segHi - segLo)));
+      if (lost > fill) { g.fillStyle(INK.hostile, 0.9); g.fillRect(x + sw * fill, by, sw * (lost - fill), bh); }
+      if (fill > 0) {
+        g.fillStyle(low ? (pulse > 0.5 ? INK.hostile : INK.known) : INK.known, 1);
+        g.fillRect(x, by, sw * fill, bh);
+      }
+      g.lineStyle(1, INK.known, 0.35); g.strokeRect(x + 0.5, by + 0.5, sw - 1, bh - 1);
+    }
+    this.txtHp.setText(`${Math.ceil(hp)} / ${max}`);
+    // XP hairline bar
+    const xpRatio = Math.max(0, Math.min(1, p.data.xp / p.data.xpToNext));
+    g.fillStyle(INK.mass, 1); g.fillRect(bx, 46, bw, 4);
+    g.fillStyle(INK.knownMid, 0.85); g.fillRect(bx, 46, bw * xpRatio, 4);
+    g.lineStyle(1, INK.known, 0.3);
+    for (let i = 1; i < 4; i++) g.lineBetween(bx + (bw * i) / 4, 44, bx + (bw * i) / 4, 52);
     this.txtXp.setText(`XP ${p.data.xp}/${p.data.xpToNext}`);
     this.txtCurrency.setText(`CREDITS ${p.data.currency}`);
     this.txtLevel.setText(`LV ${p.data.level}`);
+    const secs = Math.floor((this.time.now - this.runStart) / 1000);
+    this.timer.setText(`T+${formatDuration(Math.max(0, secs))}`);
+
+    // ---- weapon / room / hostiles (top-right)
+    g.fillStyle(INK.panel, 0.55); g.fillRect(1000, 8, 268, 84);
+    this.ticks(1000, 8, 1268, 92);
     const weaponState = p.data.weapons.find(({ key }) => key === p.data.weaponKey);
     const ammo = weaponState && weaponState.magazine > 0
       ? weaponState.reloading ? ' · RELOADING' : ` · ${weaponState.ammo}/${weaponState.magazine}`
-      : '';
+      : ' · ∞';
     this.txtWeapon.setText(`${w.name} [${w.icon}]${ammo}`);
     const room = this.world.currentRoom();
-    if (room) this.txtRoom.setText(`${room.kind.toUpperCase()} ROOM`);
+    const total = this.world.map.rooms.length;
+    if (room) this.txtRoom.setText(`R-${String(room.id).padStart(2, '0')} · ${room.kind.toUpperCase()} · SURVEYED ${this.world.surveyedRooms()}/${total}`);
     const aliveEnemies = this.world.enemies.length + (this.world.boss ? 1 : 0);
     this.txtEnemies.setText(`HOSTILES ${aliveEnemies}`);
+    // one hollow pip per hostile (shape-coded, not colour-coded)
+    for (let i = 0; i < Math.min(aliveEnemies, 16); i++) {
+      const x = 1258 - i * 10, y = 80;
+      g.lineStyle(1.2, INK.known, 0.8);
+      g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.strokePath();
+    }
+
     // AI-NATIVE-02 P1: control ownership, last executed AI action/target, and
     // the truthful link state (no external agent is attached in this phase).
     const control = p.control.snapshot();
@@ -549,42 +606,65 @@ export class GameScene extends Phaser.Scene {
       this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
     }
     this.refreshSignalHud();
-    const secs = Math.floor((this.time.now - this.runStart) / 1000);
-    this.timer.setText(formatDuration(Math.max(0, secs)));
     const settings = saveSystem.getSettings();
     audio.setVolumes(settings.masterVolume, settings.sfxVolume);
   }
 
+  /** Survey map: observed rooms solid, unobserved inferred (dashed), executor = cyan dot. */
   private refreshMinimap(): void {
-    const m = this.minimap;
-    m.clear();
+    const g = this.hud;
     const map = this.world.map;
-    const scale = 0.25;
-    const ox = GAME.WINDOW_W - 160, oy = GAME.WINDOW_H - 140;
-    m.fillStyle(0x0d1822, 0.6);
-    m.fillRect(ox - 4, oy - 4, map.width * scale + 8, map.height * scale + 8);
-    for (const r of map.rooms) {
-      const inRoom = this.world.currentRoom()?.id === r.id;
-      m.fillStyle(inRoom ? 0x33e0ff : 0x2a3a44, 1);
-      m.fillRect(ox + r.gx * scale, oy + r.gy * scale, Math.max(4, r.w * scale), Math.max(4, r.h * scale));
+    const rooms = map.rooms;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const r of rooms) { minX = Math.min(minX, r.gx); minY = Math.min(minY, r.gy); maxX = Math.max(maxX, r.gx + r.w); maxY = Math.max(maxY, r.gy + r.h); }
+    const box = { x: GAME.WINDOW_W - 196, y: GAME.WINDOW_H - 114, w: 176, h: 96 };
+    const s = Math.min(box.w / Math.max(1, maxX - minX), box.h / Math.max(1, maxY - minY));
+    const ox = box.x + (box.w - (maxX - minX) * s) / 2 - minX * s;
+    const oy = box.y + (box.h - (maxY - minY) * s) / 2 - minY * s;
+    g.fillStyle(INK.panel, 0.55); g.fillRect(box.x - 8, box.y - 26, box.w + 16, box.h + 34);
+    this.ticks(box.x - 8, box.y - 26, box.x + box.w + 8, box.y + box.h + 8);
+    g.lineStyle(1, INK.known, 0.25);
+    for (const r of rooms) for (const c of r.connectedTo) {
+      if (c < r.id) continue;
+      const t = rooms[c];
+      g.lineBetween(ox + (r.gx + r.w / 2) * s, oy + (r.gy + r.h / 2) * s, ox + (t.gx + t.w / 2) * s, oy + (t.gy + t.h / 2) * s);
     }
-    const px = ox + this.world.player.x * scale;
-    const py = oy + this.world.player.y * scale;
-    m.fillStyle(0xff8a3c, 1);
-    m.fillRect(px - 2, py - 2, 4, 4);
+    const cur = this.world.currentRoom()?.id;
+    for (const r of rooms) {
+      const x = ox + r.gx * s, y = oy + r.gy * s, w = Math.max(4, r.w * s), h = Math.max(4, r.h * s);
+      if (this.world.renderer?.isObserved(r.id)) {
+        g.fillStyle(r.id === cur ? INK.massLift : INK.mass, 1); g.fillRect(x, y, w, h);
+        g.lineStyle(r.id === cur ? 1.6 : 1, INK.known, r.id === cur ? 1 : 0.7); g.strokeRect(x, y, w, h);
+      } else {
+        g.lineStyle(1, INK.known, 0.35);
+        for (const [x0, y0, x1, y1] of [[x, y, x + w, y], [x + w, y, x + w, y + h], [x + w, y + h, x, y + h], [x, y + h, x, y]]) {
+          const len = Math.hypot(x1 - x0, y1 - y0);
+          for (let d = 0; d < len; d += 5) {
+            const e = Math.min(len, d + 2.5);
+            g.lineBetween(x0 + ((x1 - x0) * d) / len, y0 + ((y1 - y0) * d) / len, x0 + ((x1 - x0) * e) / len, y0 + ((y1 - y0) * e) / len);
+          }
+        }
+      }
+    }
+    g.fillStyle(INK.interact, 1);
+    g.fillCircle(ox + this.world.player.x * s, oy + this.world.player.y * s, 2.5);
+    this.txtMap.setText(`SURVEY MAP · ${this.world.surveyedRooms()}/${rooms.length}`);
   }
 
   private refreshBoss(): void {
     const boss = this.world.boss;
-    if (!boss) { this.bossBar.clear(); this.txtBossHp.setText(''); return; }
+    if (!boss) { this.bossBarFill.width = 0; this.txtBossHp.setText(''); return; }
+    const g = this.hud;
     const ratio = Math.max(0, boss._hp / boss.maxHp());
-    this.bossBar.clear();
-    this.bossBar.fillStyle(0x0d1822, 1);
-    this.bossBar.fillRect(0, 0, 320, 24);
+    const x0 = GAME.WINDOW_W / 2 - 160;
+    g.fillStyle(INK.panel, 0.7); g.fillRect(x0, 44, 320, 16);
+    g.lineStyle(1, INK.known, 0.5); g.strokeRect(x0 + 0.5, 44.5, 319, 15);
+    for (const f of [1 / 3, 2 / 3]) g.lineBetween(x0 + 320 * f, 40, x0 + 320 * f, 64); // phase thresholds
+    this.ticks(x0 - 6, 18, x0 + 326, 66, 6, 0.4);
     this.bossBarFill.width = 316 * ratio;
-    this.txtBossHp.setText(`★ THE WARDEN — PHASE ${boss.phase} ★`);
-    // Do not overwrite bossBarFill.y: lockHud() already pinned it to screen y=52.
-    // The old line wrote raw world coordinate 48 and moved the red fill offscreen.
+    // Left-anchored fill inside the frame [482, 798] — independent of the current width.
+    this.bossBarFill.setDisplayOrigin(158, 4);
+    this.txtBossHp.setText(`THE WARDEN · PHASE ${boss.phase} / 3`);
   }
 
   private updateStats(): void {
@@ -667,7 +747,7 @@ export class GameScene extends Phaser.Scene {
     this.paused = true;
     this.world.player.control.pause();
     this.world.player.clearHeldInput();
-    this.refreshHud();
+    this.refreshHud(0);
     this.world.resetSimulationAccumulator();
     this.cameras.main.setAlpha(0.5);
     this.scene.launch('LevelUpScene', { level, onClose: () => this.onLevelUpClosed() });
@@ -684,13 +764,13 @@ export class GameScene extends Phaser.Scene {
       this.paused = false;
       this.world.player.control.resume();
       this.world.player.clearHeldInput();
-      this.refreshHud();
+      this.refreshHud(0);
       // Commands queued while the overlay was open (upgrade/loot) commit on the
       // next real frame tick; do not force a tick here. The accumulator is reset
       // so a paused overlay does not bank time, and the queued command is
       // reported as pending until the normal update commits it.
       this.world.resetSimulationAccumulator();
-      this.refreshHud();
+      this.refreshHud(0);
       if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
       this.cameras.main.setAlpha(1);
     }
@@ -718,12 +798,7 @@ export class GameScene extends Phaser.Scene {
         });
       }
     }
-    const p = this.world.player;
-    const s = this.world.worldToScreen(p.x, p.y);
-    const t = this.add.text(s.x, s.y - 40, `${room.kind.toUpperCase()} ROOM`, {
-      fontFamily: 'monospace', fontSize: '16px', color: '#33e0ff'
-    }).setOrigin(0.5, 0.5).setDepth(200);
-    this.tweens.add({ targets: t, alpha: 0, duration: 1200, onComplete: () => t.destroy() });
+    this.banner(`R-${String(room.id).padStart(2, '0')} · ${room.kind.toUpperCase()}`, 'SURVEY REGISTERED');
   }
 
   private onRoomCleared(room: RoomInfo): void {
@@ -732,12 +807,7 @@ export class GameScene extends Phaser.Scene {
     // do not flash a combat banner or play the clear cue for this synthetic event.
     if (room.kind === 'start') return;
     audio.wave();
-    const p = this.world.player;
-    const s = this.world.worldToScreen(p.x, p.y);
-    const t = this.add.text(s.x, s.y - 40, 'ROOM CLEARED', {
-      fontFamily: 'monospace', fontSize: '16px', color: '#33e0ff'
-    }).setOrigin(0.5, 0.5).setDepth(200);
-    this.tweens.add({ targets: t, alpha: 0, duration: 1200, onComplete: () => t.destroy() });
+    this.banner('ROOM CLEARED', `R-${String(room.id).padStart(2, '0')}`, CSS.interact);
   }
 
   private onDeath(): void {
@@ -773,7 +843,8 @@ export class GameScene extends Phaser.Scene {
     audio.bossroar();
     const p = this.world.player;
     const s = this.world.worldToScreen(p.x, p.y);
-    const t = this.add.text(s.x, s.y - 40, 'THE WARDEN DESTROYED', {
+    const labelY = Math.max(40, p.sprite.displayOriginY * p.sprite.scaleY + 14);
+    const t = this.add.text(s.x, s.y - labelY, 'THE WARDEN DESTROYED', {
       fontFamily: 'monospace', fontSize: '20px', color: '#ffd233', fontStyle: 'bold'
     }).setOrigin(0.5, 0.5).setDepth(200);
     this.tweens.add({ targets: t, alpha: 0, duration: 1200, onComplete: () => t.destroy() });
@@ -804,7 +875,7 @@ export class GameScene extends Phaser.Scene {
     // Pause clears any pending signal key debounce so a held key cannot fire
     // again after resume without a fresh press.
     this.signalKeyCooldown = false;
-    this.refreshHud();
+    this.refreshHud(0);
     this.world.resetSimulationAccumulator();
     this.scene.launch('PauseScene', { mode: 'pause' });
   }
@@ -820,7 +891,7 @@ export class GameScene extends Phaser.Scene {
     // tick; do not force a tick on resume. The accumulator is reset so the
     // paused overlay banks no time, and the UI keeps QUEUED until commit.
     this.world.resetSimulationAccumulator();
-    this.refreshHud();
+    this.refreshHud(0);
     if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
   }
 
@@ -867,7 +938,7 @@ export class GameScene extends Phaser.Scene {
     // authority. Set the companion READ_ONLY in the SAME human action.
     this.companionLink?.setOwnerMode('external');
     clearOwnerPairing(this);
-    this.refreshHud();
+    this.refreshHud(0);
     return true;
   }
 
@@ -886,12 +957,12 @@ export class GameScene extends Phaser.Scene {
   enableEcho(): void {
     this.takeoverFromHumanInput();
     this.world.enableEcho();
-    this.refreshHud();
+    this.refreshHud(0);
   }
 
   disableEcho(): void {
     this.world.disableEcho();
-    this.refreshHud();
+    this.refreshHud(0);
   }
 
   setEchoMode(mode: 'follow' | 'hold' | 'move-to'): void {
@@ -905,17 +976,17 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.world.setEchoMode(mode);
     }
-    this.refreshHud();
+    this.refreshHud(0);
   }
 
   confirmEchoAssist(): void {
     this.world.confirmEchoAssist();
-    this.refreshHud();
+    this.refreshHud(0);
   }
 
   revokeEchoAssist(): void {
     this.world.echoController.revokeAssist();
-    this.refreshHud();
+    this.refreshHud(0);
   }
 
   /**
@@ -1036,7 +1107,7 @@ export class GameScene extends Phaser.Scene {
     }
     control.enableAi(this.world.clock);
     this.companionLink?.setOwnerMode('ai');
-    this.refreshHud();
+    this.refreshHud(0);
     return true;
   }
 
@@ -1061,7 +1132,7 @@ export class GameScene extends Phaser.Scene {
     this.world.player.control.pause();
     this.world.player.clearHeldInput();
     this.fireHeld = false;
-    this.refreshHud();
+    this.refreshHud(0);
     this.world.resetSimulationAccumulator();
     this.scene.launch('PauseScene', { mode: 'inventory' });
   }

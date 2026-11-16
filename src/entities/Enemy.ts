@@ -8,6 +8,8 @@ import { World } from '../world/World';
 import { axisSlideToward, distanceWithin, rangedAttackDescriptor } from '../world/sim/rules';
 import type { SimDroneState, SimTarget } from '../world/sim/core';
 import { toCombatPort, type ActorCombatPort, type ActorTargetView, type PlayerLikeCombat } from '../world/actorTarget';
+import { HostileView } from '../art/survey/ActorView';
+import { actorDepth } from '../art/survey/tokens';
 
 export interface EnemySpec {
   kind: EnemyKind; x: number; y: number; room: number; depth: number;
@@ -23,6 +25,9 @@ export class Enemy {
   private _attackTimer = 0;
   private _wanderTimer = 0;
   private hitDir = { x: 0, y: 0 };
+  /** Visual facing (grid-space angle); replaces sprite rotation which also spun the baked shadow. */
+  facing = 0;
+  view: HostileView | null = null;
   /** C2: drone state is owned by World.sim.drones; other kinds stay legacy. */
   private simDrone: SimDroneState | null = null;
   private simTarget: SimTarget | null = null;
@@ -78,6 +83,8 @@ export class Enemy {
     stats.attackRange /= TILE;
     this.sprite = world.scene.add.sprite(x, y, this.texture(kind));
     this.sprite.setDepth(90);
+    // Visual phase offset from spawn position only (no RNG draw) so idle cycles desync.
+    this.view = new HostileView(this.sprite, kind, ((x * 7 + y * 13) % 10) / 10);
     this._wx = x;
     this._wy = y;
     this.data = {
@@ -114,11 +121,15 @@ export class Enemy {
   project(): void {
     const s = this.world.worldToScreen(this.wx, this.wy);
     this.sprite.setPosition(s.x, s.y);
-    this.sprite.setDepth(Math.floor(this.wy));
+    // Iso depth (wx + wy), replacing floor(wy) which drew front/back in the wrong order.
+    this.sprite.setDepth(actorDepth(this.wx, this.wy));
   }
 
   // HP stored on sprite? We'll keep hp in a parallel field.
   get hp(): number { return this._hp; }
+
+  /** Approx. head height in px for damage-number placement. */
+  headPx(): number { return this.view ? -this.view.art.apertureY + 18 : 40; }
 
   initHp(): void { this.__hp = this.data.stats.maxHp; }
 
@@ -194,8 +205,7 @@ export class Enemy {
   }
 
   private facePlayer(player: ActorTargetView): void {
-    const a = Math.atan2(player.y - this.y, player.x - this.x);
-    this.sprite.setRotation(a);
+    this.facing = Math.atan2(player.y - this.y, player.x - this.x);
   }
 
   private moveToPlayer(dt: number, player: ActorTargetView): void {
@@ -261,11 +271,14 @@ export class Enemy {
     this.data.stateTimer = seconds;
   }
 
-  applyVisual(): void {
-    if (this.data.hitFlash > 0) this.sprite.setTint(0xffffff);
-    else this.sprite.clearTint();
+  /** Visual sync only: frames / flip / flash / telegraph read from FSM state. */
+  applyVisual(dt = 0, clock = 0): void {
     this.project();
+    this.view?.update(dt, clock, {
+      kind: this.data.kind, wx: this.wx, wy: this.wy, facing: this.facing, state: this.data.state,
+      hitFlash: this.data.hitFlash, attackCharge: this.attackTimer, ranged: this.data.stats.ranged, alive: this._hp > 0,
+    }, this.world);
   }
 
-  getDepth(): number { return Math.floor(this.wy); }
+  getDepth(): number { return actorDepth(this.wx, this.wy); }
 }

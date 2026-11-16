@@ -136,6 +136,9 @@ export interface RunCheckpoint {
   coreState?: CoreCheckpointState;
 }
 
+export const AVATARS = ['operator', 'whale', 'claude', 'grok', 'gemini', 'gpt'] as const;
+export type Avatar = typeof AVATARS[number];
+
 export interface SaveData {
   version: number; createdAt: string; updatedAt: string;
   permanent: {
@@ -150,7 +153,7 @@ export interface SaveData {
   settings: {
     masterVolume: number; sfxVolume: number; mouseDpi: number;
     fullscreen: boolean; screenShake: boolean;
-    avatar?: 'operator' | 'whale';
+    avatar?: Avatar;
   };
   stats: { enemiesKilled: number; itemsCollected: number; damageDealt: number; playTimeSeconds: number; };
   run?: RunCheckpoint;

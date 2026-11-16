@@ -1,0 +1,37 @@
+{
+  "phase": "baseline-ar02",
+  "clock": "real time (fixed 60 Hz rules tick)",
+  "visualRandomSeed": 20261113,
+  "shots": [
+    {
+      "id": "19-signal-lab-idle",
+      "file": "19-signal-lab-idle.png",
+      "scene": "SliceScene",
+      "description": "Station Zero lab, sealed door, unscanned"
+    },
+    {
+      "id": "26-signal-scan-sweep",
+      "file": "26-signal-scan-sweep.png",
+      "scene": "SliceScene",
+      "description": "Station Zero lab during the Scan pulse"
+    },
+    {
+      "id": "20-signal-lab-scan",
+      "file": "20-signal-lab-scan.png",
+      "scene": "SliceScene",
+      "description": "Lab after Scan (Z): receiver/source/link revealed"
+    },
+    {
+      "id": "21-signal-lab-jam",
+      "file": "21-signal-lab-jam.png",
+      "scene": "SliceScene",
+      "description": "Lab after Jam (X): door JAMMED_OPEN"
+    },
+    {
+      "id": "22-signal-corridor-scan",
+      "file": "22-signal-corridor-scan.png",
+      "scene": "SliceScene",
+      "description": "Unstable corridor after Scan: relay -> bridge / guard perception links"
+    }
+  ]
+}

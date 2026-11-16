@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { MapData, Tile, Vec2, LootDrop, HitFx, EnemyStateName, Room } from '../types';
+import { MapData, Tile, Vec2, ProjectileData, LootDrop, EnemyStateName, Room } from '../types';
 import { ENEMY_STATS, EnemyKind } from '../config/enemies';
 import { GAME } from '../config/game';
 import { PURCHASE_LEDGER_CAP } from '../config/supplies';
@@ -30,6 +30,8 @@ import {
   spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
   type SimulationIntent, type SimulationState, type SimEchoState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
 } from './sim/core';
+import { CombatVfx, BOLT_HEIGHT, type BoltView, type TelegraphView } from '../art/survey/CombatVfx';
+import { CSS, DEPTH, FONT, INK } from '../art/survey/tokens';
 
 export interface WorldCallbacks {
   onLevelUp: (level: number) => void;
@@ -132,9 +134,9 @@ export class World {
     }
   }
   private coreLootViews = new Map<number, { spr: Phaser.GameObjects.Sprite; data: LootDrop }>();
-  fx: HitFx[] = [];
-  private damageTexts: Phaser.GameObjects.Text[] = [];
-  private fxGraphics: Phaser.GameObjects.Graphics;
+  /** AR-02 visual-only combat effects (reads state, never writes it). */
+  vfx: CombatVfx;
+  private damageStack = new Map<number, { t: number; n: number }>();
   shakeAmount = 0;
   clock = 0;
 
@@ -515,8 +517,12 @@ export class World {
       const cursors = { space: keyW.call(kb, 'SPACE') };
       this.player.registerInput(keys, cursors);
     }
-    this.fxGraphics = this.scene.add.graphics();
-    this.fxGraphics.setDepth(400);
+    this.vfx = new CombatVfx(scene, map.seed);
+  }
+
+  /** Number of rooms whose survey ink has been drawn (visual observation state). */
+  surveyedRooms(): number {
+    return this.map.rooms.filter((r) => this.renderer?.isObserved(r.id)).length;
   }
 
   id(): number { return this.enemyIdCounter++; }
@@ -739,6 +745,11 @@ export class World {
   private onEnterRoom(room: RoomInfo): void {
     const r = this.map.rooms[room.id];
     this.enteredRooms.add(room.id);
+    // Survey ink: entering a room is an observation; the mast's pulse draws it in.
+    if (this.renderer) {
+      const p = this.player.sprite;
+      this.renderer.observeRoom(room.id, p.x, p.y);
+    }
     const depth = this.roomDepth.of(r.id);
     // A room is only "spawned" once its generation command has actually
     // committed. Until then it must not be eligible for the cleared check,
@@ -861,11 +872,17 @@ export class World {
     }
 
     if (this.portal) { this.portal.spr.destroy(); this.portal = null; }
-    const s = this.worldToScreen(best.x, best.y);
-    const spr = this.scene.add.sprite(s.x, s.y, 'icon_pause');
-    spr.setDepth(60);
-    spr.setScale(0.8);
-    this.scene.add.tween({ targets: spr, alpha: { from: 0.4, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+    // Display at the visual centre of the chosen cell; interaction still uses (best.x, best.y).
+    const s = this.worldToScreen(best.x + 0.5, best.y + 0.5);
+    const spr = this.scene.add.sprite(s.x, s.y, 'portal_beacon');
+    spr.setOrigin(0.5, 54 / 64).setDepth(DEPTH.decal + 1);
+    this.scene.add.tween({ targets: spr, alpha: { from: 0.65, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+    // Protocol label (interact cyan) + world light pool; both die with the beacon.
+    const label = this.scene.add.text(s.x + 16, s.y - 58, `F · R-${String(target).padStart(2, '0')} ${tr.kind.toUpperCase()}`, {
+      fontFamily: FONT.mono, fontSize: '11px', color: CSS.interact
+    }).setOrigin(0, 0.5).setDepth(DEPTH.decal + 1);
+    const glow = this.scene.add.image(s.x, s.y, 'light_interact').setBlendMode(Phaser.BlendModes.ADD).setScale(0.6).setAlpha(0.35).setDepth(DEPTH.light);
+    spr.once('destroy', () => { label.destroy(); glow.destroy(); });
     this.portal = { spr, targetRoom: target, wx: best.x, wy: best.y };
   }
 
@@ -1185,22 +1202,46 @@ export class World {
     this.shakeAmount = Math.min(18, this.shakeAmount + mag);
   }
 
-  /** Takes world-grid coordinates; the text object is placed in display space. */
-  addDamageNumber(x: number, y: number, amount: number, crit: boolean): void {
+  /**
+   * Takes world-grid coordinates; the text object is placed in display space.
+   * AR-02: numbers start above the head and successive hits on the same target are
+   * staggered horizontally (03 §4: ±8 px × index) so "12 22 2" no longer stacks.
+   */
+  addDamageNumber(x: number, y: number, amount: number, crit: boolean, targetId = -1, headPx = 48): void {
     const s = this.worldToScreen(x, y);
-    const t = this.scene.add.text(s.x, s.y - 20, Math.round(amount).toString(), {
-      fontFamily: 'monospace', fontSize: '14px', fontStyle: 'bold',
-      color: crit ? '#ffd233' : '#ffb060', stroke: '#000', strokeThickness: 3
-    }).setOrigin(0.5, 0.5).setDepth(400);
+    const st = this.damageStack.get(targetId);
+    const n = st && this.clock - st.t < 0.6 ? st.n + 1 : 0;
+    this.damageStack.set(targetId, { t: this.clock, n });
+    const k = n % 5;
+    const dx = k === 0 ? 0 : (k % 2 ? 1 : -1) * 8 * Math.ceil(k / 2);
+    const t = this.scene.add.text(s.x + dx, s.y - headPx, crit ? `${Math.round(amount)}×` : Math.round(amount).toString(), {
+      fontFamily: FONT.mono, fontSize: crit ? '17px' : '13px', fontStyle: 'bold',
+      color: crit ? CSS.priority : CSS.known, stroke: CSS.shadow, strokeThickness: 3
+    }).setOrigin(0.5, 1).setDepth(DEPTH.label);
     t.setAlpha(1);
-    this.scene.tweens.add({ targets: t, y: s.y - 44, alpha: 0, duration: 800, onComplete: () => t.destroy() });
-    this.damageTexts.push(t);
+    this.scene.tweens.add({ targets: t, y: s.y - headPx - 22, alpha: 0, duration: 800, ease: 'Cubic.easeOut', onComplete: () => t.destroy() });
   }
 
-  /** Takes world-grid coordinates; fx are drawn directly in display space by updateFx(). */
+  /** Takes world-grid coordinates; drawn by CombatVfx as survey ink debris. */
   addHitFx(x: number, y: number, color: number): void {
     const s = this.worldToScreen(x, y);
-    this.fx.push({ x: s.x, y: s.y, color, life: 0.3, vy: 0 });
+    this.vfx.impact(s.x, s.y - 4, color, false, 3);
+  }
+
+  /** Dash: two bone afterimages + a ground drag mark (03 §8 Special). Visual only. */
+  onDash(): void {
+    const p = this.player.sprite;
+    const from = { x: p.x, y: p.y };
+    for (let i = 0; i < 2; i++) {
+      this.scene.time.delayedCall(i * 40, () => {
+        if (!p.scene) return;
+        const ghost = this.scene.add.image(p.x, p.y, p.texture.key, p.frame.name)
+          .setOrigin(p.originX, p.originY).setScale(p.scaleX, p.scaleY).setFlipX(p.flipX)
+          .setAlpha(0.35).setDepth(p.depth - 0.001).setBlendMode(Phaser.BlendModes.ADD);
+        this.scene.tweens.add({ targets: ghost, alpha: 0, duration: 160, onComplete: () => ghost.destroy() });
+      });
+    }
+    this.scene.time.delayedCall(140, () => { if (p.scene) this.vfx.drag(from.x, from.y, p.x, p.y); });
   }
 
   // ---------- Update ----------
@@ -1598,16 +1639,20 @@ export class World {
       if (e.data.kind === 'drone') continue; // core owns drone FSM and timers
       const port = this.enemyCombatPort(e);
       if (port) e.update(dt, port);
-      e.applyVisual();
+      e.applyVisual(dt, this.clock);
     }
     if (this.boss) {
       const port = this.enemyCombatPort(this.boss);
       if (port) this.boss.update(dt, port);
     }
-    this.updateFx(dt);
     this.updateRoom();
+    this.player.updateView(dt);
+    this.updateFx(dt);
     this.updateCamera(dt);
-    if (this.renderer) this.renderer.updateLight(this.player.wx, this.player.wy);
+    if (this.renderer) {
+      this.renderer.update(dt);
+      this.renderer.updateLight(this.player.wx, this.player.wy);
+    }
     this.shakeAmount = Math.max(0, this.shakeAmount - dt * 10);
   }
 
@@ -1636,28 +1681,59 @@ export class World {
   }
 
   private updateFx(dt: number): void {
-    // draw hit flashes
-    this.fxGraphics.clear();
-    for (const f of this.fx) f.life -= dt;
-    const alive = this.fx.filter((f) => f.life > 0);
-    for (const f of alive) {
-      const a = Math.max(0, f.life / 0.3);
-      this.fxGraphics.fillStyle(f.color, a * 0.5);
-      this.fxGraphics.fillCircle(f.x, f.y, 10);
+    // Bolts (player pulse / hostile) and hostile telegraphs, read from live state.
+    const bolts: BoltView[] = [];
+    for (const p of this.projectiles) {
+      const a = this.worldToScreen(p.data.pos.x, p.data.pos.y);
+      const b = this.worldToScreen(p.data.pos.x + p.data.vel.x * 0.01, p.data.pos.y + p.data.vel.y * 0.01);
+      bolts.push({ x: a.x, y: a.y, vx: b.x - a.x, vy: b.y - a.y, enemy: p.data.side === 'enemy', kind: (p.spr as any).__kind ?? 'pulse' });
     }
-    this.fx = alive;
-    // fade damage numbers (managed by tweens); cleanup destroyed ones
-    if (this.damageTexts.length && !this.damageTexts[0].scene) {
-      this.damageTexts = this.damageTexts.filter((t) => !t.scene);
+    const tele: TelegraphView[] = [];
+    const ps = this.player.sprite;
+    for (const e of this.enemies) {
+      const v = e.view;
+      if (!v || v.telegraph <= 0 || !this.player.alive) continue;
+      const ap = v.aperture();
+      const melee = !!e.data.stats.reachEnemy;
+      tele.push({
+        ax: melee ? e.sprite.x : ap.x, ay: melee ? e.sprite.y : ap.y,
+        tx: ps.x, ty: melee ? ps.y : ps.y - BOLT_HEIGHT,
+        strength: v.telegraph, melee, detect: e.data.state === 'detect',
+        // melee reach used by Enemy.doAttack: attackRange + 1.5 tiles, in screen px (iso x-scale)
+        reach: (e.data.stats.attackRange + 1.5) * GAME.TILE_W / Math.SQRT2,
+      });
     }
+    this.vfx.update(dt, bolts, tele);
   }
 
   private killEnemy(e: Enemy): void {
     // Core already committed HP/death, XP, currency and drop RNG. The adapter
     // only removes presentation and emits stats.
+    this.damageStack.delete(e._id);
+    this.enemyDeathVisual(e);
     e.sprite.destroy();
     this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
     this.enemies = this.enemies.filter((x) => x !== e);
+  }
+
+  /**
+   * Death (03 §8): the mass collapses inward (400 ms), the aperture goes out, and
+   * the wreck's ink outline stays 2 s before fading to dotted "history". Visual only;
+   * it runs after the kill was resolved and never delays drops / XP / room clear.
+   */
+  private enemyDeathVisual(e: Enemy): void {
+    const sp = e.sprite;
+    if (!sp?.scene) return;
+    const frame = String(sp.frame.name).replace(/_flash$/, '');
+    const husk = this.scene.add.image(sp.x, sp.y, sp.texture.key, `${frame.startsWith('tele') ? 'idle_0' : frame}_flash`)
+      .setOrigin(sp.originX, sp.originY).setFlipX(sp.flipX).setDepth(sp.depth).setAlpha(0.9);
+    const body = this.scene.add.image(sp.x, sp.y, sp.texture.key, frame.startsWith('tele') ? 'idle_0' : frame)
+      .setOrigin(sp.originX, sp.originY).setFlipX(sp.flipX).setDepth(sp.depth);
+    this.scene.tweens.add({ targets: husk, alpha: 0, duration: 90, onComplete: () => husk.destroy() });
+    this.scene.tweens.add({ targets: body, scaleY: 0.25, scaleX: 1.15, alpha: 0, duration: 400, ease: 'Cubic.easeIn', onComplete: () => body.destroy() });
+    const w = e.view ? e.view.art.shadowW : 32;
+    this.vfx.wreck(sp.x, sp.y, w, e.data.kind);
+    this.vfx.impact(sp.x, sp.y - 14, INK.known, false, 6);
   }
 
   private killBoss(): void {
@@ -1753,6 +1829,8 @@ export class World {
     this._sim.player.data.hp = restoredHp;
     this.bumpSimVersion();
     this.currentRoomId = room.id;
+    // Visual: rooms surveyed before the checkpoint are drawn immediately (no pulse).
+    for (const id of new Set([...run.clearedRooms, room.id])) this.renderer?.observeRoom(id, 0, 0, true);
     this.placePortal(room, run.portalTarget);
     this.rng.restore(run.rngState);
     this._sim.tick = 0;

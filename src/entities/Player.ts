@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PlayerData, ProjectileData, Vec2 } from '../types';
+import { Avatar, PlayerData, ProjectileData, Vec2 } from '../types';
 import { basePlayerData, GAME } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import { clamp } from '../core/random';
@@ -7,7 +7,9 @@ import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
-import { WhaleCharacterEffects, WHALE_TEXTURE } from '../core/WhaleCharacter';
+import { WhaleCharacterEffects } from '../core/WhaleCharacter';
+import { APPEARANCES, faceAvatar, resolveAvatar } from '../core/PlayerAppearance';
+import { ExecutorView, screenDir } from '../art/survey/ActorView';
 import {
   ControlAuthority, intentFromHumanInput, neutralIntent,
   type ControlOwner, type PlayerIntent
@@ -49,6 +51,9 @@ export class Player {
   private cursors: any = null;
   private _aimYaw = 0;
   private whaleEffects?: WhaleCharacterEffects;
+  private readonly avatar: Avatar;
+  /** AR-02 visual controller (frames, shadow, mast lamp). Community art is never modified. */
+  view: ExecutorView;
 
   /** C2: read-only frozen snapshot; writes go through World core transactions. */
   get data(): PlayerData { return this.world.hasSimulation ? this.world.playerDataSnapshot : this._data; }
@@ -94,13 +99,18 @@ export class Player {
       weapons,
       upgrades: [], abilities: []
     } as PlayerData;
-    const whale = save.settings.avatar === 'whale';
-    this.sprite = world.scene.add.sprite(x, y, whale ? WHALE_TEXTURE : 'player');
+    this.avatar = resolveAvatar(save.settings.avatar, world.scene.textures);
+    this.sprite = world.scene.add.sprite(x, y, APPEARANCES[this.avatar].textures[0]);
     this.sprite.setDepth(100);
-    if (whale) {
-      this.sprite.setScale(0.61).setOrigin(0.46, 0.91);
+    if (this.avatar === 'whale') {
       this.whaleEffects = new WhaleCharacterEffects(this.sprite);
+    } else if (this.avatar !== 'operator') {
+      this.sprite.setScale(72 / this.sprite.height).setOrigin(APPEARANCES[this.avatar].feet[0], 0.99);
     }
+    // Operator = the procedural executor (animated); community avatars keep their
+    // licensed art untouched and only gain an env.ao contact shadow (03 §3), except
+    // Whale-chan whose own effect class already draws one.
+    this.view = new ExecutorView(this.sprite, this.avatar === 'operator', { shadow: this.avatar !== 'whale', lamp: this.avatar === 'operator' });
     this._aimYaw = 0;
     this._wx = x;
     this._wy = y;
@@ -123,6 +133,9 @@ export class Player {
     const previousY = this.sprite.y;
     this.project();
     this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
+    if (this.avatar !== 'operator' && this.avatar !== 'whale') {
+      faceAvatar(this.sprite, this.avatar, this.sprite.x - previousX, this.sprite.y - previousY);
+    }
     if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
     else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }
   }
@@ -258,8 +271,23 @@ export class Player {
     if (this.whaleEffects) {
       const aim = this.world.worldToScreen(this.x + Math.cos(this.aimYaw), this.y + Math.sin(this.aimYaw));
       this.whaleEffects.fire(aim.x - this.sprite.x, aim.y - this.sprite.y);
+    } else {
+      // Muzzle flash (bone, 1-2 frames) at the drawn rifle tip; recoil via the view.
+      const d = screenDir(this.world, this.x, this.y, this.aimYaw);
+      this.view.syncFacing(this.world, this.wx, this.wy, this.aimYaw);
+      const m = this.avatar === 'operator' ? this.view.muzzle() : { x: this.sprite.x + d.x * 16, y: this.sprite.y - 36 + d.y * 8 };
+      this.view.fired();
+      this.world.vfx.muzzle(m.x, m.y, d.x, d.y);
     }
     audio.shoot(kind as any);
+  }
+
+  /** Visual-only per-frame sync (called by World.update after movement / room logic). */
+  updateView(dt: number): void {
+    this.view.update(dt, this.world.clock, {
+      wx: this.wx, wy: this.wy, aimYaw: this.aimYaw, hurt: this.hurtTimer,
+      dashing: this.dashTimer > 0, alive: this.alive,
+    }, this.world);
   }
 
   // external fire flag, set by scene on mousedown
