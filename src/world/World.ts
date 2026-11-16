@@ -819,6 +819,11 @@ export class World {
       if (r.kind === 'boss') {
         this.spawnBoss(r);
         r.spawned = true;
+      } else if (r.kind === 'extraction' && this.exitUnlocked) {
+        // 无 boss 的终点房：其他房间已清后，进入即为下一 sector 门。
+        this.placePortal(r);
+        this.callbacks.onRoomEntered(r);
+        return;
       } else {
         r.spawned = true;
         this.waves = encounter(this.map.seed, this.map.deck, r.id, r.kind);
@@ -920,9 +925,14 @@ export class World {
   }
 
   private placePortal(r: Room, savedTarget?: number | null): void {
-    if (this.isDeckExit(r) && r.cleared && this.nextDeck !== undefined) {
-      this.makePortal(null, this.findWalkableInRoom(r));
-      return;
+    if (this.isDeckExit(r) && this.nextDeck !== undefined) {
+      if (r.kind === 'extraction') {
+        // 无 boss 的终点房：其他房间已清后，进入即为下一 sector 门。
+        if (this.exitUnlocked) { this.makePortal(null, this.findWalkableInRoom(r)); return; }
+        this.clearPortal(); return;
+      }
+      if (r.cleared) { this.makePortal(null, this.findWalkableInRoom(r)); return; }
+      this.clearPortal(); return;
     }
     // Prefer the first step toward any unvisited room. If every room is already
     // visited, allow backtracking instead of destroying the portal and soft-locking
@@ -1123,7 +1133,7 @@ export class World {
   }
 
   private spawnForRoom(r: Room): void {
-    if (r.kind === 'start') { r.spawned = true; return; }
+    if (r.kind === 'start') { r.spawned = true; r.cleared = true; return; }
     const depth = this.roomDepth.of(r.id);
     const count = r.kind === 'elite' ? 4 + depth : r.kind === 'shop' ? 1 : 2 + depth;
     r.spawned = true;
