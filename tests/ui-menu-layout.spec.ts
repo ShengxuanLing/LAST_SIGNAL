@@ -1434,20 +1434,48 @@ test.describe('UI-REWORK-01 menu surfaces', () => {
       await page.waitForTimeout(700);
       expect(await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.hasPendingCompanionIntent),
         'a retired proposal is never queued').toBe(false);
-      // A fresh Owner pairing retires the previous session: the official agent
-      // re-attaches with the same bridge token and proposes again.
-      await sdk.client.close().catch(() => undefined);
-      sdk = await openCompanionSdk(bridge.url, TOKEN);
+      // Re-authorize keeps the session and epoch; it only clears the published
+      // observation and cancels unconfirmed suggestions (companionGateway:
+      // `state.observation = null`). So the honest negative assertion is a
+      // stateful refusal ("re-observe first"), NOT a revoked session.
       const reobserved = (await sdk.client.callTool({ name: 'echo_observe', arguments: {} })).structuredContent as any;
-      expect(reobserved.ok, 'agent re-attaches after the capability swap').toBe(true);
-      const freshSuggestion = (await sdk.client.callTool({
+      expect(reobserved.ok, `observe right after re-authorize: ${JSON.stringify(reobserved).slice(0, 220)}`).toBe(false);
+      expect(JSON.stringify(reobserved), 'refusal reason is the cleared observation, not a revoked session')
+        .toMatch(/no_observation|E_LINK_UNAVAILABLE/);
+
+      // Real recovery path: the renderer publishes a fresh observation while the
+      // run is playing. Resume a few real ticks (with a live hostile in the
+      // room), pause again, then the SAME official SDK session must be able to
+      // observe, propose, and the human must be able to confirm it.
+      await page.evaluate(() => {
+        const w = (window as any).__game.scene.getScene('GameScene').world;
+        const e = w.echoActor;
+        w.spawnEnemy('drone', e.x + 1, e.y, w.currentRoom()?.id ?? 0, 1);
+      });
+      const tickAtSwap = await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.sim.tick);
+      await resumeGame(page);
+      await page.waitForFunction((tb: number) => (window as any).__game.scene.getScene('GameScene').world.sim.tick > tb + 8, tickAtSwap, { timeout: 15000 });
+      await openLlm(page);
+      await expect.poll(async () => {
+        const r = await sdk.client.callTool({ name: 'echo_observe', arguments: {} }).then((x) => x.structuredContent as any).catch(() => ({ ok: false }));
+        return r.ok === true;
+      }, { timeout: 20000 }).toBe(true);
+      const fresh = (await sdk.client.callTool({
         name: 'echo_suggest',
         arguments: { requestId: 'req_' + 'e'.repeat(24), suggestionId: 'sug_' + 'e'.repeat(24), kind: 'fire', reason: 'perceived_hostile', ttlTicks: 600 }
       })).structuredContent as any;
-      expect(freshSuggestion.ok, `fresh proposal after re-authorize: ${JSON.stringify(freshSuggestion).slice(0, 220)}`).toBe(true);
+      expect(fresh.ok, `proposal after the capability swap: ${JSON.stringify(fresh).slice(0, 220)}`).toBe(true);
       await waitForButton(page, 'CONFIRM FIRST PROPOSAL');
       await clickText(page, 'PauseScene', 'CONFIRM FIRST PROPOSAL');
       await page.waitForFunction(() => (window as any).__game.scene.getScene('GameScene').world.hasPendingCompanionIntent === true, undefined, { timeout: 15000 });
+
+      // The page also stays usable for the human: DISCONNECT ends the real link
+      // and the UI reports the real offline state (never a fake CONNECTED).
+      await clickText(page, 'PauseScene', 'DISCONNECT');
+      await expect.poll(async () => (await gameState(page)).companionStatus, { timeout: 15000 }).not.toBe('CONNECTED');
+      const afterTexts = (await sceneTexts(page, 'PauseScene')).join(' | ');
+      expect(afterTexts, 'page no longer claims a live model').not.toContain('STATE  CONNECTED');
+      expect(afterTexts, 'page reports an offline / not-connected state honestly').toMatch(/OFFLINE|NOT CONNECTED/);
     } finally {
       await sdk?.client.close().catch(() => undefined);
       await bridge.close();

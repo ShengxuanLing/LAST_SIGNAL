@@ -1,0 +1,5 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+  1 passed (7.5s)

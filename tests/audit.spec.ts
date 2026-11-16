@@ -469,11 +469,56 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
     const w = gs.world, t = w.map.rooms[w.portal.targetRoom];
     const expected = w.findWalkableInRoom(t);
     w.player.reset(w.portal.wx, w.portal.wy); // walk onto the portal
-    return { expected, beforeRoom: w.currentRoom()?.id, expectedWalkable: w.isWalkable(expected.x, expected.y, 0.5) };
+    return {
+      expected, beforeRoom: w.currentRoom()?.id,
+      expectedWalkable: w.isWalkable(expected.x, expected.y, 0.5),
+      onPortal: { x: w.portal.wx, y: w.portal.wy }
+    };
   });
   expect(teleport.expectedWalkable, 'target landing tile is walkable').toBe(true);
+  // The reset is a core command: wait until the player really stands on the
+  // portal tile before pressing F (no catch: a sync failure must be reported
+  // here, not masked behind a later geometry assertion).
+  await page.waitForFunction((onPortal: { x: number; y: number }) => {
+    const g: any = (window as any).__game;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+    const w = gs?.world;
+    return !!w && Math.abs(w.player.wx - onPortal.x) < 0.01 && Math.abs(w.player.wy - onPortal.y) < 0.01;
+  }, teleport.onPortal, { timeout: 8000 });
+  // Deterministic landing geometry: an actor standing on the landing tile would
+  // be separated from the protagonist by the core's actor-separation step
+  // (a constant 0.375-tile push), which is a different mechanic. Clear hostile
+  // actors through the existing core test seam so the teleport geometry itself
+  // is what is asserted (measured: separation produced exactly
+  // hypot(0.2400691, 0.2880830) = 0.375 tiles).
+  await page.evaluate(() => {
+    const w = (window as any).__game.scene.getScene('GameScene').world;
+    w.clearEnemiesForTest();
+    w.resetProjectilesForTest();
+  });
   await page.keyboard.press('KeyF');
-  await page.waitForTimeout(500);
+  // Wait for the real commit: the player must be in the target room, on the
+  // predicted landing tile. No fixed sleep and no catch — if the teleport does
+  // not commit this fails with the exact expectation.
+  await page.waitForFunction(({ expected, beforeRoom }: { expected: { x: number; y: number }; beforeRoom: number }) => {
+    const g: any = (window as any).__game;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+    const w = gs?.world;
+    if (!w) return false;
+    if (w.currentRoom()?.id === beforeRoom) return false;
+    return Math.abs(w.player.wx - expected.x) < 0.01 && Math.abs(w.player.wy - expected.y) < 0.01;
+  }, { expected: teleport.expected, beforeRoom: teleport.beforeRoom }, { timeout: 10000 });
+  // The camera lerps to the new centre; wait for the documented bound itself.
+  await page.waitForFunction(() => {
+    const g: any = (window as any).__game;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+    const w = gs?.world;
+    if (!w) return false;
+    const cam = gs.cameras.main;
+    const s = w.worldToScreen(w.player.wx, w.player.wy);
+    const c = cam.getWorldPoint(640, 360);
+    return Math.hypot(c.x - s.x, c.y - s.y) < 120;
+  }, undefined, { timeout: 6000 });
   st = await worldState(page);
   expect(Math.abs(st.grid.x - teleport.expected.x), 'teleported grid x == target landing tile').toBeLessThan(0.01);
   expect(Math.abs(st.grid.y - teleport.expected.y), 'teleported grid y == target landing tile').toBeLessThan(0.01);

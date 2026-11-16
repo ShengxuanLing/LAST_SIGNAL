@@ -1,0 +1,29 @@
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[2/2] [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+  1) [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound 
+
+    Error: laser(3) + shockwave(12) bullets created
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 15
+    Received: 16
+
+      778 |     };
+      779 |   });
+    > 780 |   expect(bossInit.count, 'laser(3) + shockwave(12) bullets created').toBe(15);
+          |                                                                      ^
+      781 |   const maxSpeed = Math.max(...bossInit.speeds);
+      782 |   const minSpeed = Math.min(...bossInit.speeds);
+      783 |   expect(minSpeed, 'Boss bullets still have velocity (phase-1 guarantee)').toBeGreaterThan(0);
+        at D:\Project\LAST_SIGNAL\tests\audit.spec.ts:780:70
+
+    Error Context: test-results\audit-P2-regression-boss-b-de17d-ked-weapons-single-UI-sound-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound 
+  1 passed (21.8s)

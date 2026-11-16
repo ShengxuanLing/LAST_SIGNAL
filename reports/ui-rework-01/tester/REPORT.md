@@ -1,118 +1,257 @@
-# UI-REWORK-01 — Tester report
+# UI-REWORK-01 — Tester 最终验收报告（冻结版）
 
-被测树（本地，未提交、未 push、未 commit）
+日期：2026-11-16/17　测试执行者：Orca worker（tester，唯一 tests 书写者）
+本报告 supersedes 先前的 `tester/REPORT.md`（WIP 阶段版本）。
 
-- 分支：`fix/ui-menu-layout-rework`
-- HEAD：`0faf95cc1e6f55cdf23e07cd4fe1c05f5d478c48`（= 本地 main，含完整 AI-NATIVE-02）
-- dirty：**是**。开发者未提交的实现改动 + 测试者的测试改动都在工作区：
-  - `src/scenes/PauseScene.ts`（重写，sha256 `3f01ebae…`）
-  - `src/scenes/GameScene.ts`（+30 行，`setHudVisible`，sha256 `aec3ff04…`）
-  - `src/ui/menuKit.ts`（新增，sha256 `c20131b2…`）
-  - `src/world/World.ts`（−13 行，Lead 指定的既有未提交修复，保留未动）
-  - `src/` 合并 diff 的 sha256：`68c9cdb4eeb90442f07a8feffbd95126d24aee32401acac6fe5cbcac4ec1528d`
-- 测试改动（全部在 `tests/`）：`tests/ui-menu-layout.spec.ts`（新增）、`tests/uiNav.ts`（新增）+ 11 个旧 spec 的导航适配，`git diff --stat tests/` = 11 files, 186 insertions(+), 129 deletions(-)。
-- 证据目录：`reports/ui-rework-01/`（`before/`、`after/`、`logs/`、`tester/`）。未提交。
+## 1. 冻结校验（先做，结论有效的前提）
 
-## 1. 用户四项完整回归（被测树 = 上述 dirty 树）
-
-| # | 命令 | 结果 | 日志（绝对路径） |
+| 项 | 冻结值（Lead 订单） | 实测 | 结果 |
 |---|---|---|---|
-| 1 | `npx tsc --noEmit` | **PASS**（0 error） | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\logs\33-typecheck.log` |
-| 2 | `npx vitest run` | **PASS** 745/745（65 files，165s） | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\logs\32-unit.log` |
-| 3 | `npm run build` | **PASS**（exit 0） | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\logs\34-build.log` |
-| 4 | `PORT=5433 npx playwright test --workers=1`（113 tests，37 spec） | **PASS 113/113**（13.7m） | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\logs\37-final-e2e-full-rerun.log` |
+| `src/scenes/PauseScene.ts` | `3f01ebae1ffb5a4edd158268ba9476262cfb36b492bbc79eaea9dc006ab08e5e` | 同 | ✅ |
+| `src/ui/menuKit.ts` | `c20131b2a402db12f1cb590754c4478c73269599f3611b1e1824fdd0f2becffd` | 同 | ✅ |
+| `src/scenes/GameScene.ts` | `aec3ff04e443fba87e1b1d52b334e297c62ed9be5670caeeb5c4a2d283a726f0` | 同 | ✅ |
 
-第 4 项在最终确认轮（`37-...`）之前还跑过两轮：`28-e2e-full.log` = 112/113（P1 一次 `disabled AI does not move the player` 抖动，已修），`35-final-e2e-full.log` = 113/113。最终结论以 `37-` 为准（同一棵树、同一棵 spec）。
+- 实现已由 Lead 本地提交：HEAD = **`eb83eb4`** `fix(ui): unify pause menus, companion management and responsive navigation`（父提交 `8b8418a` = `src/world/World.ts` 删除 13 行别名，Lead 指定的既有修复）。
+- 工作区 dirty **只涉及 2 个测试文件**，实现与冻结 hash 完全一致：
+  - `tests/ui-menu-layout.spec.ts`（新增 5 条本单要求的新覆盖、证据写入默认改 `UI_PHASE=auto`）
+  - `tests/audit.spec.ts`（teleport 步骤改为等真实落点提交，见 §6/§10）
+  - `git status --porcelain src/` = 空；`git diff --stat tests/` = 2 files, +26/−15。
+- 结论：**冻结成立**，本节之后的所有数字都是在上述实现 hash 上跑出来的。
 
-旧基线对照（同一份 spec，改 UI 之前）：E2E 91/93（P1 + P3-a 红）、unit 743/745（2 条 `spawnSync ETIMEDOUT`）。**没有沿用旧数字**，本报告所有计数都来自本轮实跑。
+## 2. 用户四项完整回归
 
-## 2. before / after 证据（6 个 viewport × 每个页面一张真实截图）
-
-| 阶段 | 来源 | 截图 | 布局审计 |
+| # | 命令 | 结果 | 绝对日志 |
 |---|---|---|---|
-| before | 干净 worktree `D:/tmp/ls-ui-before`（detached HEAD `0faf95c`，无开发者改动）dev :5434 | `reports/ui-rework-01/before/` **42 张** = 6 viewport × 7 页面（run-hud / pause / settings / inventory / pause-ai-on / echo / llm） | 每个 viewport **4 clipped + 30 overlaps**，`before/audit-before-<w>x<h>.json` |
-| after | 工作区实现 dev :5433 | `reports/ui-rework-01/after/` **48 张** = 6 viewport × 8 页面（+ 独立的 `ai` hub 页与 `ai-on`） | 每个 viewport **0 clipped + 0 overlaps**，`after/audit-after-<w>x<h>.json` |
+| 1 | `npm run typecheck` | **PASS** exit 0 | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\logs\51-typecheck.log` |
+| 2 | `npm test` | **PASS** 745/745（65 files） | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\logs\52-npm-test.log` |
+| 3 | `npm run build` | **PASS** exit 0 | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\logs\53-build.log` |
+| 4 | `PORT=5433 npx playwright test --workers=1` | 见下（118 tests，含本 spec **25** 条） | `…\logs\54-final-full-playwright.log`、`…\logs\60-final-full-playwright.log`、`…\logs\62-final-full-playwright-2.log` |
 
-视口：1920x1080、1600x900、1366x768、1280x720、1024x768、800x600（1600x900 为额外无重叠检查，已含在 6 个之内单独审计）。
+> 计数边界（回应 reviewer §1）：`37-…` 的 **113** 与 `62-…` 的 **118** 是**不同测试集合快照**（`37-` 跑在 `eb83eb4` 之前，本 spec 当时还没有现在的 25 条定义），不能当成「同一集合的通过率」。本 spec 目前每条运行计 **25** 条（6 capture + 6 audit + 13 单例），`62-…` 是当前集合的**单次全量绿**，不代表确定性稳定（前两轮各 117/118）。
 
-before 审计确认的真实缺陷（`before/audit-before-1280x720.json`，截图 `before-1280x720-echo.png` 一张图即可看到全部）：
+第 4 项本轮共跑了 3 次全量，逐次如实记录：
 
-1. `SIGNAL COLLABORATION` 开关建在 `(0,105)` 而没加进 wrap 容器 → 渲染在左上角、半截出界（4 个 clipped）。
-2. 旧 settings 面板没有真正销毁：实测打开 SETTINGS → BACK → 进 ECHO 页，settings 面板仍压在 ECHO 页上（`before-1280x720-echo.png`），泄漏的箭头/面板/`EXTERNAL LINK SETUP` 与后续页面重叠。
-3. `AUTHORIZE EXTERNAL AGENT`(y=622) 与 `ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL`(y=625) 文字互相压叠。
-4. `ECHO COMPANION >`(y=200) 与 `LLM COMPANION >`(y=230) 两个入口重叠。
-5. 底部 `CONTINUE RESUMES…`/`CONTROL…` 等状态文字与 GameScene HUD 文字互相压叠（HUD 未隐藏）。
-6. LLM 页 340px 宽按钮装不下 `ENABLE / RE-AUTHORIZE (HUMAN)` 这类长标签，标签溢出到相邻按钮。
+| 运行 | 结果 | 唯一失败 | 隔离复跑 | 分类 |
+|---|---|---|---|---|
+| `54-…` | 117/118 | `audit.spec` `fixed-seed playability` → teleport 落点差 13 格（交互未发生） | 见 §10 | 已定位并修（轮询 `F` 前的落点同步 + 真实提交条件等待），修后 5/5 绿 |
+| `60-…` | 117/118 | `whale-character.spec` → `whale-dash` 效果 5s 内未出现 | 3/3 PASS（`61-whale-isolate-1..3.log`） | 负载相关既有 flake，非本单改动 |
+| `62-…` | **118/118 PASS** | — | — | 当前集合的单次全量绿 |
 
-after 同一审计全绿，且 HUD 在暂停时被 `GameScene.setHudVisible(false)` 收起 —— 这一点用 `before/…-pause.png` vs `after/…-pause.png` 对照即可看出。
+**没有任何一条失败被“放宽 timeout/弱化断言”处理**。`audit.spec` 的 teleport 步骤（返修后，见 §10）：去掉了 `.catch` 吞错，去掉“固定 500→1200ms sleep”，改为**两个真实条件等待**（先在 portal 格、再在目标落点且换房、最后 camera 收拢到原 120 阈值），几何断言（`< 0.01` 格、sprite 误差 `< 1`、camera `< 120`）一字未改。
 
-## 3. 本任务新增测试（`tests/ui-menu-layout.spec.ts`，20 条；辅助 `tests/uiNav.ts`）
+### 2.1 最终全量运行
 
-审计/截图（6 viewport × 2）：
+`PORT=5433 npx playwright test --workers=1` → **PASS 118/118（14.7m）**，日志
+`D:\Project\LAST_SIGNAL\reports\ui-rework-01\logs\62-final-full-playwright-2.log`。
+这一轮与冻结实现（PauseScene/menuKit/GameScene 三份 hash 均未变）和当时的测试文件对应；它是**单次**全量绿：两轮 117/118 的红均为与本单无关的既有 flake（§6 #2/#3/#5），隔离已复跑。返修后按 reviewer 建议只跑了针对性回归（§10），未再跑全量。
 
-- `capture <w>x<h>`：真实点击走完 run-hud → PAUSE → SETTINGS → INVENTORY → **AI & COMPANION** → AI CONTROL(ON/OFF) → ECHO → LLM 全链路并截图。
-- `audit <w>x<h>`：结构审计断言
-  - 可见可点击元素不得超出 1280x720 逻辑视口；
-  - 不同控件不得重叠（同一按钮的 rect+label、非交互面板包含子项、label 位于自身 rect 内 = 合法父子例外；两个**可交互**控件互相包含、或任何部分相交 = 失败）；
-  - 不可见元素不得可点击；
-  - 六个 viewport 全部 0/0。
+## 3. before / after 真实截图与结构审计
 
-导航与 ESC 层级（`navigation: ESC walks exactly one level back`）：
+| 阶段 | 运行环境 | 截图 | 结构审计 |
+|---|---|---|---|
+| before | 干净 worktree `D:/tmp/ls-ui-before`（detached `0faf95c`，无任何实现改动），dev **:5434** | `reports/ui-rework-01/before/` **42 张** = 6 视口 × 7 页（run-hud/pause/settings/inventory/pause-ai-on/echo/llm） | 每个视口 **4 clipped + 30 overlaps**（`before/audit-before-*.json`，日志 `logs/36-recapture-before-pristine.log`） |
+| after | 冻结实现，dev **:5433** | `reports/ui-rework-01/after/` **53 张** = 6 视口 × 8 页（含独立 `ai` hub、`ai-on`）+ 5 张交互过程图（owner form 填写/失败、connected、pending proposal、after reject） | 每个视口 **0 clipped + 0 overlaps**（`after/audit-after-*.json`，日志 `logs/50-after-capture-audit-frozen.log`、`logs/59-after-interaction-frozen.log`） |
 
-- root ESC = 恢复游戏，暂停期间 `world.sim.tick` 不前进，HUD 恢复；
-- `ai → pause`、`echo/llm → ai`、`settings → pause`、`inventory(从 pause 进) → pause`；
-- 直接 `KeyI` 打开的单层 inventory：ESC 直接恢复游戏；
-- DOM 表单：焦点在表单内按 ESC 只关表单、不导航、不关暂停层。
+视口：1920x1080、1600x900、1366x768、1280x720、1024x768、800x600（1600x900 为额外无重叠检查）。
 
-功能覆盖：
+- **before 证据是干净 HEAD 的真实运行**；最初一轮曾用共享工作区 dev（HMR 已加载开发者改动）抓到过被污染图，已移到 `tester/contaminated-before/` 且不用于任何结论。
+- before 一张图可复现全部原始缺陷（`before-1280x720-echo.png`）：旧 settings 面板未销毁直接压在 ECHO 页、`SIGNAL COLLABORATION` 建在 `(0,105)` 半截出界、`AUTHORIZE EXTERNAL AGENT` 与 `ANY MOVE / FIRE…` 重叠、`ECHO COMPANION >` / `LLM COMPANION >` 两入口重叠、HUD 文字透过暂停层。
+- after：同六视口全部 0 越界 / 0 重叠，且暂停时 HUD 由 `GameScene.setHudVisible(false)` 收起、恢复时还原。
 
-- `functional: settings change, persist and reset; AI local toggle`：MASTER ▶ 后写入存档并更新标签、RESET AUDIO 恢复 0.7/0.8、SCREEN SHAKE 标签跟随真实值、SIGNAL COLLABORATION 持久化、AI CONTROL 开关 + 恢复后 owner 变 ai/human。
-- `functional: ECHO enable, mode and assist arming`：ENABLE ECHO 在**冻结的世界里不会立刻出现 actor**（没有假装），恢复后下一个真实 tick 才出现并显示真实 HP；FOLLOW/HOLD/MOVE-TO 切换；CONFIRM ASSIST → ASSIST ARMED → REVOKE；DISABLE 同样等到下一个真实 tick 才消失。
-- `functional: LLM page is honest without a model; failure feedback; no secret leak`：未连接时显示 NOT CONNECTED / NO MODEL / no pending；无 pending 下点 CONFIRM/REJECT/DISCONNECT 无副作用；真实 Owner 表单提交到不可达 bridge → 显示真实 FAILED 反馈、无假 CONNECTED、token/ownerKey 从 DOM 清空且不出现在场景文本里。
-- `functional: real pending proposal — Owner CONFIRM commits, REJECT does not`：真实 `startWorldBridge` + 官方 Companion MCP SDK 产生 pending → 只有渲染出 pending 后 CONFIRM/REJECT 才可点 → CONFIRM 在暂停时只入队（`hasPendingCompanionIntent === true`）→ 恢复后由下一个真实 tick 提交（pending 清空、tick 前进）→ 第二条 proposal 被 REJECT 后**不**产生入队 intent → DISCONNECT 后状态不再是 CONNECTED 且 CONFIRM/REJECT 变灰。
-- `functional: level-up, death and restart keep the menu honest`：LevelUpScene 打开时 ESC 不恢复、tick 不前进，选卡后恢复；真实致死伤害进入 GameOverScene；`RETRY SAME SEED` 后是全新、未暂停、满血的一局，且暂停/恢复仍可用。
+## 4. 本单要求的覆盖项对照（全部实跑）
 
-边界：
+| 订单要求 | 覆盖 | 证据 |
+|---|---|---|
+| 六视口各主要页真实截图 | 6 视口 × 8 页 = 48 张 | `after/*.png`（`logs/50-…`） |
+| CSS / 字体 | 六页所有 Phaser Text 都必须落在共享 mono 栈（`Consolas/…/monospace`，缺失即失败）；DOM 表单 computed `font-family`/`font-size ≥ 12px` | `audit: shared font stack…`（`logs/59-…`） |
+| 合法父子例外重叠 | 同控件 rect+label（box 相同）、非交互面板包含子项、label 位于自身 rect 内 = 合法；两个**可交互**控件互相包含或任意部分相交 = 失败 | `audit <vp>`、`auditLayout()` |
+| viewport | 可见可点击元素必须完全落在 1280x720 逻辑视口内 | `audit <vp>` |
+| 点击 | 按渲染出的 label 真实点击（真实命中区，不是直接调 handler） | 全部导航/功能用例 |
+| 滚动 | 滚轮不得拖动菜单元素、不得产生越界 | `boundary: keyboard focus, wheel and real click agree` |
+| focus | ↑↓ 移动焦点、ENTER 激活焦点控件、UP 环绕；禁用控件永不被聚焦 | 同上 + `audit: …disabled…` |
+| disabled | 无 pending 时 CONFIRM/REJECT 禁用：点击无副作用、键盘不可达 | `audit: …disabled…` |
+| 销毁 / resize | 每个页面在 800→1600→1366→1280 视口切换下页面不变、控件数不增、布局审计 0 失败；离开再进入控件数恒定；关闭后 0 个可交互对象、无残留页标签 | `audit: …resize and destroy…`、`boundary: repeated open/close…` |
+| HUD | 暂停时 HUD 隐藏、恢复后还原 | `navigation: ESC walks…`（`hudVisible`） |
+| death / levelup / restart | LevelUpScene 打开时 ESC 不恢复且 tick 不动、选卡后恢复；真实致死 → GameOverScene；`RETRY SAME SEED` → 全新满血未暂停的一局，暂停/恢复仍可用 | `functional: level-up, death and restart…` |
+| Settings 持久化重开与音量 | +10% 写入存档并更新标签 → 退出/恢复/重进仍显示同值且存档一致 → RESET AUDIO 回 0.7/0.8 并持久 | `functional: settings persist across reopen and reset` |
+| EQUIP 键盘可达 | 真实 core 命令加第二把武器 → 物品栏按 `2` 只入队（core 未变、UI 显示 QUEUED）→ 恢复后下一个真实 tick 装备 → 重进显示 EQUIPPED | `functional: inventory EQUIP is keyboard reachable…` |
+| 真实 bridge + Owner form 成功 | 本地 bridge + 官方 MCP SDK + 真实 owner key → CONNECTED，pending 渲染后才可确认 | `functional: real pending proposal…` |
+| 失败反馈 | 不可达 bridge → 真实 FAILED 文案、无假 CONNECTED、token/ownerKey 从 DOM 清空且不出现在场景文本 | `functional: LLM page is honest…` |
+| reauth 同实例原子 cap、旧建议失效 | 实时 link 打标记 → 人工 RE-AUTHORIZE → 仍 CONNECTED 且 `companionLink` 是**同一实例**（标记仍在）→ 旧 proposal 退役（CONFIRM 禁用、点击不入队）→ **同一 SDK 会话 observe 被拒（真实原因 `no_observation` / `E_LINK_UNAVAILABLE`：reauth 只清空已发布 observation、session/epoch 不变）** → 恢复真实 tick 让渲染侧重新发布 observation → 同会话 observe/suggest 成功 → CONFIRM 启用 → 人类 CONFIRM → `hasPendingCompanionIntent === true` → DISCONNECT 后 UI 如实离线 | `functional: owner re-authorize swaps capability…`（`tester/addendum/reauth-regression.log`） |
+| pending 绑定 id / 过期不误确认 | proposal 带 ttl，真实 tick 过期后 CONFIRM 变灰、UI 显示 no pending、点击不入队 | `functional: an expired proposal is never confirmed` |
+| Confirm / Reject / Disconnect | CONFIRM 暂停时只入队 → 恢复后真实 tick 提交；REJECT 不产生入队 intent；DISCONNECT 结束真实连接且按钮变灰 | `functional: real pending proposal…` |
+| 不许造假 pending/connected | 所有 pending 都来自真实 bridge + 官方 SDK；无模型时显示 `STATE OFF` / `MODEL NOT CONNECTED` / `No pending proposal.`；错误 owner key 走既有协议显示 `FALLBACK:NO_MODEL` + `MODEL  OFFLINE`（未要求改成 CONNECTED） | 同上 + `…honest…` |
+| ESC 层级 | root→恢复；ai→pause；echo/llm→ai；settings→pause；pause 进的 inventory→pause；直接 KeyI 的单层 inventory→恢复；表单内 ESC 只关表单 | `navigation: ESC walks exactly one level back` |
+| 只读抓手 | `currentPage` / `uiObjects` / `uiButtons` 未强行依赖（测试用渲染结果与真实点击）；`btn*`、`confirmHandle`/`rejectHandle(.rect/.label/.enabled)`、`llmConfirm`/`llmReject` 别名按只读使用 | 全部 |
 
-- `boundary: repeated open/close never stacks or leaves hidden controls`：4 轮开关 + 3 轮全页面往返，每个页面的可交互控件数量恒定、关闭后 0 个可交互对象、根页无残留子页标签。
-- `boundary: keyboard focus, wheel and real click agree`：滚轮不拖动菜单、不产生越界；↑↓ 移动焦点、ENTER 激活焦点控件（进 INVENTORY）；UP 环绕到最后一个控件；用报告出的中心点真实点击 SETTINGS 有效。
+## 5. 旧测试适配（只改导航/页面模型，未删断言、未弱化安全断言）
 
-## 4. 因 UI 导航变更而适配的旧测试（只改导航，不删断言、不弱化安全断言）
+新增 `tests/uiNav.ts`：`toPauseRoot / openAiHub / openEcho / openLlm / openSettings / openExternalLinkSetup / resumeGame / clickLabel / waitForButton / labelCenter / pausePage`。
 
-新增 `tests/uiNav.ts`（`toPauseRoot / openAiHub / openEcho / openLlm / openSettings / openExternalLinkSetup / resumeGame / clickLabel / waitForButton / labelCenter`），
-把「在 Pause 根页直接点 ECHO/LLM/AUTHORIZE/AI CONTROL」改成「Pause 根 → AI & COMPANION → 控件」，把「ESC 一次关掉整个覆盖层」改成 ESC 链（逐层）。
-
-| 文件 | 改动 |
+| 文件 | 适配内容 |
 |---|---|
+| `ai-native-world.spec.ts` | AI CONTROL/ECHO/QUIT/SETTINGS 改按 label 与页面导航；`settings panel opened` 判 `page==='settings'`；暂停标签断言更新为冻结文案（`AI CONTROL: ON · LOCAL DETERMINISTIC DEMO`、`CONTROL  AI · LOCAL DEMO`）并**新增**“仍声明 EXTERNAL AGENT NOT CONNECTED”；invuln 夹具改为真实 core 接口（见 §6） |
+| `audit.spec.ts` | SETTINGS 页面化后按真实 `◀` 控件点击、音量断言改读真实百分比文本、QUIT TO MENU 按 label 点击、ESC 从 settings 改为“回根页 + 再恢复”并保留“离开后游戏确实恢复”；teleport 步骤等真实提交 |
 | `c3b-external-link.spec.ts` | 3 处授权入口改走 AI hub；ESC 关闭改 `resumeGame` |
-| `c3b-hard-disconnect.spec.ts` | 授权入口走 AI hub |
-| `c3b-link-form.spec.ts` | SETTINGS→EXTERNAL LINK SETUP 改用页面导航；AI CONTROL 走 hub；表单内 ESC 断言改为新契约（只关表单、页面/控制权不变），CANCEL 行为单独断言 |
-| `c3c-bridge-reclaim.spec.ts` | 授权入口走 AI hub；ESC→`resumeGame` |
-| `companion-room-cancel.spec.ts` / `companion-room-race.spec.ts` | `LLM COMPANION >` → `openLlm`；ESC→`resumeGame` |
-| `p3b-companion-owner.spec.ts` / `signal-coop-e2e.spec.ts` | 同上 + CONFIRM 前 `waitForButton`（LLM 页轮询真实 pending，只有渲染出来才可点，避免测试比 UI 先手） |
-| `signal-sdk-negative.spec.ts` | 授权入口走 AI hub |
-| `audit.spec.ts` | SETTINGS 页面化后按真实 `◀` 控件坐标点击、音量值改读真实百分比文本、QUIT TO MENU 按标签点击、ESC 从 settings 改为「回根页 + 再恢复」并保留「离开 settings 后游戏确实恢复」的原断言 |
-| `ai-native-world.spec.ts` | AI CONTROL/ECHO/QUIT/SETTINGS 全部改按标签/页面导航；`settings panel opened` 改判 `page === 'settings'`；暂停标签断言改为新文案（`AI CONTROL: ON · LOCAL DETERMINISTIC DEMO` / `CONTROL  AI · LOCAL DEMO`，并新增「仍声明 EXTERNAL AGENT NOT CONNECTED」） |
+| `c3b-hard-disconnect.spec.ts` / `c3c-bridge-reclaim.spec.ts` / `signal-sdk-negative.spec.ts` | 授权入口改走 AI hub（其余断言不动） |
+| `c3b-link-form.spec.ts` | SETTINGS→EXTERNAL LINK SETUP 走页面导航；AI CONTROL 走 hub；表单内 ESC 断言改为冻结契约（只关表单、不导航、不关暂停层），CANCEL 行为单独断言 |
+| `companion-room-cancel.spec.ts` / `companion-room-race.spec.ts` / `p3b-companion-owner.spec.ts` / `signal-coop-e2e.spec.ts` | `LLM COMPANION >` → `openLlm`；ESC 关闭 → `resumeGame`；CONFIRM 前 `waitForButton`（LLM 页轮询真实 pending，必须等它渲染出来再点，不抢跑） |
 
-### 4.1 顺带修正的测试夹具（Lead 指定的 invuln 问题）
+安全相关断言（伪 Origin/自重授权/假观察/模式翻转/Owner cap、MCP 无 confirm 工具、错误 key 不升级、FALLBACK 语义、房间代次退休建议、ACK/epoch 规则等）**一条都没有改动或删除**。
 
-`Player.invuln` 只有 getter（`src/entities/Player.ts:64` → `World.playerInvuln`），所以 `player.invuln = 1e9` / `= 0` 都是**静默空操作**；旧 spec 的「i 帧刷新」与「清 invuln 再击杀」都是无效夹具（这也是 P1/P3-a 长期红的根因）。本轮按真实 core 接口处理，未放宽任何断言：
+## 6. 每个失败的分类（诚实记录，含本轮亲眼看到的所有红）
 
-- `stabilizeEvidenceRun`：改为 `World.enqueueHeal(...)`（真实 core 命令，下一 tick 提交），仅在 HP < 35% 时救命；敌人、开火、伤害全部保留，`evidence-fixture` 记录字段改为真实的 `hpToppedUpBelow35Pct` / `iframesWritten: false`（不再写 `onlyIFramesRefreshed: true` 这种与事实不符的声明）。
-- P1 死亡步骤：不再写 `invuln = 0`，改为用真实 core tick 等残余 i 帧自然过期（最多 180 tick）后再 `hurt()`。
-- P3-a 使用 `stabilizeEvidenceRun(page, false)`，保持完全真实的战斗。
-- 结果：P1、F-04/F-05、P3-a 由长期红/抖动转为稳定绿（P1 连续 5 次隔离复跑全绿 + 最终全量绿）。
+| # | 失败 | 出现次数 | 分类与结论 | 依据 |
+|---|---|---|---|---|
+| 1 | `audit.spec` teleport 落点差 13 格（已换房但未到落点） | 1/3 全量（`54-…`） | **已定位并修**：轮询 `F` 前不存在“玩家已在 portal 格”的同步，`F` 可能在 reset 提交前就按了。修后 5/5 绿（`tester/addendum/audit-teleport-regression.log`） | §10 |
+| 2 | `audit.spec` teleport 落点恒差 `hypot(0.2400691, 0.2880830) = 0.375` 格 | 1/6 有诊断的隔离跑（`tester/addendum/diag-teleport.log`）；修前 1/5（`58-…`） | **已定位并修（测试夹具）**：不是 `findWalkableInRoom` 与 core 语义不一致（core 的 `ensureWalkableFromState` 对可走格子原样返回），而是落点格子上站着被追踪的敌人，core 的**角色分离**把主角推开恰好 0.375 格（`diagnostic: diff.x=-0.2400691, diff.y=+0.2880830`，模长 0.375）。夹具改用既有 core 测试 seam `clearEnemiesForTest()` 隔离该机制后，5/5 绿 | §10 |
+| 3 | `whale-character.spec` `whale-dash` 5s 未出现 | 1/3 全量（`60-…`） | **负载相关既有 flake**，未修（本单无权限/无必要） | 隔离 3/3 PASS（`61-…`）；该 spec 与 UI 无关 |
+| 4 | `audit.spec` P2：Boss 子弹 16 vs 15 | 1 次（`tester/addendum/audit-full-file.log`） | **既有 flake**（前一阶段残留弹丸），未修 | 隔离 3/3 PASS（`tester/addendum/audit-p2-1..3.log`） |
+| 5 | P1 / P3-a / F-04（历史上长期红） | 0（本单全绿） | **已按真实 core 接口重写夹具** | 见下 |
+| 6 | 旧 spec 的 34 条导航型红（适配前） | 适配后清零 | **适配，不是回归** | `logs/17-…` |
 
-## 5. 过程中向 developer 提出、已修复的问题
+关于历史上的 invuln 夹具（Lead 指定必须按真实接口处理）：`Player.invuln` 只有 getter（`Player.ts:64` → `World.playerInvuln`），`player.invuln = N` 是静默空操作。现改为
+（a）`World.enqueueHeal`（真实 core 命令）仅在 HP<35% 时救命，敌人/开火/伤害保持真实；
+（b）P1 死亡步骤用真实 tick 等残余 i 帧过期后再 `hurt()`；
+（c）P3-a 用 `protect=false` 完全真实战斗；
+（d）`evidence-fixture` 记录字段改为真实的 `hpToppedUpBelow35Pct: true` / `iframesWritten: false`，删除原先与事实不符的 `onlyIFramesRefreshed: true`。
 
-1. `npx tsc --noEmit` 一度 32 个错（`Property 'W' does not exist on type 'UITokens'`，PauseScene 的 `UI.W/H` 与 art token 冲突）→ 已修，现为 0。
-2. LLM 页 `MODEL  NOT CONNECTED` 文本框与 `ENABLE / RE-AUTHORIZE` 按钮相交 198px²（1280x720）→ 已修，现为 0 overlap。
-3. 早期观察到「点击表单 AUTHORIZE 会同时触发下层 Phaser BACK」的间歇现象，在开发者后续修改后不再复现（本轮 20 条 UI 测试 + 3 次全量均未复现），仅记录、不作结论。
+## 7. 变更文件白名单（本任务范围内，共 17 个路径）
 
-## 6. 说明与遗留
+实现（已由 Lead 提交为 `eb83eb4`/`8b8418a`，本单未再改动，hash 与冻结一致）：
+```
+src/scenes/PauseScene.ts
+src/scenes/GameScene.ts
+src/ui/menuKit.ts
+src/world/World.ts        (仅删除 13 行 spawnProjectile 别名，Lead 既有修复)
+```
 
-- 本任务 **未提交、未 push、未 merge**，所有改动留在工作区供 Lead/用户 review。
-- 截图/日志中不含 token、Owner key、bridge 凭据（LLM 失败反馈用例显式断言 token/ownerKey 不出现在 DOM 输入框与场景文本中；截图只拍表单与菜单）。
-- 早期几轮 P1 复跑曾写入 `reports/ai-native-02/evidence/`（该目录在本任务开始前已是 dirty）；自那之后所有跑动都设置 `LS_AI_EVIDENCE_DIR=reports/ui-rework-01/tester/evidence`，不再触碰 `/reports/ai-native-02`。
-- `tests/ui-menu-layout.spec.ts` 默认 `UI_PHASE=auto`，全量回归时不会再覆盖 `before/`、`after/` 证据；重抓 before 需显式 `UI_GEN=old UI_PHASE=before`（对 HEAD 干净树运行的命令见本文件第 2 节）。
-- 独立审查：本轮为测试者在真实浏览器/真实 core 上的实测；Lead 要求的 reviewer 独立审查不属本报告范围。
+测试（tester 独占；新增 2 个、适配 11 个）：
+```
+tests/ui-menu-layout.spec.ts   (新增，25 条：6 capture + 6 audit + 13 单例)
+tests/uiNav.ts                 (新增，共享导航/点击/等待助手)
+tests/ai-native-world.spec.ts
+tests/audit.spec.ts
+tests/c3b-external-link.spec.ts
+tests/c3b-hard-disconnect.spec.ts
+tests/c3b-link-form.spec.ts
+tests/c3c-bridge-reclaim.spec.ts
+tests/companion-room-cancel.spec.ts
+tests/companion-room-race.spec.ts
+tests/p3b-companion-owner.spec.ts
+tests/signal-coop-e2e.spec.ts
+tests/signal-sdk-negative.spec.ts
+```
+
+证据/日志（本单目录，未触碰 `reports/ai-native-02/` 之外的他人证据）：
+```
+reports/ui-rework-01/before/           42 张 + audit-before-*.json
+reports/ui-rework-01/after/            53 张 + audit-after-*.json（在冻结 commit 上重放过）
+reports/ui-rework-01/logs/             全部命令完整输出（见各节引用）
+reports/ui-rework-01/tester/REPORT.md  本文件
+reports/ui-rework-01/tester/evidence/  P1/P3-a 操作日志（LS_AI_EVIDENCE_DIR）
+reports/ui-rework-01/tester/contaminated-before/  被 HMR 污染的早期图（不作结论）
+reports/ui-rework-01/tester/wip/       WIP 阶段审计与截图（不作最终结论）
+reports/ui-rework-01/tester/probe*/    取证用临时探针（不进 tests/，不参与 CI）
+```
+
+## 8. 边界遵守声明
+
+- 未 `push`、未 `PR`、未 `merge main`、**未 commit**（实现提交 `eb83eb4` 由 Lead 完成；本单只改 `tests/` 与 `reports/ui-rework-01/`）。
+- 未修改 `src/`（冻结 hash 前后一致），未改 Owner 协议/epoch/权限/暂停入队语义。
+- 未伪造 pending/connected：所有 pending 都经真实 bridge + 官方 MCP SDK；错误 owner key 按既有协议显示 FALLBACK/NO_MODEL，未要求改成 CONNECTED。
+- 未删除任何旧断言；安全断言零改动；未通过放宽 timeout 追绿（`audit.spec` 的等待是等真实提交，不是缩窗口）。
+- 截图/日志不含 token、owner key、bridge 凭据（LLM 失败用例显式断言两者不出现在输入框与场景文本）。
+- 说明：冻结 commit 内已含 `after/` 的一版截图；本轮按要求在冻结实现上**重新生成**了 `after/`（同名，53 张，含我新增 5 条用例产生的 5 张交互图），因此 `git status` 里 `reports/ui-rework-01/after/*` 显示为修改/新增是预期行为。
+
+## 9. 运行结论（全量 3 次）
+
+- `54-…`：117/118（audit teleport，已定位并修，见 §10）
+- `60-…`：117/118（whale dash 负载 flake，隔离 3/3 绿）
+- `62-…`：**118/118 PASS**（当前集合的单次全量绿，14.7m）
+
+本单范围内（UI-REWORK-01 的 **25** 条新测试 + 适配后的旧 UI 相关 spec）在三次全量中零本单失败；出现过的红都是与本单无关的既有 spec（audit 传送几何/P2 弹丸计数、whale dash），其中 teleport 的两类红已在返修中定位并修好（§10），其余保留为既有 flake 记录，未做任何掩盖。
+
+## 10. 返修记录（回应 reviewer `TEST_ADDENDUM.md` 的 B1 / B2 阻断）
+
+源码仍是冻结的 `eb83eb4`（三份 hash 未变，`git status -- src/` 为空）；本节只改 `tests/`，证据全部写在我自己的
+`reports/ui-rework-01/tester/addendum/`，`UI_OUT_DIR` / `LS_SHOT_DIR` / `LS_AI_EVIDENCE_DIR` 三个环境变量在该目录下隔离使用。
+
+### 10.1 B1 — teleport：去掉吞错与固定长等待，并定位 0.375 格真实原因
+
+返修前（被 reviewer 指出）：`waitForFunction(...).catch(() => undefined)` 吞掉同步超时；`500→1200ms` 固定等待；报告里写了“已修”，但 reviewer 独立复现出恒定 `0.2400691` 偏移。
+
+本轮先做**诊断**（`tester/addendum/diag-teleport.log`，6 次隔离跑，其中 1 次失败）：
+
+```
+expected {x:25,y:46}  actual {x:24.759930850125826,y:46.28808297984902}
+diff {x:-0.2400691498741736, y:+0.28808297984902254}   |diff| = 0.375000000000
+roomId 3 (combat)  portal {wx:31,wy:44,target:5}  input 全 false  intent.move {0,0}
+pending ["move-target"]  echo false  paused false
+```
+
+结论（有源码依据，不是猜）：
+
+- `World.tryInteract()` 的落点就是 `findWalkableInRoom(target)`，而 core 的 `teleport-player`
+  只用 `ensureWalkableFromState(state, {x,y})`；该格子按 `PLAYER_RADIUS=0.5` 可走时**原样返回**，
+  所以“期望值 vs core 落点”**不存在语义差**——reviewer 的方向（“可能是 findWalkable 与 core 语义不同”）被排除。
+- 实测位移模长恰好 **0.375 格**（= 24px）且方向为单位向量，由此定位到 **角色分离**：落点格子上站着仍在被追踪的敌人，
+  主角被 core 的分离/推出步骤推开。这是另一个机制（与传送落点无关），也是数值恒定的原因。
+- 另一类“差 13 格”是 `F` 在 reset 提交前按下导致**交互没发生**（换房断言也会红）。
+
+返修（`tests/audit.spec.ts`，净增约 40 行、删除 2 行）：
+
+1. 删除 `.catch(() => undefined)`：reset 未落到 portal 格时**立刻**在该处失败，错误信息指向根因。
+2. 删除“固定 500→1200ms”；改为三个**真实条件等待**（均无 catch）：
+   - 玩家真正站到 portal 格（`<0.01`）；
+   - `F` 后玩家**已在目标房间且落在预测落点**（`<0.01`，timeout 10s）；
+   - camera 收拢到原断言的阈值 `< 120`（timeout 6s）。
+3. 用**既有 core 测试 seam** 消除角色分离的干扰：`clearEnemiesForTest()` + `resetProjectilesForTest()`
+   （同一个 spec 里既有的 ForTest 接口，注释写明原因与实测 0.375 证据）。
+4. 几何/可玩性断言**一字未改**：`< 0.01` 格、`spriteErr < 1`、`room != beforeRoom`、`centerErr < 120`；没有把 expected 改成 actual。
+
+验证：`PORT=5433 LS_SHOT_DIR=…/tester/addendum/shots npx playwright test tests/audit.spec.ts --grep "fixed-seed playability" --repeat-each=5 --workers=1`
+→ **PASS 5/5**，`tester/addendum/audit-teleport-regression.log`；专项修前同条件 1/5~1/6 出现 0.375 偏移（`diag-teleport.log`、`addendum/../logs/58-…`）。
+
+### 10.2 B2 — reauth：把“无 observation”写成真实原因，并恢复 post-swap 可用性覆盖
+
+reviewer 指出的事实（我已按源码核对 `companionGateway.ts` / `companionFacet.ts`）：reauthorize **不改 session/epoch**，
+只 `observation = null` + `cancelUnconfirmed()`；因此 `echo_observe` 的失败是**状态性拒绝**（必须先重新观察），
+不是“旧会话被安全撤销”。原报告那句表述是错的，已删除。
+
+返修（`tests/ui-menu-layout.spec.ts` 的 `functional: owner re-authorize…`）：
+
+1. 负向断言改为真实原因：`ok === false` **且** payload 匹配 `no_observation|E_LINK_UNAVAILABLE`，注释写明“reauth 清空已发布 observation，agent 需重新观察后才能提案（非安全撤销）”。
+2. 恢复被删掉的 post-swap 可用性 e2e（走真实渲染侧路径，不写 mock）：
+   房间内放一个真实敌人 → `resumeGame()` 跑 >8 个真实 tick（渲染侧重新发布 observation）→ 再次进入 LLM 页 →
+   **同一个** SDK 会话 `echo_observe` ok → `echo_suggest` ok → `CONFIRM` 按钮启用 → 人类点击 CONFIRM →
+   `world.hasPendingCompanionIntent === true`。
+3. 保留原有正向断言：同实例（打标记）、reauth 后 CONNECTED、旧 proposal 退役（CONFIRM 禁用 + 点击不入队）。
+4. DISCONNECT 仍验证：状态不再 CONNECTED，页面文案为离线/未连接（`STATE CONNECTED` 不出现）。
+
+验证：`PORT=5433 … npx playwright test tests/ui-menu-layout.spec.ts --grep "re-authorize" --repeat-each=2 --workers=1`
+→ **PASS 2/2**，`tester/addendum/reauth-regression.log`。
+
+### 10.3 文档计数与口径修正
+
+- 本 spec 条数 **24 → 25**（6 capture + 6 audit + 13 单例），§2/§7 已改。
+- 明确 **113（`37-…`）与 118（`62-…`）不是同一测试集合**：`37-` 跑在 `eb83eb4` 之前、当时本 spec 尚无现在的 25 条定义；
+  不得把 113 当作本集合的历史通过率，也不得把 `62-` 的单次绿当作确定性稳定。
+- 撤回「teleport flake 已修（靠加长等待）」与「旧会话被安全撤销」两处错误表述：前者改为“已定位到 0.375 格角色分离并用真实条件等待 + core seam 消除干扰，5/5 复跑绿”；后者改为“reauth 清空 observation（状态性拒绝），session/epoch 不变”，cap 原子替换由 `src/ai-native/ownerAuth.test.ts` 的 C3/C4 在协议层覆盖（非本 e2e）。
+
+### 10.4 返修后回归（按订单只跑针对性，不跑全量）
+
+| 命令 | 结果 | 日志 |
+|---|---|---|
+| `npm run typecheck` | **PASS**（0 error） | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\tester\addendum\typecheck.log` |
+| `npx playwright test tests/audit.spec.ts --grep "fixed-seed playability" --repeat-each=5 --workers=1` | **PASS 5/5** | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\tester\addendum\audit-teleport-regression.log` |
+| `npx playwright test tests/ui-menu-layout.spec.ts --grep "re-authorize" --repeat-each=2 --workers=1` | **PASS 2/2** | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\tester\addendum\reauth-regression.log` |
+| `npx playwright test tests/audit.spec.ts --workers=1`（整文件，含 P2） | 1 passed / **1 failed**（P2 弹丸 16 vs 15，既有 flake） | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\tester\addendum\audit-full-file.log` |
+| `npx playwright test tests/audit.spec.ts --grep "P2 regression" --repeat-each=3` | **PASS 3/3**（隔离不复现） | `D:\Project\LAST_SIGNAL\reports\ui-rework-01\tester\addendum\audit-p2-1..3.log` |
+
+### 10.5 剩余问题（未修，明确留给 reviewer/Lead 判定）
+
+1. `whale-character.spec`：`whale-dash` 效果在重负载全量里可能 5s 内未出现（隔离 3/3 绿）。与本单无关，未改。
+2. `audit.spec` P2：Boss 弹丸计数偶发 16（隔离 3/3 绿），前一阶段残留弹丸的时序问题，未改（该断言非本单引入）。
+3. `62-…` 的 118/118 是**单次**全量绿；本单没有主张“确定性永绿”。若需要更强的结论，需要重复全量（本单订单未要求）。
+4. `after/` 证据是冻结 commit 上重跑的（字节变化属重跑重写，内容仍对应同一实现）；`before/` 未重写。

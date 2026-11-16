@@ -1,6 +1,6 @@
 # UI-REWORK-01 最终交付
 
-结论：PASS。统一菜单实现、完整回归与独立审查已通过。
+结论：UI 实现及最终独立审查 PASS，无未关闭阻断。完整回归有一次 118/118 通过；随后两处测试返修通过针对性复测，未再次跑全量。既有 P2、whale-dash 偶发失败未修，不能将一次全绿解释为稳定性证明。
 
 开发分支：`fix/ui-menu-layout-rework`。起点为包含 AI-NATIVE-02 的本地 `main @ 0faf95c`，不是落后 96 个提交的 `origin/main`。仅本地提交，不 push、创建 PR 或合并 main。
 
@@ -27,17 +27,26 @@ ESC：LLM/ECHO → AI → Pause → 游戏；Settings → Pause；从 Pause 进�
 
 ## 测试结果
 
-被测版本为 `0faf95c` 加最终 UI 源码、配套测试，以及原有 `World.ts` 删除 13 行修复。完整结果来自同一工作树；提交只记录这些已测内容，未改变其源码。
+产品源码已提交为 `eb83eb4`（父提交 `8b8418a` 为原有 World.ts 修复），后续返修仅修改两处测试与报告，src 不变。下表明确区分各测试快照。
 
 | 门禁 | 结果 | 日志 |
 |---|---|---|
-| `npx tsc --noEmit` | PASS，0 error | [33-typecheck.log](logs/33-typecheck.log) |
-| `npx vitest run` | PASS，745/745，65 files | [32-unit.log](logs/32-unit.log) |
-| `npm run build` | PASS | [34-build.log](logs/34-build.log) |
-| `PORT=5433 npx playwright test --workers=1` | PASS，113/113，37 spec | [37-final-e2e-full-rerun.log](logs/37-final-e2e-full-rerun.log) |
+| `npm run typecheck` | PASS，0 error；测试返修后再次通过 | [typecheck.log](tester/addendum/typecheck.log) |
+| `npm test` | PASS，745/745，65 files；冻结源码 | [52-npm-test.log](logs/52-npm-test.log) |
+| `npm run build` | PASS；冻结源码 | [53-build.log](logs/53-build.log) |
+| `PORT=5433 npx playwright test --workers=1` | 返修前集合单次 PASS，118/118；前两轮各 117/118 | [62-final-full-playwright-2.log](logs/62-final-full-playwright-2.log) |
+| 传送 fixed-seed 针对性返修回归 | Tester 5/5，Reviewer 4/4 | [tester](tester/addendum/audit-teleport-regression.log)、[reviewer](reviewer/TEST_ADDENDUM_FINAL.md) |
+| re-authorize 针对性返修回归 | Tester 2/2，Reviewer 1/1 | [tester](tester/addendum/reauth-regression.log)、[reviewer](reviewer/TEST_ADDENDUM_FINAL.md) |
 | 独立小屏浏览器审计 | PASS，29 checks × 2 视口 | [Reviewer](reviewer/FINAL_REVIEW.md) |
 | 独立 Owner/协议测试 | PASS，71 tests | [Reviewer](reviewer/FINAL_REVIEW.md) |
 | 独立测试 diff 审查 | PASS，无断言弱化或阻断 | [TEST_REVIEW.md](reviewer/TEST_REVIEW.md) |
+| 补充测试返修独立审查 | B1/B2 已闭环，无阻断 | [TEST_ADDENDUM_FINAL.md](reviewer/TEST_ADDENDUM_FINAL.md) |
+
+早期 `37-…` 的 113/113 来自不同测试集合，不能用于证明当前集合全绿。本单最终 UI spec 为 25 条（6 capture + 6 audit + 13 单例）；`eb83eb4` 已包含这些定义，后续 +5 计数差异来自运行快照，不能表述为补充提交新加五个测试。
+
+118 全量通过之后的最终测试返修：传送前清敌/清弹丸，仅隔离几何检查中的角色分离，不绕过此前已经完成的战斗断言；用无 catch 的真实条件等待替代固定 sleep，原几何阈值不变。诊断的 0.375 格偏移等于 24px 角色分离。重新授权仅清空 observation、取消旧建议，session/epoch 不变；短暂 `no_observation / E_LINK_UNAVAILABLE` 是状态性拒绝，不是旧 Agent 会话被撤销。测试已恢复同一 SDK 经真实 observation 发布后 observe → suggest → 人类 Confirm → 待提交 intent 的覆盖。cap 原子替换由 ownerAuth 协议测试验证。
+
+返修后的 audit 整文件曾 1 passed / 1 failed（P2 弹核 16 vs 15），隔离 P2 3/3 通过；whale-dash 也有既有负载偶发失败。二者未修，详细分类及失败日志保留在 Tester 报告中；返修后没有宣称全量稳定通过。
 
 执行者分别为 Orca Worker developer（实现）、Orca Worker tester（完整回归与截图）、Orca Worker reviewer（独立源码、浏览器与测试审查）；Lead 核对冻结 hash、实看截图并整理提交。
 
@@ -69,7 +78,7 @@ Lead 实看最终 800×600 Pause/LLM、1280×720 Settings 及真实 pending 页�
 | LLM | [before](before/before-1280x720-llm.png) | [after](after/after-1280x720-llm.png) |
 | 小屏 | [before](before/before-800x600-pause.png) | [after](after/after-800x600-pause.png) |
 
-本地保留全部原始证据，不清理其他任务产物。Git 收录六视口的主要菜单页面、1280×720 修复前对比、审计 JSON、最终报告和关键日志；完整本地证据索引见 `EVIDENCE_MANIFEST.json`。未收录的原始截图和实验日志仍在本地，不冒充远端已有。
+本地保留全部原始证据，不清理其他任务产物。Git 收录六视口的主要菜单页面、1280×720 修复前对比、审计 JSON、最终报告和关键日志；本地精选证据索引见 `EVIDENCE_MANIFEST.json`。测试/报告补充与最终截图刷新分开提交，不重写 before。未收录的原始截图和实验日志仍在本地，不冒充远端已有。
 
 ## 冻结源码 SHA256
 
