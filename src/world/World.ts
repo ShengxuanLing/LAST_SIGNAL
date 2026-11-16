@@ -313,7 +313,7 @@ export class World {
    *  no signal device exists or the command is unknown. */
   private enqueueSignalCommand(
     command: { type: 'signal-scan' | 'signal-jam'; actor: 'player' | 'echo' }
-      | { type: 'toggle-relay'; enabled: boolean }
+      | { type: 'toggle-relay'; enabled: boolean; originRoomId?: number }
       | { type: 'signal-power'; powered: boolean }
   ): boolean {
     if (!this._sim.signal) return false;
@@ -391,7 +391,14 @@ export class World {
       case 'jam':
         return this.enqueueSignalCommand({ type: 'signal-jam', actor: 'echo' });
       case 'toggle-relay':
-        return this.enqueueSignalCommand({ type: 'toggle-relay', enabled: !(this._sim.signal?.manualEnabled ?? false) });
+        // Trusted internal binding captured synchronously at Owner-confirm
+        // execution time. The core rejects it if the player/device room moved
+        // before commit, so a stale old-room decision cannot flip the gate.
+        return this.enqueueSignalCommand({
+          type: 'toggle-relay',
+          enabled: !(this._sim.signal?.manualEnabled ?? false),
+          originRoomId: this.roomIdValue
+        });
       default:
         return false;
     }

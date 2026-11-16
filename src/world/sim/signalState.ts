@@ -128,21 +128,8 @@ export function commitSignalJam(
   };
 }
 
-/**
- * Human OWNER toggle. Powered and JAM state are preserved.
- *
- * `currentRoomId` binds the command to the room the player is in when it
- * commits: a toggle confirmed in room A but committed after a teleport to
- * room B is rejected, so a stale toggle can never flip a device the player
- * has already left (and never re-open/close a gate in another room).
- */
-export function commitToggleRelay(
-  device: SimSignalDevice, enabled: boolean, tick: number,
-  currentRoomId?: number
-): SignalCommandResult {
-  if (currentRoomId !== undefined && device.roomId !== currentRoomId) {
-    return { ok: false, code: 'E_PERMISSION' };
-  }
+/** Human OWNER toggle. Powered and JAM state are preserved. */
+export function commitToggleRelay(device: SimSignalDevice, enabled: boolean, tick: number): SignalCommandResult {
   device.manualEnabled = enabled;
   device.control = { ...device.control, manualEnabled: enabled, powered: device.powered };
   device.relay = currentRelayState(device.control, tick);

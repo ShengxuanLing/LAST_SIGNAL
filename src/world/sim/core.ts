@@ -126,7 +126,12 @@ export type SimCommand =
   | { type: 'spawn-signal-device'; deviceId: string; roomId: number; x: number; y: number }
   | { type: 'signal-scan'; actor: SignalActorKind }
   | { type: 'signal-jam'; actor: SignalActorKind }
-  | { type: 'toggle-relay'; enabled: boolean }
+  | {
+      type: 'toggle-relay'; enabled: boolean;
+      /** Trusted in-process origin room, set only by a Companion-confirmed
+       *  enqueue. Absent for human R / Owner-dev commands (global control). */
+      originRoomId?: number;
+    }
   | { type: 'signal-power'; powered: boolean };
 
 export interface SimProjectile {
@@ -553,9 +558,15 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       case 'toggle-relay': {
         const device = state.signal;
         if (!device) break;
-        const currentRoom = roomAt(state.map.rooms, state.player.x, state.player.y);
-        const result = commitToggleRelay(device, command.enabled, state.tick, currentRoom?.id);
-        if (!result.ok) break;
+        // Only a Companion-confirmed command carries an origin room. At commit
+        // time it must still be in the device's room, otherwise it is a stale
+        // cross-room command and commits nothing. Human R / Owner-dev commands
+        // have no binding and keep the global device control (c233 behaviour).
+        if (command.originRoomId !== undefined) {
+          const currentRoom = roomAt(state.map.rooms, state.player.x, state.player.y);
+          if (command.originRoomId !== device.roomId || command.originRoomId !== currentRoom?.id) break;
+        }
+        commitToggleRelay(device, command.enabled, state.tick);
         events.push({
           type: 'signal-relay-changed', relay: device.relay,
           manualEnabled: device.manualEnabled, powered: device.powered
