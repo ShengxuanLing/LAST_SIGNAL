@@ -108,7 +108,8 @@ export class Enemy {
   private texture(kind: EnemyKind): string {
     const map: Record<string, string> = {
       drone: 'enemy_drone', stalker: 'enemy_stalker', sentinel: 'enemy_sentinel',
-      hunter: 'enemy_hunter', boss_warden: 'enemy_hunter'
+      hunter: 'enemy_hunter', boss_warden: 'enemy_hunter',
+      sentry: 'enemy_sentry', shiver: 'enemy_shiver', slag: 'enemy_slag'
     };
     return map[kind] ?? 'enemy_drone';
   }
@@ -208,10 +209,14 @@ export class Enemy {
     this.facing = Math.atan2(player.y - this.y, player.x - this.x);
   }
 
+  private canMove(x: number, y: number, radius = this.getRadius()): boolean {
+    return this.world.canMoveInRoom(x, y, radius, this.data.spawnRoom);
+  }
+
   private moveToPlayer(dt: number, player: ActorTargetView): void {
     const stats = this.data.stats;
     const next = axisSlideToward({ x: this.wx, y: this.wy }, { x: player.x, y: player.y }, stats.speed, dt,
-      (x, y) => this.world.isWalkable(x, y));
+      (x, y) => this.canMove(x, y));
     this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.facePlayer(player);
     this.project();
@@ -230,7 +235,7 @@ export class Enemy {
       return;
     }
     const next = axisSlideToward({ x: this.wx, y: this.wy }, target, stats.speed * 0.5, dt,
-      (x, y) => this.world.isWalkable(x, y));
+      (x, y) => this.canMove(x, y));
     this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.project();
   }
@@ -239,7 +244,7 @@ export class Enemy {
     const stats = this.data.stats;
     const away = { x: 2 * this.x - player.x, y: 2 * this.y - player.y };
     const next = axisSlideToward({ x: this.wx, y: this.wy }, away, stats.speed, dt,
-      (x, y) => this.world.isWalkable(x, y));
+      (x, y) => this.canMove(x, y));
     this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.facePlayer(player);
     this.project();
@@ -258,7 +263,13 @@ export class Enemy {
       }
     } else if (stats.ranged) {
       const shot = rangedAttackDescriptor({ x: this.x, y: this.y }, { x: player.x, y: player.y }, GAME.PIXEL_TO_TILE);
-      this.world.spawnEnemyProjectile(this.id, this.x, this.y, stats.damage, shot.velocity);
+      const a = Math.atan2(shot.velocity.y, shot.velocity.x);
+      const speed = Math.hypot(shot.velocity.x, shot.velocity.y);
+      const offsets = this.data.kind === 'sentry' ? [-0.22, 0.22] : this.data.kind === 'shiver' ? [-0.3, 0, 0.3] : [0];
+      for (const offset of offsets) {
+        this.world.spawnEnemyProjectile(this.id, this.x, this.y, stats.damage,
+          { x: Math.cos(a + offset) * speed, y: Math.sin(a + offset) * speed });
+      }
     }
   }
 

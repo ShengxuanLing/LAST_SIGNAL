@@ -40,7 +40,7 @@ export interface WeaponDef {
   levelRange: (lvl: number) => number;
 }
 
-export type EnemyKind = 'drone' | 'stalker' | 'sentinel' | 'hunter' | 'boss_warden';
+export type EnemyKind = 'drone' | 'stalker' | 'sentinel' | 'hunter' | 'boss_warden' | 'sentry' | 'shiver' | 'slag';
 
 export type EnemyStateName =
   | 'idle' | 'patrol' | 'detect' | 'chase' | 'attack' | 'reposition' | 'stun' | 'dead';
@@ -74,6 +74,7 @@ export interface Room {
 export interface MapData {
   seed: number; width: number; height: number;
   tiles: Tile[][]; rooms: Room[]; doorways: Vec2[]; roomsOrder: number[];
+  deck?: number;
 }
 
 export type ItemKind = 'health' | 'currency' | 'upgrade' | 'weapon' | 'ability' | 'restore';
@@ -124,6 +125,7 @@ export interface EchoCheckpointState {
 export interface RunCheckpoint {
   id: string;
   seed: number;
+  deck?: number;
   roomId: number;
   position: Vec2;
   clearedRooms: number[];

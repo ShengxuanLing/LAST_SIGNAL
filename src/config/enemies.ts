@@ -63,6 +63,21 @@ export const ENEMY_STATS: Record<EnemyKind, EnemyStats> = {
     reachEnemy: false,
     ranged: true
   },
+  sentry: {
+    maxHp: 36, speed: 54, damage: 5, armor: 1, aggroRange: 440,
+    attackRange: 320, attackCooldown: 1.6, xpValue: 10, currencyValue: 4,
+    reachEnemy: false, ranged: true
+  },
+  shiver: {
+    maxHp: 46, speed: 220, damage: 9, armor: 1, aggroRange: 430,
+    attackRange: 140, attackCooldown: 1.6, xpValue: 15, currencyValue: 5,
+    reachEnemy: false, ranged: true
+  },
+  slag: {
+    maxHp: 76, speed: 164, damage: 14, armor: 5, aggroRange: 460,
+    attackRange: 70, attackCooldown: 1.1, xpValue: 18, currencyValue: 6,
+    reachEnemy: true, ranged: false
+  },
   boss_warden: {
     maxHp: 2400,
     speed: 110,

@@ -158,8 +158,8 @@ export class Player {
   /** Core command: resets position/HP/invuln; committed at the next core tick.
    *  Position is also set synchronously so immediate readers (e.g. tryInteract)
    *  see the new position before the command commits. */
-  reset(x: number, y: number): void {
-    this.world.enqueueTeleport(x, y, true);
+  reset(x: number, y: number, heal = true): void {
+    this.world.enqueueTeleport(x, y, heal);
     this.project();
   }
 
@@ -193,7 +193,7 @@ export class Player {
   }
 
   private isWalkable(nx: number, ny: number): boolean {
-    return this.world.isWalkable(nx, ny, this.getRadius());
+    return this.world.canMovePlayer(nx, ny);
   }
 
   /** C2: sample exactly one intent per rendered frame; core steps it at 60Hz. */

@@ -14,10 +14,14 @@ import { WORLD_PROTOCOL_VERSION } from '../ai-native/worldProtocol';
 import { Player } from '../entities/Player';
 import type { RunCheckpoint } from '../types';
 import { CSS, DEPTH, FONT, INK, TIME } from '../art/survey/tokens';
+import { deckLabel, deckSeed, sectorFor } from '../config/dungeon';
+import type { MapData } from '../types';
 
 interface SceneConfig {
   seed?: number;
   resume?: boolean;
+  sectorRun?: boolean;
+  transition?: Pick<RunCheckpoint, 'id' | 'player' | 'stats'> & { deck: number };
 }
 
 export class GameScene extends Phaser.Scene {
@@ -42,6 +46,7 @@ export class GameScene extends Phaser.Scene {
   private txtWeapon!: Phaser.GameObjects.Text;
   private txtLevel!: Phaser.GameObjects.Text;
   private txtRoom!: Phaser.GameObjects.Text;
+  private txtObjective!: Phaser.GameObjects.Text;
   private txtEnemies!: Phaser.GameObjects.Text;
   private txtBossHp!: Phaser.GameObjects.Text;
   private bossBarFill!: Phaser.GameObjects.Rectangle;
@@ -93,6 +98,7 @@ export class GameScene extends Phaser.Scene {
   private lastExternalLinkError: { code: string; messageKey: string } | null = null;
 
   seed = 0;
+  private deck?: number;
 
   create(config: SceneConfig): void {
     // A previous run may have been left paused by an overlay (e.g. QUIT TO MENU).
@@ -102,6 +108,7 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setAlpha(1);
     const save = saveSystem.load();
     const checkpoint = config?.resume ? save.run : undefined;
+    const transition = config?.transition;
     if (config?.resume && !checkpoint) {
       this.scene.start('MainMenuScene', { notice: 'NO CHECKPOINT AVAILABLE' });
       return;
@@ -109,17 +116,19 @@ export class GameScene extends Phaser.Scene {
     // A resumed run keeps the checkpoint's id; a brand-new run gets a fresh id.
     // A NEW RUN must not carry over a previous run's id, and its first checkpoint
     // write replaces the old on-disk run (see the undefined expectedId below).
-    this.runId = checkpoint ? checkpoint.id : crypto.getRandomValues(new Uint32Array(4)).join('-');
+    const progress = checkpoint ?? transition;
+    this.runId = progress?.id ?? crypto.getRandomValues(new Uint32Array(4)).join('-');
     this.checkpointDirty = false;
     this.runFinished = false;
     this.pendingLevels = [];
     this.levelUpActive = false;
-    this.enemiesKilled = checkpoint?.stats.kills ?? 0;
-    this.itemsCollected = checkpoint?.stats.items ?? 0;
-    this.damageDealt = checkpoint?.stats.damage ?? 0;
-    this.runStart = this.time.now - (checkpoint?.stats.elapsedSeconds ?? 0) * 1000;
+    this.enemiesKilled = progress?.stats.kills ?? 0;
+    this.itemsCollected = progress?.stats.items ?? 0;
+    this.damageDealt = progress?.stats.damage ?? 0;
+    this.runStart = this.time.now - (progress?.stats.elapsedSeconds ?? 0) * 1000;
     this.seed = (checkpoint?.seed ?? config?.seed ?? Math.floor(Math.random() * 1e9)) >>> 0;
-    const map = this.buildMap(this.seed);
+    this.deck = progress?.deck ?? (config?.sectorRun ? 0 : undefined);
+    const map = this.buildMap(this.seed, this.deck);
     const callbacks: WorldCallbacks = {
       onLevelUp: (level) => this.onLevelUp(level),
       onDeath: () => this.onDeath(),
@@ -134,7 +143,8 @@ export class GameScene extends Phaser.Scene {
         }
         if (delta.dmg) this.damageDealt += delta.dmg;
       },
-      onBossWin: () => this.onBossWin()
+      onBossWin: () => this.onBossWin(),
+      onNextDeck: () => this.advanceDeck()
     };
     this.world = new World(this, map, save, callbacks);
     if (checkpoint && !this.world.restoreCheckpoint(checkpoint)) {
@@ -142,6 +152,7 @@ export class GameScene extends Phaser.Scene {
       this.scene.start('MainMenuScene', { notice: 'CHECKPOINT INCOMPATIBLE' });
       return;
     }
+    if (transition) this.world.applyTransitionPlayerData(transition.player);
     if (!checkpoint) {
       this.world.updateRoom();
       // Commit the initial room generation on one real tick so the first
@@ -154,7 +165,7 @@ export class GameScene extends Phaser.Scene {
       // First write replaces any existing on-disk checkpoint (expectedId ===
       // undefined) so a NEW RUN clears the old run and a RESUME re-saves the same
       // id. Later writes pass this.runId so they can only touch the active run.
-      saveSystem.writeCheckpoint(firstCheckpoint, undefined);
+      saveSystem.writeCheckpoint(firstCheckpoint, progress?.id);
     }
     this.checkpointDirty = false;
 
@@ -180,7 +191,8 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard!.on('keydown-I', (event: KeyboardEvent) => {
       if (!event.repeat) this.toggleInventory();
     });
-    this.input.keyboard!.on('keydown-F', () => {
+    this.input.keyboard!.on('keydown-F', (event: KeyboardEvent) => {
+      if (this.runFinished) return;
       if (this.paused) {
         // F-05: an interaction key must also be able to reclaim control while
         // an overlay is on top; it must NOT interact with a paused world.
@@ -242,9 +254,21 @@ export class GameScene extends Phaser.Scene {
     const start = this.cam.getScroll(px, py);
     this.cam.setScroll(start.x, start.y);
     audio.ensureContext();
+    if (!checkpoint && this.deck !== undefined) this.showDeckArrival(this.deck);
   }
 
-  private buildMap(seed: number): any {
+  private showDeckArrival(deck: number): void {
+    const announcement = this.add.text(GAME.WINDOW_W / 2, 126,
+      [deckLabel(deck), sectorFor(deck).brief], {
+        fontFamily: 'monospace', fontSize: '16px', align: 'center',
+        color: '#d7f3ff', backgroundColor: '#0b1521', padding: { x: 12, y: 7 }
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(501);
+    this.tweens.add({ targets: announcement, alpha: 0, delay: 2300, duration: 400,
+      onComplete: () => announcement.destroy() });
+  }
+
+  private buildMap(seed: number, deck?: number): MapData {
+    if (deck !== undefined) return new MapGenerator(deckSeed(seed, deck), deck).generate();
     const gen = new MapGenerator(seed);
     const map = gen.generate();
     assignRoles(gen, map.rooms, map.roomsOrder);
@@ -279,6 +303,18 @@ export class GameScene extends Phaser.Scene {
     this.world.player.clearHeldInput();
     this.fireHeld = false;
     this.refreshHud(0);
+  }
+
+  private advanceDeck(): void {
+    if (this.deck === undefined || this.paused || this.runFinished) return;
+    this.paused = true;
+    this.scene.restart({
+      seed: this.seed,
+      transition: {
+        id: this.runId, deck: this.deck + 1,
+        player: structuredClone(this.world.player.data), stats: this.runStats()
+      }
+    } satisfies SceneConfig);
   }
 
   private setupHud(): void {
@@ -335,6 +371,7 @@ export class GameScene extends Phaser.Scene {
     this.timer = add.text(20, 98, '', mono(art.small, CSS.knownMid)).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtWeapon = add.text(GAME.WINDOW_W - 20, L.weaponY, '', mono(compact ? 17 : 14, CSS.known, true)).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtRoom = add.text(GAME.WINDOW_W - 20, L.roomY, '', mono(art.small, CSS.knownMid)).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtObjective = add.text(GAME.WINDOW_W / 2, 676, '', mono(compact ? 16 : 15, CSS.interact)).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     this.txtEnemies = add.text(GAME.WINDOW_W - 20, L.enemiesY, '', mono(art.body, CSS.known, true)).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtBossHp = add.text(GAME.WINDOW_W / 2, 30, '', mono(art.boss, CSS.known, true)).setOrigin(0.5, 0.5).setDepth(HUD_DEPTH);
     // Boss fill: left edge pinned (displayOrigin set in refreshBoss) so it drains to the
@@ -373,6 +410,7 @@ export class GameScene extends Phaser.Scene {
     const L = this.hudLayout;
     place(this.txtWeapon, GAME.WINDOW_W - 20, L.weaponY);
     place(this.txtRoom, GAME.WINDOW_W - 20, L.roomY);
+    place(this.txtObjective, GAME.WINDOW_W / 2, 676);
     place(this.txtEnemies, GAME.WINDOW_W - 20, L.enemiesY);
     place(this.txtControl, GAME.WINDOW_W - 20, L.controlY);
     place(this.txtAiAction, GAME.WINDOW_W - 20, L.actionY);
@@ -565,7 +603,12 @@ export class GameScene extends Phaser.Scene {
     this.txtWeapon.setText(`${w.name} [${w.icon}]${ammo}`);
     const room = this.world.currentRoom();
     const total = this.world.map.rooms.length;
-    if (room) this.txtRoom.setText(`R-${String(room.id).padStart(2, '0')} · ${room.kind.toUpperCase()} · SURVEYED ${this.world.surveyedRooms()}/${total}`);
+    if (this.deck === undefined) {
+      if (room) this.txtRoom.setText(`R-${String(room.id).padStart(2, '0')} · ${room.kind.toUpperCase()} · SURVEYED ${this.world.surveyedRooms()}/${total}`);
+    } else {
+      this.txtRoom.setText(`${deckLabel(this.deck)} · ${room?.kind.toUpperCase() ?? 'CORRIDOR'}`);
+      this.txtObjective.setText(this.world.roomObjective);
+    }
     const aliveEnemies = this.world.enemies.length + (this.world.boss ? 1 : 0);
     this.txtEnemies.setText(`HOSTILES ${aliveEnemies}`);
     // one hollow pip per hostile (shape-coded, not colour-coded)
@@ -664,29 +707,10 @@ export class GameScene extends Phaser.Scene {
     this.bossBarFill.width = 316 * ratio;
     // Left-anchored fill inside the frame [482, 798] — independent of the current width.
     this.bossBarFill.setDisplayOrigin(158, 4);
-    this.txtBossHp.setText(`THE WARDEN · PHASE ${boss.phase} / 3`);
+    this.txtBossHp.setText(`★ ${boss.name} — PHASE ${boss.phase} ★`);
   }
 
   private updateStats(): void {
-    const echo = this.world.echoActor;
-    if (!echo) {
-      this.txtEcho.setText('ECHO OFF · PAUSE > ECHO COMPANION');
-      this.txtEcho.setColor('#33e0ff');
-    } else if (echo.data.hp <= 0) {
-      this.txtEcho.setText('ECHO DOWN · INDEPENDENT OF YOU');
-      this.txtEcho.setColor('#ff5533');
-    } else {
-      const mode = this.world.echoMode === 'follow' ? 'FOLLOW'
-        : this.world.echoMode === 'hold' ? 'HOLD' : 'MOVE';
-      const assist = this.world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE';
-      const suggest = this.world.echoSuggestion ? ' · CONFIRM FIRE' : '';
-      const link = this.companionStatus === 'CONNECTED' ? ' · COMPANION CONNECTED'
-        : this.companionStatus === 'FALLBACK:NO_MODEL' ? ' · COMPANION NO MODEL'
-        : this.companionStatus === 'READ_ONLY' ? ' · COMPANION READ ONLY' : '';
-      this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}${link}`);
-      this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
-    }
-    this.refreshSignalHud();
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.txtStats.setText(`KILLS ${this.enemiesKilled} · LOOT ${this.itemsCollected} · DMG ${Math.round(this.damageDealt)} · ${secs}s`);
   }
@@ -826,7 +850,7 @@ export class GameScene extends Phaser.Scene {
     const stats = this.runStats();
     saveSystem.finishRun(this.runId, false, this.seed, stats);
     this.scene.stop('LevelUpScene');
-    this.scene.start('GameOverScene', { seed: this.seed, stats, won: false });
+    this.scene.start('GameOverScene', { seed: this.seed, stats, won: false, deck: this.deck });
   }
 
   private onBossWin(): void {
@@ -854,7 +878,7 @@ export class GameScene extends Phaser.Scene {
       callback: () => {
         this.scene.stop('PauseScene');
         this.scene.stop('LevelUpScene');
-        this.scene.start('GameOverScene', { seed: this.seed, stats, won: true, coreAwarded });
+        this.scene.start('GameOverScene', { seed: this.seed, stats, won: true, coreAwarded, deck: this.deck });
       }
     });
   }

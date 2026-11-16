@@ -6,6 +6,7 @@ import { audio } from '../systems/AudioSystem';
 import { isoToScreen } from '../core/iso';
 import type { SimTarget } from '../world/sim/core';
 import { toCombatPort, type ActorCombatPort, type ActorTargetView, type PlayerLikeCombat } from '../world/actorTarget';
+import { sectorFor } from '../config/dungeon';
 
 // Boss projectile speeds are authored in screen-px/s (same convention as the
 // weapon configs). World.updateProjectiles advances pos in tile coords, so they
@@ -27,6 +28,7 @@ export class Boss {
   attackTimer = 0;
   hitFlash = 0;
   spawnRoom: number;
+  private readonly variant;
 
   get _hp(): number { return this.simTarget ? this.simTarget.hp : this.__hp; }
   get wx(): number { return this.simTarget ? this.simTarget.x : this._wx; }
@@ -34,16 +36,17 @@ export class Boss {
 
   constructor(public world: World, x: number, y: number, room: number, _depth: number) {
     this.spawnRoom = room;
+    this.variant = world.map.deck === undefined ? undefined : sectorFor(world.map.deck).boss;
     // AR-02 restyled 'enemy_hunter'; the Warden is outside the slice and keeps its
     // pre-AR-02 look under its own key until AR-04 designs the armillary Warden.
-    this.sprite = this.world.scene.add.sprite(x, y, 'enemy_warden_legacy');
+    this.sprite = this.world.scene.add.sprite(x, y, this.variant?.texture ?? 'enemy_warden_legacy');
     // Keep the Boss below the player (depth 100) so an overlap never hides the
     // player sprite. Grid y is not a display depth and can exceed HUD depth.
     this.sprite.setDepth(95);
     this.sprite.setScale(2.4);
     this._wx = x;
     this._wy = y;
-    this.__hp = ENEMY_STATS.boss_warden.maxHp;
+    this.__hp = this.maxHp();
     // Project to display space immediately so the sprite does not flash at (x, y).
     this.project();
   }
@@ -52,7 +55,8 @@ export class Boss {
   get y(): number { return this.wy; }
   get alive(): boolean { return this._hp > 0; }
   getRadius(): number { return 3.0; }
-  maxHp(): number { return ENEMY_STATS.boss_warden.maxHp; }
+  maxHp(): number { return this.variant?.hp ?? ENEMY_STATS.boss_warden.maxHp; }
+  get name(): string { return this.variant?.name ?? 'THE WARDEN'; }
 
   project(): void {
     const s = this.world.worldToScreen(this.wx, this.wy);
@@ -60,6 +64,10 @@ export class Boss {
   }
 
   private stats() { return ENEMY_STATS.boss_warden; }
+
+  private canMove(x: number, y: number): boolean {
+    return this.world.canMoveInRoom(x, y, 0.5, this.spawnRoom);
+  }
 
   initHp(): void { this.__hp = this.maxHp(); }
 
@@ -95,15 +103,15 @@ export class Boss {
     let bx = this.wx, by = this.wy;
     if (this.phase === 1 && d > 10) {
       const vx = dx / d * speed, vy = dy / d * speed;
-      if (this.world.isWalkable(bx + vx * dt, by)) bx += vx * dt;
-      if (this.world.isWalkable(bx, by + vy * dt)) by += vy * dt;
+      if (this.canMove(bx + vx * dt, by)) bx += vx * dt;
+      if (this.canMove(bx, by + vy * dt)) by += vy * dt;
     } else if (this.phase === 2) {
       // circle at medium range
       const desired = 6;
       const factor = d < desired ? -1 : 1;
       const vx = dx / d * speed * factor, vy = dy / d * speed * factor;
-      if (this.world.isWalkable(bx + vx * dt, by)) bx += vx * dt;
-      if (this.world.isWalkable(bx, by + vy * dt)) by += vy * dt;
+      if (this.canMove(bx + vx * dt, by)) bx += vx * dt;
+      if (this.canMove(bx, by + vy * dt)) by += vy * dt;
     }
     if (bx !== this.wx || by !== this.wy) this.world.enqueueTargetMove(this._id, bx, by);
     this.sprite.setRotation(Math.atan2(dy, dx));
@@ -118,6 +126,17 @@ export class Boss {
   private doAttack(combat: ActorCombatPort | PlayerLikeCombat, d: number): void {
     const port = toCombatPort(combat);
     const player = port.target;
+    if (this.variant) {
+      const { pattern } = this.variant;
+      if (pattern === 'ring' || (pattern === 'mixed' && this.phase > 1)) this.shockwave();
+      if (pattern !== 'ring' || this.phase > 1) this.fireLaser(player);
+      if (this.phase > 1 && this.stateTimer <= 0) {
+        this.summonDrones();
+        this.stateTimer = 9;
+      }
+      this.attackTimer = 2 - this.phase * 0.35;
+      return;
+    }
     if (this.phase === 1) {
       // phase 1: chase and fire a shockwave ring; bite if the player gets too close
       if (d < 3) {
@@ -174,7 +193,9 @@ export class Boss {
       const angle = (i / 3) * Math.PI * 2 + this.phase;
       const ex = this.x + Math.cos(angle) * 6;
       const ey = this.y + Math.sin(angle) * 6;
-      if (this.world.isWalkable(ex, ey)) this.world.enqueueSpawnEnemy('drone', ex, ey, this.spawnRoom, 3);
+      if (this.canMove(ex, ey)) {
+        this.world.enqueueSpawnEnemy(this.variant?.summon ?? 'drone', ex, ey, this.spawnRoom, 3);
+      }
     }
     audio.wave();
   }

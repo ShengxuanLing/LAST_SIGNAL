@@ -32,6 +32,7 @@ import {
 } from './sim/core';
 import { CombatVfx, BOLT_HEIGHT, type BoltView, type TelegraphView } from '../art/survey/CombatVfx';
 import { CSS, DEPTH, FONT, INK } from '../art/survey/tokens';
+import { deckLabel, dungeonRng, encounter, TOTAL_DECKS } from '../config/dungeon';
 
 export interface WorldCallbacks {
   onLevelUp: (level: number) => void;
@@ -41,6 +42,7 @@ export interface WorldCallbacks {
   onLoot: (drop: LootDrop) => void;
   onStats: (delta: { enemies: number; items: number; dmg: number }) => void;
   onBossWin: () => void;
+  onNextDeck: () => void;
 }
 
 export interface RoomInfo {
@@ -171,7 +173,10 @@ export class World {
   private _minY = 0;
   private _maxX = 0;
   private _maxY = 0;
-  private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number; wx: number; wy: number } | null = null;
+  private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number | null; wx: number; wy: number } | null = null;
+  private waves: EnemyKind[][] = [];
+  private activeWave = 0;
+  private roomSeal?: Phaser.GameObjects.Graphics;
   /** ONE real Relay device per run. Spawned on first room enter only when the
    *  human has explicitly opted into Signal Collaboration; absent = legacy
    *  v1 run (portal always open). */
@@ -201,13 +206,6 @@ export class World {
       this.playerDataSnapshotCache = deepFreeze(JSON.parse(JSON.stringify(this._sim.player.data)));
     }
     return this.playerDataSnapshotCache;
-  }
-
-  /** Explicit dev/test fixture access to live player data; production throws. */
-  get playerDataFixture(): any {
-    World.assertDevTest();
-    this.bumpSimVersion();
-    return this._sim.player.data;
   }
 
   get hasSimulation(): boolean { return !!this._sim; }
@@ -479,12 +477,13 @@ export class World {
     this.playerDataSnapshotCache = null;
   }
 
+
   constructor(scene: Phaser.Scene, map: MapData, save: SaveData, callbacks: WorldCallbacks) {
     this.scene = scene;
     this.map = map;
     this.callbacks = callbacks;
     this.signalCollaborationOptIn = !!save.permanent?.signalCollaborationOptIn;
-    this.rng = new RNG(map.seed * 7919 + 1);
+    this.rng = map.deck === undefined ? new RNG(map.seed * 7919 + 1) : dungeonRng(map.seed);
     this.roomDepth.build(map);
     this._computeBounds();
     // Build the renderer first: Player/Enemy/Boss project() in their constructors and
@@ -688,7 +687,7 @@ export class World {
           }
         : null,
       portal: this.portal
-        ? { x: this.portal.wx, y: this.portal.wy, targetRoom: this.portal.targetRoom }
+        ? { x: this.portal.wx, y: this.portal.wy, targetRoom: this.portal.targetRoom ?? -1 }
         : null,
       perception: {
         basis: 'grid-radius+explored+line-of-sight',
@@ -710,6 +709,44 @@ export class World {
       }
     }
     return null;
+  }
+
+  private get exitRoom(): Room | undefined {
+    return this.map.rooms.find(({ kind }) => kind === 'boss' || kind === 'extraction');
+  }
+
+  private get exitUnlocked(): boolean {
+    const exit = this.exitRoom;
+    return this.map.rooms.every((room) => room === exit || room.cleared);
+  }
+
+  private isDeckExit(room: Room): boolean {
+    return this.map.deck !== undefined && room === this.exitRoom;
+  }
+
+  private get nextDeck(): number | undefined {
+    const deck = this.map.deck;
+    return deck !== undefined && deck + 1 < TOTAL_DECKS ? deck + 1 : undefined;
+  }
+
+  canMovePlayer(x: number, y: number): boolean {
+    const room = this.map.rooms[this.currentRoomId];
+    return this.canMoveInRoom(x, y, this.player.getRadius(), room?.spawned && !room.cleared ? room.id : undefined);
+  }
+
+  canMoveInRoom(x: number, y: number, radius: number, roomId?: number): boolean {
+    const room = this.map.deck !== undefined && roomId !== undefined ? this.map.rooms[roomId] : undefined;
+    if (room && (x < room.gx || x >= room.gx + room.w || y < room.gy || y >= room.gy + room.h)) return false;
+    return this.isWalkable(x, y, radius);
+  }
+
+  get roomObjective(): string {
+    const room = this.map.rooms[this.currentRoomId];
+    if (!room) return '';
+    if (room.cleared && this.isDeckExit(room) && this.nextDeck !== undefined) return `F · DESCEND TO ${deckLabel(this.nextDeck)}`;
+    if (this.isDeckExit(room) && !this.exitUnlocked) return 'EXIT LOCKED · CLEAR OTHER ROOMS';
+    if (!room.cleared && this.waves.length) return `WAVE ${this.activeWave}/${this.waves.length}`;
+    return this.portal && room.cleared ? 'F AT PORTAL · NEXT ROOM' : '';
   }
 
   updateRoom(): void {
@@ -736,14 +773,27 @@ export class World {
     // generation has committed (spawned) and is no longer pending.
     const inRoom = this.enemies.filter((e) => e.data.spawnRoom === room.id && e.alive);
     const r = this.map.rooms[room.id];
-    if (r.spawned && !this.pendingRoomEnters.has(room.id) && inRoom.length === 0 && !r.cleared) {
+    if (r.spawned && !this.pendingRoomEnters.has(room.id) && inRoom.length === 0 && !r.cleared &&
+        (this.map.deck === undefined || !this.boss)) {
+      if (this.map.deck !== undefined && this.activeWave < this.waves.length) {
+        this.spawnSectorWave(r);
+        return;
+      }
       r.cleared = true;
+      this.clearRoomSeal();
+      if (this.map.deck !== undefined && !this.won) this.placePortal(r);
+      this.callbacks.onRoomCleared(room);
+      r.cleared = true;
+      this.clearRoomSeal();
+      if (this.map.deck !== undefined && !this.won) this.placePortal(r);
       this.callbacks.onRoomCleared(room);
     }
   }
 
   private onEnterRoom(room: RoomInfo): void {
     const r = this.map.rooms[room.id];
+    this.activeWave = 0;
+    this.waves = [];
     this.enteredRooms.add(room.id);
     // Survey ink: entering a room is an observation; the mast's pulse draws it in.
     if (this.renderer) {
@@ -751,67 +801,101 @@ export class World {
       this.renderer.observeRoom(room.id, p.x, p.y);
     }
     const depth = this.roomDepth.of(r.id);
-    // A room is only "spawned" once its generation command has actually
-    // committed. Until then it must not be eligible for the cleared check,
-    // otherwise updateRoom() clears it before any enemy exists.
     const isNew = !r.spawned && !this.pendingRoomEnters.has(r.id);
 
-    if (isNew && r.kind === 'boss') {
-        // Boss rooms: spawn Boss via the world-spawn queue; the room becomes
-        // spawned when spawnBoss actually runs on the next tick.
-        this.enqueueSpawnBoss(r);
-        this.pendingRoomEnters.add(r.id);
-        this.callbacks.onRoomEntered(room);
-        this.placePortal(r);
-    } else if (isNew) {
-        // Non-boss rooms: queue room-enter command, place portal with same target.
-        const enemyCount = this.roomEnemyCount(r, depth);
-        const enemyPositions: Vec2[] = [];
-        for (let i = 0; i < enemyCount; i++) {
-          enemyPositions.push({
-            x: r.gx + 3 + (i % 3) * (r.w - 6) / 3,
-            y: r.gy + 3 + Math.floor(i / 3) * (r.h - 6)
-          });
-        }
-        const resourceCount = this.roomResourceCount(r, depth);
-        const resourcePositions: Vec2[] = [];
-        for (let i = 0; i < resourceCount; i++) {
-          resourcePositions.push({ x: r.gx + 2 + (i + 1) * 2, y: r.gy + 2 + (i % 2) * 2 });
-        }
-        const neighbors = r.connectedTo.filter((n) => n !== r.id);
-        // Portal target is drawn from the core RNG via the room-enter command
-        // (savedPortalTarget: null -> rng.pick(neighbors) in processCommands).
-        enqueueCommand(this._sim, {
-          type: 'room-enter', roomId: r.id, roomKind: r.kind,
-          gx: r.gx, gy: r.gy, w: r.w, h: r.h, depth,
-          savedPortalTarget: null,
-          neighbors, enemyCount, enemyPositions, resourceCount, resourcePositions,
-          firstEnemyId: this.enemyIdCounter
-        });
-        this.enemyIdCounter += enemyCount;
-        this.bumpSimVersion();
-        this.pendingRoomEnters.add(r.id);
-        this.callbacks.onRoomEntered(room);
-        this.placePortal(r);
-        // ONE real Relay device per run, spawned on first room enter ONLY when
-        // the human has explicitly opted into Signal Collaboration. Ordinary
-        // NEW RUNS stay legacy (no device, no gating) until enabled in-game.
-        if (this.signalCollaborationOptIn && !this.signalDeviceSpawned) {
-          this.signalDeviceSpawned = true;
-          enqueueCommand(this._sim, {
-            type: 'spawn-signal-device',
-            deviceId: 'relay_main',
-            roomId: r.id,
-            x: r.gx + Math.floor(r.w / 2),
-            y: r.gy + Math.floor(r.h / 2)
-          });
-        }
-    } else {
-        // Already spawned room: ensure a portal exists.
-        if (!this.portal) {
-          this.placePortal(r);
-        }
+    if (isNew && this.isDeckExit(r) && !this.exitUnlocked) {
+      this.placePortal(r);
+      return;
     }
+
+    if (isNew && this.map.deck !== undefined) {
+      if (r.kind === 'boss') {
+        this.spawnBoss(r);
+        r.spawned = true;
+      } else {
+        r.spawned = true;
+        this.waves = encounter(this.map.seed, this.map.deck, r.id, r.kind);
+        if (this.waves.length) this.spawnSectorWave(r);
+      }
+      if (r.kind === 'resource' || r.kind === 'shop') this.spawnResourceLoot(r);
+      this.callbacks.onRoomEntered(room);
+    } else if (isNew && r.kind === 'boss') {
+      this.enqueueSpawnBoss(r);
+      this.pendingRoomEnters.add(r.id);
+      this.callbacks.onRoomEntered(room);
+      this.placePortal(r);
+    } else if (isNew) {
+      const enemyCount = this.roomEnemyCount(r, depth);
+      const enemyPositions: Vec2[] = [];
+      for (let i = 0; i < enemyCount; i++) {
+        enemyPositions.push({
+          x: r.gx + 3 + (i % 3) * (r.w - 6) / 3,
+          y: r.gy + 3 + Math.floor(i / 3) * (r.h - 6)
+        });
+      }
+      const resourceCount = this.roomResourceCount(r, depth);
+      const resourcePositions: Vec2[] = [];
+      for (let i = 0; i < resourceCount; i++) {
+        resourcePositions.push({ x: r.gx + 2 + (i + 1) * 2, y: r.gy + 2 + (i % 2) * 2 });
+      }
+      const neighbors = r.connectedTo.filter((n) => n !== r.id);
+      enqueueCommand(this._sim, {
+        type: 'room-enter', roomId: r.id, roomKind: r.kind,
+        gx: r.gx, gy: r.gy, w: r.w, h: r.h, depth,
+        savedPortalTarget: null,
+        neighbors, enemyCount, enemyPositions, resourceCount, resourcePositions,
+        firstEnemyId: this.enemyIdCounter
+      });
+      this.enemyIdCounter += enemyCount;
+      this.bumpSimVersion();
+      this.pendingRoomEnters.add(r.id);
+      this.callbacks.onRoomEntered(room);
+      this.placePortal(r);
+      if (this.signalCollaborationOptIn && !this.signalDeviceSpawned) {
+        this.signalDeviceSpawned = true;
+        enqueueCommand(this._sim, {
+          type: 'spawn-signal-device',
+          deviceId: 'relay_main',
+          roomId: r.id,
+          x: r.gx + Math.floor(r.w / 2),
+          y: r.gy + Math.floor(r.h / 2)
+        });
+      }
+    } else if (!this.portal) {
+      this.placePortal(r);
+    }
+
+    if (this.map.deck !== undefined && !r.cleared && (this.boss || this.waves.length)) this.showRoomSeal(r);
+    if (this.map.deck === undefined || r.cleared) this.placePortal(r);
+    else this.clearPortal();
+  }
+
+  private showRoomSeal(room: Room): void {
+    this.clearRoomSeal();
+    const seal = this.scene.add.graphics().setDepth(58);
+    seal.lineStyle(3, 0xff805b, 0.9);
+    const edge = (x: number, y: number, ax: number, ay: number, bx: number, by: number) => {
+      if (this.tileAt(x, y).type === 'wall') return;
+      const from = this.worldToScreen(ax, ay);
+      const to = this.worldToScreen(bx, by);
+      seal.lineBetween(from.x, from.y, to.x, to.y);
+    };
+    const right = room.gx + room.w;
+    const bottom = room.gy + room.h;
+    for (let x = room.gx; x < right; x++) {
+      edge(x, room.gy - 1, x, room.gy, x + 1, room.gy);
+      edge(x, bottom, x, bottom, x + 1, bottom);
+    }
+    for (let y = room.gy; y < bottom; y++) {
+      edge(room.gx - 1, y, room.gx, y, room.gx, y + 1);
+      edge(right, y, right, y, right, y + 1);
+    }
+    this.roomSeal = seal;
+  }
+
+  private clearRoomSeal(): void {
+    this.roomSeal?.destroy();
+    this.roomSeal = undefined;
   }
 
   private roomEnemyCount(r: Room, depth: number): number {
@@ -829,15 +913,19 @@ export class World {
   }
 
   private placePortal(r: Room, savedTarget?: number | null): void {
+    if (this.isDeckExit(r) && r.cleared && this.nextDeck !== undefined) {
+      this.makePortal(null, this.findWalkableInRoom(r));
+      return;
+    }
     // Prefer the first step toward any unvisited room. If every room is already
     // visited, allow backtracking instead of destroying the portal and soft-locking
     // the run in a leaf room.
     let target = savedTarget ?? this.nextRoomTowardUnvisited(r.id);
     if (target === null) {
-      const neighbors = r.connectedTo.filter((n) => n !== r.id);
+      const neighbors = r.connectedTo.filter((n) => n !== r.id &&
+        (this.map.deck === undefined || this.exitUnlocked || this.map.rooms[n] !== this.exitRoom));
       if (neighbors.length === 0) {
-        if (this.portal) this.portal.spr.destroy();
-        this.portal = null;
+        this.clearPortal();
         return;
       }
       // Portal target is drawn from the core RNG when the room-enter command
@@ -871,14 +959,28 @@ export class World {
       }
     }
 
-    if (this.portal) { this.portal.spr.destroy(); this.portal = null; }
+    this.makePortal(target, best);
+  }
+
+  private clearPortal(): void {
+    if (!this.portal) return;
+    this.scene.tweens.killTweensOf(this.portal.spr);
+    this.portal.spr.destroy();
+    this.portal = null;
+  }
+
+  private makePortal(target: number | null, best: Vec2): void {
+    this.clearPortal();
     // Display at the visual centre of the chosen cell; interaction still uses (best.x, best.y).
     const s = this.worldToScreen(best.x + 0.5, best.y + 0.5);
     const spr = this.scene.add.sprite(s.x, s.y, 'portal_beacon');
     spr.setOrigin(0.5, 54 / 64).setDepth(DEPTH.decal + 1);
+    if (target === null) spr.setTint(0xffd233);
     this.scene.add.tween({ targets: spr, alpha: { from: 0.65, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
-    // Protocol label (interact cyan) + world light pool; both die with the beacon.
-    const label = this.scene.add.text(s.x + 16, s.y - 58, `F · R-${String(target).padStart(2, '0')} ${tr.kind.toUpperCase()}`, {
+    const labelText = target === null
+      ? 'F · DESCEND'
+      : `F · R-${String(target).padStart(2, '0')} ${this.map.rooms[target].kind.toUpperCase()}`;
+    const label = this.scene.add.text(s.x + 16, s.y - 58, labelText, {
       fontFamily: FONT.mono, fontSize: '11px', color: CSS.interact
     }).setOrigin(0, 0.5).setDepth(DEPTH.decal + 1);
     const glow = this.scene.add.image(s.x, s.y, 'light_interact').setBlendMode(Phaser.BlendModes.ADD).setScale(0.6).setAlpha(0.35).setDepth(DEPTH.light);
@@ -894,8 +996,12 @@ export class World {
     let goal: number | null = null;
     while (queue.length) {
       const cur = queue.shift()!;
-      if (cur !== startId && !this.enteredRooms.has(cur)) { goal = cur; break; }
+      if (cur !== startId && (this.map.deck === undefined ? !this.enteredRooms.has(cur) : !this.map.rooms[cur].cleared)) {
+        goal = cur;
+        break;
+      }
       for (const nb of this.map.rooms[cur].connectedTo) {
+        if (this.map.deck !== undefined && !this.exitUnlocked && this.map.rooms[nb] === this.exitRoom) continue;
         if (!parent.has(nb)) { parent.set(nb, cur); queue.push(nb); }
       }
     }
@@ -959,25 +1065,54 @@ export class World {
     // shut: scan→confirm→ACTIVE is required to pass.
     const sig = this.signalView();
     if (sig && sig.relay !== 'ACTIVE') return;
+    if (this.map.deck !== undefined) {
+      const room = this.currentRoom();
+      if (!room || (!this.map.rooms[room.id].cleared && !this.isDeckExit(this.map.rooms[room.id]))) return;
+    }
     const dx = player.x - this.portal.wx, dy = player.y - this.portal.wy;
     if (Math.hypot(dx, dy) < 2.0) {
+      if (this.portal.targetRoom === null) {
+        this.callbacks.onNextDeck();
+        return;
+      }
       const target = this.map.rooms[this.portal.targetRoom];
       const landing = this.findWalkableInRoom(target);
       this.currentRoomId = -1;
       this.enteredRooms.delete(this.portal.targetRoom);
-      this.portal.spr.destroy();
-      this.portal = null;
-      // Ordinary transition is a command committed by the next core tick with
-      // a validated walkable landing; updateRoom() enters the destination and
-      // queues its spawn/portal on that tick. The companion migrates with the
-      // protagonist on that SAME tick, and the old room's armed assist +
-      // pending companion intent + echo memory are dropped (never carried into
-      // the new encounter). No forced teleport of the test's own making.
-      this.echoController.clearForRoomTransition();
-      this.pendingCompanionIntent = null;
-      this.enqueueTeleport(landing.x, landing.y, true, true);
+      this.clearPortal();
+      if (this.map.deck !== undefined) {
+        player.reset(landing.x, landing.y, false);
+        this.updateRoom();
+      } else {
+        // Ordinary transition is a command committed by the next core tick with
+        // a validated walkable landing; updateRoom() enters the destination and
+        // queues its spawn/portal on that tick. The companion migrates with the
+        // protagonist on that SAME tick, and the old room's armed assist +
+        // pending companion intent + echo memory are dropped (never carried into
+        // the new encounter).
+        this.echoController.clearForRoomTransition();
+        this.pendingCompanionIntent = null;
+        this.enqueueTeleport(landing.x, landing.y, true, true);
+      }
       audio.wave();
     }
+  }
+
+  private spawnSectorWave(room: Room): void {
+    const rng = dungeonRng(this.map.seed ^ Math.imul(room.id + 1, 0x27d4eb2d) ^ this.activeWave);
+    const spots: Vec2[] = [];
+    for (let x = room.gx + 1; x < room.gx + room.w - 1; x++) {
+      for (let y = room.gy + 1; y < room.gy + room.h - 1; y++) {
+        if (Math.hypot(x - this.player.x, y - this.player.y) >= 2 && this.isWalkable(x, y)) spots.push({ x, y });
+      }
+    }
+    const positions = rng.shuffle(spots);
+    const depth = this.roomDepth.of(room.id) + Math.floor((this.map.deck ?? 0) / 2);
+    for (const kind of this.waves[this.activeWave++]) {
+      const { x, y } = positions.pop() ?? this.findWalkableInRoom(room);
+      this.spawnEnemy(kind, x, y, room.id, depth);
+    }
+    audio.wave();
   }
 
   private spawnForRoom(r: Room): void {
@@ -1004,6 +1139,12 @@ export class World {
   }
 
   private spawnResourceLoot(r: Room): void {
+    if (this.map.deck !== undefined) {
+      const center = this.findWalkableInRoom(r);
+      this.spawnLoot(center.x - 1, center.y, 'health', 'health', 0);
+      this.spawnLoot(center.x + 1, center.y, 'currency', 'currency', 12);
+      return;
+    }
     const n = r.kind === 'shop' ? 3 : 2 + (this.roomDepth.of(r.id) % 3);
     for (let i = 0; i < n; i++) {
       const x = r.gx + 2 + (i + 1) * 2;
@@ -1116,6 +1257,12 @@ export class World {
     enqueueCommand(this._sim, { type: 'equip-weapon', key });
     this.bumpSimVersion();
     return true;
+  }
+
+  /** Deck transition: carry the previous deck's player data into the new scene. Deep-copied; used only by a new-run scene transition (never mid-tick). */
+  applyTransitionPlayerData(data: PlayerData): void {
+    this.#setPlayerData(data);
+    this.bumpSimVersion();
   }
 
   /** Fixture/Owner-only full-state write. Normal gameplay must use semantic
@@ -1738,10 +1885,29 @@ export class World {
 
   private killBoss(): void {
     if (!this.boss) return;
+    const bossRoom = this.map.rooms[this.boss.spawnRoom];
     this.boss.sprite.destroy();
     this.boss = null;
+    this.clearRoomSeal();
+    if (this.nextDeck !== undefined) {
+      for (const enemy of this.enemies) enemy.sprite.destroy();
+      this.enemies = [];
+      for (const projectile of this.projectiles) this.destroyProjectileSprite(projectile);
+      this.projectiles = [];
+      bossRoom.cleared = true;
+      this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
+      this.placePortal(bossRoom);
+      this.callbacks.onRoomCleared(bossRoom);
+      this.player.addXp(60);
+      return;
+    }
     this.won = true;
     this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
+    this.player.addXp(200);
+    if (this.map.deck === undefined) {
+      const bx = this.player.x, by = this.player.y;
+      for (let i = 0; i < 12; i++) this.spawnLoot(bx + (Math.random() - 0.5) * 120, by + (Math.random() - 0.5) * 120, 'currency', 'currency', 10);
+    }
     audio.bossroar();
     this.callbacks.onBossWin();
   }
@@ -1784,7 +1950,7 @@ export class World {
     // player / loot. Any in-memory holder (AI harness, checkpoint UI, test)
     // would otherwise observe silently mutating "snapshots" (review R-03).
     return cloneCheckpoint({
-      id, seed, stats, roomId: room.id,
+      id, seed, deck: this.map.deck, stats, roomId: room.id,
       position: { x: this.player.x, y: this.player.y },
       clearedRooms: this.map.rooms.filter((entry) => entry.cleared).map((entry) => entry.id),
       portalTarget: this.currentRoomId === room.id ? this.portal?.targetRoom ?? null : null,
@@ -1809,7 +1975,8 @@ export class World {
 
   restoreCheckpoint(run: RunCheckpoint): boolean {
     const room = this.map.rooms[run.roomId];
-    if (!room || !run.clearedRooms.every((id) => this.map.rooms[id]?.kind && this.map.rooms[id].kind !== 'boss') ||
+    if (!room || !run.clearedRooms.every((id) => this.map.rooms[id] &&
+          (this.map.rooms[id].kind !== 'boss' || this.nextDeck !== undefined)) ||
         (run.portalTarget !== null && !room.connectedTo.includes(run.portalTarget))) return false;
 
     for (const id of run.clearedRooms) {

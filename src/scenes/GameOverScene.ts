@@ -3,12 +3,13 @@ import { GAME } from '../config/game';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { formatDuration } from '../core/formatDuration';
+import { deckLabel } from '../config/dungeon';
 import type { RunCheckpoint } from '../types';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
 
-  create(config: { seed: number; stats?: RunCheckpoint['stats']; won?: boolean; coreAwarded?: boolean }): void {
+  create(config: { seed: number; stats?: RunCheckpoint['stats']; won?: boolean; coreAwarded?: boolean; deck?: number }): void {
     const won = config?.won === true;
     const { kills, damage, items, elapsedSeconds } = config?.stats ?? {
       kills: 0, damage: 0, items: 0, elapsedSeconds: 0
@@ -30,7 +31,8 @@ export class GameOverScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '18px', color: '#8fb8c8'
     }).setOrigin(0.5, 0.5);
 
-    this.add.text(GAME.WINDOW_W / 2, 250, `SEED ${seed}`, { fontFamily: 'monospace', fontSize: '14px', color: '#5a7480' }).setOrigin(0.5, 0.5);
+    const stage = config?.deck === undefined ? '' : ` · ${deckLabel(config.deck)}`;
+    this.add.text(GAME.WINDOW_W / 2, 250, `SEED ${seed}${stage}`, { fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8' }).setOrigin(0.5, 0.5);
     this.add.text(GAME.WINDOW_W / 2, 278, `KILLS ${kills} · DAMAGE DEALT ${Math.round(damage)}`, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff' }).setOrigin(0.5, 0.5);
     this.add.text(GAME.WINDOW_W / 2, 306, `ITEMS COLLECTED ${items} · TIME ${formatDuration(elapsedSeconds)}`, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff' }).setOrigin(0.5, 0.5);
     this.add.text(GAME.WINDOW_W / 2, 334, `RUNS COMPLETED ${save.permanent.runs} · BOSSES ${save.permanent.bossesDefeated}`, {
@@ -44,8 +46,9 @@ export class GameOverScene extends Phaser.Scene {
 
     this._button(GAME.WINDOW_W / 2, 500, won ? 'NEW RUN' : 'RETRY SAME SEED', () => {
       const nextSeed = won ? undefined : seed;
-      if (saveSystem.load().run) this.scene.start('MainMenuScene', { view: 'replace', seed: nextSeed });
-      else this.scene.start('GameScene', { seed: nextSeed });
+      const next = { seed: nextSeed, sectorRun: config?.deck !== undefined };
+      if (saveSystem.load().run) this.scene.start('MainMenuScene', { view: 'replace', ...next });
+      else this.scene.start('GameScene', next);
     }, 0x33e0ff);
     this._button(GAME.WINDOW_W / 2, 560, 'MAIN MENU', () => this.scene.start('MainMenuScene', {}), 0x274a55);
   }

@@ -27,6 +27,7 @@ const ROOM_CODE: Record<string, string> = {
 };
 
 interface InkLayer { image: Phaser.GameObjects.Image; observed: boolean; reveal: number; cx: number; cy: number; radius: number; mask?: Phaser.GameObjects.Graphics; ring?: Phaser.GameObjects.Graphics }
+import { sectorFor } from '../config/dungeon';
 
 export class WorldRenderer {
   private layer: Phaser.GameObjects.Sprite;
@@ -40,9 +41,11 @@ export class WorldRenderer {
   private roomFloor = new Map<string, number>();
   private ink = new Map<number, InkLayer>();
   private readonly seed: number;
+  private readonly sector;
 
   constructor(public scene: Phaser.Scene, public map: MapData) {
     this.seed = visualSeed(map.seed, -1, 'WORLD');
+    this.sector = map.deck === undefined ? undefined : sectorFor(map.deck);
     const src = this._buildTexture();
     if (scene.textures.exists('worldLayer')) scene.textures.remove('worldLayer');
     scene.textures.addCanvas('worldLayer', src);
