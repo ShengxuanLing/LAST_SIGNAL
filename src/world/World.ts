@@ -200,6 +200,13 @@ export class World {
     return this._sim;
   }
 
+  /** Explicit dev/test fixture access to live player data; production throws. */
+  get playerDataFixture(): any {
+    World.assertDevTest();
+    this.bumpSimVersion();
+    return this._sim.player.data;
+  }
+
   /** Deep, frozen player data snapshot for HUD/read-only adapters. */
   get playerDataSnapshot(): any {
     if (!this.playerDataSnapshotCache) {
@@ -743,8 +750,8 @@ export class World {
   get roomObjective(): string {
     const room = this.map.rooms[this.currentRoomId];
     if (!room) return '';
-    if (room.cleared && this.isDeckExit(room) && this.nextDeck !== undefined) return `F · DESCEND TO ${deckLabel(this.nextDeck)}`;
     if (this.isDeckExit(room) && !this.exitUnlocked) return 'EXIT LOCKED · CLEAR OTHER ROOMS';
+    if (room.cleared && this.isDeckExit(room) && this.nextDeck !== undefined) return `F · DESCEND TO ${deckLabel(this.nextDeck)}`;
     if (!room.cleared && this.waves.length) return `WAVE ${this.activeWave}/${this.waves.length}`;
     return this.portal && room.cleared ? 'F AT PORTAL · NEXT ROOM' : '';
   }
@@ -1313,6 +1320,19 @@ export class World {
       if (entry.boss) this.spawnBoss(entry.boss);
       else this.spawnEnemy(entry.kind, entry.x, entry.y, entry.room, entry.depth);
     }
+  }
+
+  /** Sector-compat alias: fire a projectile at an angle with a damage spec.
+   *  Used by sector bosses; side is cosmetic here because core spawn commands
+   *  are side-agnostic for collision. */
+  spawnProjectile(ownerId: number, x: number, y: number, angle: number, spec: {
+    damage: number; speed: number; critChance?: number; critDamage?: number;
+    pierce?: number; lifetime?: number; kind?: string; shots?: number; spread?: number;
+  }, side: 'player' | 'enemy' = 'enemy'): void {
+    const speed = Number.isFinite(spec.speed) ? spec.speed : 160;
+    const damage = Number.isFinite(spec.damage) ? spec.damage : 1;
+    const vel = { x: Math.cos(angle) * speed / GAME.PIXEL_TO_TILE, y: Math.sin(angle) * speed / GAME.PIXEL_TO_TILE };
+    this.spawnEnemyProjectile(ownerId, x, y, damage, vel, spec.lifetime);
   }
 
   /** Queues a validated room teleport; committed by the next core tick. */
