@@ -1,0 +1,31 @@
+
+Running 27 tests using 1 worker
+
+[1/27] [chromium] › tests\c3b-external-link.spec.ts:85:1 › human authorization links the rendered world to the bridge; actions commit on a real tick
+[2/27] [chromium] › tests\c3b-external-link.spec.ts:211:1 › takeover / overlay / agent disconnect yield the link; no automatic re-take
+[3/27] [chromium] › tests\c3b-external-link.spec.ts:297:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[4/27] [chromium] › tests\c3b-external-link.spec.ts:366:1 › fire honours real cooldown / ammo / real projectiles; interact is one legal commit
+[5/27] [chromium] › tests\c3b-external-link.spec.ts:436:1 › blocked legal move still gets a receipt but cannot fake displacement
+[6/27] [chromium] › tests\c3b-external-link.spec.ts:478:1 › Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation
+[7/27] [chromium] › tests\c3b-external-link.spec.ts:554:1 › takeover while a long action is in flight: no pageerror, no ACK after the new epoch
+[8/27] [chromium] › tests\c3b-external-link.spec.ts:582:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[9/27] [chromium] › tests\c3b-hard-disconnect.spec.ts:93:1 › SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach
+[10/27] [chromium] › tests\c3b-external-link.spec.ts:85:1 › human authorization links the rendered world to the bridge; actions commit on a real tick
+[11/27] [chromium] › tests\c3b-external-link.spec.ts:211:1 › takeover / overlay / agent disconnect yield the link; no automatic re-take
+[12/27] [chromium] › tests\c3b-external-link.spec.ts:297:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[13/27] [chromium] › tests\c3b-external-link.spec.ts:366:1 › fire honours real cooldown / ammo / real projectiles; interact is one legal commit
+[14/27] [chromium] › tests\c3b-external-link.spec.ts:436:1 › blocked legal move still gets a receipt but cannot fake displacement
+[15/27] [chromium] › tests\c3b-external-link.spec.ts:478:1 › Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation
+[16/27] [chromium] › tests\c3b-external-link.spec.ts:554:1 › takeover while a long action is in flight: no pageerror, no ACK after the new epoch
+[17/27] [chromium] › tests\c3b-external-link.spec.ts:582:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[18/27] [chromium] › tests\c3b-hard-disconnect.spec.ts:93:1 › SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach
+[19/27] [chromium] › tests\c3b-external-link.spec.ts:85:1 › human authorization links the rendered world to the bridge; actions commit on a real tick
+[20/27] [chromium] › tests\c3b-external-link.spec.ts:211:1 › takeover / overlay / agent disconnect yield the link; no automatic re-take
+[21/27] [chromium] › tests\c3b-external-link.spec.ts:297:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[22/27] [chromium] › tests\c3b-external-link.spec.ts:366:1 › fire honours real cooldown / ammo / real projectiles; interact is one legal commit
+[23/27] [chromium] › tests\c3b-external-link.spec.ts:436:1 › blocked legal move still gets a receipt but cannot fake displacement
+[24/27] [chromium] › tests\c3b-external-link.spec.ts:478:1 › Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation
+[25/27] [chromium] › tests\c3b-external-link.spec.ts:554:1 › takeover while a long action is in flight: no pageerror, no ACK after the new epoch
+[26/27] [chromium] › tests\c3b-external-link.spec.ts:582:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[27/27] [chromium] › tests\c3b-hard-disconnect.spec.ts:93:1 › SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach
+  27 passed (1.8m)

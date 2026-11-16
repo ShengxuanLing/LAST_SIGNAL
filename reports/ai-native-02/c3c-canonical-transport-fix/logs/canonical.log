@@ -1,0 +1,11 @@
+PASS | canonical_unit | npx vitest run | 41 files / 574 tests | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_unit.log
+PASS | canonical_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_typecheck.log
+PASS | canonical_build | npm run build | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_build.log
+PASS | canonical_build_test | npm run build:test | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_build_test.log
+PASS | canonical_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_mcp_build.log
+PASS | canonical_c2_node | npx vite-node scripts/c2-node-parity.ts | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_c2_node.log
+PASS | canonical_c2_kill | npx vite-node scripts/c2-kill-parity.ts | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_c2_kill.log
+PASS | canonical_c3c_parity | npx vite-node scripts/c3c-rendered-headless-parity.mts | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_c3c_parity.log
+PASS | canonical_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_headless_smoke.log
+PASS | canonical_player_negative | npx vite-node src/ai-native/worldHeadlessPlayerCrop.mts | rc=0 | reports/ai-native-02/c3c-canonical-transport-fix/logs/canonical_player_negative.log
+CANONICAL_GATE_DONE

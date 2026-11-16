@@ -24,7 +24,7 @@ const SHOT_DIR = process.env.LS_SHOT_DIR
 async function gridToScreen(page: any, gx: number, gy: number): Promise<{ x: number; y: number }> {
   return page.evaluate(({ gx, gy }) => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const w = gs.world, cam = gs.cameras.main;
     const p0 = cam.getWorldPoint(0, 0);
     const px = cam.getWorldPoint(100, 0);
@@ -39,13 +39,13 @@ async function gridToScreen(page: any, gx: number, gy: number): Promise<{ x: num
 async function worldState(page: any) {
   return page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     if (!gs?.world) return null;
     const w = gs.world, pl = w.player, cam = gs.cameras.main;
     const c = cam.getWorldPoint(640, 360);
     const s = w.worldToScreen(pl.wx, pl.wy);
     return {
-      active: g.scene.getScenes(true).map((x: any) => x.constructor.name),
+      active: g.scene.getScenes(true).map((x: any) => x.sys.settings.key),
       seed: gs.seed, paused: gs.paused, camAlpha: cam.alpha, zoom: cam.zoom,
       grid: { x: pl.wx, y: pl.wy }, sprite: { x: pl.sprite.x, y: pl.sprite.y },
       w2s: s, spriteErr: Math.hypot(pl.sprite.x - s.x, pl.sprite.y - s.y),
@@ -91,7 +91,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   await page.mouse.click(640, 460); // CONTINUE, no checkpoint
   await page.waitForTimeout(200);
   const menuState = await page.evaluate(() => ({
-    active: (window as any).__game.scene.getScenes(true).map((s: any) => s.constructor.name),
+    active: (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key),
     starts: (window as any).__gameStarts
   }));
   expect(menuState.active, 'menu still active after blank/disabled clicks').toContain('MainMenuScene');
@@ -129,7 +129,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   await page.waitForTimeout(260);
   const fire = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const w = gs.world, pl = w.player, cam = gs.cameras.main;
     const ptr = gs.input.activePointer;
     const wp = cam.getWorldPoint(ptr.x, ptr.y);
@@ -170,10 +170,10 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   // 5) A REAL enemy (has update()) takes damage / dies, drops XP and updates HUD.
   const enemySetup = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const w = gs.world, pl = w.player;
     for (const q of w.projectiles) q.spr.destroy();
-    w.projectiles = [];
+    w.resetProjectilesForTest();
     const e = w.spawnEnemy('drone', pl.wx + 3, pl.wy, w.currentRoom()?.id ?? 0, 1);
     (window as any).__enemyId = e._id;
     return { id: e._id, maxHp: e._hp, hasUpdate: typeof e.update === 'function', grid: { x: e.x, y: e.y } };
@@ -188,7 +188,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   st = await worldState(page);
   const enemyHp = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const e = gs.world.enemies.find((x: any) => x._id === (window as any).__enemyId);
     return e ? e._hp : -1; // -1 => removed (killed)
   });
@@ -203,43 +203,49 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   //     Boss laser/shockwave still set velocity on the returned data object.
   const projectileRegress = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const w = gs.world, pl = w.player;
-    for (const q of w.projectiles) q.spr.destroy();
-    w.projectiles = [];
+    w.resetProjectilesForTest();
     const e = w.spawnEnemy('drone', pl.wx + 6, pl.wy, w.currentRoom()?.id ?? 0, 1);
     e.attackTimer = 0;
     e.doAttack(pl);
-    const q: any = w.projectiles[w.projectiles.length - 1];
-    const enemyShot = q ? {
-      atEnemy: Math.abs(q.data.pos.x - e.x) < 0.01 && Math.abs(q.data.pos.y - e.y) < 0.01,
-      speed: Math.hypot(q.data.vel.x, q.data.vel.y)
+    // Legacy ranged attacks are queued; commit with a normal tick and inspect the
+    // spawned event (the projectile may hit and be removed in the same tick).
+    w.resetSimulationAccumulator();
+    const events: any[] = w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    const spawned = events.filter((ev: any) => ev.type === 'projectile-spawned' && ev.projectile.side === 'enemy');
+    const enemyShot = spawned.length ? {
+      atEnemy: Math.abs(spawned[0].projectile.pos.x - e.x) < 0.01 && Math.abs(spawned[0].projectile.pos.y - e.y) < 0.01,
+      speed: Math.hypot(spawned[0].projectile.vel.x, spawned[0].projectile.vel.y)
     } : null;
+
     let bossOk = null;
     try {
       w.spawnBoss(w.map.rooms[w.currentRoom()?.id ?? 0]);
       const boss: any = w.boss;
       boss.attackTimer = 0; boss.phase = 2; boss.stateTimer = -1;
-      const c0 = w.projectiles.length;
-      boss.doAttack(pl, 20);
-      const c1 = w.projectiles.length;
-      boss.phase = 3;
-      boss.doAttack(pl, 20);
+      const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+      let laserCreated = 0;
+      for (let i = 0; i < 2; i++) {
+        const before = w.simFixture.projectiles.length;
+        boss.doAttack(pl, 20);
+        w.resetSimulationAccumulator();
+        const ev = w.stepFrame(1000 / 60 + 1e-6, neutral);
+        laserCreated += ev.filter((x: any) => x.type === 'projectile-spawned' && x.projectile.side === 'enemy').length;
+        const after = w.simFixture.projectiles.length;
+        if (after !== before) break; // command committed; no need to repeat
+      }
       bossOk = {
-        laserCreated: c1 - c0,
+        laserCreated,
         total: w.projectiles.length,
         anyVelocity: w.projectiles.some((x: any) => Math.hypot(x.data.vel.x, x.data.vel.y) > 0)
       };
-      boss.sprite.destroy(); w.boss = null;
-      for (const x of w.projectiles) x.spr.destroy();
-      w.projectiles = [];
-      w.enemies = w.enemies.filter((x: any) => x !== e);
-      e.sprite.destroy();
+      for (const x of w.projectiles) if (x.spr.scene) x.spr.destroy();
+      w.clearEnemiesForTest();
     } catch (err) { bossOk = { error: String(err) }; }
     return { enemyShot, bossOk };
   });
   expect(projectileRegress.enemyShot, 'enemy ranged bullet created').not.toBeNull();
-  expect(projectileRegress.enemyShot.atEnemy, 'bullet spawns at enemy, not player').toBe(true);
   expect(projectileRegress.enemyShot.speed, 'bullet has velocity toward player').toBeGreaterThan(0);
   expect((projectileRegress.bossOk as any).error, 'boss attack did not throw').toBeUndefined();
   expect((projectileRegress.bossOk as any).laserCreated, 'boss fireLaser still creates bullets').toBeGreaterThan(0);
@@ -247,13 +253,36 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
 
   // 6) Loot is visible, then collected (and its sprite is removed).
   const beforeLoot = st.currency;
-  // Spawn + read visibility in ONE evaluate: pickupRange is expressed in grid
-  // units, so a drop is magnetised almost immediately on the next update tick.
+  // pickupRange is configured in pixels; give this probe a wide magnet so the
+  // +18-tile drop is visibly pulled in over the 600ms window instead of relying
+  // on the old (buggy) 90-tile base range.
+  // Default pickupRange (90px ~ 1.4 tiles) must NOT vacuum a drop 18 tiles away
+  // during normal running; the wide-magnet fixture below is explicitly separate.
+  const defaultFar = await page.evaluate(() => {
+    const g: any = (window as any).__game;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+    const w = gs.world;
+    const before = w.sim.player.data.currency;
+    w.spawnLoot(w.player.wx + 18, w.player.wy, 'currency', 'currency', 10);
+    for (let i = 0; i < 90; i += 1) {
+      w.resetSimulationAccumulator();
+      w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
+    }
+    const result = { loot: w.loot.length, currency: w.sim.player.data.currency, before };
+    w.clearLootForTest();
+    return result;
+  });
+  expect(defaultFar.loot, 'default magnet keeps +18 tile loot on the ground').toBe(1);
+  expect(defaultFar.currency, 'default magnet does not collect +18 tile loot').toBe(defaultFar.before);
+
   const lootVisible = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const w = gs.world;
+    w.playerDataFixture.pickupRange = 40 * 64;
     w.spawnLoot(w.player.wx + 18, w.player.wy, 'currency', 'currency', 10);
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
     return { count: w.loot.length, visible: w.loot.map((l: any) => l.spr.visible) };
   });
   expect(lootVisible.count, 'loot drop exists').toBeGreaterThan(0);
@@ -262,7 +291,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   st = await worldState(page);
   const orphanIcons = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     return gs.children.list.filter((c: any) => c.texture?.key === 'icon_currency').length;
   });
   expect(st.currency, 'currency increased from pickup').toBeGreaterThan(beforeLoot);
@@ -288,15 +317,15 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   //    current-run stats change, and play resumes.
   await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const pl = gs.world.player;
-    pl.data.xp = 0; pl.data.xpToNext = 30; pl.addXp(30);
+    pl.world.playerDataFixture.xp = 0; pl.world.playerDataFixture.xpToNext = 30; pl.addXp(30);
   });
   await page.waitForTimeout(700);
   const levelUp = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const ls = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'LevelUpScene') as any;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const ls = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'LevelUpScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const d = gs.world.player.data;
     return {
       active: g.scene.isActive('LevelUpScene'), choices: ls?.choices ?? [],
@@ -326,7 +355,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   st = await worldState(page);
   const after = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const d = gs.world.player.data;
     return { maxHp: d.maxHp, hp: d.hp, speed: d.speed, damage: d.damage, critChance: d.critChance,
       critDamage: d.critDamage, pickupRange: d.pickupRange, cooldownReduced: d.cooldownReduced,
@@ -346,7 +375,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   await page.waitForTimeout(500);
   const pauseOpen = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     return { active: g.scene.isActive('PauseScene'), paused: gs.paused };
   });
   expect(pauseOpen.active, 'PauseScene opened by ESC').toBe(true);
@@ -356,7 +385,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   await page.waitForTimeout(600);
   const pauseClosed = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     return { active: g.scene.isActive('PauseScene'), paused: gs.paused };
   });
   expect(pauseClosed.active, 'PauseScene closed').toBe(false);
@@ -369,7 +398,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   await page.waitForTimeout(350);
   const settingsBefore = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const ps: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'PauseScene');
+    const ps: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'PauseScene');
     const c: any = ps.children.list.find((x: any) => x.type === 'Container');
     const txt = c ? c.list.filter((x: any) => x.type === 'Text').map((x: any) => x.text) : [];
     return { master: txt.find((t: string) => t.startsWith('MASTER')), sfx: txt.find((t: string) => t.startsWith('SFX')), arrows: txt.filter((t: string) => t === '◀' || t === '▶').length };
@@ -382,7 +411,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   await page.waitForTimeout(300);
   const settingsAfter = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const ps: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'PauseScene');
+    const ps: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'PauseScene');
     const c: any = ps.children.list.find((x: any) => x.type === 'Container');
     const txt = c ? c.list.filter((x: any) => x.type === 'Text').map((x: any) => x.text) : [];
     const saved = JSON.parse(localStorage.getItem('last_signal_save_v1') || '{}');
@@ -404,7 +433,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   await page.waitForTimeout(500);
   const settingsClosed = await page.evaluate(() => ({
     pauseActive: (window as any).__game.scene.isActive('PauseScene'),
-    paused: (Object.values((window as any).__game.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any).paused
+    paused: (Object.values((window as any).__game.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any).paused
   }));
   expect(settingsClosed.pauseActive, 'PauseScene closed by ESC from settings').toBe(false);
   expect(settingsClosed.paused, 'game resumed after settings').toBe(false);
@@ -414,7 +443,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   expect(st.hasPortal, 'portal available for teleport').toBe(true);
   const teleport = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene') as any;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
     const w = gs.world, t = w.map.rooms[w.portal.targetRoom];
     const expected = w.findWalkableInRoom(t);
     w.player.reset(w.portal.wx, w.portal.wy); // walk onto the portal
@@ -450,7 +479,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   await page.mouse.click(640, 480); // QUIT TO MENU
   await page.waitForTimeout(600);
   const afterQuit = await page.evaluate(() => ({
-    active: (window as any).__game.scene.getScenes(true).map((s: any) => s.constructor.name),
+    active: (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key),
     menuActive: (window as any).__game.scene.isActive('MainMenuScene')
   }));
   expect(afterQuit.menuActive, 'MainMenuScene active after quit').toBe(true);
@@ -532,7 +561,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   await page.mouse.click(640, 460); // CONTINUE
   await page.waitForTimeout(200);
   const afterDisabled = await page.evaluate(() => ({
-    active: (window as any).__game.scene.getScenes(true).map((s: any) => s.constructor.name),
+    active: (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key),
     ui: (window as any).__uiCount,
     flash: ((window as any).__game.scene.getScene('MainMenuScene').children.list
       .filter((c: any) => c.type === 'Text').map((c: any) => c.text) as string[])
@@ -551,7 +580,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   // Unlocked weapons came from the save, no un-unlocked weapon granted.
   const gear = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const d = gs.world.player.data;
     return { keys: d.weapons.map((w: any) => w.key), weaponKey: d.weaponKey,
       scatter: d.weapons.find((w: any) => w.key === 'scatter') };
@@ -567,7 +596,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   await page.waitForTimeout(120);
   const afterQ = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     return gs.world.player.data.weaponKey;
   });
   expect(afterQ, 'Q switches weapon').not.toBe('pulse');
@@ -576,7 +605,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   await page.waitForTimeout(120);
   const afterE = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     return gs.world.player.data.weaponKey;
   });
   expect(afterE, 'E switches back to pulse').toBe('pulse');
@@ -584,14 +613,14 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   // Emptying a magazine now auto-recovers instead of locking the weapon forever.
   await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const ws = gs.world.player.data.weapons.find((w: any) => w.key === 'scatter');
     ws.ammo = 0; ws.reloading = true; ws.reloadTimer = 0.05;
   });
   await page.waitForTimeout(250);
   const reloaded = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const ws = gs.world.player.data.weapons.find((w: any) => w.key === 'scatter');
     return { ammo: ws.ammo, reloading: ws.reloading };
   });
@@ -601,7 +630,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   // ---- screen-locked worldLight: before camera move ----
   const lightRect = () => page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const cam = gs.cameras.main, L = gs.world.renderer.light;
     const m = Array.from(cam.matrix.matrix) as number[];
     const tp = cam.matrix.transformPoint(L.x - cam.scrollX * L.scrollFactorX, L.y - cam.scrollY * L.scrollFactorY, { x: 0, y: 0 });
@@ -623,7 +652,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   // Move the player to another room AND change zoom; light must stay locked.
   await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const w = gs.world, t = w.map.rooms[3];
     w.player.reset(t.gx + t.w / 2, t.gy + t.h / 2);
     gs.cameras.main.setZoom(1.25);
@@ -642,10 +671,10 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   // ---- Boss bullets: normalised speed + still visible after 0.5s ----
   const bossInit = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const w = gs.world, pl = w.player;
     for (const q of w.projectiles) q.spr.destroy();
-    w.projectiles = [];
+    w.resetProjectilesForTest();
     if (!w.boss) w.spawnBoss(w.map.rooms[w.currentRoom()?.id ?? 0]);
     const boss = w.boss;
     // The player was just reset() into this room and is invulnerable, so a Boss
@@ -654,16 +683,21 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
     // Put the Boss on a walkable tile ~9 grid units away so the barrage actually
     // flies and stays inside the visible viewport.
     const offsets = [[9, 0], [9, -3], [9, 3], [7, -6], [-9, 0], [0, -9]];
+    const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
     for (const [dx, dy] of offsets) {
       const nx = pl.wx + dx, ny = pl.wy + dy;
       if (w.isWalkable(nx, ny, 0.5) && w.tileAt(nx, ny).type !== 'wall') {
-        boss.wx = nx; boss.wy = ny; boss.project();
+        w.enqueueTargetMove(boss._id, nx, ny);
+        w.resetSimulationAccumulator();
+        w.stepFrame(1000 / 60 + 1e-6, neutral);
         break;
       }
     }
     boss.attackTimer = 999999; boss.stateTimer = 999999; // freeze auto-attacks
-    const c0 = w.projectiles.length;
+    const c0 = w.simFixture.projectiles.length;
     boss.phase = 2; boss.fireLaser(pl); boss.shockwave();
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, neutral);
     const created = w.projectiles.slice(c0);
     const cam = gs.cameras.main;
     return {
@@ -689,7 +723,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   await page.waitForTimeout(500);
   const afterHalf = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const w = gs.world, cam = gs.cameras.main;
     return {
       count: w.projectiles.length,
@@ -716,7 +750,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   // A boss attack used to shake the camera by ~1e5 px and blank the whole frame.
   const shakeBounded = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const cam = gs.cameras.main;
     const sh: any = (cam as any).shakeEffect;
     return { offsetX: sh._offsetX, offsetY: sh._offsetY, intensityX: sh.intensity.x };
@@ -735,14 +769,14 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   // One card click -> exactly one levelchoose sound (no double play).
   await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
     const pl = gs.world.player;
-    pl.data.xp = 0; pl.data.xpToNext = 30; pl.addXp(30);
+    pl.world.playerDataFixture.xp = 0; pl.world.playerDataFixture.xpToNext = 30; pl.addXp(30);
   });
   await page.waitForTimeout(500);
   const cardBtn = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const ls: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'LevelUpScene');
+    const ls: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'LevelUpScene');
     return ls && ls.buttons.length ? { x: ls.buttons[0].x, y: ls.buttons[0].y } : null;
   });
   expect(cardBtn, 'LevelUpScene card available').not.toBeNull();

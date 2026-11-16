@@ -1,0 +1,61 @@
+
+Running 39 tests using 1 worker
+
+[1/39] [chromium] › tests\c3b-external-link.spec.ts:85:1 › human authorization links the rendered world to the bridge; actions commit on a real tick
+[2/39] [chromium] › tests\c3b-external-link.spec.ts:213:1 › takeover / overlay / agent disconnect yield the link; no automatic re-take
+[3/39] [chromium] › tests\c3b-external-link.spec.ts:305:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[chromium] › tests\c3b-external-link.spec.ts:305:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+C3B_EFFECT ticks {"d1":0.08102265201096025,"d120":6.031719304717662,"executed1":1,"executed120":120,"started1":6,"completed1":7,"started120":15,"completed120":135}
+
+[4/39] [chromium] › tests\c3b-external-link.spec.ts:379:1 › fire honours real cooldown / ammo / real projectiles; interact is one legal commit
+[5/39] [chromium] › tests\c3b-external-link.spec.ts:449:1 › blocked legal move still gets a receipt but cannot fake displacement
+[6/39] [chromium] › tests\c3b-external-link.spec.ts:491:1 › Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation
+[7/39] [chromium] › tests\c3b-external-link.spec.ts:567:1 › takeover while a long action is in flight: no pageerror, no ACK after the new epoch
+[8/39] [chromium] › tests\c3b-external-link.spec.ts:595:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[chromium] › tests\c3b-external-link.spec.ts:595:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+C3B_EFFECT damage {"droneId":1,"hpBefore":28,"lowestHp":0,"executedTicks":120}
+
+[9/39] [chromium] › tests\c3b-external-link.spec.ts:660:1 › a queued stop preempts the ACTIVE long action; other actions keep FIFO
+[10/39] [chromium] › tests\c3b-hard-disconnect.spec.ts:100:1 › SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach
+[11/39] [chromium] › tests\c3b-link-form.spec.ts:63:1 › the form is reachable without the console, masks the token and isolates typing
+[12/39] [chromium] › tests\c3b-link-form.spec.ts:97:1 › AUTHORIZE from the form links the rendered world; a wrong token shows a REAL error
+[13/39] [chromium] › tests\c3b-link-form.spec.ts:131:1 › the connection form fits and stays usable at five viewports
+[14/39] [chromium] › tests\c3b-external-link.spec.ts:85:1 › human authorization links the rendered world to the bridge; actions commit on a real tick
+[15/39] [chromium] › tests\c3b-external-link.spec.ts:213:1 › takeover / overlay / agent disconnect yield the link; no automatic re-take
+[16/39] [chromium] › tests\c3b-external-link.spec.ts:305:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[chromium] › tests\c3b-external-link.spec.ts:305:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+C3B_EFFECT ticks {"d1":0.08102265201096025,"d120":6.050258000531392,"executed1":1,"executed120":120,"started1":9,"completed1":10,"started120":24,"completed120":144}
+
+[17/39] [chromium] › tests\c3b-external-link.spec.ts:379:1 › fire honours real cooldown / ammo / real projectiles; interact is one legal commit
+[18/39] [chromium] › tests\c3b-external-link.spec.ts:449:1 › blocked legal move still gets a receipt but cannot fake displacement
+[19/39] [chromium] › tests\c3b-external-link.spec.ts:491:1 › Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation
+[20/39] [chromium] › tests\c3b-external-link.spec.ts:567:1 › takeover while a long action is in flight: no pageerror, no ACK after the new epoch
+[21/39] [chromium] › tests\c3b-external-link.spec.ts:595:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[chromium] › tests\c3b-external-link.spec.ts:595:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+C3B_EFFECT damage {"droneId":1,"hpBefore":28,"lowestHp":0,"executedTicks":120}
+
+[22/39] [chromium] › tests\c3b-external-link.spec.ts:660:1 › a queued stop preempts the ACTIVE long action; other actions keep FIFO
+[23/39] [chromium] › tests\c3b-hard-disconnect.spec.ts:100:1 › SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach
+[24/39] [chromium] › tests\c3b-link-form.spec.ts:63:1 › the form is reachable without the console, masks the token and isolates typing
+[25/39] [chromium] › tests\c3b-link-form.spec.ts:97:1 › AUTHORIZE from the form links the rendered world; a wrong token shows a REAL error
+[26/39] [chromium] › tests\c3b-link-form.spec.ts:131:1 › the connection form fits and stays usable at five viewports
+[27/39] [chromium] › tests\c3b-external-link.spec.ts:85:1 › human authorization links the rendered world to the bridge; actions commit on a real tick
+[28/39] [chromium] › tests\c3b-external-link.spec.ts:213:1 › takeover / overlay / agent disconnect yield the link; no automatic re-take
+[29/39] [chromium] › tests\c3b-external-link.spec.ts:305:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[chromium] › tests\c3b-external-link.spec.ts:305:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+C3B_EFFECT ticks {"d1":0.08102265201096025,"d120":6.0483258768840615,"executed1":1,"executed120":120,"started1":8,"completed1":9,"started120":15,"completed120":135}
+
+[30/39] [chromium] › tests\c3b-external-link.spec.ts:379:1 › fire honours real cooldown / ammo / real projectiles; interact is one legal commit
+[31/39] [chromium] › tests\c3b-external-link.spec.ts:449:1 › blocked legal move still gets a receipt but cannot fake displacement
+[32/39] [chromium] › tests\c3b-external-link.spec.ts:491:1 › Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation
+[33/39] [chromium] › tests\c3b-external-link.spec.ts:567:1 › takeover while a long action is in flight: no pageerror, no ACK after the new epoch
+[34/39] [chromium] › tests\c3b-external-link.spec.ts:595:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[chromium] › tests\c3b-external-link.spec.ts:595:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+C3B_EFFECT damage {"droneId":1,"hpBefore":28,"lowestHp":0,"executedTicks":120}
+
+[35/39] [chromium] › tests\c3b-external-link.spec.ts:660:1 › a queued stop preempts the ACTIVE long action; other actions keep FIFO
+[36/39] [chromium] › tests\c3b-hard-disconnect.spec.ts:100:1 › SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach
+[37/39] [chromium] › tests\c3b-link-form.spec.ts:63:1 › the form is reachable without the console, masks the token and isolates typing
+[38/39] [chromium] › tests\c3b-link-form.spec.ts:97:1 › AUTHORIZE from the form links the rendered world; a wrong token shows a REAL error
+[39/39] [chromium] › tests\c3b-link-form.spec.ts:131:1 › the connection form fits and stays usable at five viewports
+  39 passed (2.4m)

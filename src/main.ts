@@ -34,4 +34,10 @@ export const game = new Phaser.Game({
 
 export { saveSystem } from './systems/SaveSystem';
 
-;(window as any).__game = game;
+// F-03: production builds must not expose the whole Phaser game. This is a
+// build-time constant (vite.config.ts), so a production bundle removes both
+// the condition and the assignment. Dev server and `--mode test` keep it for
+// the frozen E2E evidence suite.
+if (__LAST_SIGNAL_DEV_TEST__) {
+  (window as any).__game = game;
+}

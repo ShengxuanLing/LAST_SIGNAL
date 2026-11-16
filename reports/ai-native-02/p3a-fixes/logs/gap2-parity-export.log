@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ok 1 [chromium] › tests\p3a-echo-parity.spec.ts:39:1 › Rendered echo canonical/events export for Headless byte parity (3.6s)
+
+  1 passed (4.6s)

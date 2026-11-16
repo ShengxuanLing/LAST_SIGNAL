@@ -1,0 +1,12 @@
+PASS | ownerfile_unit | npx vitest run | 42 files / 580 tests | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_unit.log
+PASS | ownerfile_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_typecheck.log
+PASS | ownerfile_build | npm run build | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_build.log
+PASS | ownerfile_build_test | npm run build:test | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_build_test.log
+PASS | ownerfile_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_mcp_build.log
+PASS | ownerfile_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_headless_smoke.log
+PASS | ownerfile_20k_stdio | npx vite-node src/ai-native/worldHeadless20kSmoke.mts | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_20k_stdio.log
+PASS | ownerfile_player_negative | npx vite-node src/ai-native/worldHeadlessPlayerCrop.mts | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_player_negative.log
+OWNERFILE_GATE_DONE
+PASS | ownerfile_typecheck_scripts | npm run typecheck | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_typecheck_scripts.log
+PASS | ownerfile_console_smoke | npx vite-node src/ai-native/worldConsoleSmoke.mts | rc=0 | reports/ai-native-02/c3c-owner-file-fix/logs/ownerfile_console_smoke.log
+OWNERFILE_GATE2_DONE

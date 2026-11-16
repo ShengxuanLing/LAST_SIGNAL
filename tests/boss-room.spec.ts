@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 
 const SHOT_DIR = path.resolve(process.env.LS_SHOT_DIR ?? 'screens');
+const PORT = Number(process.env.PORT ?? 5173);
 
 // Boss-room regression: a real kind==='boss' room of the seed-1 map, player and
 // boss on the walkable tile closest to the room centre, zoom 1.25 and a
@@ -17,7 +18,7 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 
   mkdirSync(SHOT_DIR, { recursive: true });
-  await page.goto('http://localhost:5173/');
+  await page.goto(`http://localhost:${PORT}/`);
   await page.waitForFunction(() => !!(window as any).__game, { timeout: 10000 });
   await page.waitForTimeout(1000);
 
@@ -59,11 +60,10 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
     }
     if (!foundTile) throw new Error('boss room has no walkable tile');
 
-    // reset() restores hp/invuln from its own defaults, so apply ours afterwards.
-    pl.reset(best.x, best.y);
-    pl.data.hp = 1000;
-    pl.data.maxHp = 1000;
-    pl.invuln = 999;
+    // Teleport the player onto the walkable tile, committing on the next tick.
+    w.enqueueTeleport(best.x, best.y, true);
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
 
     // Re-enter the boss room (spawns the real Boss, portal and room HUD).
     w.currentRoomId = -1;

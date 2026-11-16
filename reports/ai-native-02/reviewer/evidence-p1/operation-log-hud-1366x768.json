@@ -1,0 +1,168 @@
+[
+  {
+    "step": "hud-1366x768",
+    "detail": {
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 1365.328125,
+        "h": 768,
+        "vw": 1366,
+        "vh": 768
+      },
+      "scale": 1.06666259765625,
+      "canvasCssWidth": 1365.328125,
+      "canvasCssHeight": 768,
+      "logicalResolution": "1280x720",
+      "renderedHeights": [
+        {
+          "name": "txtWeapon",
+          "cssPx": 17.0666015625
+        },
+        {
+          "name": "txtRoom",
+          "cssPx": 14.933276367187501
+        },
+        {
+          "name": "txtEnemies",
+          "cssPx": 14.933276367187501
+        },
+        {
+          "name": "txtControl",
+          "cssPx": 14.933276367187501
+        },
+        {
+          "name": "txtAiAction",
+          "cssPx": 13.86661376953125
+        },
+        {
+          "name": "txtAiTarget",
+          "cssPx": 13.86661376953125
+        },
+        {
+          "name": "txtAgentLink",
+          "cssPx": 13.86661376953125
+        }
+      ],
+      "minRow": {
+        "name": "txtAgentLink",
+        "cssPx": 13.86661376953125
+      },
+      "rects": [
+        {
+          "name": "txtWeapon",
+          "text": "Pulse Rifle [△]",
+          "x": 1123.0000000000005,
+          "y": 19.99999999999999,
+          "w": 137,
+          "h": 16
+        },
+        {
+          "name": "txtRoom",
+          "text": "COMBAT ROOM",
+          "x": 1181.0000000000005,
+          "y": 44,
+          "w": 79,
+          "h": 14
+        },
+        {
+          "name": "txtEnemies",
+          "text": "HOSTILES 2",
+          "x": 1188.0000000000005,
+          "y": 63.999999999999964,
+          "w": 72,
+          "h": 14
+        },
+        {
+          "name": "txtControl",
+          "text": "CONTROL  AI · LOCAL DETERMINISTIC",
+          "x": 1024.0000000000005,
+          "y": 90,
+          "w": 236,
+          "h": 14
+        },
+        {
+          "name": "txtAiAction",
+          "text": "AI ACTION  ENGAGE ×9",
+          "x": 1128.0000000000005,
+          "y": 109.99999999999999,
+          "w": 132,
+          "h": 13
+        },
+        {
+          "name": "txtAiTarget",
+          "text": "AI TARGET  HOSTILE #2 hunter",
+          "x": 1075.0000000000005,
+          "y": 128.00000000000003,
+          "w": 185,
+          "h": 13
+        },
+        {
+          "name": "txtAgentLink",
+          "text": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+          "x": 936.0000000000005,
+          "y": 146,
+          "w": 324,
+          "h": 13
+        },
+        {
+          "name": "txtHp",
+          "text": "HP 100/100",
+          "x": 128,
+          "y": 19.99999999999999,
+          "w": 88,
+          "h": 17
+        },
+        {
+          "name": "txtXp",
+          "text": "XP 18/30",
+          "x": 128,
+          "y": 40,
+          "w": 53,
+          "h": 13
+        },
+        {
+          "name": "txtCurrency",
+          "text": "CREDITS 4",
+          "x": 20,
+          "y": 59.999999999999964,
+          "w": 70,
+          "h": 15
+        },
+        {
+          "name": "txtLevel",
+          "text": "LV 1",
+          "x": 20,
+          "y": 80,
+          "w": 31,
+          "h": 15
+        },
+        {
+          "name": "timer",
+          "text": "0:06",
+          "x": 20,
+          "y": 103.99999999999999,
+          "w": 27,
+          "h": 13
+        },
+        {
+          "name": "txtStats",
+          "text": "KILLS 1 · LOOT 1 · DMG 114 · 6s",
+          "x": 20,
+          "y": 700,
+          "w": 205,
+          "h": 13
+        },
+        {
+          "name": "txtHelp",
+          "text": "ESC PAUSE · ANY MOVE / FIRE TAKES HUMAN CONTROL",
+          "x": 20,
+          "y": 675.9999999999998,
+          "w": 311,
+          "h": 13
+        }
+      ],
+      "mode": "AI"
+    }
+  }
+]

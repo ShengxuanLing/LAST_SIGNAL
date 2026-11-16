@@ -1,0 +1,71 @@
+[
+  {
+    "step": "c1-fixture",
+    "detail": {
+      "reason": "one spawned drone + real keyboard/mouse; no i-frames/HP fixture; C2 core state is authoritative",
+      "setup": {
+        "enemyId": 1,
+        "enemyHp": 28,
+        "target": {
+          "x": 10,
+          "y": 45
+        },
+        "player": {
+          "x": 8,
+          "y": 45
+        },
+        "speed": 220,
+        "tick": 68
+      }
+    }
+  },
+  {
+    "step": "c1-rendered",
+    "detail": {
+      "weaponKey": "pulse",
+      "expected": {
+        "damage": 12,
+        "speed": 11.25,
+        "lifetime": 0.7222222222222222,
+        "critChance": 0.1,
+        "critDamage": 1.5,
+        "pierce": 0,
+        "magazine": -1,
+        "shots": 1,
+        "spread": 0.02
+      },
+      "projectile": {
+        "damage": 12,
+        "crit": false,
+        "vel": {
+          "x": 9.910500754094697,
+          "y": 5.323952930209699
+        },
+        "lifetime": 0.6555555555555553,
+        "radius": 0.2,
+        "pos": {
+          "x": 9.236246574633917,
+          "y": 44.611737637461644
+        },
+        "source": "player"
+      },
+      "enemyHp": 0,
+      "stillInWorld": false,
+      "coreProjectiles": 1,
+      "moved": {
+        "x": 8.687499999999993,
+        "y": 44.31250000000003,
+        "tick": 81,
+        "walkable": true
+      },
+      "droneStep": {
+        "id": 1,
+        "x": 9.979238323391872,
+        "y": 44.98912483606241,
+        "hp": 28,
+        "state": "attack",
+        "tick": 112
+      }
+    }
+  }
+]

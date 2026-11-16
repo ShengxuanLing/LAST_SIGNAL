@@ -1,0 +1,9 @@
+-- ai-native-world:257 run 1 --
+  ok 1 [chromium] › tests\ai-native-world.spec.ts:257:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit (29.8s)
+  1 passed (30.9s)
+-- ai-native-world:257 run 2 --
+  ok 1 [chromium] › tests\ai-native-world.spec.ts:257:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit (29.9s)
+  1 passed (31.0s)
+-- ai-native-world:257 run 3 --
+  ok 1 [chromium] › tests\ai-native-world.spec.ts:257:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit (29.7s)
+  1 passed (30.8s)

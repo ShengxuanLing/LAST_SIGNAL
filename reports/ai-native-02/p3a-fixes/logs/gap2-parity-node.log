@@ -1,0 +1,4 @@
+PASS rendered_vs_headless_echo_state | byte-equal canonical
+PASS rendered_vs_headless_echo_events | byte-equal full canonical events
+PASS echo_non_drone_death_loot_echo_hurt | all real event types present
+P3A_ECHO_RENDERED_PARITY_PASS ticks=212 steps=208 echoHp=86

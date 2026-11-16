@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+const PORT = Number(process.env.PORT ?? 5199);
+
 // Regression test: the full HUD (HP/XP/CREDITS/LV/timer, weapon/room/enemies on the
 // right, stats) must render at on-screen positions and stay locked as the camera moves.
 // Regression: camera world-space culling previously cut the far-right HUD texts.
 test('full HUD renders and stays locked during camera movement', async ({ page }) => {
-  await page.goto('http://localhost:5199/');
+  await page.goto(`http://localhost:${PORT}/`);
   await page.waitForTimeout(1500);
   await page.evaluate(() => {
     const g: any = (window as any).__game;

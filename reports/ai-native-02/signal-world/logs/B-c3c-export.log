@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ok 1 [chromium] › tests\c3c-headless-parity.spec.ts:33:1 › Rendered canonical/events export (real kill + loot) for headless parity (4.4s)
+
+  1 passed (5.8s)

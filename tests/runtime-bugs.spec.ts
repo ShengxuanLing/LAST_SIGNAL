@@ -124,7 +124,7 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
     if (!chosen) return { found: false };
     const p = w.player;
     p.reset(chosen.floor.x, chosen.floor.y);
-    p.data.hp = p.data.maxHp;
+    p.world.playerDataFixture.hp = p.data.maxHp;
     p.invuln = 0;
     const before = { x: p.wx, y: p.wy };
     // Source on the floor side pushes the player toward the wall at +x.
@@ -147,8 +147,7 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
     const p = w.player;
-    p.wx = wallX;
-    p.wy = wallY;
+    w.setPlayerPositionForTest(wallX, wallY);
     p.project();
     return { walkableBefore: w.isWalkable(p.wx, p.wy, p.getRadius()) };
   }, { wallX: knockback.wall.x, wallY: knockback.wall.y });
@@ -170,8 +169,9 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
 
   // 5) Bullets must actually destroy their sprites when removed from world.projectiles.
   const worldSrc = readFileSync(path.join(PROJECT, 'src/world/World.ts'), 'utf8');
+  const simRulesSrc = readFileSync(path.join(PROJECT, 'src/world/sim/rules.ts'), 'utf8');
   expect(worldSrc, 'projectile sprite cleanup helper exists').toContain('destroyProjectileSprite');
-  expect(worldSrc, 'projectile radius is normalized to tile units').toContain('/ GAME.PIXEL_TO_TILE');
+  expect(simRulesSrc, 'aircraft projectile radius is normalized to tile units').toContain('/ (input.pixelToTile ?? GAME.PIXEL_TO_TILE)');
 
   await page.mouse.move(900, 360);
   await page.mouse.down();
@@ -211,7 +211,7 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
     const g: any = (window as any).__game;
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const pl = gs.world.player;
-    pl.data.xp = 0; pl.data.xpToNext = 30; pl.addXp(30);
+    pl.world.playerDataFixture.xp = 0; pl.world.playerDataFixture.xpToNext = 30; pl.addXp(30);
   });
   await page.waitForTimeout(700);
   const levelUp = await page.evaluate(() => {
@@ -282,7 +282,13 @@ test('cleared room always offers an exit portal, even when every room is visited
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
     w.player.reset(w.portal.wx, w.portal.wy);
-    w.tryInteract(w.player);
+    const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit teleport, player now at portal
+    w.tryInteract(w.player);   // triggers room transition
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit room-enter, queue spawn
+    w.stepFrame(1000 / 60 + 1e-6, neutral);   // commit enemy spawn
   });
   await page.waitForTimeout(250);
   const entered = await page.evaluate(() => {
@@ -290,8 +296,9 @@ test('cleared room always offers an exit portal, even when every room is visited
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
     const room = w.currentRoom();
-    for (const e of w.enemies) { e._hp = 0; e.sprite.destroy(); }
+    for (const e of w.enemies) { if (e.sprite && e.sprite.scene) e.sprite.destroy(); }
     w.enemies = [];
+    if (w.boss) { if (w.boss.sprite && w.boss.sprite.scene) w.boss.sprite.destroy(); w.boss = null; }
     return { id: room?.id, kind: room?.kind };
   });
   await page.waitForTimeout(250);
@@ -341,8 +348,12 @@ test('cleared room always offers an exit portal, even when every room is visited
     const g: any = (window as any).__game;
     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
     const w = gs.world;
-    w.player.reset(w.portal.wx, w.portal.wy);
-    w.tryInteract(w.player);
+    w.enqueueTeleport(w.portal.wx, w.portal.wy, true);
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit teleport to portal
+    w.tryInteract(w.player); // player now at portal, triggers room transition
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false }); // commit room-enter teleport
     return { room: w.currentRoom()?.id, target };
   }, { target: fallback.target });
   expect(exit.room, 'player can use fallback portal to leave the room').toBe(exit.target);

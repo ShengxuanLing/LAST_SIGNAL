@@ -1,0 +1,9 @@
+PASS | p3a_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/p3a/logs/p3a_typecheck.log
+PASS | p3a_build | npm run build | rc=0 | reports/ai-native-02/p3a/logs/p3a_build.log
+PASS | p3a_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/p3a/logs/p3a_mcp_build.log
+PASS | p3a_echo_parity | npx vite-node scripts/p3a-echo-parity.mts | rc=0 | reports/ai-native-02/p3a/logs/p3a_echo_parity.log
+PASS | p3a_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | rc=0 | reports/ai-native-02/p3a/logs/p3a_headless_smoke.log
+PASS | p3a_20k_stdio | npx vite-node src/ai-native/worldHeadless20kSmoke.mts | rc=0 | reports/ai-native-02/p3a/logs/p3a_20k_stdio.log
+PASS | p3a_player_crop | npx vite-node src/ai-native/worldHeadlessPlayerCrop.mts | rc=0 | reports/ai-native-02/p3a/logs/p3a_player_crop.log
+PASS | p3a_console_smoke | npx vite-node src/ai-native/worldConsoleSmoke.mts | rc=0 | reports/ai-native-02/p3a/logs/p3a_console_smoke.log
+P3A_GATE_DONE

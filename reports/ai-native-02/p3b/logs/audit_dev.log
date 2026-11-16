@@ -1,0 +1,7 @@
+
+Running 2 tests using 1 worker
+
+  ok 1 [chromium] › tests\audit.spec.ts:65:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport (14.6s)
+  ok 2 [chromium] › tests\audit.spec.ts:508:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound (6.1s)
+
+  2 passed (21.5s)

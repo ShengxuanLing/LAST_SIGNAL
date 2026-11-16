@@ -1,0 +1,79 @@
+[
+  {
+    "step": "evidence-fixture",
+    "detail": {
+      "case": "F-01/F-02 perception bounds",
+      "reason": "synthetic perception probes; not independent no-fixture evidence",
+      "fixtures": [
+        "bootRun: rewrite MainMenuScene.scene.start to inject fixed seed 424242",
+        "spawnEnemy('drone', other.gx+2, other.gy+2, other.id, 1): hidden enemy in an unentered room",
+        "w.enteredRooms.add(other.id): mark that room explored-but-far",
+        "temporary mid.type='wall' on a real map tile, restored after the LOS check",
+        "w.spawnBoss(...) + boss.wx/wy rewritten near/far, boss.sprite.destroy() and w.boss=null cleanup",
+        "w.portal.wx/wy rewritten near/far, restored to original values",
+        "intentView().canWalk(NaN|Infinity|-Infinity, ...) non-finite probes",
+        "spawnEnemy('drone', candidate.x, candidate.y, room.id, 1): near unobstructed target"
+      ],
+      "notFixtures": [
+        "no i-frames refresh",
+        "no HP/坐标 direct edits",
+        "no addXp",
+        "no hurt(999999)"
+      ]
+    }
+  },
+  {
+    "step": "perception-probe",
+    "detail": {
+      "player": {
+        "x": 8,
+        "y": 45
+      },
+      "roomId": 0,
+      "otherRoomId": 1,
+      "hiddenEnemyId": 1,
+      "visibilityBasis": "grid-radius+explored+line-of-sight",
+      "perception": {
+        "basis": "grid-radius+explored+line-of-sight",
+        "center": {
+          "x": 8,
+          "y": 45
+        },
+        "radiusTiles": 12,
+        "probeRadiusTiles": 1.5,
+        "requiresExplored": true,
+        "requiresLineOfSight": true
+      },
+      "farFloor": {
+        "x": 112,
+        "y": 40
+      },
+      "farWall": {
+        "x": 27,
+        "y": 37
+      },
+      "canWalkFarFloor": false,
+      "canWalkFarWall": false,
+      "canWalkFarFloorExplored": false,
+      "nonFiniteRejected": true,
+      "nearProbe": {
+        "x": 7,
+        "y": 44.5,
+        "canWalk": true
+      },
+      "hiddenVisibleUnexplored": false,
+      "hiddenVisibleExploredButFar": false,
+      "nearVisible": true,
+      "nearVisibleBehindWall": false,
+      "bossNear": true,
+      "bossFar": false,
+      "portalNear": true,
+      "portalFar": false,
+      "hasTargetRoom": false,
+      "hasPhase": false,
+      "perceivedIds": [
+        2
+      ]
+    }
+  }
+]

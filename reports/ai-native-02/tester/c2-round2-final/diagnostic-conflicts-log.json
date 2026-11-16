@@ -1,0 +1,315 @@
+{
+  "meta": {
+    "production": "http://localhost:5288/",
+    "dev": "http://localhost:5287/",
+    "target": "0df1514",
+    "fixtures": [
+      "fixed seed",
+      "spawn hunter/loot",
+      "paused spawn/add* diagnostics"
+    ]
+  },
+  "checks": [
+    {
+      "name": "kill-increases-xp",
+      "ok": true,
+      "detail": {
+        "before": {
+          "tick": 60,
+          "paused": false,
+          "hp": 100,
+          "currency": 0,
+          "xp": 0,
+          "upgrades": 0,
+          "speed": 220,
+          "drones": 0,
+          "targets": 0,
+          "projectiles": 0,
+          "loot": 0,
+          "lootKinds": [],
+          "player": {
+            "x": 8,
+            "y": 45
+          }
+        },
+        "after": {
+          "tick": 137,
+          "paused": false,
+          "hp": 88,
+          "currency": 4,
+          "xp": 18,
+          "upgrades": 0,
+          "speed": 220,
+          "drones": 0,
+          "targets": 0,
+          "projectiles": 1,
+          "loot": 0,
+          "lootKinds": [],
+          "player": {
+            "x": 7.625005264386366,
+            "y": 45.0019870234173
+          }
+        }
+      }
+    },
+    {
+      "name": "visible-loot-sprite-spawned",
+      "ok": true
+    },
+    {
+      "name": "loot-pickup-changes-currency",
+      "ok": true,
+      "detail": {
+        "before": {
+          "loot": 0,
+          "currency": 4
+        },
+        "spawned": {
+          "loot": 1,
+          "spriteVisible": true
+        },
+        "currencyBefore": 4,
+        "after": {
+          "loot": 0,
+          "currency": 14
+        },
+        "collected": true,
+        "spriteVisible": true
+      }
+    },
+    {
+      "name": "paused-tick-frozen",
+      "ok": true
+    },
+    {
+      "name": "production-helpers-dev-test-only",
+      "ok": true,
+      "detail": {
+        "clearEnemiesForTest": "dev/test only",
+        "resetProjectilesForTest": "dev/test only",
+        "stepSimulationTicksForTest": "dev/test only"
+      }
+    },
+    {
+      "name": "dev-helpers-work",
+      "ok": true,
+      "detail": {
+        "clearEnemiesForTest": "ok",
+        "resetProjectilesForTest": "ok",
+        "stepSimulationTicksForTest": "ok"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "visible-kill-loot-removed",
+      "detail": {
+        "note": "a real hunter kill awarded XP/currency directly with no visible loot drop added to world.loot",
+        "beforeLoot": 0,
+        "afterLoot": 0,
+        "sampleLoot": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "paused-direct-core-writes",
+      "detail": {
+        "note": "World.addCurrency/healPlayer/applyUpgradeChoice mutate authoritative core while paused and tick unchanged",
+        "detail": {
+          "tick0": 155,
+          "tickAfter": 155,
+          "currency0": 14,
+          "currencyAfter": 137,
+          "hp0": 88,
+          "hpAfter": 98,
+          "upgrades0": 0,
+          "upgradesAfter": 1,
+          "upgradeOk": true,
+          "speed0": 220,
+          "speedAfter": 237.60000000000002
+        }
+      }
+    },
+    {
+      "name": "paused-spawn-mutates-core",
+      "detail": {
+        "note": "spawnEnemy/spawnEnemyProjectile register core entities while paused and tick unchanged, with no stepFrame/SimEvent",
+        "detail": {
+          "tick0": 155,
+          "tickAfter": 155,
+          "drones0": 0,
+          "dronesAfter": 1,
+          "targets0": 0,
+          "targetsAfter": 0,
+          "projectiles0": 1,
+          "projectilesAfter": 2
+        }
+      }
+    },
+    {
+      "name": "stepframe-zero-dt-settles-loot",
+      "detail": {
+        "note": "stepFrame(0) while paused absorbs a loot drop and writes player currency with tick unchanged",
+        "detail": {
+          "tick0": 155,
+          "tickAfter": 155,
+          "currency0": 137,
+          "currencyAfter": 147,
+          "loot0": 0,
+          "lootSpawned": 1,
+          "lootAfter": 0
+        }
+      }
+    },
+    {
+      "name": "test-helper-build-difference",
+      "detail": {
+        "note": "production build throws dev/test only for clearEnemiesForTest/resetProjectilesForTest/stepSimulationTicksForTest; dev build allows them. P1 preview failure is therefore a test-environment gate, not gameplay",
+        "production": {
+          "clearEnemiesForTest": "dev/test only",
+          "resetProjectilesForTest": "dev/test only",
+          "stepSimulationTicksForTest": "dev/test only"
+        },
+        "dev": {
+          "clearEnemiesForTest": "ok",
+          "resetProjectilesForTest": "ok",
+          "stepSimulationTicksForTest": "ok"
+        }
+      }
+    }
+  ],
+  "prod": {
+    "kill": {
+      "kill": {
+        "id": 1,
+        "pos": {
+          "x": 10,
+          "y": 45
+        },
+        "hp": 61,
+        "loot": 0,
+        "currency": 0,
+        "xp": 0,
+        "playerHp": 100
+      },
+      "after": {
+        "tick": 137,
+        "paused": false,
+        "hp": 88,
+        "currency": 4,
+        "xp": 18,
+        "upgrades": 0,
+        "speed": 220,
+        "drones": 0,
+        "targets": 0,
+        "projectiles": 1,
+        "loot": 0,
+        "lootKinds": [],
+        "player": {
+          "x": 7.625005264386366,
+          "y": 45.0019870234173
+        }
+      },
+      "samples": [
+        {
+          "loot": 0,
+          "targets": 1,
+          "currency": 0,
+          "xp": 0,
+          "hp": 100,
+          "levelUp": false
+        },
+        {
+          "loot": 0,
+          "targets": 1,
+          "currency": 0,
+          "xp": 0,
+          "hp": 100,
+          "levelUp": false
+        },
+        {
+          "loot": 0,
+          "targets": 0,
+          "currency": 4,
+          "xp": 18,
+          "hp": 100,
+          "levelUp": false
+        }
+      ],
+      "visibleLootOnKill": false,
+      "currencyAutoChanged": true,
+      "xpAutoChanged": true
+    },
+    "pickup": {
+      "before": {
+        "loot": 0,
+        "currency": 4
+      },
+      "spawned": {
+        "loot": 1,
+        "spriteVisible": true
+      },
+      "currencyBefore": 4,
+      "after": {
+        "loot": 0,
+        "currency": 14
+      },
+      "collected": true,
+      "spriteVisible": true
+    },
+    "paused": {
+      "direct": {
+        "tick0": 155,
+        "tickAfter": 155,
+        "currency0": 14,
+        "currencyAfter": 137,
+        "hp0": 88,
+        "hpAfter": 98,
+        "upgrades0": 0,
+        "upgradesAfter": 1,
+        "upgradeOk": true,
+        "speed0": 220,
+        "speedAfter": 237.60000000000002
+      },
+      "spawn": {
+        "tick0": 155,
+        "tickAfter": 155,
+        "drones0": 0,
+        "dronesAfter": 1,
+        "targets0": 0,
+        "targetsAfter": 0,
+        "projectiles0": 1,
+        "projectilesAfter": 2
+      },
+      "zeroDt": {
+        "tick0": 155,
+        "tickAfter": 155,
+        "currency0": 137,
+        "currencyAfter": 147,
+        "loot0": 0,
+        "lootSpawned": 1,
+        "lootAfter": 0
+      }
+    },
+    "helpers": {
+      "clearEnemiesForTest": "dev/test only",
+      "resetProjectilesForTest": "dev/test only",
+      "stepSimulationTicksForTest": "dev/test only"
+    }
+  },
+  "dev": {
+    "helpers": {
+      "clearEnemiesForTest": "ok",
+      "resetProjectilesForTest": "ok",
+      "stepSimulationTicksForTest": "ok"
+    }
+  },
+  "errors": []
+}

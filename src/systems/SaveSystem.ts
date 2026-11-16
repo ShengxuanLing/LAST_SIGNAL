@@ -23,7 +23,8 @@ function emptySave(): SaveData {
       maxHpBonus: 0, speedBonus: 0, damageBonus: 0, critChanceBonus: 0,
       armorBonus: 0, xpBonus: 0, currencyBonus: 0,
       unlockedWeapons: ['pulse'], unlockedAbilities: [],
-      cores: 0, runs: 0, bossesDefeated: 0, bestSeed: 0
+      cores: 0, runs: 0, bossesDefeated: 0, bestSeed: 0,
+      signalCollaborationOptIn: false
     },
     settings: { ...DEFAULT_SETTINGS },
     stats: { enemiesKilled: 0, itemsCollected: 0, damageDealt: 0, playTimeSeconds: 0 }
@@ -48,6 +49,7 @@ export function validate(data: any): data is SaveData {
     if (typeof v !== 'number' || !Number.isFinite(v)) return false;
   }
   if (!Array.isArray(p.unlockedWeapons) || !Array.isArray(p.unlockedAbilities)) return false;
+  if (typeof p.signalCollaborationOptIn !== 'boolean') return false;
 
   const s = data.settings;
   if (!s || typeof s !== 'object') return false;
@@ -121,6 +123,7 @@ export class SaveSystem {
     base.permanent.currencyBonus = typeof p.currencyBonus === 'number' ? p.currencyBonus : base.permanent.currencyBonus;
     base.permanent.unlockedWeapons = Array.isArray(p.unlockedWeapons) ? p.unlockedWeapons : base.permanent.unlockedWeapons;
     base.permanent.unlockedAbilities = Array.isArray(p.unlockedAbilities) ? p.unlockedAbilities : base.permanent.unlockedAbilities;
+    base.permanent.signalCollaborationOptIn = typeof p.signalCollaborationOptIn === 'boolean' ? p.signalCollaborationOptIn : false;
     base.permanent.runs = typeof p.runs === 'number' ? p.runs : base.permanent.runs;
     base.permanent.bossesDefeated = typeof p.bossesDefeated === 'number' ? p.bossesDefeated : base.permanent.bossesDefeated;
     base.permanent.bestSeed = typeof p.bestSeed === 'number' ? p.bestSeed : base.permanent.bestSeed;

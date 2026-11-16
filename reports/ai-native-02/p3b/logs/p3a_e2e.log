@@ -1,0 +1,18 @@
+
+Running 13 tests using 1 worker
+
+  ok  1 [chromium] › tests\ai-native-world.spec.ts:257:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit (28.3s)
+  ok  2 [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1920x1080 (6.8s)
+  ok  3 [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1366x768 (6.8s)
+  ok  4 [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1280x720 (6.7s)
+  ok  5 [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1024x768 (6.7s)
+  ok  6 [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 800x600 (6.7s)
+  ok  7 [chromium] › tests\ai-native-world.spec.ts:772:3 › AI-NATIVE-02 P1 real World › F-04/F-05: inventory/pause/level-up overlay ownership, UI clicks vs fire/F takeover (27.0s)
+  ok  8 [chromium] › tests\ai-native-world.spec.ts:965:3 › AI-NATIVE-02 P1 real World › F-01/F-02: perception radius, occlusion, unexplored rooms, boss/portal and bounded canWalk (3.3s)
+  ok  9 [chromium] › tests\ai-native-world.spec.ts:1129:3 › AI-NATIVE-02 P1 real World › C1: rendered World applies the shared pure rules (movement, aim, pulse fire, drone FSM, hit) (5.8s)
+  ok 10 [chromium] › tests\ai-native-world.spec.ts:1266:3 › P3-a echo companion › enable via pause, follow/hold, confirm-before-fire, real damage (21.2s)
+  ok 11 [chromium] › tests\p3a-enemy-target.spec.ts:47:1 › legacy hunter legally targets and damages the echo, then re-selects the player (7.7s)
+  ok 12 [chromium] › tests\p3a-enemy-target.spec.ts:149:1 › all legacy enemy kinds and the Boss can legally select and hurt the echo (8.3s)
+  ok 13 [chromium] › tests\p3a-restore.spec.ts:28:1 › restore clears echo assist/memory/intent, keeps HP, and old saves need new confirmation (1.8s)
+
+  13 passed (2.3m)

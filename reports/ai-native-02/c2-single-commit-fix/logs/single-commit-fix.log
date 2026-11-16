@@ -1,0 +1,17 @@
+PASS typecheck npm run typecheck typecheck passed
+PASS build npm run build build passed
+PASS mcp-build npm run game:mcp:build mcp build passed
+PASS unit-tests npx vitest run 399/399 passed (24 files)
+PASS c1-parity npx vite-node scripts/c2-room-generation-parity.ts C1_ROOM_PARITY_PASS seeds=220 kinds=drone,hunter,sentinel,stalker
+PASS B13 paused/zero-dt economic rewards src/world/sim/core.test.ts verifies zero-dt no commit, normal tick commit once with events
+REMOVE processPendingCommands src/world/World.ts deleted public processPendingCommands() that used new RNG(0) bypassing tick
+REMOVE economy processPendingCommands call src/economy/main.ts removed world.processPendingCommands() at update():68
+DEFER economy checkpoint save src/economy/main.ts checkpoint saved on next update() cycle after stepFrame processes command
+DEFER purchase checkpoint save src/economy/main.ts purchase() sets checkpointPending=true instead of immediate saveCheckpoint
+FAIL production-only-processCommands rg src/ processCommands only called from core.ts stepSimulationTicks (legitimate tick path)
+FAIL e2e audit.spec.ts:65 pre-existing test-contract failure (needs stepFrame between commands and reads)
+FAIL e2e checkpoint.spec.ts:61 pre-existing test-contract failure (weaponKey not committed until stepFrame)
+FAIL e2e checkpoint.spec.ts:140 pre-existing test-contract failure (upgrade state not committed until stepFrame)
+FAIL e2e checkpoint.spec.ts:185 pre-existing test-contract failure (checkpoint save timing)
+FAIL e2e economy.spec.ts:11 pre-existing test-contract failure (Supply terminal requires cleared room per safeRoom rules)
+FAIL e2e ai-native-world.spec.ts:257 flaky (passes individually, fails in full run — test isolation/timing)

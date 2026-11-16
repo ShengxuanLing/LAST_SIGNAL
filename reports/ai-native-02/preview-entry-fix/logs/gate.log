@@ -1,0 +1,7 @@
+PASS | preview_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/p3b/logs/typecheck.log
+PASS | preview_build_test | npm run build:test | dist-test/economy.html exists | reports/ai-native-02/p3b/logs/build_test.log
+PASS | preview_7of7 | PORT=5175 npx playwright test tests/checkpoint.spec.ts tests/economy.spec.ts | 7/7 | reports/ai-native-02/p3b/logs/preview_regression.log
+PASS | preview_default_slice | PORT=5175 npx playwright test tests/vs00.spec.ts tests/vs01.spec.ts | 13/13 | reports/ai-native-02/p3b/logs/preview_regression.log
+PASS | preview_audit_dev | PORT=5176 npx playwright test tests/audit.spec.ts | 2/2 | reports/ai-native-02/p3b/logs/audit_dev.log
+PASS | production_smoke | npm run build then npx vite-node scripts/preview-entry-smoke.mts | 3 entries, no __game, PREVIEW_ENTRY_SMOKE_PASS | reports/ai-native-02/p3b/logs/production_smoke.log
+PASS | full_unit_after_fix | npx vitest run | 658/658 | reports/ai-native-02/p3b/logs/unit.log

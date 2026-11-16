@@ -1,0 +1,172 @@
+{
+  "meta": {
+    "url": "http://localhost:5283/",
+    "fixture": false,
+    "startedUtc": "2026-11-13T20:09:36.901Z",
+    "endedUtc": "2026-11-13T20:09:48.124Z"
+  },
+  "steps": [
+    {
+      "name": "initial-enable",
+      "detail": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "trial-world-pointer",
+      "detail": {
+        "kind": "world-pointer-press-no-overlay",
+        "activeAtClick": [
+          "GameScene"
+        ],
+        "before": {
+          "owner": "ai",
+          "aiEnabled": true
+        },
+        "after": {
+          "owner": "human",
+          "aiEnabled": false,
+          "takeoverReason": "human-input",
+          "takeoverCount": 1
+        },
+        "pass": true
+      }
+    },
+    {
+      "name": "ui-click-enable",
+      "detail": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "trial-ui-click",
+      "detail": {
+        "kind": "pause-ui-click-INVENTORY",
+        "pausedBefore": {
+          "owner": "ai",
+          "mode": "PAUSED",
+          "active": [
+            "GameScene",
+            "PauseScene"
+          ]
+        },
+        "after": {
+          "owner": "ai",
+          "aiEnabled": true,
+          "active": [
+            "GameScene",
+            "PauseScene"
+          ],
+          "takeoverReason": "human-input"
+        },
+        "pass": true,
+        "afterClose": {
+          "owner": "ai",
+          "aiEnabled": true
+        }
+      }
+    },
+    {
+      "name": "after-ui-close",
+      "detail": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "trial-overlay-pointer",
+      "detail": {
+        "kind": "overlay-non-ui-pointer-press",
+        "pausedBefore": {
+          "owner": "ai",
+          "mode": "PAUSED",
+          "active": [
+            "GameScene",
+            "PauseScene"
+          ]
+        },
+        "after": {
+          "owner": "human",
+          "aiEnabled": false,
+          "takeoverReason": "human-input",
+          "takeoverCount": 2
+        },
+        "pass": true
+      }
+    }
+  ],
+  "errors": [],
+  "trials": [
+    {
+      "kind": "world-pointer-press-no-overlay",
+      "activeAtClick": [
+        "GameScene"
+      ],
+      "before": {
+        "owner": "ai",
+        "aiEnabled": true
+      },
+      "after": {
+        "owner": "human",
+        "aiEnabled": false,
+        "takeoverReason": "human-input",
+        "takeoverCount": 1
+      },
+      "pass": true
+    },
+    {
+      "kind": "pause-ui-click-INVENTORY",
+      "pausedBefore": {
+        "owner": "ai",
+        "mode": "PAUSED",
+        "active": [
+          "GameScene",
+          "PauseScene"
+        ]
+      },
+      "after": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "active": [
+          "GameScene",
+          "PauseScene"
+        ],
+        "takeoverReason": "human-input"
+      },
+      "pass": true,
+      "afterClose": {
+        "owner": "ai",
+        "aiEnabled": true
+      }
+    },
+    {
+      "kind": "overlay-non-ui-pointer-press",
+      "pausedBefore": {
+        "owner": "ai",
+        "mode": "PAUSED",
+        "active": [
+          "GameScene",
+          "PauseScene"
+        ]
+      },
+      "after": {
+        "owner": "human",
+        "aiEnabled": false,
+        "takeoverReason": "human-input",
+        "takeoverCount": 2
+      },
+      "pass": true
+    }
+  ]
+}

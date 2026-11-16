@@ -53,7 +53,9 @@ export interface EnemyStats {
 
 export interface EnemyData {
   kind: EnemyKind; stats: EnemyStats; state: EnemyStateName; stateTimer: number;
-  targetId: number | null; patrolPoints: Vec2[]; patrolIndex: number;
+  targetId: number | null;
+  /** P3-a: disambiguates echo actorId 1 from a legacy drone id 1. */
+  targetActorKind?: 'player' | 'echo'; patrolPoints: Vec2[]; patrolIndex: number;
   hitFlash: number; stunTimer: number; spawnRoom: number;
 }
 
@@ -93,6 +95,32 @@ export interface UpgradeProgress { key: string; level: number; }
 
 export interface HudData { show: boolean; fps: number; roomIndex: number; roomTotal: number; }
 
+export interface CoreCheckpointState {
+  tick: number;
+  rngState: number;
+  playerTimers: { dashTimer: number; invuln: number; hurtTimer: number; fireTimer: number; aimYaw: number };
+  nextProjectileId: number;
+  /** Processed supply transaction ids (bounded). Optional for old checkpoints. */
+  purchaseTransactions?: string[];
+  /** Optional echo actor snapshot; absent in old saves and solo runs. */
+  echo?: EchoCheckpointState;
+  /** Optional ONE Relay device; absent in old saves and default runs. */
+  signal?: unknown;
+}
+
+/** Structural copy of the core's SimEchoState (types cannot import the core). */
+export interface EchoCheckpointState {
+  actorId: number;
+  x: number;
+  y: number;
+  data: PlayerData;
+  dashTimer: number;
+  invuln: number;
+  hurtTimer: number;
+  fireTimer: number;
+  aimYaw: number;
+}
+
 export interface RunCheckpoint {
   id: string;
   seed: number;
@@ -104,6 +132,8 @@ export interface RunCheckpoint {
   player: PlayerData;
   loot: LootDrop[];
   stats: { kills: number; items: number; damage: number; elapsedSeconds: number; };
+  /** Optional authoritative fixed-tick core snapshot captured alongside a checkpoint. */
+  coreState?: CoreCheckpointState;
 }
 
 export interface SaveData {
@@ -113,6 +143,9 @@ export interface SaveData {
     armorBonus: number; xpBonus: number; currencyBonus: number;
     unlockedWeapons: string[]; unlockedAbilities: string[];
     cores: number; runs: number; bossesDefeated: number; bestSeed: number;
+    /** Explicit opt-in to Signal Relay collaboration. Ordinary NEW RUNS stay
+     *  legacy (no device, no gating) until the human enables it in-game. */
+    signalCollaborationOptIn: boolean;
   };
   settings: {
     masterVolume: number; sfxVolume: number; mouseDpi: number;

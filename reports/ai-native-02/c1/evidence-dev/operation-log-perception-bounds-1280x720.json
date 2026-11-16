@@ -1,0 +1,56 @@
+[
+  {
+    "step": "perception-probe",
+    "detail": {
+      "player": {
+        "x": 8,
+        "y": 45
+      },
+      "roomId": 0,
+      "otherRoomId": 1,
+      "hiddenEnemyId": 1,
+      "visibilityBasis": "grid-radius+explored+line-of-sight",
+      "perception": {
+        "basis": "grid-radius+explored+line-of-sight",
+        "center": {
+          "x": 8,
+          "y": 45
+        },
+        "radiusTiles": 12,
+        "probeRadiusTiles": 1.5,
+        "requiresExplored": true,
+        "requiresLineOfSight": true
+      },
+      "farFloor": {
+        "x": 112,
+        "y": 40
+      },
+      "farWall": {
+        "x": 27,
+        "y": 37
+      },
+      "canWalkFarFloor": false,
+      "canWalkFarWall": false,
+      "canWalkFarFloorExplored": false,
+      "nonFiniteRejected": true,
+      "nearProbe": {
+        "x": 7,
+        "y": 44.5,
+        "canWalk": true
+      },
+      "hiddenVisibleUnexplored": false,
+      "hiddenVisibleExploredButFar": false,
+      "nearVisible": true,
+      "nearVisibleBehindWall": false,
+      "bossNear": true,
+      "bossFar": false,
+      "portalNear": true,
+      "portalFar": false,
+      "hasTargetRoom": false,
+      "hasPhase": false,
+      "perceivedIds": [
+        2
+      ]
+    }
+  }
+]

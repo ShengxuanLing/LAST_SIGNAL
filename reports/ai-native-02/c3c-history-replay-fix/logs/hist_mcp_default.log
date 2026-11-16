@@ -1,0 +1,17 @@
+MCP client | {"server":"D:\\Project\\LAST_SIGNAL\\dist-mcp\\mcpServer.mjs","node":"v24.20.0"}
+PLAYER listTools | ["game_close_session","game_create_session","game_execute_action","game_get_events","game_observe","game_step"]
+PLAYER create | {"session":"ses_a5b7…","kind":"production","tick":0,"epoch":0}
+PLAYER idempotency | {"sameStep":true,"conflict":"E_ID_PAYLOAD_MISMATCH","sameExecute":true,"execConflict":"E_ID_PAYLOAD_MISMATCH","failureStable":"E_FUTURE_TICK"}
+PLAYER route | {"tick":520,"room":"station-zero-r2","completed":true,"crossed":true}
+PLAYER events | {"total":22,"truncated":true,"returned":8}
+PLAYER closed | {"serverExited":true}
+DEV listTools | ["game_cancel_action","game_close_session","game_compare_runs","game_coop_advance","game_coop_close","game_coop_create","game_coop_echo","game_coop_human","game_coop_observe","game_coop_restore","game_coop_snapshot","game_coop_status","game_create_session","game_execute_action","game_get_events","game_inject_fixture","game_inspect_state","game_load_scenario","game_observe","game_replay","game_restore","game_run_batch","game_run_scenario","game_snapshot","game_step"]
+DEV create | {"kind":"test","seed":11,"epoch":0}
+DEV fixture+inspect | {"epoch":1,"door":"SEALED","collision":{"position":{"x":6.5,"y":5.5},"standable":true,"occupancy":false,"inCorridor":false,"onBridge":false,"bridgePassable":false},"tampered":true}
+DEV snapshot/restore/replay | {"snapshot":"snapref_7a09…","restoredTick":2,"replayStable":true}
+DEV isolation | {"sessionBClosed":true,"otherSessionTickStable":true,"badHandleRejected":true}
+DEV concurrent runs | {"run1":"run_6e9fdb67b3b14d6cd6cd7799","run2":"run_deb1e97e674d730e8f0e1d0e","bothCompleted":true}
+DEV scenario/batch/compare | {"runA":{"completed":true,"tick":518,"stateHash":"sha256:be983d0…"},"runB":{"completed":true,"tick":518},"compareSameSeed":{"sameState":true,"sameEvents":true},"compareDiffSeed":{"sameState":false,"sameEvents":true,"firstDivergence":null},"batch":[true,true]}
+DEV advanced | {"cancel":true,"timeoutCode":"E_TIMEOUT"}
+DEV closed | {"serverExited":true}
+MCP client done

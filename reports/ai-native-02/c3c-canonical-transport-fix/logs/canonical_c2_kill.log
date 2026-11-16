@@ -1,0 +1,14 @@
+PASS node-replay-state
+PASS node-replay-events
+PASS node-vs-rendered-state
+PASS node-vs-rendered-events
+PASS node-final-tick
+PASS real-kill-events
+PASS core-reward-events
+PASS xp-equals-rendered
+PASS currency-equals-rendered
+PASS xp-increased
+PASS drones-removed
+PASS targets-removed
+PASS post-kill-shot
+KILL_PARITY_PASS checks=13 failures=0

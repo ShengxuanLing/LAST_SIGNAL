@@ -3,14 +3,18 @@ import { WEAPONS } from '../config/weapons';
 import type { Cell } from './room';
 import { SLICE } from './tuning';
 import { CorridorGuard, type GuardSnapshot } from './corridorGuard';
+import {
+  buildRelayReading, nextBridge, relayState,
+  type BridgeState, type RelayState
+} from '../signal/relay';
+import { withinSignalRange } from '../signal/signalCore';
 import type { CorridorFullState, SliceEvidenceV1 } from './fullState';
 import {
   CORRIDOR, canStandInCorridor, corridorLineOfSight, nearControl,
   occupiesBridge, shoreOf, validateCorridorTemplate, type Shore,
 } from './corridorRoom';
 
-export type RelayState = 'ACTIVE' | 'INACTIVE' | 'JAMMED' | 'DISABLED';
-export type BridgeState = 'UNAVAILABLE' | 'TRANSITIONING' | 'STABLE' | 'UNSTABLE' | 'DISABLED';
+export type { RelayState, BridgeState } from '../signal/relay';
 
 export interface CorridorReveal {
   relay: boolean;
@@ -63,48 +67,10 @@ export interface CorridorSnapshot extends CorridorSignal {
 const PULSE = WEAPONS.pulse;
 const TEMPLATE_VALID = validateCorridorTemplate();
 
-function relayState(manualEnabled: boolean, powered: boolean, jammed: boolean, disposed: boolean): RelayState {
-  if (disposed) return 'DISABLED';
-  if (jammed) return 'JAMMED';
-  return manualEnabled && powered ? 'ACTIVE' : 'INACTIVE';
-}
-
-function nextBridge(
-  previous: CorridorSignal, output: boolean, tick: number,
-): Pick<CorridorSignal, 'bridge' | 'deadline'> {
-  switch (previous.bridge) {
-    case 'UNAVAILABLE':
-      return output
-        ? { bridge: 'TRANSITIONING', deadline: tick + CORRIDOR.transitionTicks }
-        : { bridge: 'UNAVAILABLE', deadline: 0 };
-    case 'TRANSITIONING':
-      if (!output) return { bridge: 'UNAVAILABLE', deadline: 0 };
-      if (tick >= previous.deadline) return { bridge: 'STABLE', deadline: 0 };
-      break;
-    case 'STABLE':
-      return output
-        ? { bridge: 'STABLE', deadline: 0 }
-        : { bridge: 'UNSTABLE', deadline: tick + CORRIDOR.transitionTicks };
-    case 'UNSTABLE':
-      if (output) return { bridge: 'STABLE', deadline: 0 };
-      if (tick >= previous.deadline) return { bridge: 'UNAVAILABLE', deadline: 0 };
-      break;
-    case 'DISABLED':
-      return { bridge: 'DISABLED', deadline: 0 };
-  }
-  return { bridge: previous.bridge, deadline: previous.deadline };
-}
-
-function reading(
+export function reading(
   manualEnabled: boolean, powered: boolean, relay: RelayState, bridge: BridgeState, deadline: number,
 ): CorridorSignal {
-  const effectiveOutput = relay === 'ACTIVE';
-  return Object.freeze({
-    manualEnabled, powered, relay, effectiveOutput,
-    bridgeFeed: effectiveOutput,
-    perceptionFeed: effectiveOutput,
-    bridge, bridgePassable: bridge === 'STABLE' || bridge === 'UNSTABLE', deadline,
-  });
+  return buildRelayReading(manualEnabled, powered, relay, bridge, deadline);
 }
 
 export class Corridor {
@@ -299,15 +265,16 @@ export class Corridor {
   }
 
   private inRange(target: Cell, radius: number): boolean {
-    return Math.hypot(this.location.x - target.x, this.location.y - target.y) < radius &&
-      corridorLineOfSight(this.location, target, this.signal.bridgePassable);
+    // Shared bounded range + LOS predicate; facility geometry stays in the slice.
+    return withinSignalRange(this.location, target, radius,
+      (x, y) => corridorLineOfSight(this.location, { x, y }, this.signal.bridgePassable));
   }
 
   private resolve(tick: number, jammed: boolean, enabled: boolean, powered: boolean): Shore | null {
     if (this.disposed || this.publishing || !this.alive) return null;
     const previous = this.signal;
     const relay = relayState(enabled, powered, jammed, this.disposed);
-    const { bridge, deadline } = nextBridge(previous, relay === 'ACTIVE', tick);
+    const { bridge, deadline } = nextBridge(previous, relay === 'ACTIVE', tick, CORRIDOR.transitionTicks);
     if (previous.relay === relay && previous.bridge === bridge && previous.deadline === deadline &&
         previous.manualEnabled === enabled && previous.powered === powered) return null;
 

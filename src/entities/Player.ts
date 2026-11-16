@@ -3,12 +3,16 @@ import { PlayerData, ProjectileData, Vec2 } from '../types';
 import { basePlayerData, GAME } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import { clamp } from '../core/random';
-import { IsoMath } from '../core/iso';
 import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
 import { SaveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
 import { WhaleCharacterEffects, WHALE_TEXTURE } from '../core/WhaleCharacter';
+import {
+  ControlAuthority, intentFromHumanInput, neutralIntent,
+  type ControlOwner, type PlayerIntent
+} from '../ai-native/control';
+import { LocalDeterministicController } from '../ai-native/localController';
 
 export interface WeaponFire {
   damage: number; speed: number; critBase: number; critDamage: number;
@@ -18,22 +22,43 @@ export interface WeaponFire {
 
 export class Player {
   sprite: Phaser.GameObjects.Sprite;
-  data: PlayerData;
+  private _data: PlayerData;
   input: { up: boolean; down: boolean; left: boolean; right: boolean };
   id = 0;
   respawn = false;
 
-  wx: number;
-  wy: number;
+  /** Control ownership / pause / takeover state (AI-NATIVE-02 P1). */
+  readonly control = new ControlAuthority();
+  /** Last intent actually executed this frame (read-only HUD / evidence truth). */
+  lastIntent: PlayerIntent = neutralIntent();
+  lastIntentOwner: ControlOwner = 'human';
+  private aiController = new LocalDeterministicController();
+  private lastIntentOwnerSeen: ControlOwner = 'human';
+  private _interactQueued = false;
+  /** Pending human aim point; committed by the next core tick via intent. */
+  private pendingAim: Vec2 | null = null;
 
-  private fireTimer = 0;
-  private dashTimer = 0;
-  private invuln = 0;
-  private hurtTimer = 0;
+  private _wx: number;
+  private _wy: number;
+
+  private _fireTimer = 0;
+  private _dashTimer = 0;
+  private _invuln = 0;
+  private _hurtTimer = 0;
   private keys: any = null;
   private cursors: any = null;
-  private aimYaw = 0;
+  private _aimYaw = 0;
   private whaleEffects?: WhaleCharacterEffects;
+
+  /** C2: read-only frozen snapshot; writes go through World core transactions. */
+  get data(): PlayerData { return this.world.hasSimulation ? this.world.playerDataSnapshot : this._data; }
+  get wx(): number { return this.world.hasSimulation ? this.world.playerX : this._wx; }
+  get wy(): number { return this.world.hasSimulation ? this.world.playerY : this._wy; }
+  get fireTimer(): number { return this.world.hasSimulation ? this.world.playerFireTimer : this._fireTimer; }
+  get dashTimer(): number { return this.world.hasSimulation ? this.world.playerDashTimer : this._dashTimer; }
+  get invuln(): number { return this.world.hasSimulation ? this.world.playerInvuln : this._invuln; }
+  get hurtTimer(): number { return this.world.hasSimulation ? this.world.playerHurtTimer : this._hurtTimer; }
+  get aimYaw(): number { return this.world.hasSimulation ? this.world.playerAimYaw : this._aimYaw; }
 
   constructor(public world: World, x: number, y: number, private save: ReturnType<SaveSystem['load']>) {
     const stats = basePlayerData();
@@ -63,7 +88,7 @@ export class Player {
       return { key, level: 1, ammo: magazine, magazine, reloading: false, reloadTimer: 0 };
     });
     const weaponKey = weaponKeys.includes('pulse') ? 'pulse' : weaponKeys[0];
-    this.data = {
+    this._data = {
       ...stats, level: 1, xp: 0, xpToNext: 30, currency: 0,
       weaponKey,
       weapons,
@@ -76,9 +101,9 @@ export class Player {
       this.sprite.setScale(0.61).setOrigin(0.46, 0.91);
       this.whaleEffects = new WhaleCharacterEffects(this.sprite);
     }
-    this.aimYaw = 0;
-    this.wx = x;
-    this.wy = y;
+    this._aimYaw = 0;
+    this._wx = x;
+    this._wy = y;
     this.input = { up: false, down: false, left: false, right: false };
     // Place the sprite at its projected display position on the very first frame.
     this.project();
@@ -92,25 +117,23 @@ export class Player {
     this.sprite.setPosition(s.x, s.y);
     this.whaleEffects?.project();
   }
+  /** C2: visual-only sync after a core tick; no rule state is written here. */
+  syncVisual(dt = 0): void {
+    const previousX = this.sprite.x;
+    const previousY = this.sprite.y;
+    this.project();
+    this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
+    if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
+    else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }
+  }
   get alive(): boolean { return this.data.hp > 0; }
   getRadius(): number { return 0.5; }
 
   /** If knockback ever leaves the player inside a wall, recover to the nearest walkable cell. */
   private ensureWalkable(): void {
-    if (this.world.isWalkable(this.wx, this.wy, this.getRadius())) return;
-    for (let r = 1; r <= 6; r++) {
-      for (let dy = -r; dy <= r; dy++) {
-        for (let dx = -r; dx <= r; dx++) {
-          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
-          const nx = this.wx + dx, ny = this.wy + dy;
-          if (this.world.isWalkable(nx, ny, this.getRadius())) {
-            this.wx = nx;
-            this.wy = ny;
-            this.project();
-            return;
-          }
-        }
-      }
+    // Core clamps player movement to walkable cells each tick; no core write here.
+    if (!this.world.isWalkable(this.wx, this.wy, this.getRadius())) {
+      this.world.enqueueTeleport(this.wx, this.wy, false);
     }
   }
 
@@ -119,21 +142,19 @@ export class Player {
     this.cursors = cursors;
   }
 
+  /** Core command: resets position/HP/invuln; committed at the next core tick.
+   *  Position is also set synchronously so immediate readers (e.g. tryInteract)
+   *  see the new position before the command commits. */
   reset(x: number, y: number): void {
-    this.wx = x;
-    this.wy = y;
+    this.world.enqueueTeleport(x, y, true);
     this.project();
-    this.ensureWalkable();
-    this.data.hp = this.data.maxHp;
-    this.invuln = 1.0;
-    this.fireTimer = 0;
   }
 
   get weapon() { return WEAPONS[this.data.weaponKey] ?? WEAPONS.pulse; }
 
   equipWeapon(key: string): boolean {
     if (key === this.data.weaponKey || !this.data.weapons.some((weapon) => weapon.key === key)) return false;
-    this.data.weaponKey = key;
+    this.world.enqueueEquipWeapon(key);
     return true;
   }
 
@@ -144,78 +165,83 @@ export class Player {
     // Bullets live in grid space, so invert the display -> iso -> grid chain before
     // computing the aim angle; only then does the shot follow the mouse direction.
     const g = this.world.screenToWorld(wp.x, wp.y);
-    const dx = g.x - this.wx, dy = g.y - this.wy;
-    if (Math.hypot(dx, dy) > 1e-4) this.aimYaw = Math.atan2(dy, dx);
+    this.setAimGrid(g.x, g.y);
+  }
+
+  /**
+   * Single aim entry: the human pointer adapter converts its screen point to
+   * grid space and calls this; the AI intent carries a grid aim point and calls
+   * the same method. No pointer/camera object is fabricated for the controller
+   * (review R-08).
+   */
+  setAimGrid(x: number, y: number): void {
+    // Adapter only records the aim point; core commits aimYaw on the next tick.
+    this.pendingAim = { x, y };
   }
 
   private isWalkable(nx: number, ny: number): boolean {
     return this.world.isWalkable(nx, ny, this.getRadius());
   }
 
-  update(dt: number): void {
-    if (this.respawn) return;
-    // Recover from an old or rare knockback that left the player outside walkable tiles.
-    this.ensureWalkable();
-    this.fireTimer = Math.max(0, this.fireTimer - dt);
-    // Tick each weapon's reload timer here: tryFire starts a reload when a
-    // magazine weapon runs dry, but nothing else ever counts it down, which
-    // otherwise leaves that weapon permanently unable to fire. Weapons with
-    // magazine <= 0 (e.g. pulse) never enter reloading, so they are untouched.
-    for (const ws of this.data.weapons) {
-      if (!ws.reloading) continue;
-      ws.reloadTimer -= dt;
-      if (ws.reloadTimer <= 0) {
-        ws.reloading = false;
-        ws.reloadTimer = 0;
-        ws.ammo = ws.magazine;
-      }
-    }
-    this.invuln = Math.max(0, this.invuln - dt);
-    this.hurtTimer = Math.max(0, this.hurtTimer - dt);
-    if (this.data.hpRegen > 0 && this.data.hp < this.data.maxHp) {
-      this.data.hp = Math.min(this.data.maxHp, this.data.hp + this.data.hpRegen * dt);
-    }
-
+  /** C2: sample exactly one intent per rendered frame; core steps it at 60Hz. */
+  sampleIntent(): PlayerIntent {
     this.updateKeys();
-    let sx = ((this.input.right ? 1 : 0) - (this.input.left ? 1 : 0));
-    let sy = ((this.input.down ? 1 : 0) - (this.input.up ? 1 : 0));
-    const mag = Math.hypot(sx, sy);
-    let speed = this.data.speed;
-    let vx = 0, vy = 0;
-    if (this.dashTimer > 0) { speed = this.data.speed * 2.6; this.dashTimer -= dt; }
-    if (mag > 0) {
-      sx /= mag; sy /= mag;
-      // screen vector -> world vector via inverse of our iso projection
-      const tx = sx / (IsoMath.TILE_W / 2);
-      const ty = sy / (IsoMath.TILE_H / 2);
-      vx = (tx + ty) / 2 * speed;
-      vy = (ty - tx) / 2 * speed;
+    this.detectHumanTakeover();
+    const intent = this.resolveIntent();
+    this.lastIntent = intent;
+    this.lastIntentOwner = this.control.owner;
+    return intent;
+  }
+
+  /** Resolve this frame's intent from whoever currently owns control. */
+  private resolveIntent(): PlayerIntent {
+    if (this.control.paused) return neutralIntent();
+    const owner = this.control.owner;
+    if (owner === 'human' && this.lastIntentOwnerSeen === 'ai') this.aiController.reset();
+    this.lastIntentOwnerSeen = owner;
+    if (owner === 'ai') {
+      const decision = this.aiController.decide(this.world.intentView());
+      this.control.noteAiDecision(decision, this.world.clock);
+      return decision.intent;
     }
-
-    const previousX = this.sprite.x;
-    const previousY = this.sprite.y;
-    // axis-separate sliding collision
-    const nx = this.wx + vx * dt;
-    if (this.isWalkable(nx, this.wy)) this.wx = nx;
-    const ny = this.wy + vy * dt;
-    if (this.isWalkable(this.wx, ny)) this.wy = ny;
-
-    // dash
-    if (this.cursors && this.cursors.space.isDown
-      && this.dashTimer <= 0 && mag > 0) {
-      this.dashTimer = this.data.dashDuration;
-      this.invuln = Math.max(this.invuln, this.data.dashDuration + 0.05);
-      this.world.addShake(4);
-      audio.ui();
+    if (owner === 'external') {
+      // C3-b: the external agent's intent is executed by the same legal path
+      // as every other controller. It is a PlayerIntent, never a direct write.
+      return this.world.takeExternalIntent();
     }
+    const interact = this._interactQueued;
+    this._interactQueued = false;
+    const aim = this.pendingAim;
+    this.pendingAim = null;
+    return intentFromHumanInput({
+      up: this.input.up, down: this.input.down, left: this.input.left, right: this.input.right,
+      dash: !!(this.cursors && this.cursors.space && this.cursors.space.isDown),
+      fire: this._fireHeld,
+      interact,
+      aim
+    });
+  }
 
-    this.project();
-    this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
-    // visuals
-    if (this.hurtTimer > 0) this.sprite.setTint(0xff3355);
-    else { this.sprite.clearTint(); this.sprite.setAlpha(this.dashTimer > 0 ? 0.7 : 1); }
+  /** Human input wins immediately and disables the local demo (safe takeover). */
+  private detectHumanTakeover(): void {
+    if (this.control.owner !== 'ai') return;
+    const active = this.input.up || this.input.down || this.input.left || this.input.right ||
+      this._fireHeld || this._interactQueued ||
+      !!(this.cursors && this.cursors.space && this.cursors.space.isDown);
+    if (active) {
+      this.control.humanTakeover('human-input');
+      this.aiController.reset();
+    }
+  }
 
-    this.tryFire();
+  /** Dev/interaction adapter used by the F key: queued and executed after a core frame. */
+  requestInteract(): void { this._interactQueued = true; }
+
+  /** Drop residual held input on pause / resume / death / scene exit. */
+  clearHeldInput(): void {
+    this.input.up = this.input.down = this.input.left = this.input.right = false;
+    this._fireHeld = false;
+    this._interactQueued = false;
   }
 
   private updateKeys(): void {
@@ -227,41 +253,13 @@ export class Player {
     this.input.right = down(k.D);
   }
 
-  private fireCooldown(): number {
-    const w = this.weapon;
-    const red = Math.min(0.9, this.data.cooldownReduced);
-    return (1 / w.baseRate) / (1 - red);
-  }
-
-  private tryFire(): void {
-    if (!this.fireHeld() || !this.alive) return;
-    if (this.fireTimer > 0) return;
-    const w = this.weapon;
-    let ws = this.data.weapons.find((w2) => w2.key === this.data.weaponKey);
-    if (!ws) {
-      const def = w;
-      ws = { key: this.data.weaponKey, level: 1, ammo: def.magazine ?? -1, magazine: def.magazine ?? -1, reloading: false, reloadTimer: 0 };
-      this.data.weapons.push(ws);
-    }
-    if (ws.magazine > 0) {
-      if (ws.reloading) return;
-      if (ws.ammo <= 0) { ws.reloading = true; ws.reloadTimer = w.reloadTime ?? 1; return; }
-    }
-    this.fireTimer = this.fireCooldown();
-    if (ws.magazine > 0) ws.ammo--;
-    this.world.spawnProjectile(0, this.x, this.y, this.aimYaw, {
-      damage: w.baseDamage * this.data.damage,
-      speed: w.baseProjectileSpeed / GAME.PIXEL_TO_TILE, critBase: w.critBase, critDamage: this.data.critDamage,
-      critChance: this.data.critChance,
-      pierce: this.data.pierceCount + (w.kind === 'plasma' ? 2 : 0),
-      lifetime: w.baseRange / w.baseProjectileSpeed, kind: w.kind,
-      magazine: ws.magazine, shots: w.kind === 'scatter' ? 5 : 1, spread: w.baseSpread
-    }, 'player');
+  /** Adapter feedback for a core `player-fired` event (no rule execution here). */
+  playFireFeedback(kind: string): void {
     if (this.whaleEffects) {
       const aim = this.world.worldToScreen(this.x + Math.cos(this.aimYaw), this.y + Math.sin(this.aimYaw));
       this.whaleEffects.fire(aim.x - this.sprite.x, aim.y - this.sprite.y);
     }
-    audio.shoot(w.kind);
+    audio.shoot(kind as any);
   }
 
   // external fire flag, set by scene on mousedown
@@ -270,40 +268,20 @@ export class Player {
   setFireHeld(v: boolean): void { this._fireHeld = v; }
 
   hurt(amount: number, fromX: number, fromY: number): boolean {
-    if (this.invuln > 0 || !this.alive) return false;
-    const reduction = 1 - Math.min(0.75, this.data.armor / (this.data.armor + 80));
-    const dmg = Math.max(1, amount * reduction);
-    this.data.hp = Math.max(0, this.data.hp - dmg);
-    this.hurtTimer = 0.2;
-    this.invuln = Math.max(this.invuln, 0.3);
-    // Knockback is a small collision-checked nudge. The old 6-tile jump could
-    // teleport the player through a wall and leave them permanently stuck.
-    const dx = this.wx - fromX, dy = this.wy - fromY;
-    const d = Math.hypot(dx, dy) || 1;
-    const knockback = 24 / GAME.PIXEL_TO_TILE;
-    const nx = this.wx + (dx / d) * knockback;
-    const ny = this.wy + (dy / d) * knockback;
-    if (this.isWalkable(nx, this.wy)) this.wx = nx;
-    if (this.isWalkable(this.wx, ny)) this.wy = ny;
-    this.ensureWalkable();
-    this.project();
-    audio.hurt();
-    this.world.addShake(6);
-    if (this.data.hp <= 0) this.world.onPlayerDeath();
+    if (!this.alive || this.invuln > 0) return false;
+    // B4: never write core player state from the adapter outside a core tick.
+    // The World queues the hit; core applies resolvePlayerHit and emits events.
+    this.world.enqueuePlayerHit(amount, fromX, fromY);
     return true;
   }
 
-  heal(amount: number): void { this.data.hp = Math.min(this.data.maxHp, this.data.hp + amount); }
+  heal(amount: number): void {
+    // Core transaction owns the canonical HP write, committed next tick.
+    this.world.enqueueHeal(amount);
+  }
 
-  addXp(base: number): number {
-    const gained = Math.round(base * this.data.xpGain);
-    this.data.xp += gained;
-    while (this.data.xp >= this.data.xpToNext) {
-      this.data.xp -= this.data.xpToNext;
-      this.data.level++;
-      this.data.xpToNext = Math.round(30 * Math.pow(this.data.level, 1.3));
-      this.world.onLevelUp(this.data.level);
-    }
-    return gained;
+  addXp(base: number): void {
+    // Core transaction owns XP/level writes and level-up callbacks, committed next tick.
+    this.world.enqueueAddXp(base);
   }
 }

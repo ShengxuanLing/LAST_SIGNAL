@@ -1,0 +1,22 @@
+PASS | hist_unit | npx vitest run | 40 files / 563 tests | reports/ai-native-02/c3c-history-replay-fix/logs/hist_unit.log
+PASS | hist_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_typecheck.log
+PASS | hist_build | npm run build | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_build.log
+PASS | hist_build_test | npm run build:test | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_build_test.log
+PASS | hist_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_mcp_build.log
+PASS | hist_player_negative | npx vite-node src/ai-native/worldHeadlessPlayerCrop.mts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_player_negative.log
+PASS | hist_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_headless_smoke.log
+PASS | hist_parity_export | env PORT=5173 npx playwright test tests/c3c-headless-parity.spec.ts --reporter=line --workers=1 | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_parity_export.log
+PASS | hist_parity | npx vite-node scripts/c3c-rendered-headless-parity.mts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_parity.log
+PASS | hist_c2_room | npx vite-node scripts/c2-room-generation-parity.ts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_c2_room.log
+PASS | hist_c2_node | npx vite-node scripts/c2-node-parity.ts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_c2_node.log
+PASS | hist_c2_kill | npx vite-node scripts/c2-kill-parity.ts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_c2_kill.log
+PASS | hist_c2_loot | npx vite-node scripts/c2-loot-pickup-parity.ts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_c2_loot.log
+PASS | hist_c2_save_resume | env PORT=5173 npx playwright test tests/checkpoint.spec.ts tests/economy.spec.ts tests/resume-no-step.spec.ts --reporter=line --workers=1 | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_c2_save_resume.log
+PASS | hist_mcp_default | npx vite-node src/ai-native/mcpClient.mts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_mcp_default.log
+PASS | hist_world_smoke | npx vite-node src/ai-native/worldMcpSmoke.mts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_world_smoke.log
+PASS | hist_lease_smoke | npx vite-node src/ai-native/worldMcpLeaseSmoke.mts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_lease_smoke.log
+PASS | hist_token_acl | npx vite-node scripts/c3b-token-acl-gate.mts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_token_acl.log
+PASS | hist_f03 | npx vite-node scripts/c3b-f03-gate.mts | rc=0 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_f03.log
+HIST_GATE_DONE
+PASS | hist_c3b_repeat3 | PORT=5173 npx playwright test c3b-external-link c3b-hard-disconnect c3b-link-form c3c-bridge-reclaim c3c-headless-parity --repeat-each=3 | 48/48 | reports/ai-native-02/c3c-history-replay-fix/logs/hist_c3b_repeat3.log
+PASS | hist_full_e2e_69 | PORT=5173 npx playwright test --workers=1 | 69/69 (five viewports + C2) | reports/ai-native-02/c3c-history-replay-fix/logs/hist_full_e2e.log

@@ -1,0 +1,41 @@
+PASS | typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3b/logs/typecheck.log
+PASS | unit | npx vitest run | rc=0 | reports/ai-native-02/c3b/logs/unit.log
+PASS | build | npm run build | rc=0 | reports/ai-native-02/c3b/logs/build.log
+PASS | build_test | npm run build:test | rc=0 | reports/ai-native-02/c3b/logs/build_test.log
+PASS | mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3b/logs/mcp_build.log
+PASS | mcp_default_client | npx vite-node src/ai-native/mcpClient.mts | rc=0 | reports/ai-native-02/c3b/logs/mcp_default_client.log
+PASS | world_mcp_smoke | npx vite-node src/ai-native/worldMcpSmoke.mts | rc=0 | reports/ai-native-02/c3b/logs/world_mcp_smoke.log
+PASS | world_mcp_integration | npx vite-node src/ai-native/worldMcpIntegration.mts | rc=0 | reports/ai-native-02/c3b/logs/world_mcp_integration.log
+PASS | f03_gate | npx vite-node scripts/c3b-f03-gate.mts | rc=0 | reports/ai-native-02/c3b/logs/f03_gate.log
+PASS | parity_room | npx vite-node scripts/c2-room-generation-parity.ts | rc=0 | reports/ai-native-02/c3b/logs/parity_room.log
+PASS | parity_node | npx vite-node scripts/c2-node-parity.ts | rc=0 | reports/ai-native-02/c3b/logs/parity_node.log
+PASS | parity_kill | npx vite-node scripts/c2-kill-parity.ts | rc=0 | reports/ai-native-02/c3b/logs/parity_kill.log
+PASS | parity_loot | npx vite-node scripts/c2-loot-pickup-parity.ts | rc=0 | reports/ai-native-02/c3b/logs/parity_loot.log
+GATES_DONE
+PASS | full_e2e_55 | PORT=5173 npx playwright test --reporter=line --workers=1 | 55/55 passed (five-viewport HUD included in ai-native-world.spec.ts) | reports/ai-native-02/c3b/logs/full_e2e.log
+PASS | typecheck_final | npm run typecheck | rc=0 | reports/ai-native-02/c3b/logs/typecheck_final.log
+PASS | unit_final | npx vitest run | rc=0 | reports/ai-native-02/c3b/logs/unit_final.log
+PASS | build_final | npm run build | rc=0 | reports/ai-native-02/c3b/logs/build_final.log
+PASS | mcp_build_final | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3b/logs/mcp_build_final.log
+PASS | world_mcp_smoke_final | npx vite-node src/ai-native/worldMcpSmoke.mts | rc=0 | reports/ai-native-02/c3b/logs/world_mcp_smoke_final.log
+PASS | world_mcp_integration_final | npx vite-node src/ai-native/worldMcpIntegration.mts | rc=0 | reports/ai-native-02/c3b/logs/world_mcp_integration_final.log
+PASS | f03_gate_final | npx vite-node scripts/c3b-f03-gate.mts | rc=0 | reports/ai-native-02/c3b/logs/f03_gate_final.log
+REVERIFY_DONE
+=== FINAL GATE (post worldMcpTools refactor) ===
+PASS | final_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3b/logs/final_typecheck.log
+PASS | final_unit | npx vitest run | rc=0 | reports/ai-native-02/c3b/logs/final_unit.log
+PASS | final_build | npm run build | rc=0 | reports/ai-native-02/c3b/logs/final_build.log
+PASS | final_build_test | npm run build:test | rc=0 | reports/ai-native-02/c3b/logs/final_build_test.log
+PASS | final_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3b/logs/final_mcp_build.log
+PASS | final_default_mcp_client | npx vite-node src/ai-native/mcpClient.mts | rc=0 | reports/ai-native-02/c3b/logs/final_default_mcp_client.log
+PASS | final_world_mcp_smoke | npx vite-node src/ai-native/worldMcpSmoke.mts | rc=0 | reports/ai-native-02/c3b/logs/final_world_mcp_smoke.log
+PASS | final_world_mcp_integration | npx vite-node src/ai-native/worldMcpIntegration.mts | rc=0 | reports/ai-native-02/c3b/logs/final_world_mcp_integration.log
+PASS | final_world_mcp_integration_flag | npx vite-node src/ai-native/worldMcpIntegration.mts | rc=0 | reports/ai-native-02/c3b/logs/final_world_mcp_integration_flag.log
+PASS | final_f03_gate | npx vite-node scripts/c3b-f03-gate.mts | rc=0 | reports/ai-native-02/c3b/logs/final_f03_gate.log
+PASS | final_parity_room | npx vite-node scripts/c2-room-generation-parity.ts | rc=0 | reports/ai-native-02/c3b/logs/final_parity_room.log
+PASS | final_parity_node | npx vite-node scripts/c2-node-parity.ts | rc=0 | reports/ai-native-02/c3b/logs/final_parity_node.log
+PASS | final_parity_kill | npx vite-node scripts/c2-kill-parity.ts | rc=0 | reports/ai-native-02/c3b/logs/final_parity_kill.log
+PASS | final_parity_loot | npx vite-node scripts/c2-loot-pickup-parity.ts | rc=0 | reports/ai-native-02/c3b/logs/final_parity_loot.log
+FINAL_GATES_DONE
+PASS | final_full_e2e_55 | PORT=5173 npx playwright test --reporter=line --workers=1 | 55/55 (five viewports) | reports/ai-native-02/c3b/logs/full_e2e_final.log
+NOTE | flake_evidence | transient default MCP client E_RETRYABLE + one-time F-04/F-05 regression (fixed) | reports/ai-native-02/c3b/logs/flake-evidence.log

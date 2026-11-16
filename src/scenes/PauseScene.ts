@@ -4,12 +4,93 @@ import { UPGRADES } from '../config/upgrades';
 import { WEAPONS } from '../config/weapons';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
+import { clearOwnerPairing, peekOwnerPairing } from '../ai-native/ownerPairing';
 import { GameScene } from './GameScene';
 
 export class PauseScene extends Phaser.Scene {
+  private inventoryRefresh: (() => void) | null = null;
+  private lastInventorySig = '';
+  /** C3-b: live external-link status / owner labels rendered by this overlay. */
+  private externalStatusText: Phaser.GameObjects.Text | null = null;
+  private controlText: Phaser.GameObjects.Text | null = null;
+  private lastExternalSig = '';
+  /** Native DOM form for the loopback bridge URL + masked token + OWNER key. */
+  private externalLinkForm: HTMLElement | null = null;
+  private linkFormMode: 'external' | 'companion' | 'companion-reauth' = 'external';
+  private lastCompanionSig = '';
+  private companionStatusText: Phaser.GameObjects.Text | null = null;
+
   constructor() { super('PauseScene'); }
 
-  create(config?: { mode?: 'pause' | 'inventory' }): void {
+  /** The inventory overlay is not itself paused, so it can observe the core
+   *  commit that happens on the resume tick and refresh its labels. */
+  update(): void {
+    this.refreshExternalLabels();
+    if (!this.inventoryRefresh) return;
+    const sig = this.inventorySig();
+    if (sig !== this.lastInventorySig) {
+      this.lastInventorySig = sig;
+      this.inventoryRefresh();
+    }
+  }
+
+  /** The overlay stays alive while paused, so the link/owner labels must
+   *  reflect the real state (a human AUTHORIZE click happens right here). */
+  private refreshExternalLabels(): void {
+    const world = this.scene.get<GameScene>('GameScene')?.world;
+    if (!world) return;
+    const status = world.externalLink.snapshot().status;
+    const owner = world.player.control.owner;
+    const sig = `${status}|${owner}`;
+    if (sig === this.lastExternalSig) return;
+    this.lastExternalSig = sig;
+    if (this.externalStatusText) {
+      this.externalStatusText.setText(status === 'CONNECTED' ? 'EXTERNAL AGENT  CONNECTED'
+        : status === 'LOST' ? 'EXTERNAL AGENT  LINK LOST'
+        : status === 'YIELDED' ? 'EXTERNAL AGENT  YIELDED'
+        : 'EXTERNAL AGENT  NOT CONNECTED');
+      this.externalStatusText.setColor(status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c');
+    }
+    if (this.controlText) {
+      const control = world.player.control;
+      this.controlText.setText(`CONTROL  ${owner.toUpperCase()} · ${owner === 'external' ? 'EXTERNAL AGENT' : control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`);
+    }
+    // Bounded heartbeat: when paused and companion is CONNECTED, refresh status
+    // so the link degrades to FALLBACK:NO_MODEL on heartbeat failure. This
+    // does not advance the game tick (paused) — it only reports real bridge
+    // state.
+    const parent = this.scene.get<GameScene>('GameScene');
+    const link = parent?.companionLink;
+    if (link && link.status === 'CONNECTED') {
+      link.startHeartbeat();
+    }
+    if (parent?.companionLink) {
+      const cSig = `${parent.companionLink.status}|${parent.companionLink.error}`;
+      if (cSig !== this.lastCompanionSig) {
+        this.lastCompanionSig = cSig;
+        if (!this.companionStatusText) {
+          this.companionStatusText = this.add.text(GAME.WINDOW_W / 2, 420, '', {
+            fontFamily: 'monospace', fontSize: '14px', color: '#eafaff'
+          }).setOrigin(0.5);
+        }
+        this.companionStatusText.setText(
+          parent.companionLink.status === 'CONNECTED' ? 'COMPANION  CONNECTED'
+          : parent.companionLink.status === 'FALLBACK:NO_MODEL' ? 'COMPANION  NO_MODEL'
+          : parent.companionLink.status === 'READ_ONLY' ? 'COMPANION  READ_ONLY'
+          : 'COMPANION  OFF');
+        this.companionStatusText.setColor(parent.companionLink.status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c');
+      }
+    }
+  }
+
+  private inventorySig(): string {
+    const parent = this.scene.get('GameScene') as GameScene | undefined;
+    const world = parent?.world;
+    if (!world) return '';
+    return `${world.player.data.weaponKey}|${world.getPendingEquipWeapon() ?? ''}`;
+  }
+
+  create(config?: { mode?: 'pause' | 'inventory' | 'echo' | 'companion' }): void {
     const mode = config?.mode ?? 'pause';
     const parent = this.scene.get<GameScene>('GameScene');
     const player = parent.world.player;
@@ -37,6 +118,14 @@ export class PauseScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       this.input.keyboard?.off('keydown-ESC', closeFromKey);
       this.input.keyboard?.off('keydown-I', closeFromKey);
+      this.inventoryRefresh = null;
+      this.lastInventorySig = '';
+      // Scene instances are reused across restart(): clear references to
+      // destroyed Text objects, otherwise update() can touch a stale object.
+      this.externalStatusText = null;
+      this.controlText = null;
+      this.lastExternalSig = '';
+      this.closeExternalLinkForm();
     });
 
     if (mode === 'inventory') {
@@ -52,6 +141,11 @@ export class PauseScene extends Phaser.Scene {
         audio.ui();
         refreshWeapons();
       };
+      // The inventory overlay pauses the world, so an equip command commits on
+      // the first normal tick after the overlay closes. Until then the UI must
+      // show the requested selection as PENDING instead of pretending it is
+      // already equipped (the core state is unchanged until the commit).
+      const pendingEquip = () => parent.world.getPendingEquipWeapon();
       const shortcuts = ['ONE', 'TWO', 'THREE', 'FOUR'];
       const refreshWeaponRows = player.data.weapons.map((w, i) => {
         const def = WEAPONS[w.key];
@@ -76,9 +170,11 @@ export class PauseScene extends Phaser.Scene {
         }
         return () => {
           const active = player.data.weaponKey === w.key;
+          const queued = !active && pendingEquip() === w.key;
           name.setColor(active ? '#ffd233' : '#cfe8ef');
-          equip.setText(active ? 'EQUIPPED' : 'EQUIP')
-            .setColor(active ? '#7ff0ff' : '#eafaff')
+          const label = active ? 'EQUIPPED' : queued ? 'QUEUED' : 'EQUIP';
+          equip.setText(label)
+            .setColor(active ? '#7ff0ff' : queued ? '#ffd233' : '#eafaff')
             .setBackgroundColor(active ? '#00000000' : '#274a55');
           if (active) equip.disableInteractive();
           else equip.setInteractive({ useHandCursor: true });
@@ -89,6 +185,9 @@ export class PauseScene extends Phaser.Scene {
         description.setText(player.weapon.description);
       };
       refreshWeapons();
+      // Committed state may change on the resume tick; keep the labels in sync.
+      this.inventoryRefresh = refreshWeapons;
+      this.lastInventorySig = this.inventorySig();
       if (player.data.weapons.length > 1) {
         this.add.text(120, 355, `1–${Math.min(player.data.weapons.length, shortcuts.length)} EQUIP`, {
           fontFamily: 'monospace', fontSize: '13px', color: '#7ff0ff'
@@ -116,6 +215,10 @@ export class PauseScene extends Phaser.Scene {
       });
 
       this._button(GAME.WINDOW_W / 2, GAME.WINDOW_H - 60, 'CLOSE', close, 0x274a55);
+    } else if (mode === 'echo') {
+      this.echoPanel(parent, close);
+    } else if (mode === 'companion') {
+      this.companionPanel(parent);
     } else {
       // pause menu
       this.add.text(GAME.WINDOW_W / 2, 150, 'PAUSED', { fontFamily: 'monospace', fontSize: '48px', color: '#33e0ff', fontStyle: 'bold', letterSpacing: 6 }).setOrigin(0.5, 0.5);
@@ -130,10 +233,194 @@ export class PauseScene extends Phaser.Scene {
         this.scene.stop('GameScene');
         this.scene.start('MainMenuScene', {});
       }, 0x5a2a3a);
-      this.add.text(GAME.WINDOW_W / 2, 530, 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
+      // AI-NATIVE-02 P1 development entry in the real World. It is honestly
+      // labelled as a local deterministic demo; no external agent is attached.
+      const control = parent.world.player.control;
+      this._button(GAME.WINDOW_W / 2, 540, `AI CONTROL: ${control.aiEnabled ? 'ON · LOCAL DEMO' : 'OFF'}`, () => {
+        parent.toggleAiControl();
+        this.scene.restart({ mode: 'pause' });
+      }, 0x274a55);
+      this.controlText = this.add.text(GAME.WINDOW_W / 2, 585, `CONTROL  ${control.owner.toUpperCase()} · ${control.aiEnabled ? 'LOCAL DETERMINISTIC DEMO' : 'HUMAN ONLY'}`, {
+        fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8'
+      }).setOrigin(0.5);
+      // C3-b: the human explicitly authorizes an external agent link. The
+      // bridge URL/token come from the host page configuration (never typed
+      // here, never logged, never part of the scene text).
+      const externalState = parent.world.externalLink.snapshot();
+      const externalLabel = externalState.status === 'CONNECTED' ? 'EXTERNAL AGENT  CONNECTED'
+        : externalState.status === 'LOST' ? 'EXTERNAL AGENT  LINK LOST'
+        : externalState.status === 'YIELDED' ? 'EXTERNAL AGENT  YIELDED'
+        : 'EXTERNAL AGENT  NOT CONNECTED';
+      this.externalStatusText = this.add.text(GAME.WINDOW_W / 2, 605, externalLabel, {
+        fontFamily: 'monospace', fontSize: '12px', color: externalState.status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c'
+      }).setOrigin(0.5);
+      const authorizeExternal = this.add.text(GAME.WINDOW_W / 2, 622, 'AUTHORIZE EXTERNAL AGENT', {
+        fontFamily: 'monospace', fontSize: '12px', color: '#eafaff', backgroundColor: '#274a55'
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      authorizeExternal.on('pointerdown', () => {
+        audio.ui();
+        const config = (globalThis as unknown as {
+          __externalLinkConfig?: { bridgeUrl?: string; token?: string };
+        }).__externalLinkConfig;
+        const bridgeUrl = config?.bridgeUrl;
+        const token = config?.token;
+        if (!bridgeUrl || !token) {
+          this.add.text(GAME.WINDOW_W / 2, 638, 'NO BRIDGE CONFIGURED — CONTROL STAYS HUMAN', {
+            fontFamily: 'monospace', fontSize: '11px', color: '#ff8a3c'
+          }).setOrigin(0.5);
+          return;
+        }
+        const stashedKey = peekOwnerPairing(parent)?.consumeKey() ?? '';
+        const configKey = (config as { ownerKey?: string })?.ownerKey ?? '';
+        const ownerKey = stashedKey || configKey;
+        void parent.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
+          if (!ok) clearOwnerPairing(parent);
+          this.lastExternalSig = '';
+          this.refreshExternalLabels();
+          if (!ok) {
+            this.add.text(GAME.WINDOW_W / 2, 638, 'EXTERNAL LINK FAILED — CONTROL STAYS HUMAN', {
+              fontFamily: 'monospace', fontSize: '11px', color: '#ff8a3c'
+            }).setOrigin(0.5);
+          }
+        });
+      });
+      this.add.text(GAME.WINDOW_W / 2, 625, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL', {
+        fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
+      }).setOrigin(0.5);
+      const companionLink = this.add.text(140, 230, 'LLM COMPANION >', {
+        fontFamily: 'monospace', fontSize: '16px', color: '#7ff0ff', backgroundColor: '#274a55'
+      }).setOrigin(0, 0).setPadding(10, 8, 10, 8).setInteractive({ useHandCursor: true });
+      companionLink.on('pointerdown', () => {
+        audio.ui();
+        this.scene.restart({ mode: 'companion' });
+      });
+      const echoLink = this.add.text(140, 200, 'ECHO COMPANION >', {
+        fontFamily: 'monospace', fontSize: '16px', color: '#33e0ff', backgroundColor: '#274a55'
+      }).setOrigin(0, 0).setPadding(10, 8, 10, 8).setInteractive({ useHandCursor: true });
+      echoLink.on('pointerdown', () => {
+        audio.ui();
+        this.scene.restart({ mode: 'echo' });
+      });
+      this.add.text(GAME.WINDOW_W / 2, 655, 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
         fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8'
       }).setOrigin(0.5);
     }
+  }
+
+  /**
+   * P3-a echo panel. Every command goes through this pause entry, so no gameplay
+   * key binding is stolen. The human is always the protagonist's controller.
+   */
+  private echoPanel(parent: GameScene, close: () => void): void {
+    const world = parent.world;
+    const title = (y: number, text: string, size: string, color: string) =>
+      this.add.text(GAME.WINDOW_W / 2, y, text, { fontFamily: 'monospace', fontSize: size, color }).setOrigin(0.5);
+    title(130, 'ECHO COMPANION', '40px', '#33e0ff');
+    title(172, 'Independent actor · own 12-tile perception · never driven by an external agent', '13px', '#8fb8c8');
+
+    const echo = world.echoActor;
+    const status = !echo ? 'DISABLED — the original solo run is unchanged'
+      : echo.data.hp <= 0 ? `DOWN — HP 0/${echo.data.maxHp} (the protagonist is unaffected)`
+      : `HP ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${world.echoMode.toUpperCase()} · ${world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE'}`;
+    title(210, status, '15px', echo && echo.data.hp > 0 ? '#eafaff' : '#ff8a3c');
+
+    const suggestion = parent.suggestEcho();
+    title(240, suggestion === 'fire'
+      ? 'ASSIST READY: an enemy is inside the echo perception cone — confirm below'
+      : 'ASSIST: no perceived target — the echo will not fire', '13px', suggestion === 'fire' ? '#ffd233' : '#5a7480');
+
+    const redraw = () => this.scene.restart({ mode: 'echo' });
+    this._button(GAME.WINDOW_W / 2, 300, echo ? 'DISABLE ECHO' : 'ENABLE ECHO', () => {
+      if (echo) parent.disableEcho(); else parent.enableEcho();
+      redraw();
+    }, echo ? 0x5a2a3a : 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 356, `MODE: ${world.echoMode === 'follow' ? 'FOLLOW' : world.echoMode === 'hold' ? 'HOLD' : 'MOVE'}  >  FOLLOW`, () => {
+      parent.setEchoMode('follow'); redraw();
+    }, 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 412, 'MODE: HOLD POSITION', () => {
+      parent.setEchoMode('hold'); redraw();
+    }, 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 468, 'MODE: MOVE TO AIM', () => {
+      parent.setEchoMode('move-to'); redraw();
+    }, 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 524, world.echoAssistArmed ? 'ASSIST ARMED — CLICK TO REVOKE' : 'CONFIRM ASSIST FIRE', () => {
+      if (world.echoAssistArmed) parent.revokeEchoAssist(); else parent.confirmEchoAssist();
+      redraw();
+    }, suggestion === 'fire' ? 0x4a4420 : 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 592, 'BACK', close, 0x33e0ff);
+    this.add.text(GAME.WINDOW_W / 2, 650, 'ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL OF THE PROTAGONIST', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
+    }).setOrigin(0.5);
+  }
+
+  /** P3-b A: Owner-only Companion panel. NO confirm capability leaves this scene. */
+  private companionPanel(parent: GameScene): void {
+    const title = (y: number, text: string, size: string, color: string) =>
+      this.add.text(GAME.WINDOW_W / 2, y, text, { fontFamily: 'monospace', fontSize: size, color }).setOrigin(0.5);
+    title(120, 'LLM COMPANION · OWNER CONFIRM', '34px', '#33e0ff');
+    title(160, 'Only a human here can confirm. The agent MCP has NO confirm tool.', '13px', '#8fb8c8');
+    const stateText = title(210, `STATE ${parent.companionStatus}`, '18px', '#eafaff');
+    const listText = title(270, 'WAITING FOR SUGGESTIONS', '15px', '#8fb8c8');
+
+    const redraw = (): void => {
+      stateText.setText(`STATE ${parent.companionStatus}`);
+      if (!parent.companionLink) {
+        listText.setText('NOT CONNECTED · NO MODEL (no fake connected state)');
+        return;
+      }
+      if (parent.companionStatus === 'READ_ONLY') {
+        listText.setText('READ ONLY · AI/External controls the protagonist');
+        return;
+      }
+      void parent.companionLink.pending().then((pending) => {
+        if (!pending.length) {
+          listText.setText('WAITING · no proposal / expired');
+          return;
+        }
+        listText.setText(pending.slice(0, 4).map((p) =>
+          `${p.kind.toUpperCase()} · ${p.reason} · ${p.target ? `(${p.target.x.toFixed(1)},${p.target.y.toFixed(1)})` : 'no target'}`
+        ).join('   |   '));
+      });
+    };
+    redraw();
+
+    this._button(GAME.WINDOW_W / 2, 340, 'ENABLE / RE-AUTHORIZE (HUMAN)', () => {
+      if (!parent.world.echoActor) parent.world.enableEcho();
+      const link = parent.companionLink;
+      if (link && link.status === 'CONNECTED') {
+        // Live link: re-authorize with a fresh Owner pairing key (atomically
+        // swaps capability, cancels old suggestions). Wrong key does not break
+        // the active connection.
+        this.linkFormMode = 'companion-reauth';
+        this.openExternalLinkForm('companion');
+        return;
+      }
+      // No live link: first-time authorization via explicit form params.
+      this.linkFormMode = 'companion';
+      this.openExternalLinkForm('companion');
+    }, 0x274a55);
+    this._button(GAME.WINDOW_W / 2, 400, 'REJECT FIRST PROPOSAL', () => {
+      const link = parent.companionLink;
+      if (!link) return;
+      void link.pending().then((pending) => {
+        if (pending.length) void link.decide(pending[0], 'reject').then(redraw);
+      });
+    }, 0x5a2a3a);
+    this._button(GAME.WINDOW_W / 2, 460, 'CONFIRM FIRST PROPOSAL (OWNER)', () => {
+      const link = parent.companionLink;
+      if (!link) return;
+      void link.pending().then((pending) => {
+        if (pending.length) void link.decide(pending[0], 'confirm').then(redraw);
+      });
+    }, 0x33e0ff);
+    this._button(GAME.WINDOW_W / 2, 520, 'DISCONNECT (NO MODEL)', () => {
+      parent.companionLink?.disconnect();
+      redraw();
+    }, 0x5a2a3a);
+    this._button(GAME.WINDOW_W / 2, 600, 'BACK', () => this.scene.restart({ mode: 'pause' }), 0x274a55);
+    this.add.text(GAME.WINDOW_W / 2, 650, 'CONFIRMED ACTIONS ARE COMMITTED BY THE NEXT CORE TICK · NO FORCED FLUSH', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#5a7480'
+    }).setOrigin(0.5);
   }
 
   private showSettings(): void {
@@ -199,14 +486,230 @@ export class PauseScene extends Phaser.Scene {
     });
     const hint = this.add.text(0, 175, 'ESC RESUME', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(0.5);
     const back = this.add.text(0, 140, 'BACK', { fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', backgroundColor: '#0d1822' }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    wrap.add([reset, hint, back]);
+    // Signal Collaboration opt-in: an explicit, persisted human choice.
+    // Ordinary NEW RUNS stay legacy (no Relay device, no gating) until enabled.
+    const optIn = save.permanent.signalCollaborationOptIn === true;
+    const signalToggle = this.add.text(0, 105, `SIGNAL COLLABORATION · ${optIn ? 'ON' : 'OFF'}`, {
+      fontFamily: 'monospace', fontSize: '14px', color: optIn ? '#00ff77' : '#8fb8c8',
+      backgroundColor: optIn ? '#004400' : '#274a55'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const gs = this.scene.get<GameScene>('GameScene');
+    signalToggle.on('pointerdown', () => {
+      audio.ui();
+      const next = !optIn;
+      const latest = saveSystem.load();
+      latest.permanent.signalCollaborationOptIn = next;
+      saveSystem.save(latest);
+      gs.world.setSignalCollaborationOptIn(next);
+      signalToggle.setText(`SIGNAL COLLABORATION · ${next ? 'ON' : 'OFF'}`);
+      signalToggle.setColor(next ? '#00ff77' : '#8fb8c8');
+      signalToggle.setBackgroundColor(next ? '#004400' : '#274a55');
+    });
+    // Native input entry: a normal player can configure the local bridge
+    // WITHOUT opening the browser console. The token is masked, never saved,
+    // never logged and cleared from the DOM immediately after submission.
+    const linkSetup = this.add.text(0, 210, 'EXTERNAL LINK SETUP', {
+      fontFamily: 'monospace', fontSize: '14px', color: '#eafaff', backgroundColor: '#274a55'
+    }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
+    linkSetup.on('pointerdown', () => {
+      audio.ui();
+      this.openExternalLinkForm();
+    });
+    wrap.add([reset, hint, back, linkSetup]);
     back.on('pointerdown', () => {
       audio.ui();
+      this.closeExternalLinkForm();
       blocker.destroy();
       panel.destroy();
       wrap.destroy();
       this.scene.restart({ mode: 'pause' });
     });
+  }
+
+  /** Tear down the DOM form (idempotent). */
+  private closeExternalLinkForm(): void {
+    if (this.externalLinkForm && this.externalLinkForm.parentNode) {
+      this.externalLinkForm.parentNode.removeChild(this.externalLinkForm);
+    }
+    this.externalLinkForm = null;
+  }
+
+  /**
+   * Minimal native DOM form (no framework). It is appended to <body> and only
+   * lives while the Settings panel is open. Typing is isolated from Phaser's
+   * window keyboard listeners so W/A/S/D/SPACE/ESC cannot take over or close
+   * the pause menu while the player enters a URL/token.
+   */
+  private openExternalLinkForm(mode: 'external' | 'companion' = 'external'): void {
+    if (this.externalLinkForm) return;
+    this.linkFormMode = mode;
+    const parent = this.scene.get<GameScene>('GameScene');
+    const existing = (globalThis as unknown as { __externalLinkConfig?: { bridgeUrl?: string; token?: string } })
+      .__externalLinkConfig;
+
+    const root = document.createElement('div');
+    root.setAttribute('data-testid', 'external-link-form');
+    root.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:2147483000',
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'background:rgba(4,6,11,0.82)', 'font-family:ui-monospace,SFMono-Regular,Menlo,monospace',
+      'color:#eafaff', 'padding:16px', 'box-sizing:border-box'
+    ].join(';');
+    const panel = document.createElement('form');
+    panel.style.cssText = [
+      'width:min(560px,94vw)', 'max-height:90vh', 'overflow:auto',
+      'background:#0d1822', 'border:2px solid #33e0ff', 'border-radius:6px',
+      'padding:18px 20px', 'box-sizing:border-box', 'display:flex',
+      'flex-direction:column', 'gap:10px', 'box-shadow:0 0 24px rgba(51,224,255,0.25)'
+    ].join(';');
+
+    const title = document.createElement('div');
+    title.textContent = mode === 'companion' ? 'COMPANION · HUMAN OWNER PAIRING' : 'EXTERNAL AGENT LINK';
+    title.style.cssText = 'font-size:18px;font-weight:700;letter-spacing:2px;color:#33e0ff';
+    const note = document.createElement('div');
+    note.textContent = mode === 'companion'
+      ? 'Enter the host-private OWNER_KEY_FILE value. It is masked, used once, then cleared. Only this human can authorize the companion.'
+      : 'Local bridge only. Token and Owner pairing key are masked, never saved and never logged. You must click AUTHORIZE.';
+    note.style.cssText = 'font-size:12px;line-height:1.5;color:#8fb8c8';
+
+    const label = (text: string): HTMLLabelElement => {
+      const l = document.createElement('label');
+      l.textContent = text;
+      l.style.cssText = 'font-size:12px;color:#8fb8c8;display:block;margin-top:4px';
+      return l;
+    };
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.name = 'bridgeUrl';
+    urlInput.placeholder = 'http://127.0.0.1:8787';
+    urlInput.autocomplete = 'off';
+    urlInput.spellcheck = false;
+    urlInput.value = existing?.bridgeUrl ?? 'http://127.0.0.1:8787';
+    urlInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+
+    const tokenInput = document.createElement('input');
+    tokenInput.type = 'password';
+    tokenInput.name = 'token';
+    tokenInput.placeholder = 'bridge token (masked)';
+    tokenInput.autocomplete = 'new-password';
+    tokenInput.spellcheck = false;
+    tokenInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+
+    const ownerKeyInput = document.createElement('input');
+    ownerKeyInput.type = 'password';
+    ownerKeyInput.name = 'ownerKey';
+    ownerKeyInput.placeholder = 'host owner pairing key (masked, 64 hex)';
+    ownerKeyInput.autocomplete = 'off';
+    ownerKeyInput.spellcheck = false;
+    ownerKeyInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    status.setAttribute('data-testid', 'external-link-status');
+    status.style.cssText = 'font-size:12px;line-height:1.4;color:#8fb8c8;min-height:16px';
+
+    const authorize = document.createElement('button');
+    authorize.type = 'submit';
+    authorize.textContent = 'AUTHORIZE';
+    authorize.style.cssText = 'padding:10px 14px;font:inherit;font-weight:700;letter-spacing:2px;color:#04060b;background:#33e0ff;border:0;border-radius:4px;cursor:pointer';
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'CANCEL';
+    cancel.style.cssText = 'padding:10px 14px;font:inherit;color:#eafaff;background:#274a55;border:0;border-radius:4px;cursor:pointer';
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap';
+    row.append(cancel, authorize);
+
+    panel.append(title, note, label('BRIDGE URL'), urlInput, label('TOKEN'), tokenInput,
+      label('OWNER PAIRING KEY · from host private OWNER_KEY_FILE'), ownerKeyInput, status, row);
+    root.append(panel);
+    // Bubble-phase stop: the input still receives typing, but Phaser's window
+    // keyboard listeners never see it (no takeover, no ESC close).
+    for (const type of ['keydown', 'keyup', 'keypress']) {
+      root.addEventListener(type, (event) => event.stopPropagation());
+    }
+    for (const type of ['pointerdown', 'pointerup', 'click']) {
+      root.addEventListener(type, (event) => event.stopPropagation());
+    }
+    root.addEventListener('submit', (event) => event.preventDefault());
+
+    const setStatus = (text: string, color: string): void => {
+      status.textContent = text;
+      status.style.color = color;
+    };
+
+    cancel.addEventListener('click', () => {
+      this.closeExternalLinkForm();
+    });
+
+    panel.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const bridgeUrl = urlInput.value.trim();
+      const token = tokenInput.value;
+      if (!/^http:\/\/(127\.0\.0\.1|localhost):\d{1,5}$/.test(bridgeUrl)) {
+        setStatus('BRIDGE URL must be a local http://127.0.0.1:PORT or http://localhost:PORT', '#ff8a3c');
+        return;
+      }
+      if (token.length < 16) {
+        setStatus('TOKEN is empty or too short', '#ff8a3c');
+        return;
+      }
+      const ownerKey = ownerKeyInput.value.trim();
+      if (!/^[0-9a-f]{64}$/.test(ownerKey)) {
+        setStatus('OWNER PAIRING KEY must be 64 hex characters from OWNER_KEY_FILE', '#ff8a3c');
+        return;
+      }
+      // Clear BOTH secrets from the DOM immediately; the raw key goes only
+      // into a module-private #private field, never a global config.
+      tokenInput.value = '';
+      ownerKeyInput.value = '';
+      if (this.linkFormMode === 'companion-reauth') {
+        // Re-authorize on an existing live link: swap capability atomically.
+        void parent.reauthorizeCompanion(ownerKey).then((ok) => {
+          clearOwnerPairing(parent);
+          if (ok) {
+            setStatus('RE-AUTHORIZED · capability swapped', '#7ff0ff');
+            this.closeExternalLinkForm();
+          } else {
+            setStatus('RE-AUTH FAILED — active connection unchanged', '#ff8a3c');
+          }
+        });
+        return;
+      }
+      if (this.linkFormMode === 'companion') {
+        setStatus('PAIRING OWNER…', '#ffd233');
+        void parent.authorizeCompanion(bridgeUrl, token, ownerKey).then((ok) => {
+          if (ok) {
+            setStatus('CONNECTED · Owner authority registered', '#7ff0ff');
+            this.closeExternalLinkForm();
+          } else {
+            setStatus('FAILED · owner pairing rejected — control stays human', '#ff8a3c');
+          }
+        });
+        return;
+      }
+      (globalThis as unknown as { __externalLinkConfig?: { bridgeUrl: string; token: string } })
+        .__externalLinkConfig = { bridgeUrl, token };
+      setStatus('AUTHORIZING…', '#ffd233');
+      void parent.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
+        if (ok) {
+          this.lastExternalSig = '';
+          this.refreshExternalLabels();
+          setStatus('CONNECTED · external agent link is live', '#7ff0ff');
+          this.closeExternalLinkForm();
+        } else {
+          const error = parent.getExternalLinkError();
+          setStatus(
+            `FAILED · ${error ? `${error.code} ${error.messageKey}` : 'world.bridge_unreachable'} — control stays human`,
+            '#ff8a3c'
+          );
+        }
+      });
+    });
+
+    document.body.append(root);
+    this.externalLinkForm = root;
+    urlInput.focus();
   }
 
   private _button(cx: number, y: number, label: string, cb: () => void, color: number): void {

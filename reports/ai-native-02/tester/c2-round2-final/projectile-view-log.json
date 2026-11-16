@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "url": "http://localhost:5288/",
+    "target": "0df1514"
+  },
+  "checks": [
+    {
+      "name": "player-projectile-observed",
+      "ok": true,
+      "detail": {
+        "core": 1
+      }
+    },
+    {
+      "name": "view-mutation-no-core-effect",
+      "ok": true,
+      "detail": {
+        "before": [
+          {
+            "id": 1,
+            "damage": 12,
+            "x": 7.425475654548318
+          }
+        ],
+        "mid": [
+          {
+            "id": 1,
+            "damage": 12,
+            "x": 7.425475654548318
+          }
+        ]
+      }
+    },
+    {
+      "name": "legacy-setter-does-not-clear-core",
+      "ok": true,
+      "detail": {
+        "before": [
+          {
+            "id": 1,
+            "damage": 12,
+            "x": 7.425475654548318
+          }
+        ],
+        "after": [
+          {
+            "id": 1,
+            "damage": 12,
+            "x": 7.425475654548318
+          }
+        ]
+      }
+    },
+    {
+      "name": "ids-unique",
+      "ok": true
+    },
+    {
+      "name": "no-console-error",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "flow": {
+    "before": [
+      {
+        "id": 1,
+        "damage": 12,
+        "x": 7.425475654548318
+      }
+    ],
+    "mid": [
+      {
+        "id": 1,
+        "damage": 12,
+        "x": 7.425475654548318
+      }
+    ],
+    "after": [
+      {
+        "id": 1,
+        "damage": 12,
+        "x": 7.425475654548318
+      }
+    ],
+    "viewIds": [
+      1
+    ],
+    "coreIds": [
+      1
+    ]
+  },
+  "errors": []
+}

@@ -1,0 +1,9 @@
+PASS long_flow_alive | {"stepCount":11,"wallMs":9939,"maxResponseBytes":45972}
+PASS window_summary | {"eventTotal":101635,"retained":20000,"windowStart":81635,"truncated":true}
+PASS tail_page | {"offset":101603,"items":32}
+PASS lost_prefix_explicit | {"requestedOffset":0,"windowStart":81635,"lostPrefix":81635}
+PASS boundary_snapshot_truncated | {"ref":"frameref_f7683ac094fb68b56bf02b3f","frameBytes":6297025,"truncated":true}
+PASS frame_export_file | {"path":"D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\c3c\\frames\\ses_5bdb7685b2cdf7f32d87a5a9-1794722840148.frame.json","bytes":6297025}
+PASS restore_truncated_state | {"epoch":3}
+PASS export_flag_truncated | {"replayable":false,"note":"HISTORY TRUNCATED (eventTotal > retained events): the retained window alone is not a full reproduction and cannot be claimed replayable"}
+HEADLESS_20K_STDIO_PASS | {"eventTotal":101635,"maxResponseBytes":147844,"wallMs":9939}

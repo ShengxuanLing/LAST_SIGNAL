@@ -1,5 +1,5 @@
 // Data-driven enemy configuration.
-import { EnemyKind, EnemyStats } from '../types';
+import { EnemyData, EnemyKind, EnemyStats, Vec2 } from '../types';
 export type { EnemyKind } from '../types';
 import { clamp } from '../core/random';
 
@@ -112,4 +112,37 @@ export function scaleStats(base: EnemyStats, depth: number, rng: { float: () => 
 
 export function clampInt(n: number): number {
   return clamp(Math.round(n), 1, 9999);
+}
+
+/** Pure C1 enemy-data construction shared by the Phaser Enemy adapter and the
+ *  authoritative core (no Phaser/DOM/Math.random). */
+export function buildEnemyData(
+  kind: EnemyKind,
+  room: number,
+  depth: number,
+  roomBounds?: { gx: number; gy: number; w: number; h: number }
+): EnemyData {
+  const base = ENEMY_STATS[kind];
+  const stats = { ...base };
+  const scale = 1 + depth * 0.12 + (kind === 'boss_warden' ? 0 : ((room * 31 + depth * 17) % 12) / 100);
+  stats.maxHp = Math.round(stats.maxHp * scale);
+  stats.damage = Math.round(stats.damage * scale);
+  stats.armor += Math.floor(depth / 4);
+  const TILE = 64;
+  stats.speed /= TILE;
+  stats.aggroRange /= TILE;
+  stats.attackRange /= TILE;
+  const patrolPoints: Vec2[] = [];
+  if (roomBounds) {
+    patrolPoints.push(
+      { x: roomBounds.gx + 6, y: roomBounds.gy + 6 },
+      { x: roomBounds.gx + roomBounds.w - 6, y: roomBounds.gy + 6 },
+      { x: roomBounds.gx + roomBounds.w - 6, y: roomBounds.gy + roomBounds.h - 6 },
+      { x: roomBounds.gx + 6, y: roomBounds.gy + roomBounds.h - 6 }
+    );
+  }
+  return {
+    kind, stats, state: 'idle', stateTimer: 0, targetId: null,
+    patrolPoints, patrolIndex: 0, hitFlash: 0, stunTimer: 0, spawnRoom: room
+  };
 }

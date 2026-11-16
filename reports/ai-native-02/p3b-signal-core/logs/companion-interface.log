@@ -1,0 +1,5 @@
+PASS | companion_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_typecheck.log
+PASS | companion_unit | npx vitest run src/ai-native/companionFacet.test.ts | 19/19 | reports/ai-native-02/p3b-signal-core/logs/core_companion_unit.log
+PASS | companion_full_unit | npx vitest run | 642/642 | reports/ai-native-02/p3b-signal-core/logs/core_unit.log
+PASS | companion_build | npm run build | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_build.log
+PASS | companion_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/p3b-signal-core/logs/core_mcp_build.log

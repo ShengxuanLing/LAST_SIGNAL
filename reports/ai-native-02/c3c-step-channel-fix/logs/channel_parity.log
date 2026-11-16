@@ -1,0 +1,17 @@
+PASS headless-replay-state
+PASS headless-replay-events
+PASS rendered-vs-headless-state
+PASS rendered-vs-headless-events
+PASS rendered-vs-headless-final-tick
+PASS rendered-vs-headless-drones
+PASS rendered-vs-headless-projectiles
+PASS rendered-vs-headless-loot-left
+PASS rendered-vs-headless-currency
+PASS rendered-vs-headless-xp
+PASS rendered-vs-headless-level
+PASS rendered-vs-headless-player-hp
+PASS real-kill-event
+PASS real-loot-drop
+PASS real-loot-pickup
+PASS real-combat-events
+C3C_RENDERED_HEADLESS_PARITY_PASS finalTick=27 events=59 kills=1 lootLeft=0 currency=4 xp=8

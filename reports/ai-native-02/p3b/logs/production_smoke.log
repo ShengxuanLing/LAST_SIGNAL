@@ -1,0 +1,4 @@
+PASS production_entry / | no __game | #game present | LAST SIGNAL
+PASS production_entry /economy.html | no __game | #supply-dialog present | LAST SIGNAL · Supply Terminals
+PASS production_entry /station-zero.html | no __game | #game present | LAST SIGNAL · Station Zero
+PREVIEW_ENTRY_SMOKE_PASS

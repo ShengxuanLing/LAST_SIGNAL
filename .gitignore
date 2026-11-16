@@ -4,6 +4,8 @@ node_modules/
 # Build output
 dist/
 dist-mcp/
+dist-test/
+dist-staging/
 
 # Test / verification artifacts (screenshots, results, diagnostics)
 test-results/
@@ -30,3 +32,9 @@ inspect_full.txt
 .DS_Store
 Thumbs.db
 *.local
+reports/ai-native-02/c3b/.bridge-token
+reports/ai-native-02/c3c/parity/initial.json
+reports/ai-native-02/c3c/failures/
+reports/ai-native-02/c3c/tool-io/
+reports/ai-native-02/c3c/frames/
+reports/ai-native-02/p3a/parity/

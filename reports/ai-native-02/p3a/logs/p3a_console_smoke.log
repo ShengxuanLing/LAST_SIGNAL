@@ -1,0 +1,4 @@
+PASS console_headless_player | {"code":0}
+PASS console_headless_dev_help | {"code":0}
+PASS console_rendered_help | {"code":0}
+WORLD_CONSOLE_SMOKE_PASS

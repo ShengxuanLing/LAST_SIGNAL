@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "url": "http://localhost:5283/",
+    "fixture": false,
+    "startedUtc": "2026-11-13T20:11:00.193Z",
+    "endedUtc": "2026-11-13T20:11:08.774Z"
+  },
+  "steps": [
+    {
+      "name": "running",
+      "detail": {
+        "owner": "ai",
+        "mode": "AI",
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "inventory-open",
+      "detail": {
+        "active": [
+          "GameScene",
+          "PauseScene"
+        ],
+        "world": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "PAUSED",
+        "authorityPaused": true,
+        "gamePaused": true,
+        "fireHeld": false,
+        "playerFireHeld": false,
+        "inputFlags": {
+          "up": false,
+          "down": false,
+          "left": false,
+          "right": false
+        },
+        "interactQueued": null,
+        "takeoverCount": 0,
+        "takeoverReason": null,
+        "txtControl": "CONTROL  PAUSED",
+        "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+        "hp": 100,
+        "grid": {
+          "x": 25,
+          "y": 46
+        }
+      }
+    },
+    {
+      "name": "inventory-idle",
+      "detail": {
+        "owner": "ai",
+        "mode": "PAUSED",
+        "actionCountUnchanged": true,
+        "fireHeld": false,
+        "playerFireHeld": false,
+        "inputFlags": {
+          "up": false,
+          "down": false,
+          "left": false,
+          "right": false
+        }
+      }
+    },
+    {
+      "name": "inventory-closed-no-takeover",
+      "detail": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "gamePaused": false,
+        "active": [
+          "GameScene"
+        ],
+        "takeoverReason": null
+      }
+    },
+    {
+      "name": "still-human-or-ai",
+      "detail": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "txtControl": "CONTROL  PAUSED"
+      }
+    }
+  ],
+  "errors": [],
+  "verdict": {
+    "inventoryPaused": true,
+    "inputCleared": true,
+    "openingInventoryIsNotTakeover": true,
+    "closingDoesNotRegrab": true,
+    "fireHeldAfterClose": false
+  }
+}

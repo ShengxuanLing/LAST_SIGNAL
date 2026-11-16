@@ -1,0 +1,6 @@
+PASS deterministic_echo_state_events | {"stateHash":"fnv1a32:fe33a086","eventsHash":"fnv1a32:4ac26ccf"}
+PASS echo_acted | {"echo":{"x":21.125,"y":42.5,"hp":93},"shots":2}
+PASS echo_checkpoint_restore_parity | {"stateHash":"fnv1a32:fe33a086"}
+PASS real_drone_damaged_by_echo | {"initial":[{"id":1,"hp":27}],"before":[]}
+PASS canonical_includes_echo | {"canonicalBytes":1298}
+P3A_ECHO_PARITY_PASS | {"confirmAt":40,"echo":{"hp":93,"x":21.125,"y":42.5},"seed":424242,"shots":2,"snapAt":180,"stateHash":"fnv1a32:fe33a086","ticks":360}
