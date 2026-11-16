@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="Consolas, 'Microsoft YaHei', monospace">
+  <title>CONCEPT A · SURVEY INK — HUD exploration (field notebook)</title>
+  <rect width="1600" height="900" fill="#0b0e11"/>
+  <text x="40" y="52" fill="#e8e2d0" font-size="24" letter-spacing="2">A · SURVEY INK — HUD 探索：野外测绘手册</text>
+  <text x="40" y="78" fill="#e8e2d0" fill-opacity="0.55" font-size="13">Hairline frames, corner ticks, monospace numerals; information is "annotated onto the world", not boxed over it. 概念样稿，非实机截图。</text>
+
+  <!-- 1. layout thumbnail 1280x720 at 0.5 -->
+  <g transform="translate(40 110)" fill="none" stroke="#e8e2d0">
+    <rect width="640" height="360" stroke-opacity="0.5"/>
+    <rect x="8" y="8" width="624" height="344" stroke-opacity="0.15" stroke-dasharray="4 4"/>
+    <rect x="200" y="100" width="240" height="160" stroke="#ff4a3d" stroke-opacity="0.5" stroke-dasharray="2 4"/>
+    <g fill="#e8e2d0" stroke="none" font-size="10">
+      <rect x="14" y="14" width="120" height="30" fill-opacity="0.12"/><text x="18" y="32">VITALS + SIGNAL</text>
+      <rect x="520" y="14" width="106" height="34" fill-opacity="0.12"/><text x="524" y="32">WEAPON · ROOM</text>
+      <rect x="560" y="52" width="66" height="44" fill-opacity="0.08"/><text x="564" y="76">MAP</text>
+      <rect x="14" y="290" width="110" height="48" fill-opacity="0.12"/><text x="18" y="318">Z X C TOOLS</text>
+      <rect x="420" y="300" width="206" height="40" fill-opacity="0.12"/><text x="424" y="324">ECHO (≤30% w, ≤2 lines)</text>
+      <rect x="240" y="14" width="160" height="22" fill="#ff4a3d" fill-opacity="0.15"/><text x="250" y="29">BOSS / SHIELD (when present)</text>
+      <text x="236" y="186" fill="#ff4a3d" fill-opacity="0.8">COMBAT CORE — keep clear</text>
+      <text x="14" y="354" fill-opacity="0.5">safe margin 16px @1280 · anchors scale with viewport (1440×900 / 1920×1080 tested in AR-05)</text>
+    </g>
+  </g>
+
+  <!-- 2. vitals -->
+  <g transform="translate(720 110)" fill="#e8e2d0" font-size="12">
+    <text font-size="11" fill-opacity="0.6" letter-spacing="2">2 · VITALS 生命 / 信号能量</text>
+    <g transform="translate(0 20)">
+      <rect width="260" height="14" fill="none" stroke="#e8e2d0" stroke-opacity="0.6"/>
+      <g><rect x="2" y="2" width="23" height="10"/><rect x="27" y="2" width="23" height="10"/><rect x="52" y="2" width="23" height="10"/><rect x="77" y="2" width="23" height="10"/><rect x="102" y="2" width="23" height="10"/><rect x="127" y="2" width="23" height="10"/><rect x="152" y="2" width="23" height="10"/><rect x="177" y="2" width="11" height="10"/></g>
+      <rect x="188" y="2" width="12" height="10" fill="#ff4a3d" opacity="0.8"/>
+      <text x="270" y="12">72 / 100</text>
+      <text x="0" y="32" font-size="10" fill-opacity="0.5">10 HP / segment · recent loss flashes vermilion 0.4s then drains</text>
+    </g>
+    <g transform="translate(0 74)">
+      <rect width="260" height="8" fill="none" stroke="#4fe3d6" stroke-opacity="0.6"/><rect x="1" y="1" width="166" height="6" fill="#4fe3d6"/>
+      <path d="M65,-3 V11" stroke="#e8e2d0"/><text x="270" y="8" fill="#4fe3d6">SIGNAL 64 / 100</text>
+      <text x="0" y="24" font-size="10" fill-opacity="0.5">tick at 25 = one Jam; regen +5/s shown as moving hatch</text>
+    </g>
+    <g transform="translate(0 126)" font-size="11">
+      <text>LV 4</text><text x="40" fill-opacity="0.6">XP</text><g transform="translate(64 -8)"><rect width="10" height="8"/><rect x="12" width="10" height="8"/><rect x="24" width="10" height="8"/><rect x="36" width="10" height="8" fill-opacity="0.2"/><rect x="48" width="10" height="8" fill-opacity="0.2"/></g>
+      <text x="140" fill="#9fe870">◆ 3 SAMPLES</text><text x="240" fill-opacity="0.6">⌖ 12:41</text>
+    </g>
+  </g>
+
+  <!-- 3. tool states -->
+  <g transform="translate(720 280)" fill="#e8e2d0" font-size="10">
+    <text font-size="11" fill-opacity="0.6" letter-spacing="2">3 · SIGNAL TOOLS 状态不只靠颜色</text>
+    <g transform="translate(0 16)">
+      <rect width="72" height="72" fill="#0b0d10" stroke="#4fe3d6"/>
+      <path d="M22,36 h12 l5,-10 l5,20 l5,-10 h8" fill="none" stroke="#4fe3d6" stroke-width="1.8"/>
+      <text x="4" y="13" fill="#4fe3d6">X</text><text x="4" y="66" fill="#4fe3d6">25 ●READY</text>
+      <text x="0" y="88">可用</text>
+    </g>
+    <g transform="translate(86 16)">
+      <rect width="72" height="72" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.35"/>
+      <path d="M36,4 A32,32 0 1 1 8,52" fill="none" stroke="#f2a93b" stroke-width="3"/>
+      <text x="22" y="42" font-size="14" fill="#f2a93b">4.3</text>
+      <text x="4" y="13" fill-opacity="0.5">X</text><text x="4" y="66" fill-opacity="0.5">COOLDOWN</text>
+      <text x="0" y="88">冷却</text><text x="0" y="100" fill-opacity="0.6">弧+秒</text>
+    </g>
+    <g transform="translate(172 16)">
+      <rect width="72" height="72" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.35" stroke-dasharray="3 3"/>
+      <path d="M8,64 L64,8" stroke="#e8e2d0" stroke-opacity="0.35"/>
+      <text x="4" y="13" fill-opacity="0.5">X</text><text x="4" y="40" font-size="11">需 25</text><text x="4" y="54" font-size="11" fill-opacity="0.7">现 18 · 1.4s</text>
+      <text x="0" y="88">能量不足</text><text x="0" y="100" fill-opacity="0.6">虚框+文案</text>
+    </g>
+    <g transform="translate(258 16)">
+      <rect width="72" height="72" fill="#0b0d10" stroke="#7fb7ff"/>
+      <rect x="0" y="66" width="44" height="6" fill="#7fb7ff"/>
+      <text x="4" y="13" fill="#7fb7ff">X</text><text x="4" y="42" font-size="12" fill="#7fb7ff">ACTIVE</text><text x="4" y="58" fill="#7fb7ff">3.6 / 6.0s</text>
+      <text x="0" y="88">持续中</text><text x="0" y="100" fill-opacity="0.6">底条≠冷却</text>
+    </g>
+    <g transform="translate(344 16)">
+      <rect width="72" height="72" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.35"/>
+      <rect x="26" y="22" width="7" height="26" fill="#e8e2d0" fill-opacity="0.6"/><rect x="39" y="22" width="7" height="26" fill="#e8e2d0" fill-opacity="0.6"/>
+      <text x="4" y="66" fill-opacity="0.6">PAUSED</text>
+      <text x="0" y="88">暂停不推进</text>
+    </g>
+  </g>
+
+  <!-- 4. ECHO confidence tags -->
+  <g transform="translate(40 510)" fill="#e8e2d0" font-size="12">
+    <text font-size="11" fill-opacity="0.6" letter-spacing="2">4 · ECHO 事实 / 推测 / 历史（GDD-03 UI §3）</text>
+    <g transform="translate(0 16)">
+      <rect width="640" height="44" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.5"/>
+      <rect x="10" y="14" width="44" height="16" fill="#e8e2d0"/><text x="18" y="26" font-size="10" fill="#0b0d10">观察</text>
+      <text x="66" y="27">R-2 输出：开启。门接收器：持续接收。<tspan fill-opacity="0.5">  t=812</tspan></text>
+    </g>
+    <g transform="translate(0 68)">
+      <rect width="640" height="44" fill="#0b0d10" stroke="#7fb7ff" stroke-opacity="0.6" stroke-dasharray="6 3"/>
+      <rect x="10" y="14" width="44" height="16" fill="none" stroke="#7fb7ff"/><text x="18" y="26" font-size="10" fill="#7fb7ff">推测</text>
+      <text x="66" y="27">门锁可能依赖 R-2 —— 尚未确认。</text>
+    </g>
+    <g transform="translate(0 120)">
+      <rect width="640" height="44" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.25" stroke-dasharray="1 4"/>
+      <rect x="10" y="14" width="44" height="16" fill="none" stroke="#e8e2d0" stroke-opacity="0.4" stroke-dasharray="1 2"/><text x="18" y="26" font-size="10" fill-opacity="0.6">历史</text>
+      <text x="66" y="27" fill-opacity="0.55">上一次苏醒时，这扇门是开着的。（记录 #16，已过期）</text>
+    </g>
+    <text y="184" font-size="10" fill-opacity="0.5">Line style encodes confidence (solid / dashed / dotted) so meaning survives colour-blindness and greyscale.</text>
+  </g>
+
+  <!-- 5. boss bar + shield nodes -->
+  <g transform="translate(720 420)" fill="#e8e2d0" font-size="12">
+    <text font-size="11" fill-opacity="0.6" letter-spacing="2">5 · BOSS 血条与护盾分离（未 Scan 不显示节点位置）</text>
+    <g transform="translate(0 20)">
+      <text font-size="14" letter-spacing="3">THE WARDEN · 浑天仪</text>
+      <rect y="10" width="520" height="12" fill="none" stroke="#e8e2d0" stroke-opacity="0.6"/>
+      <rect x="2" y="12" width="300" height="8" fill="#ff4a3d"/>
+      <path d="M173,6 V26 M346,6 V26" stroke="#e8e2d0"/>
+      <g transform="translate(0 36)"><circle cx="8" cy="0" r="6" fill="none" stroke="#7fb7ff" stroke-width="2"/><circle cx="26" cy="0" r="6" fill="#7fb7ff"/><circle cx="44" cy="0" r="6" fill="none" stroke="#7fb7ff" stroke-dasharray="2 2"/>
+        <text x="60" y="4" font-size="11" fill="#7fb7ff">共识节点 1/3 在线 · 减伤控制存在</text></g>
+    </g>
+  </g>
+
+  <!-- 6. target prompt -->
+  <g transform="translate(720 560)" fill="#e8e2d0" font-size="11">
+    <text fill-opacity="0.6" letter-spacing="2">6 · TARGET PROMPT 目标邻近提示</text>
+    <g transform="translate(40 60)">
+      <circle r="9" fill="#0a0c0e" stroke="#4fe3d6" stroke-width="2"/>
+      <path d="M12,-12 L36,-36 H190" fill="none" stroke="#e8e2d0" stroke-opacity="0.6"/>
+      <text x="40" y="-42">RECEIVER · 门接收器</text>
+      <text x="40" y="-26" fill="#4fe3d6">[X] 压制 25   [F] 当前封锁接收有效</text>
+    </g>
+  </g>
+
+  <!-- 7. level-up card -->
+  <g transform="translate(1270 110)" fill="#e8e2d0" font-size="11">
+    <text fill-opacity="0.6" letter-spacing="2">7 · UPGRADE 升级卡</text>
+    <g transform="translate(0 16)">
+      <rect width="290" height="270" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.7"/>
+      <path d="M0,12 V0 H12 M278,0 H290 V12 M0,258 V270 H12 M278,270 H290 V258" stroke="#e8e2d0" stroke-width="2" fill="none"/>
+      <text x="14" y="26" fill-opacity="0.6">[2]  FIELD NOTE · 14</text>
+      <g transform="translate(145 92)" fill="none" stroke="#e8e2d0"><circle r="34" stroke-opacity="0.4"/><circle r="20"/><path d="M-44,0 H-26 M26,0 H44 M0,-44 V-26 M0,26 V44"/></g>
+      <text x="14" y="160" font-size="16">TARGETING AI</text>
+      <text x="14" y="180" fill-opacity="0.6">Lv 0 → 1 / 5</text>
+      <text x="14" y="206">+6% critical hit chance.</text>
+      <path d="M14,224 H276" stroke="#e8e2d0" stroke-opacity="0.2"/>
+      <text x="14" y="246" fill="#4fe3d6">CRIT 10% → 16%</text>
+    </g>
+  </g>
+
+  <!-- 8. damage numbers + minimap -->
+  <g transform="translate(1270 420)" fill="#e8e2d0">
+    <text font-size="11" fill-opacity="0.6" letter-spacing="2">8 · NUMBERS 伤害数字</text>
+    <text x="0" y="40" font-size="16" font-weight="bold">12</text>
+    <text x="50" y="40" font-size="22" font-weight="bold" fill="#ffffff">31<tspan font-size="11" fill="#f2a93b"> ✕</tspan></text>
+    <text x="130" y="40" font-size="14" fill-opacity="0.5">−0 ARM</text>
+    <text x="0" y="62" font-size="10" fill-opacity="0.5">normal · crit · blocked</text>
+    <text x="0" y="76" font-size="10" fill-opacity="0.5">stacked offset, never over head</text>
+  </g>
+  <g transform="translate(1270 520)" fill="none" stroke="#e8e2d0">
+    <text font-size="11" fill="#e8e2d0" stroke="none" fill-opacity="0.6" letter-spacing="2">MAP 已测绘 / 推断</text>
+    <g transform="translate(0 16)"><rect width="34" height="24" stroke-opacity="0.8"/><rect x="50" y="6" width="30" height="26" stroke-opacity="0.8"/><rect x="60" y="54" width="40" height="30" stroke-dasharray="2 2" stroke-opacity="0.4"/><rect x="130" y="14" width="36" height="36" stroke-dasharray="2 2" stroke-opacity="0.4"/><path d="M34,12 H50 M70,32 V54 M80,20 H130" stroke-opacity="0.5"/><circle cx="64" cy="18" r="3" fill="#4fe3d6" stroke="none"/><text x="140" y="36" font-size="10" fill="#ff4a3d" stroke="none">!</text></g>
+  </g>
+
+  <text x="40" y="880" fill="#e8e2d0" fill-opacity="0.5" font-size="11">Typography: body = monospace (Consolas → Cascadia Mono → monospace); CJK = Microsoft YaHei / system sans fallback. Min UI text 12px @1280×720. Main game HUD and Station Zero DOM HUD share these tokens in AR-05.</text>
+</svg>

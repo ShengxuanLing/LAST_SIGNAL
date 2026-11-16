@@ -1,0 +1,17 @@
+PASS typecheck | npm run typecheck | tsc --noEmit clean | -
+PASS build | npm run build | vite build ok (10.8s) | -
+PASS mcp-build | npm run game:mcp:build | dist-mcp/mcpServer.mjs 301.22 kB | -
+PASS unit-core | npx vitest run src/world/sim/core.test.ts | 24/24 passed | src/world/sim/core.test.ts
+PASS unit-supply-config | npx vitest run src/config/supplies.test.ts | 7/7 passed | src/config/supplies.test.ts
+PASS unit-rewiring | npx vitest run src/world/sim/rewiring.test.ts | 10/10 passed | src/world/sim/rewiring.test.ts
+FAIL unit-full-flaky | npx vitest run | 420/421 passed; only failure is runtime.test.ts CLI subprocess timeout | reports/ai-native-02/c2-purchase-transaction/logs/cli-coldstart.log (cold start 6310ms > vitest 5000ms; same test passed in a prior warm run)
+PASS e2e-supply | PORT=5173 npx playwright test tests/supply-transaction.spec.ts | 3/3 passed | tests/supply-transaction.spec.ts
+PASS e2e-supply-commit-save | purchase commits on close, saves once, duplicate click blocked, survives reload | passed | tests/supply-transaction.spec.ts:64
+PASS e2e-supply-insufficient | insufficient credits disables every offer | passed | tests/supply-transaction.spec.ts:114
+PASS e2e-supply-uncommitted-reload | uncommitted purchase discarded on reload, last checkpoint kept | passed | tests/supply-transaction.spec.ts:131
+FAIL e2e-audit-65 | pre-existing triage (sync reads) | 43 passed / 5 failed full run | tests/audit.spec.ts:65
+FAIL e2e-checkpoint-61 | pre-existing triage (weaponKey sync read) | see full run | tests/checkpoint.spec.ts:61
+FAIL e2e-checkpoint-140 | pre-existing triage (upgrade sync read) | see full run | tests/checkpoint.spec.ts:140
+FAIL e2e-checkpoint-185 | pre-existing triage (checkpoint timing) | see full run | tests/checkpoint.spec.ts:185
+FAIL e2e-economy-11 | pre-existing triage (legacy key/flow assumptions) | see full run | tests/economy.spec.ts:11
+INFO e2e-full | PORT=5173 npx playwright test --workers=1 | 43 passed / 5 failed (was 37/8 at 1d5a8d7) | -

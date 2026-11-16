@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ok 1 [chromium] › tests\p3b-companion-owner.spec.ts:24:1 › Owner UI confirms a companion suggestion into a real echo core action (3.5s)
+
+  1 passed (4.7s)

@@ -1,7 +1,7 @@
 // Procedural texture generation. Produces Phaser textures via canvas so the game
 // needs no external image assets while still looking coherent.
 import Phaser from 'phaser';
-import { drawWhaleCharacter, WHALE_REAR_TEXTURE, WHALE_TEXTURE } from './WhaleCharacter';
+import { createSurveyTextures } from '../art/survey/SurveyTextures';
 
 export class GraphicsFactory {
   static GRAY = '#20303a';
@@ -77,9 +77,10 @@ export class GraphicsFactory {
     gen('enemy_stalker', 26, 24, (c) => drawEnemy(c, '#3a2030', '#ff3355', 11, false));
     gen('enemy_sentinel', 34, 30, (c) => drawEnemy(c, '#2a3020', '#ffd233', 15, false));
     gen('enemy_hunter', 26, 24, (c) => drawEnemy(c, '#20303a', '#a05cff', 11, false));
+    gen('enemy_sentry', 28, 28, (c) => drawEnemy(c, '#2c3f42', '#75e6f0', 12, true));
+    gen('enemy_shiver', 26, 26, (c) => drawEnemy(c, '#2f3a66', '#adc9ff', 11, true));
+    gen('enemy_slag', 32, 32, (c) => drawEnemy(c, '#492729', '#ff855e', 14, false));
 
-    gen(WHALE_TEXTURE, 100, 100, (canvas) => drawWhaleCharacter(canvas, false));
-    gen(WHALE_REAR_TEXTURE, 100, 100, (canvas) => drawWhaleCharacter(canvas, true));
 
     gen('proj_pulse', 12, 12, (c) => radial(c, '#eafaff', '#33e0ff'));
     gen('proj_pink', 12, 12, (c) => radial(c, '#fff0e0', '#ff8a3c'));
@@ -123,6 +124,10 @@ export class GraphicsFactory {
       const g = c.getContext('2d')!;
       g.fillStyle = '#eafaff'; g.fillRect(6, 5, 5, 14); g.fillRect(13, 5, 5, 14);
     });
+
+    // AR-02 Direction A: replaces player / hostile / projectile / pickup textures with
+    // the SURVEY INK set (same keys where gameplay code or tests reference them).
+    createSurveyTextures(scene);
   }
 }
 

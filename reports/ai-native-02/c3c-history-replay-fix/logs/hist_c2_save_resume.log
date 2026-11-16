@@ -1,0 +1,14 @@
+
+Running 10 tests using 1 worker
+
+[1/10] [chromium] › tests\checkpoint.spec.ts:71:1 › inventory equips an owned weapon and the safe checkpoint restores the selection
+[2/10] [chromium] › tests\checkpoint.spec.ts:152:1 › number keys select an upgrade when four choices are eligible
+[3/10] [chromium] › tests\checkpoint.spec.ts:172:1 › loss recap shows run stats and retries the same seed
+[4/10] [chromium] › tests\checkpoint.spec.ts:197:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress
+[5/10] [chromium] › tests\checkpoint.spec.ts:316:1 › death routes to Game Over and clears the run checkpoint
+[6/10] [chromium] › tests\economy.spec.ts:11:1 › earns and spends run credits, with purchases restored from the checkpoint
+[7/10] [chromium] › tests\economy.spec.ts:123:1 › a failed checkpoint save keeps the purchase pending and completes once after recovery
+[8/10] [chromium] › tests\resume-no-step.spec.ts:26:1 › pause resume does not advance: real onResume/onLevelUpClosed + sub-tick update
+[9/10] [chromium] › tests\resume-no-step.spec.ts:75:1 › level-up close path does not advance; upgrade commits once on a real tick
+[10/10] [chromium] › tests\resume-no-step.spec.ts:124:1 › inventory close path commits the equipped weapon once via normal frames
+  10 passed (23.6s)

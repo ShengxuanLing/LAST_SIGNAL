@@ -1,0 +1,192 @@
+{
+  "meta": {
+    "url": "http://localhost:5289/",
+    "target": "6ac60b2",
+    "devOnlyFixture": "simFixture + injected projectile",
+    "startedUtc": "2026-11-14T02:57:10.945Z"
+  },
+  "checks": [
+    {
+      "name": "far-kill-fixture-available",
+      "ok": true,
+      "detail": {
+        "available": true,
+        "far": {
+          "x": 5,
+          "y": 41
+        },
+        "start": {
+          "x": 112,
+          "y": 40
+        },
+        "near": {
+          "x": 6,
+          "y": 41
+        },
+        "killEvents": [
+          "player-moved",
+          "enemy-hit",
+          "enemy-died",
+          "loot-dropped",
+          "loot-dropped",
+          "xp-gained"
+        ],
+        "visible": 2,
+        "coreLoot": 2,
+        "currency0": 0,
+        "currencyAfterKill": 0,
+        "currencyAfterCollect": 4,
+        "collectEvents": [
+          "player-moved",
+          "player-moved",
+          "currency-gained",
+          "loot-collected",
+          "player-healed",
+          "loot-collected"
+        ],
+        "lootViewsAfter": 0,
+        "coreLootAfter": 0
+      }
+    },
+    {
+      "name": "far-kill-emits-loot-dropped",
+      "ok": true,
+      "detail": [
+        "player-moved",
+        "enemy-hit",
+        "enemy-died",
+        "loot-dropped",
+        "loot-dropped",
+        "xp-gained"
+      ]
+    },
+    {
+      "name": "far-kill-loot-visible-and-uncollected",
+      "ok": true,
+      "detail": {
+        "available": true,
+        "far": {
+          "x": 5,
+          "y": 41
+        },
+        "start": {
+          "x": 112,
+          "y": 40
+        },
+        "near": {
+          "x": 6,
+          "y": 41
+        },
+        "killEvents": [
+          "player-moved",
+          "enemy-hit",
+          "enemy-died",
+          "loot-dropped",
+          "loot-dropped",
+          "xp-gained"
+        ],
+        "visible": 2,
+        "coreLoot": 2,
+        "currency0": 0,
+        "currencyAfterKill": 0,
+        "currencyAfterCollect": 4,
+        "collectEvents": [
+          "player-moved",
+          "player-moved",
+          "currency-gained",
+          "loot-collected",
+          "player-healed",
+          "loot-collected"
+        ],
+        "lootViewsAfter": 0,
+        "coreLootAfter": 0
+      }
+    },
+    {
+      "name": "moving-collects-kill-loot",
+      "ok": true,
+      "detail": {
+        "available": true,
+        "far": {
+          "x": 5,
+          "y": 41
+        },
+        "start": {
+          "x": 112,
+          "y": 40
+        },
+        "near": {
+          "x": 6,
+          "y": 41
+        },
+        "killEvents": [
+          "player-moved",
+          "enemy-hit",
+          "enemy-died",
+          "loot-dropped",
+          "loot-dropped",
+          "xp-gained"
+        ],
+        "visible": 2,
+        "coreLoot": 2,
+        "currency0": 0,
+        "currencyAfterKill": 0,
+        "currencyAfterCollect": 4,
+        "collectEvents": [
+          "player-moved",
+          "player-moved",
+          "currency-gained",
+          "loot-collected",
+          "player-healed",
+          "loot-collected"
+        ],
+        "lootViewsAfter": 0,
+        "coreLootAfter": 0
+      }
+    },
+    {
+      "name": "no-console-error",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "flow": {
+    "available": true,
+    "far": {
+      "x": 5,
+      "y": 41
+    },
+    "start": {
+      "x": 112,
+      "y": 40
+    },
+    "near": {
+      "x": 6,
+      "y": 41
+    },
+    "killEvents": [
+      "player-moved",
+      "enemy-hit",
+      "enemy-died",
+      "loot-dropped",
+      "loot-dropped",
+      "xp-gained"
+    ],
+    "visible": 2,
+    "coreLoot": 2,
+    "currency0": 0,
+    "currencyAfterKill": 0,
+    "currencyAfterCollect": 4,
+    "collectEvents": [
+      "player-moved",
+      "player-moved",
+      "currency-gained",
+      "loot-collected",
+      "player-healed",
+      "loot-collected"
+    ],
+    "lootViewsAfter": 0,
+    "coreLootAfter": 0
+  },
+  "errors": []
+}

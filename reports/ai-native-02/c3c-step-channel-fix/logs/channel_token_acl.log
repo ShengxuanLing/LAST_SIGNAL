@@ -1,0 +1,6 @@
+ACL_NOTE=win32:icacls-inheritance-removed+grant-only-current-user-sid(S-1-5-21-162…)
+TOKEN_ROUNDTRIP_LEN=42
+TOKEN_PRINTED=no
+WIN_ACL_INHERITED=false
+WIN_ACL_OTHERS=false
+ACL_PASS

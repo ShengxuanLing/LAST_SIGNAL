@@ -1,0 +1,38 @@
+$ ..\..\..\..\..\..\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\node\bin\node.exe node_modules\vite\bin\vite.js build --outDir ..\..\..\..\AppData\Local\Temp\last-signal-art-build-1794567826518 --emptyOutDir
+# cwd C:\Users\CANCAN\Documents\ChatGPT\小游戏制作\LAST_SIGNAL\
+# started 2026-11-13T11:03:50.270Z
+
+vite v5.4.21 building for production...
+transforming...
+✓ 61 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/index.html                            1.53 kB │ gzip:   0.79 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/station-zero.html                     2.96 kB │ gzip:   1.17 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/front-2eexZ774.webp           87.80 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/side-CvPl_9-u.png             95.92 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/front-Br0lzxyn.webp           96.88 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/back-Cs7nyI1H.png             97.46 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/right-B8doFPiE.webp           99.20 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/left-CLOEH-t6.webp           100.76 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/front-D2ocoL1L.webp          103.71 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/right-C90Ks1ot.webp          105.13 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/left-D1n9k2ut.webp           105.59 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/right-BkGv0zXK.webp          115.74 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/right-DgTRAM6-.webp          117.66 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/left-Ivlq72ke.webp           120.62 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/front-CBDKhYDc.png           122.60 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/left-fAEw0IPE.webp           128.39 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/front-C4omC8w8.webp          155.56 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/station-zero-DsKR4JaN.css      2.56 kB │ gzip:   0.96 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/station-zero-B95ussKZ.js      40.15 kB │ gzip:  13.65 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/main-CiYz1dLM.js              85.35 kB │ gzip:  27.08 kB
+../../../../AppData/Local/Temp/last-signal-art-build-1794567826518/assets/enemies-4fUNf6Yx.js        1,487.07 kB │ gzip: 342.79 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 7.34s
+
+# exit 0 in 7.9 s

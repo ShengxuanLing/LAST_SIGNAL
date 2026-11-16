@@ -1,0 +1,9 @@
+PASS | owner_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/p3b/logs/typecheck.log
+PASS | owner_unit | npx vitest run | 658/658 (54 files) | reports/ai-native-02/p3b/logs/unit.log
+PASS | owner_mcp_bundle | npm run game:mcp:build (COLD START FIRST) then companionSurface.test.ts | no createOwnerCapability/OWNER_AUTHORITIES/confirm route in agent bundle | reports/ai-native-02/p3b/logs/mcp_build.log
+PASS | owner_forged_routes | companionBridge.test.ts | token/forged Origin/JSON/spread/Object.create/object-secret all 403 | reports/ai-native-02/p3b/logs/unit.log
+PASS | owner_contract | companionFacet.test.ts | strict enum, tick>=createdAtTick, epoch monotonic, expired, WeakSet identity | reports/ai-native-02/p3b/logs/unit.log
+PASS | owner_observation | isEchoObservation crop attestation | raw sim/hiddenTarget rejected, targets in bounded memory, jam out-of-range | reports/ai-native-02/p3b/logs/unit.log
+PASS | owner_signal_dto | signalCore.test.ts + runCheckpoint.test.ts | allowlist rejects nested free, physical timer bounds, single-gate charge | reports/ai-native-02/p3b/logs/unit.log
+PASS | owner_owner_e2e | PORT=5176 npx playwright test tests/p3b-companion-owner.spec.ts | 1/1 | reports/ai-native-02/p3b/logs/owner_e2e.log
+PASS | owner_console_smoke | npx vite-node src/ai-native/companionConsoleSmoke.mts | COMPANION_CONSOLE_SMOKE_OK | reports/ai-native-02/p3b/logs/console_smoke.log

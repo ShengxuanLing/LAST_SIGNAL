@@ -1,0 +1,276 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" font-family="Consolas, 'Cascadia Mono', monospace">
+  <title>CONCEPT A · SURVEY INK — game screen concept (not an in-game capture)</title>
+  <!-- Same room, camera and moment as B1/C1 for a fair comparison:
+       14x12 room, player at grid (6,7), drone (10,3), stalker (11,8), hunter (3,3),
+       relay (2,1) feeding the door receiver on the back-right wall. Iso 64x32. -->
+  <defs>
+    <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#07090b"/>
+      <circle cx="1" cy="2" r="0.5" fill="#11161a"/>
+      <circle cx="4" cy="5" r="0.4" fill="#0d1114"/>
+    </pattern>
+    <radialGradient id="known" cx="608" cy="358" r="330" gradientUnits="userSpaceOnUse" gradientTransform="translate(608 358) scale(1 0.5) translate(-608 -358)">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="0.72" stop-color="#fff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="observed"><rect width="1280" height="720" fill="url(#known)"/></mask>
+    <linearGradient id="wallR" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#20262c"/><stop offset="1" stop-color="#121519"/>
+    </linearGradient>
+    <linearGradient id="wallL" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#181d22"/><stop offset="1" stop-color="#0d1013"/>
+    </linearGradient>
+    <radialGradient id="lamp" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#4fe3d6" stop-opacity="0.35"/><stop offset="1" stop-color="#4fe3d6" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="chev" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1 L8 5 L1 9" fill="none" stroke="#7fb7ff" stroke-width="1.6"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#grain)"/>
+
+  <!-- ===== ENVIRONMENT: mass first (unobserved = value only, no ink) ===== -->
+  <!-- floor slab -->
+  <polygon points="640,150 1088,374 704,566 256,342" fill="#15191d"/>
+  <!-- slab front thickness (wall/floor depth reads even in darkness) -->
+  <polygon points="256,342 704,566 704,596 256,372" fill="#0b0d10"/>
+  <polygon points="704,566 1088,374 1088,404 704,596" fill="#101317"/>
+  <!-- back walls, 90px tall, with structural ribs -->
+  <polygon points="640,150 1088,374 1088,284 640,60" fill="url(#wallR)"/>
+  <polygon points="640,150 256,342 256,252 640,60" fill="url(#wallL)"/>
+  <g fill="#0c0f12">
+    <polygon points="736,198 748,204 748,114 736,108"/>
+    <polygon points="864,262 876,268 876,178 864,172"/>
+    <polygon points="1024,342 1036,348 1036,258 1024,252"/>
+    <polygon points="544,198 532,204 532,114 544,108"/>
+    <polygon points="416,262 404,268 404,178 416,172"/>
+  </g>
+  <!-- grime: drips + oil pooling at wall foot -->
+  <g fill="#0a0c0e" opacity="0.8">
+    <polygon points="780,128 786,131 784,206 781,212 779,205"/>
+    <polygon points="470,154 476,151 475,226 472,232 470,224"/>
+    <ellipse cx="820" cy="300" rx="70" ry="16"/>
+    <ellipse cx="430" cy="300" rx="50" ry="12"/>
+    <ellipse cx="560" cy="470" rx="90" ry="22" opacity="0.6"/>
+  </g>
+  <!-- door opening on right-back wall (gx 9..11) -->
+  <polygon points="928,294 992,326 992,248 928,216" fill="#050607"/>
+  <polygon points="928,294 992,326 992,248 928,216" fill="none" stroke="#e8e2d0" stroke-opacity="0.18"/>
+
+  <!-- ===== OBSERVED LAYER: survey ink, only where the executor/ECHO has observed ===== -->
+  <g mask="url(#observed)">
+    <!-- floor grid: grid units in an iso matrix, hairlines stay 1px -->
+    <g transform="matrix(32 16 -32 16 640 150)" stroke="#e8e2d0" fill="none">
+      <g stroke-opacity="0.16" vector-effect="non-scaling-stroke">
+        <path vector-effect="non-scaling-stroke" d="M1 0V12M2 0V12M3 0V12M4 0V12M5 0V12M6 0V12M7 0V12M8 0V12M9 0V12M10 0V12M11 0V12M12 0V12M13 0V12"/>
+        <path vector-effect="non-scaling-stroke" d="M0 1H14M0 2H14M0 3H14M0 4H14M0 5H14M0 6H14M0 7H14M0 8H14M0 9H14M0 10H14M0 11H14"/>
+      </g>
+      <!-- heavy plate seams every 4 tiles -->
+      <path vector-effect="non-scaling-stroke" stroke-opacity="0.38" d="M4 0V12M8 0V12M12 0V12M0 4H14M0 8H14"/>
+      <rect vector-effect="non-scaling-stroke" x="0" y="0" width="14" height="12" stroke-opacity="0.7"/>
+      <!-- drain grate + hazard hatch at chasm lip -->
+      <rect vector-effect="non-scaling-stroke" x="7" y="9" width="2" height="1" stroke-opacity="0.45"/>
+      <path vector-effect="non-scaling-stroke" stroke-opacity="0.3" d="M7.25 9V10M7.5 9V10M7.75 9V10M8 9V10M8.25 9V10M8.5 9V10M8.75 9V10"/>
+    </g>
+    <!-- wall ink: top edges, panel seams, wear chips -->
+    <g fill="none" stroke="#e8e2d0">
+      <polyline points="256,252 640,60 1088,284" stroke-opacity="0.8" stroke-width="1.4"/>
+      <polyline points="256,342 640,150 1088,374" stroke-opacity="0.45"/>
+      <path stroke-opacity="0.22" d="M640,90 L1088,314 M640,90 L256,282 M640,120 L1088,344 M640,120 L256,312"/>
+      <path stroke-opacity="0.35" d="M736,108V198 M864,172V262 M1024,252V342 M544,108V198 M416,172V262"/>
+    </g>
+    <g fill="#e8e2d0" opacity="0.28">
+      <polygon points="702,96 712,99 708,104"/><polygon points="900,198 906,200 903,206"/><polygon points="480,150 488,146 486,154"/>
+    </g>
+    <!-- stencil on wall -->
+    <text x="0" y="0" transform="matrix(0.894 0.447 0 1 772 180)" fill="#e8e2d0" fill-opacity="0.42" font-size="15" letter-spacing="3">Z-07  OBS</text>
+    <text x="0" y="0" transform="matrix(0.894 -0.447 0 1 300 286)" fill="#e8e2d0" fill-opacity="0.3" font-size="12" letter-spacing="2">COLD STORE 3</text>
+  </g>
+
+  <!-- relay R-2 (signal source) at grid (2,1) -->
+  <g transform="translate(672 198)">
+    <ellipse cx="0" cy="6" rx="22" ry="9" fill="#000" opacity="0.5"/>
+    <polygon points="-14,0 0,7 14,0 14,-48 0,-41 -14,-48" fill="#1b2127"/>
+    <polygon points="0,7 14,0 14,-48 0,-41" fill="#141a1f"/>
+    <polygon points="-14,-48 0,-55 14,-48 0,-41" fill="#262e35"/>
+    <path d="M-14,0 V-48 L0,-55 L14,-48 V0 L0,7 Z M0,7 V-41" fill="none" stroke="#e8e2d0" stroke-opacity="0.75" stroke-width="1.2"/>
+    <rect x="-3" y="-72" width="6" height="18" fill="#1b2127" stroke="#e8e2d0" stroke-opacity="0.75"/>
+    <circle cx="0" cy="-76" r="4" fill="#7fb7ff"/>
+    <circle cx="0" cy="-76" r="10" fill="none" stroke="#7fb7ff" stroke-opacity="0.5"/>
+    <circle cx="0" cy="-76" r="16" fill="none" stroke="#7fb7ff" stroke-opacity="0.22"/>
+  </g>
+  <!-- signal link relay -> door receiver: stable = cold blue, solid with direction chevrons -->
+  <path d="M676,124 C760,110 880,170 958,232" fill="none" stroke="#7fb7ff" stroke-width="1.6" stroke-dasharray="10 5" marker-mid="url(#chev)"/>
+  <path d="M676,124 L740,124 L812,152 L884,188 L958,232" fill="none" stroke="none" marker-mid="url(#chev)"/>
+  <!-- door receiver (interactive protocol = teal cyan) -->
+  <g transform="translate(960 236)">
+    <circle r="9" fill="#0a0c0e" stroke="#4fe3d6" stroke-width="2"/>
+    <circle r="3" fill="#4fe3d6"/>
+    <path d="M-15,-15 l6,0 M-15,-15 l0,6 M15,-15 l-6,0 M15,-15 l0,6 M-15,15 l6,0 M-15,15 l0,-6 M15,15 l-6,0 M15,15 l0,-6" stroke="#4fe3d6" stroke-width="1.2"/>
+  </g>
+  <!-- survey callouts -->
+  <g fill="#e8e2d0" font-size="11" letter-spacing="1">
+    <path d="M684,70 L720,40 H860" fill="none" stroke="#e8e2d0" stroke-opacity="0.6"/>
+    <text x="724" y="34">RELAY R-2 · OUTPUT LIVE</text>
+    <text x="724" y="52" fill="#7fb7ff">→ DOOR LOCK · 12.6 m</text>
+    <path d="M974,228 L1010,196 H1150" fill="none" stroke="#e8e2d0" stroke-opacity="0.6"/>
+    <text x="1014" y="190">RECEIVER · SEALED</text>
+    <text x="1014" y="208" fill="#4fe3d6">[X] JAM POSSIBLE</text>
+  </g>
+  <!-- dimension line along back wall foot -->
+  <g stroke="#e8e2d0" stroke-opacity="0.45" fill="none">
+    <path d="M652,176 L1076,388"/><path d="M646,170 l12,12 M1070,382 l12,12"/>
+  </g>
+  <text transform="matrix(0.894 0.447 0 1 820 250)" fill="#e8e2d0" fill-opacity="0.5" font-size="10">14.0 m</text>
+
+  <!-- scan pulse (Z): iso circle R=5 tiles around player, ticks, fading -->
+  <g transform="translate(608 358)" fill="none" stroke="#e8e2d0">
+    <ellipse rx="226" ry="113" stroke-opacity="0.55" stroke-dasharray="2 6"/>
+    <ellipse rx="160" ry="80" stroke-opacity="0.18"/>
+    <path stroke-opacity="0.6" d="M226,0 h-10 M-226,0 h10 M0,113 v-8 M0,-113 v8"/>
+  </g>
+  <text x="840" y="470" fill="#e8e2d0" fill-opacity="0.55" font-size="10">SCAN · R 5.0 · 3 SOURCES</text>
+
+  <!-- ===== ACTORS ===== -->
+  <!-- loot: rare sample (phosphor) at (4,9) -->
+  <g transform="translate(480 358)">
+    <ellipse cy="6" rx="10" ry="4" fill="#000" opacity="0.5"/>
+    <polygon points="0,-18 8,-8 0,2 -8,-8" fill="#121a10" stroke="#9fe870" stroke-width="1.6"/>
+    <path d="M0,-18 V2" stroke="#9fe870" stroke-opacity="0.6"/>
+    <path d="M-14,-24 l-6,-6 M14,-24 l6,-6" stroke="#9fe870" stroke-opacity="0.5"/>
+  </g>
+  <!-- hunter (3,3): kite rangefinder, hovering; vermilion optic -->
+  <g transform="translate(640 246)">
+    <ellipse cy="10" rx="14" ry="5" fill="#000" opacity="0.45"/>
+    <polygon points="0,-40 16,-22 0,-6 -16,-22" fill="#0a0b0d"/>
+    <polygon points="-16,-22 -30,-26 -18,-16" fill="#0a0b0d"/><polygon points="16,-22 30,-26 18,-16" fill="#0a0b0d"/>
+    <polygon points="0,-40 16,-22 0,-6 -16,-22" fill="none" stroke="#e8e2d0" stroke-opacity="0.35"/>
+    <circle cx="0" cy="-22" r="4" fill="#ff4a3d"/>
+    <path d="M0,-22 L-90,60" stroke="#ff4a3d" stroke-opacity="0.35" stroke-dasharray="3 4"/>
+  </g>
+  <!-- drone (10,3): theodolite tripod, the station's own survey machine gone rogue -->
+  <g transform="translate(864 358)">
+    <ellipse cy="4" rx="18" ry="7" fill="#000" opacity="0.5"/>
+    <path d="M0,-22 L-14,2 M0,-22 L14,2 M0,-22 L3,6" stroke="#0a0b0d" stroke-width="3"/>
+    <rect x="-11" y="-38" width="22" height="16" rx="2" fill="#0a0b0d"/>
+    <rect x="-11" y="-38" width="22" height="16" rx="2" fill="none" stroke="#e8e2d0" stroke-opacity="0.3"/>
+    <circle cx="-4" cy="-30" r="4.5" fill="#ff4a3d"/>
+    <circle cx="-4" cy="-30" r="9" fill="none" stroke="#ff4a3d" stroke-opacity="0.45"/>
+    <!-- hit: ink burst -->
+    <g stroke="#ffffff" stroke-width="2" stroke-linecap="round">
+      <path d="M-18,-34 l-10,-3 M-16,-24 l-11,4 M-12,-42 l-6,-8"/>
+    </g>
+  </g>
+  <!-- damage figure: hand-lettered survey style -->
+  <text x="836" y="300" fill="#ffffff" font-size="16" font-weight="bold">18</text>
+  <!-- stalker (11,8): low clamp crawler on cable feet, lunging -->
+  <g transform="translate(736 454)">
+    <ellipse cy="4" rx="22" ry="7" fill="#000" opacity="0.5"/>
+    <path d="M-20,2 L-12,-8 M20,2 L12,-8 M-14,6 L-6,-4 M14,6 L6,-4" stroke="#0a0b0d" stroke-width="3"/>
+    <path d="M-16,-6 Q0,-26 16,-6 L10,-2 Q0,-12 -10,-2 Z" fill="#0a0b0d"/>
+    <path d="M-16,-6 Q0,-26 16,-6" fill="none" stroke="#e8e2d0" stroke-opacity="0.35"/>
+    <rect x="-5" y="-14" width="10" height="3" fill="#ff4a3d"/>
+    <path d="M-24,-20 l8,6 M24,-20 l-8,6" stroke="#ff4a3d" stroke-width="2"/>
+  </g>
+  <!-- enemy shots: vermilion shard -->
+  <g fill="#ff4a3d"><polygon points="782,400 792,404 782,408 778,404"/><polygon points="700,300 710,304 700,308 696,304"/></g>
+  <!-- PLAYER (6,7): executor in bone survey hardsuit, scanner mast with teal lamp. Highest value on screen. -->
+  <g transform="translate(608 358)">
+    <ellipse cx="0" cy="0" rx="60" ry="30" fill="url(#lamp)"/>
+    <ellipse cy="2" rx="15" ry="6" fill="#000" opacity="0.6"/>
+    <path d="M-7,0 L-6,-14 M7,0 L6,-14" stroke="#cfc8b4" stroke-width="5" stroke-linecap="round"/>
+    <path d="M-12,-14 Q-13,-34 0,-38 Q13,-34 12,-14 Z" fill="#e8e2d0"/>
+    <rect x="-15" y="-34" width="8" height="16" rx="2" fill="#bdb6a2"/>
+    <circle cx="0" cy="-44" r="8" fill="#e8e2d0"/>
+    <path d="M-1,-46 h8 v5 h-8 z" fill="#14181c"/>
+    <path d="M-12,-30 L-15,-62" stroke="#14181c" stroke-width="2"/>
+    <circle cx="-15" cy="-64" r="3" fill="#4fe3d6"/>
+    <!-- rifle -->
+    <path d="M6,-24 L30,-22" stroke="#14181c" stroke-width="4"/>
+    <path d="M6,-24 L30,-22" stroke="#e8e2d0" stroke-opacity="0.4"/>
+  </g>
+  <!-- player pulse shots: bone streak with teal core -->
+  <g stroke-linecap="round">
+    <path d="M660,345 L700,345" stroke="#e8e2d0" stroke-width="3" opacity="0.5"/>
+    <path d="M700,345 L726,345" stroke="#ffffff" stroke-width="3"/>
+    <path d="M760,340 L800,338" stroke="#e8e2d0" stroke-width="3" opacity="0.4"/>
+    <path d="M800,338 L826,337" stroke="#ffffff" stroke-width="3"/>
+    <circle cx="726" cy="345" r="2" fill="#4fe3d6"/><circle cx="826" cy="337" r="2" fill="#4fe3d6"/>
+  </g>
+  <!-- hostile sight line onto player (enemy perception made visible after Scan) -->
+  <path d="M864,328 L618,318" stroke="#ff4a3d" stroke-opacity="0.25" stroke-dasharray="2 5"/>
+
+  <!-- unobserved fog edge: stipple to imply 'not yet drawn' -->
+  <g fill="#e8e2d0" opacity="0.12">
+    <circle cx="300" cy="420" r="1"/><circle cx="320" cy="440" r="1"/><circle cx="1000" cy="460" r="1"/><circle cx="1040" cy="430" r="1"/><circle cx="980" cy="500" r="1"/><circle cx="350" cy="470" r="1"/>
+  </g>
+
+  <!-- ===== HUD: field notebook ===== -->
+  <g font-size="12" fill="#e8e2d0">
+    <!-- vitals -->
+    <text x="28" y="34" font-size="10" fill-opacity="0.6" letter-spacing="2">EXECUTOR · VITALS</text>
+    <g transform="translate(28 42)">
+      <rect width="204" height="12" fill="none" stroke="#e8e2d0" stroke-opacity="0.6"/>
+      <g fill="#e8e2d0"><rect x="2" y="2" width="18" height="8"/><rect x="22" y="2" width="18" height="8"/><rect x="42" y="2" width="18" height="8"/><rect x="62" y="2" width="18" height="8"/><rect x="82" y="2" width="18" height="8"/><rect x="102" y="2" width="18" height="8"/><rect x="122" y="2" width="18" height="8"/></g>
+      <text x="212" y="10" font-size="12">72 / 100</text>
+    </g>
+    <g transform="translate(28 64)">
+      <rect width="204" height="6" fill="none" stroke="#4fe3d6" stroke-opacity="0.6"/>
+      <rect x="1" y="1" width="130" height="4" fill="#4fe3d6"/>
+      <text x="212" y="7" font-size="10" fill="#4fe3d6">SIGNAL 64</text>
+    </g>
+    <text x="28" y="96" font-size="10" fill-opacity="0.5">LV 4 · XP ▮▮▮▯▯ · SAMPLES 3</text>
+    <!-- tools: Z/X/C with cooldown arcs and costs -->
+    <g transform="translate(28 600)">
+      <g>
+        <rect width="64" height="64" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.7"/>
+        <ellipse cx="32" cy="30" rx="18" ry="9" fill="none" stroke="#e8e2d0" stroke-dasharray="2 3"/>
+        <circle cx="32" cy="30" r="2" fill="#e8e2d0"/>
+        <text x="4" y="14" font-size="10">Z</text><text x="4" y="58" font-size="9" fill-opacity="0.6">SCAN 10</text>
+      </g>
+      <g transform="translate(74 0)">
+        <rect width="64" height="64" fill="#0b0d10" stroke="#4fe3d6"/>
+        <path d="M18,30 h10 l4,-8 l4,16 l4,-8 h6" fill="none" stroke="#4fe3d6" stroke-width="1.6"/>
+        <path d="M14,46 L50,14" stroke="#4fe3d6" stroke-width="1.6"/>
+        <text x="4" y="14" font-size="10" fill="#4fe3d6">X</text><text x="4" y="58" font-size="9" fill="#4fe3d6">JAM 25 ●</text>
+      </g>
+      <g transform="translate(148 0)">
+        <rect width="64" height="64" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.3"/>
+        <path d="M32,4 A30,30 0 0 1 62,32" fill="none" stroke="#f2a93b" stroke-width="3"/>
+        <circle cx="32" cy="30" r="6" fill="none" stroke="#e8e2d0" stroke-opacity="0.4"/><circle cx="44" cy="22" r="3" fill="none" stroke="#e8e2d0" stroke-opacity="0.4" stroke-dasharray="1 2"/>
+        <text x="4" y="14" font-size="10" fill-opacity="0.5">C</text><text x="4" y="58" font-size="9" fill="#f2a93b">DECOY 3.2s</text>
+      </g>
+    </g>
+    <!-- weapon -->
+    <g transform="translate(1252 34)" text-anchor="end">
+      <text font-size="10" fill-opacity="0.6" letter-spacing="2">PULSE RIFLE</text>
+      <text y="22" font-size="18">∞ <tspan font-size="11" fill-opacity="0.6">Q ◂ ▸ E</tspan></text>
+      <text y="42" font-size="10" fill-opacity="0.6">ROOM 3/7 · HOSTILES 3</text>
+    </g>
+    <!-- ECHO line with confidence tag -->
+    <g transform="translate(830 618)">
+      <rect width="422" height="54" fill="#0b0d10" fill-opacity="0.85" stroke="#7fb7ff" stroke-opacity="0.4"/>
+      <rect x="10" y="10" width="44" height="14" fill="none" stroke="#7fb7ff"/>
+      <text x="16" y="21" font-size="9" fill="#7fb7ff">推测</text>
+      <text x="64" y="21" font-size="11" fill="#7fb7ff">ECHO</text>
+      <text x="10" y="42" font-size="12">门锁读的是 R-2 的输出，不是门本身。</text>
+    </g>
+    <!-- minimap as survey sketch -->
+    <g transform="translate(1110 90)" fill="none" stroke="#e8e2d0">
+      <rect x="0" y="0" width="22" height="16" stroke-opacity="0.8"/><rect x="34" y="4" width="20" height="18" stroke-opacity="0.8"/>
+      <rect x="40" y="36" width="26" height="20" stroke-dasharray="2 2" stroke-opacity="0.4"/>
+      <rect x="86" y="10" width="24" height="24" stroke-dasharray="2 2" stroke-opacity="0.4"/>
+      <path d="M22,8 H34 M46,22 V36 M54,14 H86" stroke-opacity="0.5"/>
+      <circle cx="44" cy="12" r="2.5" fill="#4fe3d6" stroke="none"/>
+      <text x="0" y="74" font-size="9" fill="#e8e2d0" stroke="none" fill-opacity="0.5">SURVEYED 2/5</text>
+    </g>
+  </g>
+
+  <!-- concept label -->
+  <g>
+    <rect x="440" y="684" width="400" height="24" fill="#e8e2d0"/>
+    <text x="640" y="701" text-anchor="middle" font-size="12" fill="#07090b" letter-spacing="1">CONCEPT A · SURVEY INK 观测墨线 · 概念样稿，非实机截图</text>
+  </g>
+</svg>

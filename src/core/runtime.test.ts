@@ -22,7 +22,8 @@ function save(): SaveData {
     permanent: {
       maxHpBonus: 0, speedBonus: 0, damageBonus: 0, critChanceBonus: 0, armorBonus: 0,
       xpBonus: 0, currencyBonus: 0, unlockedWeapons: ['pulse'], unlockedAbilities: [],
-      cores: 0, runs: 0, bossesDefeated: 0, bestSeed: 0
+      cores: 0, runs: 0, bossesDefeated: 0, bestSeed: 0,
+      signalCollaborationOptIn: false
     },
     settings: { masterVolume: 0.7, sfxVolume: 0.8, mouseDpi: 1, fullscreen: false, screenShake: true },
     stats: { enemiesKilled: 0, itemsCollected: 0, damageDealt: 0, playTimeSeconds: 0 }

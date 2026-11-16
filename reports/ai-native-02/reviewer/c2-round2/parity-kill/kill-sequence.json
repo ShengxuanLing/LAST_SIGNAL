@@ -1,0 +1,50 @@
+[
+  {
+    "ticks": 90,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 9.5,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 90,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 6.5,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 40,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 6.5,
+        "y": 45
+      },
+      "interact": false
+    }
+  }
+]

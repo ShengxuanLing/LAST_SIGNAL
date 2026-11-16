@@ -1,0 +1,53 @@
+$ ..\..\..\..\..\..\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\node\bin\node.exe node_modules\@playwright\test\cli.js test --reporter=line --workers=1 --output ..\..\..\..\AppData\Local\Temp\last-signal-art-shots-1794567845968-out
+# cwd C:\Users\CANCAN\Documents\ChatGPT\小游戏制作\LAST_SIGNAL\
+# started 2026-11-13T11:04:05.968Z
+
+
+Running 31 tests using 1 worker
+
+(node:20624) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/31] [chromium] › tests\ai-character-roster.spec.ts:5:3 › grok loads its three community sprites in a playable run
+[2/31] [chromium] › tests\ai-character-roster.spec.ts:5:3 › gemini loads its three community sprites in a playable run
+[3/31] [chromium] › tests\ai-character-roster.spec.ts:5:3 › gpt loads its three community sprites in a playable run
+[4/31] [chromium] › tests\audit.spec.ts:65:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[5/31] [chromium] › tests\audit.spec.ts:479:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+[6/31] [chromium] › tests\boss-room.spec.ts:14:1 › boss room: player, camera bounds and shake stay sane after addShake(18)
+[7/31] [chromium] › tests\canvas.spec.ts:6:1 › full HUD renders and stays locked during camera movement
+[chromium] › tests\canvas.spec.ts:6:1 › full HUD renders and stays locked during camera movement
+HUD {"zoom":0.8,"hp":825,"xp":456,"credits":211,"level":144,"timer":80,"hpBar":1248,"weapon":373,"room":316,"enemies":369,"stats":53}
+
+[8/31] [chromium] › tests\checkpoint.spec.ts:55:1 › inventory equips an owned weapon and the safe checkpoint restores the selection
+[9/31] [chromium] › tests\checkpoint.spec.ts:128:1 › number keys select an upgrade when four choices are eligible
+[10/31] [chromium] › tests\checkpoint.spec.ts:146:1 › loss recap shows run stats and retries the same seed
+[11/31] [chromium] › tests\checkpoint.spec.ts:171:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress
+[12/31] [chromium] › tests\checkpoint.spec.ts:279:1 › death routes to Game Over and clears the run checkpoint
+[13/31] [chromium] › tests\claude-character.spec.ts:10:1 › Claude can be selected, restored and shown in both side-facing views
+[14/31] [chromium] › tests\economy.spec.ts:11:1 › earns and spends run credits, with purchases restored from the checkpoint
+[15/31] [chromium] › tests\gameplay.spec.ts:17:1 › menu + gameplay render
+[chromium] › tests\gameplay.spec.ts:17:1 › menu + gameplay render
+CONSOLE ERRORS: 0
+
+[16/31] [chromium] › tests\runtime-bugs.spec.ts:36:1 › runtime bug regressions: viewport scaling, text rendering, wall alignment, projectile cleanup
+[17/31] [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited
+[18/31] [chromium] › tests\vs00.spec.ts:70:1 › E1: real Scan -> Jam -> WASD through the door (default, no fixture)
+[19/31] [chromium] › tests\vs00.spec.ts:105:1 › E2: Jam expiry while standing in the doorway never clamps the player
+[20/31] [chromium] › tests\vs00.spec.ts:130:1 › E3: Pause freezes movement and timers; resume does not catch up
+[21/31] [chromium] › tests\vs00.spec.ts:152:1 › E4: energy-insufficient feedback from a storage fixture, then natural recovery
+[22/31] [chromium] › tests\vs00.spec.ts:174:1 › E5: save/reload keeps main+economy key byte-identical; restart clears only the slice key
+[23/31] [chromium] › tests\vs00.spec.ts:204:1 › E6: a rejected save is preserved, never overwritten by Save or by completion auto-save
+[24/31] [chromium] › tests\vs00.spec.ts:224:1 › E7: storage write failure surfaces an explicit message and stays playable
+[25/31] [chromium] › tests\vs00.spec.ts:240:1 › E9: near the sealed door, F reports E_LINK_UNAVAILABLE without opening it
+[26/31] [chromium] › tests\vs00.spec.ts:256:1 › E8: reload after completion restores a passed-consistent position, not the spawn
+[27/31] [chromium] › tests\vs01.spec.ts:25:1 › each action key event is handled once when Scan and Jam arrive in the same frame
+[28/31] [chromium] › tests\vs01.spec.ts:43:1 › VS-01 follows real keyboard input from the lab to a safe collapse and across the rebuilt bridge
+[29/31] [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+[chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+Route B reached SAFE_E in 5538ms / 333 logic ticks
+
+[30/31] [chromium] › tests\vs01.spec.ts:198:1 › a lethal collapse clears the run and permits a fresh start
+[31/31] [chromium] › tests\whale-character.spec.ts:21:1 › whale appearance persists and responds to real movement and shots
+  31 passed (2.4m)
+
+# exit 0 in 142.5 s

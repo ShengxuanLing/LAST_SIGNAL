@@ -1,0 +1,12 @@
+
+Running 7 tests using 1 worker
+
+  ok 1 [chromium] › tests\checkpoint.spec.ts:71:1 › inventory equips an owned weapon and the safe checkpoint restores the selection (2.7s)
+  ok 2 [chromium] › tests\checkpoint.spec.ts:152:1 › number keys select an upgrade when four choices are eligible (2.0s)
+  ok 3 [chromium] › tests\checkpoint.spec.ts:172:1 › loss recap shows run stats and retries the same seed (1.7s)
+  ok 4 [chromium] › tests\checkpoint.spec.ts:197:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress (5.6s)
+  ok 5 [chromium] › tests\checkpoint.spec.ts:316:1 › death routes to Game Over and clears the run checkpoint (1.6s)
+  ok 6 [chromium] › tests\economy.spec.ts:11:1 › earns and spends run credits, with purchases restored from the checkpoint (3.4s)
+  ok 7 [chromium] › tests\economy.spec.ts:123:1 › a failed checkpoint save keeps the purchase pending and completes once after recovery (1.6s)
+
+  7 passed (19.4s)

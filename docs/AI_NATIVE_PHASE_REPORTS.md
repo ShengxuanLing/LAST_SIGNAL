@@ -113,3 +113,109 @@
 P5提交后Lead发现普通Session与coop各10槽位可合计20，已由Orca Worker developer最小修正为调用方持有的单个ProcessSessionBudget(10)，不使用全局单例；两类实例、run_scenario/batch同池，构造失败/close/idle/dispose归还槽。Orca Worker tester独立官方MCP13/13与直连12/12通过，Orca Worker reviewer结论代码可接受、无阻断。新增budget.test.ts五例，最终全量292/292；typecheck/build/MCPbuild/P4replay/coopDemo通过，slice与browser逐字未变，沿用P5两次完整23E2E。
 
 实际文件为sessions/coop/harness/MCP server的预算注入、budget.test.ts/budgetClient.mts、scripts和最终文档/取证样例。完整gate在仓库外`final-budget-{developer,reviewer,tester}-*`；最终审查和Tester结论归档进`docs/ai-native-evidence/`。未合并main，GitHub P5节点两项CI已通过；最终新提交的CI需以PR实时状态为准。最终提交hash见本节所在提交。
+
+---
+
+# AI-NATIVE-02 阶段报告（正式 World / 意图适配）
+
+阶段编号与 AI-NATIVE-01 的 P0–P5 无关。基线 `860a0dd78fb741896c2f1433742603dd91e37fc8`，分支 `feat/ai-native-world-integration`，P0/P1 提交 hash 见本节所在提交；未 push、未合并 main。
+
+## P0 — 接缝核查与最小接口
+
+- **PASS**（基线真实失败：无）。`npm run typecheck` exit 0；`npm test` 292/292；`npm run build` exit 0（仅既有 500kB chunk 警告）。日志 `reports/ai-native-02/p0-baseline-*.log`、`reports/ai-native-02/reviewer/`、`reports/ai-native-02/tester/`。
+- 核查范围：World/Player/Enemy/Boss/Weapon/Projectile/Collision/Signal(房间与传送门)/Input/Camera/HUD/Save/RNG/Tick/EventBus/既有 ai-native。
+- 接缝图、最小接口、操作说明与风险映射：`docs/AI_NATIVE_WORLD_CONTROL.md`。
+- 结论：主 World 是 Phaser+规则耦合、变长 dt、含视觉/玩法随机；Lead 裁定 R-01/R-02 留 P2/P4，P1 只做**共用合法意图适配层**，不宣称 Headless/Replay/确定性。
+
+## P1 — 可见本地确定性接管
+
+- **PASS（开发者自测，非独立验收）**：人类与本地 controller 共用 `PlayerIntent → Player.applyIntent`，同一各向异性移动/碰撞、`setAimGrid` 瞄准、`tryFire`、`tryInteract`；AI 只返回意图，不写坐标/HP/Phaser 对象。
+- 实现：`ControlAuthority`（owner/pause/takeover/disable/死亡/重启/场景退出）、`LocalDeterministicController`（MOVE/TRAVEL/ENGAGE/STOP/INTERACT/BLOCKED，目标最近可见敌人或传送门位置）、`WorldObservationV1` 白名单、`World.observationView()/intentView()`、HUD 模式/最近动作/目标/真实连接状态、Pause 菜单 `AI CONTROL` 开发入口、升级弹层内一键夺回、`cloneCheckpoint()` 深拷贝。
+- 真实标签：HUD/暂停菜单/文档一致显示 `LOCAL DETERMINISTIC` 与 `EXTERNAL NOT CONNECTED`；没有外部 LLM/Codex/MCP Agent 接入，没有 MCP 直接改 Scene，没有系统键鼠模拟。
+- 命令与结果：`npm run typecheck` PASS；`npm test` 321/321（新增 29 项）；`npm run build` / `npm run game:mcp:build` PASS；冻结快照 5281 专属端口 `npx playwright test tests/ai-native-world.spec.ts --workers=1` 6/6 PASS；双端口全量 `PORT=5173 npx playwright test --workers=1` 33/33 PASS。日志 `reports/ai-native-02/final-*.log`、`p1-full-playwright.log`、`final-playwright-frozen.log`。
+- 证据：`reports/ai-native-02/evidence-frozen/`（5 张分辨率 HUD 截图、AI 连续截图、暂停/升级/死亡截图、`operation-log-*.json`）；五分辨率物理最小字号 19.5/13.87/13/10.4/8.125 CSS px；AI 14 帧采样 pathLength 9.478 tiles、5 个移动意图、1 次合法传送门房间转场、所有采样点 walkable；白名单把其他房间敌人排除，portal targetRoom 不外泄；暂停菜单 AI 运行时确认为 ON、手动 OFF 后不自抢；升级弹层内按 W 真实夺回；死亡清 run、新局 human 且无残留；checkpoint 捕获帧不随活状态变异。
+- 失败历史：早期 WIP 采样的「位移点数>2」失败不是放宽阈值掩盖，而是发现 LevelUpScene 暂停与合法传送门房间跳变；最终用连续细采样、同房间步长/碰撞合法性与单独记录 interact 转场修复。另有生产构建 class 名被压缩导致按 `constructor.name` 找 Scene 失败，已全部改为 Phaser scene key。
+- 独立复核：Tester `reports/ai-native-02/tester/p1-final/P1-FINAL-ACCEPTANCE.md` **P1 PASS（无阻断）**，含 6/6 冻结浏览器复核与 2 个无夹具探针（自然受伤 / 自然升级 / 自然死亡 / 真实键鼠夺回）；Reviewer `reports/ai-native-02/reviewer/REVIEW_P1_IMPLEMENTATION.md` **P1 PASS（有条件）**，要求 F-01/F-02/F-04/F-05/F-06/F-07 闭环后才允许接外部 Agent。两者均不是开发者自测，也不等于真人/外部 Agent 验收。
+- 剩余风险/未完成：World 纯权威核与固定 tick（P2）、全玩法 seeded RNG 与 Replay/确定性（P4）、外部 Agent 经正式通道接入、Human+ECHO 正式双 Actor、Station Zero runtime 的 actor/reset 硬化、`onLoot`/`statsSnapshot()` 空实现；P1 不重构这些。
+- 下一阶段：先闭环 Reviewer 条件项，再由 Lead 派独立复核；P2–P5 由 Lead 另行排期。
+
+## P1 条件项修复（F-01/F-02/F-04/F-05/F-06/F-07）
+
+- 提交：见本节所在提交（父 `2d78e805...`），未合并 main。
+- 实现：新增 `src/ai-native/worldPerception.ts`（有界网格半径 12 tiles / 已探索房间 / 墙遮挡 LOS / ±1.5 tiles 局部 `canWalk` 探针）；`WorldObservationV1` 改名为 `perceivedActors` 并增加 `visibilityBasis`，`observationView()/intentView()` 按 `isPerceivable` 过滤敌人/Boss/portal，远距、墙后、未进入房间全部不可感知，从他房追入感知范围的敌人可见；`GameScene` 把背包纳入 `control.pause()` + 清输入 + HUD 刷新，覆盖层内 W/A/S/D/SPACE、非 UI 鼠标、F 均可夺回，UI 点击用 `hitTestPointer` 归覆盖层所有，关闭后不自抢；紧凑视口（scale<0.85）放大右列与操作提示并拉开行距，提示文字改高对比色，测试改名为几何断言（最小 ≥10 CSS px）。
+- 新增回归：`src/ai-native/worldPerception.test.ts`（8）、重写 `worldObservation.test.ts`（6）、`tests/ai-native-world.spec.ts` 新增 2 个正式 World 用例（覆盖层所有权 + 有界感知），并把五视口断言从「readable」改为几何 + 截图供人工判读。
+- 证据范围表（F-07，逐项标注真实 commit；C2 WIP 与后续提交不得混入）：
+
+| 证据类别 | 真实 commit | 具体来源 | 夹具 / 注入 | 能证明 | 不能证明 |
+| --- | --- | --- | --- | --- | --- |
+| 开发者 P1 主控制流 / 五视口截图 | `2d78e80` | `reports/ai-native-02/evidence-frozen/` | 固定 seed 注入 `scene.start`、每 100ms 刷新 `invuln`、`addXp` 升级、`spawnEnemy` 隐藏敌人、`hurt(999999)` 合成伤害 | 初始控制所有权、暂停冻结、夺回、升级/死亡**清理流程**、HUD 几何、checkpoint 不变性 | 真实战斗难度 / 生存击杀 / 真实 XP 升级 / 真实战斗死亡 / 外部 Agent |
+| 开发者 P1 修复回归 / 覆盖层 / 可读性 | `1aadd2e` | `reports/ai-native-02/p1-fixes/evidence-frozen/` | i-frames、第二武器 fixture、`addXp` 升级、隐藏敌人、合成伤害 | 覆盖层 UI 点击归属、移动/开火/F 夺回、关闭不自抢、800×600 几何 | 真人游玩、外部 Agent、真实战斗胜利 |
+| 开发者感知边界 E2E | `1aadd2e`（夹具声明由本节所在小补丁补充） | `p1-fixes/evidence-frozen/operation-log-perception-bounds-1280x720.json` | `bootRun` 固定 seed 注入 `scene.start`；`spawnEnemy` 隐藏敌人；`enteredRooms.add(other.id)` 标记已探索；**临时 `mid.type='wall'` 改地形**并恢复；`spawnBoss` + 改写 `boss.wx/wy` 近/远；改写 `portal.wx/wy` 近/远并恢复；`boss.sprite.destroy()` / `w.boss=null` 清理；非有限 `canWalk(NaN/±Infinity)` 探针 | 12 tiles 半径、已探索过滤、墙遮挡 LOS、Boss/portal 位置受限、远距/非有限/未探索 `canWalk` 统一拒绝、近距合法探针可用 | 真实地图自然墙后战斗（墙为测试临时改地形）、真人 / 外部 Agent / 真实战斗死亡 |
+| 独立 Tester 无夹具短演示（父提交） | `2d78e80`，**非 `1aadd2e`** | `reports/ai-native-02/tester/p1-final/04-normal-run-probe.log`、`normal-run-log.json`、`evidence-normal/` | **无** i-frames / HP / 坐标 / addXp / spawnEnemy / seed 注入 | 自然受伤、真实升级弹层、墙碰撞合法性、KeyD/鼠标/F 真实夺回、暂停 OFF 不自抢 | 真人、外部 Agent、战斗胜利、不可用于 `1aadd2e` 签字 |
+| 独立 Tester 无夹具自然死亡（父提交） | `2d78e80`，**非 `1aadd2e`** | `reports/ai-native-02/tester/p1-final/05-natural-death-wall-probe.log`、`natural-death-wall-log.json`、`evidence-natural/` | **无**夹具 | HP 100 → 0 自然死亡、GameOver 清档、新 R0 控制复位、墙邻域合法性 | 真人、外部 Agent、战斗胜利、不可用于 `1aadd2e` 签字 |
+| 独立 Tester 修复提交无夹具探针 | `1aadd2e`，**非 C2 WIP** | `reports/ai-native-02/tester/p1-fixes-final/P1-FIXES-FINAL-ACCEPTANCE.md`、`04-normal-run-probe.log`、`05-pointer-overlay-probe.log`、`07-inventory-probe.log`、`08-resume-after-inventory-probe.log`、`09-no-reclaim-probe.log` | **无** i-frames / HP / 坐标 / addXp / spawnEnemy / seed 注入（`03-playwright-final.log` 的 8 项 spec 仍有夹具） | 修复后自然受伤（100 → 最低 17）、背包 PAUSED/清输入、指针覆盖层夺回、关闭背包后恢复、夺回后不自抢 | 真人、外部 Agent、战斗胜利；本提交**没有**独立自然死亡探针（自然死亡仅父提交） |
+| 外部 Agent / Headless World / Replay | 无（全部 `2d78e80`/`1aadd2e`/C1/C2 均未实现） | 无 | — | — | HUD/菜单/报告始终 `EXTERNAL NOT CONNECTED`；`game:headless`/MCP 只服务 Station Zero；不得用本地 demo / 浏览器自动化 / 假 Headless 冒充 |
+
+- 本小节所在提交仅修文档/测试可靠性，不新增产品功能证据；C2 WIP 的源码改动在后续 C2 提交单独验收，不得把上表任何一行算作 C2 证据。
+
+- 人工可读性判读（F-06）：开发者已查看 `p1-fixes/evidence-dev/hud-ai-800x600.png`（修复后）：右列 7 行与左下提示在 800x600 下完整、无裁切/重叠、字号明显放大且提示高对比；结论记为「可辨，不需要放大」，但这是开发者看图结论，不冒充独立人工验收；数字阈值只作几何下限。
+- 仍未处理：F-03（`window.__game` 生产暴露）、F-08（`restoreCheckpoint` 入参别名）、R-01/R-02/R-05/R-06/R-09、固定 tick、集中状态、外部 Agent 接入；F-09 已在 C1 修复，其余带入 P2/P4。
+
+## C1 — 共享纯规则抽取与即时接线（提交见本节所在提交）
+
+- **状态**：C1 已获 Reviewer `reports/ai-native-02/reviewer/c1/REVIEW_C1.md` **PASS（有限制，无阻断）** 与 Tester PASS；但 **C1 不等于 P2 整体完成**。未合并 main；父提交 `1aadd2e04...`。范围仅 C1，**没有**实施 C2 固定 tick / RNG 归一 / 集中状态，也没有 C3 外部 Agent 或 Signal 玩法。
+- **实现**：唯一纯模块 `src/world/sim/rules.ts`（无 Phaser / DOM / `Math.random`）承载移动/轴分离碰撞/瞄准、武器 spec、弹丸创建（复用真实 RNG 参数）、弹丸推进与扫掠命中、护甲伤害/击退、drone FSM、非 drone 共用移动/远程攻击助手；`Player` / `Enemy` / `World` 的**已抽取规则**立即调用唯一实现，C1 提交时旧内联体删除；`Enemy.legacyStateMachine`（非 drone）、`Boss.hit`、`World.spawnEnemyProjectile` 仍 legacy，明确列 C2 合并清单。`src/ai-native/control.ts` 改用 `IsoMath.TILE_W/H`（F-09），`drone/pulse` 为首片，scatter/plasma 等其他武器与敌人共用通用纯函数未回归。渲染、音效、回调、精灵生命周期仍在适配层。
+- **不是权威核完成**：可变状态仍分散在 `Player` / `Enemy` / `World`；`GameScene.update()` 仍是变长 `dt`，`World.rng` 仍由 World 持有，存档契约（SAVE_VERSION=2 / `finishRun` / checkpoint）未改。集中 `SimulationState`、固定 60Hz tick、事件队列、全部玩法 RNG 归一是 **C2**；C1 不以一组几何 helper 冒充完成。
+- **Signal**：正式 World 当前不支持任何 Signal 玩法（Scan/Jam/Decoy/Relay/Bridge/Guard/Signal Energy 只在 Station Zero `src/slice/`；`SIGNAL_SYSTEM_DESIGN.md` 是设计提案）。C1 没有发明 Signal；正式接入仍是 AI-NATIVE-02 总任务义务。
+- **阶段口径**：C3 真实外部 Agent 经正式通道战斗**仍是 P2 完成条件**，排在 C1/C2 依赖之后，不重定义为 P3；HUD/菜单/报告持续 `EXTERNAL NOT CONNECTED`，不得用本地 demo / 浏览器自动化 / 假 Headless 冒充。
+- **验证**：Node 单测用真实 `MapGenerator(424242)` + `WEAPONS.pulse` + `ENEMY_STATS.drone` 覆盖受阻移动、瞄准、射击、扫掠命中/墙、伤害/死亡、drone FSM；C1 时另用临时 debug 镜像取证（C2 已删除，生产无消费者，不当作权威事件）；Rendered Playwright 用真实键鼠覆盖 P1 五视口与 C1 单 drone 路径，C1 报告记录 9/9、未重跑全量 35（当时 Tester 定向复核只跑 8+7）。完整日志与证据在 `reports/ai-native-02/c1/`。
+- **C2 下一步**：集中 `SimulationState`、固定 tick 累加器、玩法/视觉 RNG 拆分、`SimEvent[]` 呈现事件隔离、Node/Rendered canonical parity；仍不宣称全游戏 Replay/确定性。
+
+## C2 — 首片 SimulationState / 固定 tick / Node-Rendered parity（提交见本节所在提交）
+
+- **状态**：C2 首片 + 两轮阻断修复；未合并 main。独立 Reviewer 对 `a8232c8` 仍判阻断（B4 部分、B6/B7/B8/H2/H8/H9/H10），本轮事务化修复待独立重验，不宣称 C2 通过。
+- **唯一写源**：`src/world/sim/core.ts` 的 `SimulationState` 拥有 player、drone、`targets[]`（非 drone/Boss 的 HP/位置）、player/enemy 弹丸、`tick`、连续 `rngState`、静态地图、`pendingPlayerHits`、`pendingCommands` 与 `nextProjectileId`。`registerTarget` 深拷贝调用者对象；`Enemy`/`Boss` 的 `wx/wy/_hp` 只读 core target，位置移动通过 `World.enqueueTargetMove` 命令在下一 tick 提交，HP 由 core 弹丸/命令写；不再暴露可写 target setter 或 legacy `hit()` 写路径。`World.projectiles` 是 core 只读副本。`Player.applyIntent/tryFire` 与 `World.spawnProjectile` 已删除，`GameScene` 只采样一次意图并调用 `World.stepFrame(delta,intent)`。
+- **固定 tick**：60Hz、`MAX_FRAME_DELTA_MS=250`、`MAX_TICKS_PER_FRAME=15`，core 只吃整数 ticks；暂停/升级/背包/AI 开关/死亡/新局调用 `resetSimulationAccumulator()`，暂停不推进、恢复不追赶；250ms 用 epsilon+clamp 归为恰好 15 ticks 并丢弃余量。`tests/c2-parity.spec.ts` 覆盖 subframe/15 tick cap/pause freeze/no catch-up。
+- **RNG 边界**：core 使用连续流 `RNG(seed*7919+1)`，同一流按 C1 顺序消费 crit、击杀掉落两次 roll、下一发 crit **以及**房间敌人种类、资源掉落种类、传送门目标（经 `room-enter` 命令在 tick 提交时消费）。`World.rng` 仅留存档快照的 rngState 读写（存档兼容），不再消费于房间/资源/传送门生成；视觉未播种随机仍用于 bob/星空/音频噪声/新局 seed。**只承诺 core 的 crit+击杀掉落+房间生成顺序与 C1 一致；不宣称全玩法单 RNG / 全 run Replay / stateHash**。永久回归 `core.test.ts` H2 及 `scripts/c2-room-generation-parity.ts`（200+ seed 房间/资源/传送分布对照）对照 C1 顺序。
+- **事件与调试**：core 先提交状态再返回有序 `SimEvent[]`（含 `player-hurt/player-death/enemy-hit/enemy-died/xp-gained/player-levelup/currency-gained/player-healed/player-upgraded`）；适配器只消费事件做精灵/伤害数字/音效/HUD/callback。C1 的 debug 镜像已删除，不充当权威事件。B4：blocked hit 不发 `player-hurt`，同帧后续致命 hit 在首次死亡后丢弃，只产生一个 death。
+- **H1 parity harness**：`src/world/sim/parity.test.ts` 用独立 legacy 公式对照纯规则；`tests/c2-parity.spec.ts` 通过正常 `stepFrame`/累加器路径生成 Rendered canonical/events；`scripts/c2-node-parity.ts`（8/8）、`scripts/c2-kill-parity.ts`（13/13，真实击杀 drone+hunter 后比较 XP/货币/事件/后续射击）与新增 `scripts/c2-loot-pickup-parity.ts`（20 格远距掉落不结算、近距磁吸/拾取、pickupRange 缩放、X/Y/对角方向）在 Node 无 Phaser 重放同一初始 state/sequence/ticks 并逐字比较。**F-08** 已在 `restoreCheckpoint` 深拷贝 + 负向 E2E 修复。
+- **H1/H3/H2/H4/F-08 采纳**：canonical 含 `mapHash`/完整 `player.data`/timers/`targets`/`pendingPlayerHits`/`pendingCommands`/`nextProjectileId`；事件不圆整（仅排除 cosmetic `drone-step.faceAngle`）；checkpoint 恢复 core `tick/rngState/timers/nextProjectileId` 并校验 `coreState`；`World.spawnEnemyProjectile`/Boss/Enemy 统一走 core 构造；`registerTarget` 深拷贝；`resetProjectilesForTest`/`clearEnemiesForTest` 严格 dev/test 门禁，audit 清理改用显式 helper；非 Boss `enemy-hit` 消费 `hit.hitFlash`；Boss target 半径恢复 `getRadius()+1`（4.0）。
+- **验证**：`npm run typecheck`、`npm test`（397 项）、`npm run build`、`npm run game:mcp:build`、全量 Playwright **44/44**（含 C2 parity 9、五视口、旧 E2E）、Node/Rendered parity 8/8、kill parity 13/13、loot pickup parity 10/10、房间分布 parity 220 seed。完整日志 `reports/ai-native-02/c2-final-seam/logs/`。
+- **限制**：core 已覆盖全部 enemy kind/Boss 的弹丸碰撞、HP/位置、XP/货币奖励与升级材料化；尚未迁移的是非 drone FSM 的决策细节（通过 target move 命令提交）、portal/房间生成/资源掉落种类、存档策略与视觉。`Player.reset` 仅作为 World 的 owner 初始化/房间切换边界，普通 adapter 不调用。正式 World 仍无 Signal；C3 真实外部 Agent 经正式通道战斗仍是 **P2 完成条件**（不是 P3），HUD/菜单持续 `EXTERNAL NOT CONNECTED`；不得用本地 demo / 浏览器自动化 / 假 Headless 冒充。
+- **C2 修复提交（关闭 B1–B5，扩大权威核范围）**：独立审查阻断项已逐项关闭——`SimulationState` 新增 `targets[]`/`pendingPlayerHits`，hunter/stalker/sentinel/Boss 经 `registerTarget` 纳入 core 碰撞与伤害（`resolveBossHit` 护甲公式），core 弹丸统一命中 drones 与 targets；`Boss.fireLaser` 改用 `spawnCoreEnemyProjectile` 句柄、不再改写 player 弹丸；`World.projectiles` 改为只读 core 副本（setter 为 no-op，`resetProjectilesForTest` 是唯一显式重置），id 由 `sim.nextProjectileId` 统一；`Player.hurt` 改为 `enqueuePlayerHit`（B4：tick 外不直写 core，下一个 core tick 以 `player-hurt`/`player-death` 事件提交）；`stepSimulationTicksForTest` 改为 `import.meta.env` 严格 dev/test 门禁，parity 改用正常 `stepFrame`/累加器路径；canonical 扩展 `mapHash`/完整 `player.data`/timers/`targets`/`pendingPlayerHits`/`nextProjectileId`，事件去除圆整只排除 cosmetic `drone-step.faceAngle`；`restoreCheckpoint` 现恢复 core `tick/rngState/timers/nextProjectileId`（伪 restore 已修），并校验 `coreState`。新增 `tests/c2-parity.spec.ts` B1–B4 与 H3 回归、core.test H1/H2/H6 回归；`npm test` 377、全量 Playwright 41/41、Node/Rendered parity 8/8 通过。完整日志 `reports/ai-native-02/c2-fixes/logs/`。
+- **C2 第二轮事务化修复（a8232c8 之后，单独提交）**：针对 Reviewer B4/B6/B7/B8/H2/H8/H9/H10：B4 同帧两次致命 hit 在首次死亡后丢弃、blocked hit 不发 `player-hurt`，只产生一次死亡；B6 击杀奖励（XP/货币/等级）改由 core 事务提交，`killEnemy`/`killBoss` 不再 `addXp`/写货币/掉 RNG；新增真实击杀 Node/Rendered parity（drone+hunter，13/13，XP/货币/事件/后续射击逐字一致）；B7 `registerTarget` 深拷贝，Enemy/Boss 只读 target，移动通过 `enqueueTargetMove` tick 命令提交，删除可写 getter/setter 与 legacy `hit()`，`Enemy.update` 用 core HP；B8 Boss target 半径恢复 `getRadius()+1`（4.0）；H2 core 连续 RNG 按 C1 顺序消费 crit→击杀两次 loot roll→下一发 crit（H2 永久回归）；H9 `resetProjectilesForTest`/`clearEnemiesForTest` 严格 dev/test 门禁，生产探针抛 `Error: dev/test only`；H10 非 Boss `enemy-hit` 写入 `hitFlash` 并刷新视觉；H5/H8 文档与静态断言改写为最终实现。永久回归：core.test B4/B7/H2、c2-parity B4/B6/H2/B8/H10、rewiring 静态门、scripts/c2-kill-parity.ts；Reviewer 真实击杀探针现 `equal:true`（rendered/core XP 8/货币 4 一致），旧 canonical-rng 探针中 `registerTarget` 同对象/C1-loot-shift 两项按新契约翻转（其旧断言不再适用）。
+
+## C2 第三轮事务化修复（0df1514 之后，单独提交，待独立重验）
+Reviewer 对 `0df1514` 仍判阻断（B7/B9/B10/B11/H5/H8 及生产 P1 测试契约）。第三轮事务化修复根治写边界，不再以只读 getter 掩盖活引用：
+
+- **R2-1 公开 live 引用**：`World.sim` 改为私有 `_sim`；对外仅暴露深拷贝冻结快照（`get sim()`、`get playerDataSnapshot()`）；`registerTarget` 深拷贝；`Enemy`/`Boss` 删除全部 `wx/wy/_hp` setter 与 legacy `hit()`，getter 只读 core target；外部 `target.hp=3`/`sim.player.data.hp=1` 不再改变权威状态。新增严格 dev/test 夹具入口 `simFixture`/`playerDataFixture`/`clearLootForTest`/`clearEnemiesForTest`/`setPlayerPositionForTest`，仅 `import.meta.env` dev/test 可用，生产 preview 抛 `Error: dev/test only`。
+- **R2-2 tick 边界**：`World.spawnEnemyProjectile`/`Boss.fireLaser`/`shockwave`/`summonDrones`/`spawnEnemy`（房间生成）改为命令入队，在下一 core tick 提交并产事件；`tryInteract` 传送改为 `teleport-player` 命令（验证走格、到达后放置传送门）；`updateRoom`/`spawnForRoom` 通过命令队列。`stepFrame(0)` 不再改变 canonical；命令只在 tick 提交。
+- **R2-3 适配器事务旁路**：`collectLoot`/economy 房间奖励改为 `enqueueCurrency`/`enqueueHeal`（经 `enqueueSetPlayerData` 原子替换完整玩家数据）；`Player.addXp` → `enqueueAddXp`，`Player.heal` → `enqueueHeal`，`LevelUpScene` → `enqueueApplyUpgrade`；`Player.reset`/`tryInteract` 改为 owner 初始化/房间切换边界（`enqueueTeleport`），普通交互不再直写 core；`Player` 所有可写 setter 移除，`data`/`wx/wy/timers` 均为只读快照；瞄准改为 pending intent。
+- **R2-4 击杀掉落回归**：core `awardEnemyKill` 按 C1 顺序先两次掉落 RNG 再加 XP，但 currency/heal 不再即时加值，而是生成可见 `loot-dropped`；core 新增 `loot` 与 `nextLootId`，`stepLoot` 每 tick 磁吸/拾取，拾取时提交 `currency-gained/player-healed` 与 `loot-collected`。资源房 loot 也走 core 掉落。Phaser 只渲染/回调。New core B11 回归：可见掉落、未拾取不结算、靠近拾取才变资源/事件/后续射击。
+- **H2**：移除了 `World.rng` 的所有玩法消费（房间敌人/资源/传送门改为确定性），core 连续 RNG `RNG(seed*7919+1)` 成为唯一玩法 RNG（crit → 击杀两次掉落 roll → 下一发 crit）；视觉随机不进 canonical。New core H2 测试用独立 RNG 参考序列对照；永久 Node/Rendered kill parity 13/13 已含真实击杀与掉落 canonical 一致。
+- **R2-5 生产 P1 测试契约**：冻结生产 P1 9/9；P1 spec 中的夹具写入已改为生产安全路径（`enqueueCurrency`/`enqueueHeal`/`ownerSetPlayerData`），移除了冻结预览中会抛 `dev/test only` 的 `clearEnemiesForTest` 调用；dev/test 夹具与生产读分离。
+- **验证**：`npm run typecheck`、`npm test` 397、build、mcp build、默认 MCP smoke 6 工具、全量 Playwright 44/44（五视口）、Node/Rendered parity 8/8、kill parity 13/13、冻结生产 P1 9/9。日志 `reports/ai-native-02/c2-round3/logs/`。
+- **剩余**：C3-b 继续冻结；不接 World/Scene 端到端；不合并 main；`stash@{0}`/`stash@{1}` 未读未恢复。
+- **C3 下一步**：真实外部 Agent Gateway/MCP（epoch/requestId/actionId、权限、YIELDED、正常断线）、F-03 `window.__game` 收敛、Signal 正式接入（总任务义务）；均未在本提交实现。
+
+## C3-a 修复提交（关闭 Tester 复现的 F1/F2/F3）
+
+C3-a 连接层（worldProtocol / worldGateway / worldBridgeServer）在 `c9ccce8` 经 Tester 独立验证 PASS（48+45 检查），但 Tester 同时复现并记录了三项限制 F1/F2/F3，列为 C3-b 前置。这些已在后续修复提交关闭（**不与 C2 修复提交混源**）：
+
+- **F1 观察 tick 单调**：`WorldGateway.pushObservation` 现在要求 `tick >= lastObservation.tick`（同 tick 允许、不回滚；更低 tick 返回 `E_STALE_TICK`），TTL 基线只基于最大已见 tick。永久回归：`worldGateway.test.ts` F1。
+- **F2 幂等窗口淘汰后不可重试**：`SessionState` 新增 `evictedRequestIds`/`evictedActionIds`（淘汰后**永久**拒绝，集合不随缓存上限裁剪）；`trimCache` 在淘汰时记录 id。`WorldGatewayError` 新增 `E_RETRY_AFTER_EVICTION`。永久回归：`worldGateway.test.ts` F2（tiny cache + 淘汰 + 负向重试）。
+- **F3 每请求绑定 handshake Origin + ACK 边界**：`worldBridgeServer` 每个受权操作（observation/heartbeat/next-action/action-ack/yield）校验 `session.handshakeOrigin === Origin`，非 handshake Origin 返回 `403 world.origin_mismatch`；`WorldGateway.ackAction` 要求 `acceptedTick <= appliedTick <= applyByTick`，拒绝低于 accepted 或高于 applyByTick 的 ACK（无未来/假 ACK）。永久回归：`worldGateway.test.ts` F3、`worldBridgeServer.test.ts` 每操作 Origin 绑定。
+
+验证：`npm run typecheck`、`npm test`（381 项，含新增 5 项回归）、`npm run build`、`npm run game:mcp:build` 均通过。复用 Tester 两探针（`reports/ai-native-02/tester/c3a-final/probe-http-bridge.ts`、`probe-gateway.ts`）重跑：原 Tester 记录的两项 finding（`observation-old-tick-accepted`、`allowed-origin-can-drive-other-session`）现已**消失**，原先编码 buggy 行为的少数探针断言（`gateway-queue-ok` 依赖 cross-origin 被接受、`stale-observation-rejected` 期望 `E_STALE_EPOCH`、`cache-eviction-retry-still-idempotent` 期望淘汰后重放）相应翻转——这正是三项缺陷已关闭的证据，已由上述永久回归覆盖。完整日志 `reports/ai-native-02/c3a-fixes/logs/`。
+
+C3 下一步（仍未被本提交实现）：真实外部 Agent 经正式 Player/MCP 通道接入 World、端到端 ACK、Signal 正式接入。C3-b 预研 WIP 以 stash 保留（`stash@{0}`），未丢、未并入。
+
+## C3-a 有界性修复（会话配额 / close Origin / 同 tick 冲突）
+
+Tester 对 `0ac1814` 的复验确认 F1/F2/F3 功能契约通过，但指出 F2 修复引入无界 `evictedRequestIds/evictedActionIds`，且 `/world-link/close` 未绑定 handshake Origin；同时同 tick 观察仍是 last-write-wins。修复提交（**单独提交，不混入 C2 或 C3-b**）处理如下：
+
+- **会话生命周期硬配额**：新增 `WORLD_LIMITS.MAX_DEDUP_RECORDS = 512` 与 `WorldGatewayOptions.maxDedupRecords`。每个 session 以 `dedupRecords` 计数所有 requestId/actionId 去重记录（`requestCache + actionCache + evictedRequestIds + evictedActionIds` 的总和严格等于该计数且 ≤ 上限）。配额在批解析后、任何指纹校验/入队前检查；超限整批返回 `E_RESOURCE_LIMIT / world.session_quota`，不部分计费、不部分入队、不自动换 epoch、不丢去重记录。已接受 request 的重试仍先走缓存 replay / `E_RETRY_AFTER_EVICTION`，不会重新执行。
+- **淘汰与生命周期**：`trimCache` 淘汰时把 id 移入 evicted 集合并计入同一配额；`yieldSession`/`reapExpired` 把 cache 记录归档进 evicted 集合（总数不变），保留去重拒绝能力但不允许绕过配额继续扩张；`closeSession`/`dispose` 才释放整个会话；显式 `authorize` 重新授权由人类调用，不自动恢复控制。缓存淘汰的 pending receipt 若被重新写回，会先从 evicted 集合移除再入 cache，避免同一 id 双计。
+- **close Origin 绑定**：`/world-link/close` 与其他受权操作一样校验 `session.handshakeOrigin === Origin`；不同允许 Origin 用同一 token 不能强制关闭别人的 session（403 `world.origin_mismatch`）。
+- **同 tick 观察**：同 epoch 同 tick 且 payload 相同 → 幂等返回；payload 不同 → `E_TICK_CONFLICT`（HTTP 409），不覆盖最新权威观察；要更新内容必须使用新的 commit tick。`yield`/`LOST` 递增 epoch 并清空 `lastObservation`，显式 `authorize` 后允许新 epoch 的 tick 重置；去重记录仍保留。
+- **验证**：`npm run typecheck`、`npm test`（391 项）、`npm run build`、`npm run game:mcp:build`、默认 StationZero MCP smoke（6 Player 工具）均通过。Tester 旧探针的长流量段显示 evicted/cache 在 1000/2000/3000 次操作时稳定为 `254/254/2/2 = 512`，不再线性增长；旧探针中编码 last-write-wins / 无界增长的断言按新契约翻转，属于预期。完整日志 `reports/ai-native-02/c3a-bounds-fix/logs/`。

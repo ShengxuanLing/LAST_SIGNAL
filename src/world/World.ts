@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
-import { MapData, Tile, Vec2, ProjectileData, LootDrop, HitFx, EnemyStateName, Room } from '../types';
-import { EnemyKind } from '../config/enemies';
+import { MapData, Tile, Vec2, ProjectileData, LootDrop, EnemyStateName, Room } from '../types';
+import { ENEMY_STATS, EnemyKind } from '../config/enemies';
 import { GAME } from '../config/game';
+import { PURCHASE_LEDGER_CAP } from '../config/supplies';
 import { ItemKind } from '../types';
 import { IsoMath, isoToScreen, screenToIso } from '../core/iso';
 import { RNG } from '../core/random';
@@ -10,8 +11,28 @@ import { Enemy } from '../entities/Enemy';
 import { Boss } from '../entities/Boss';
 import { RoomDepth } from '../world/roomdepth';
 import { WorldRenderer } from '../world/WorldRenderer';
-import type { RunCheckpoint, SaveData } from '../types';
+import type { PlayerData, RunCheckpoint, SaveData } from '../types';
 import { audio } from '../systems/AudioSystem';
+import type { ControllerActorView, LocalControllerView } from '../ai-native/localController';
+import { buildWorldObservation, type WorldObservationV1 } from '../ai-native/worldObservation';
+import { WORLD_PERCEPTION, createLocalProbe, gridLineOfSight } from '../ai-native/worldPerception';
+import { cloneCheckpoint } from '../systems/RunCheckpoint';
+import { chooseNearestActor, type ActorCombatPort, type ActorTargetView } from './actorTarget';
+import { buildEchoObservation, type EchoObservation } from './echoView';
+import { SIGNAL_TUNING } from '../signal/signalTuning';
+import { ExternalLinkState, type ExternalActionReceipt } from '../ai-native/externalLink';
+import { EchoController, type EchoMode, type EchoView } from '../ai-native/echo';
+import type { PlayerIntent } from '../ai-native/control';
+import {
+  createSimulationState, ECHO_ACTOR_ID, enqueueCommand, enqueueEchoHit, enqueuePlayerHit, isWalkableFromState,
+  enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState, processCommands,
+  registerDrone, registerTarget,
+  spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
+  type SimulationIntent, type SimulationState, type SimEchoState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
+} from './sim/core';
+import { CombatVfx, BOLT_HEIGHT, type BoltView, type TelegraphView } from '../art/survey/CombatVfx';
+import { CSS, DEPTH, FONT, INK } from '../art/survey/tokens';
+import { deckLabel, dungeonRng, encounter, TOTAL_DECKS } from '../config/dungeon';
 
 export interface WorldCallbacks {
   onLevelUp: (level: number) => void;
@@ -21,6 +42,7 @@ export interface WorldCallbacks {
   onLoot: (drop: LootDrop) => void;
   onStats: (delta: { enemies: number; items: number; dmg: number }) => void;
   onBossWin: () => void;
+  onNextDeck: () => void;
 }
 
 export interface RoomInfo {
@@ -32,11 +54,91 @@ export class World {
   map: MapData;
   player: Player;
   enemies: Enemy[] = [];
-  projectiles: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
-  loot: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> = [];
-  fx: HitFx[] = [];
-  private damageTexts: Phaser.GameObjects.Text[] = [];
-  private fxGraphics: Phaser.GameObjects.Graphics;
+  /** C2: first-slice authority for player/drone/core projectiles. */
+  private _sim!: SimulationState;
+  private simVersion = 0;
+  private simSnapshotCache: SimulationState | null = null;
+  private playerDataSnapshotCache: any = null;
+  private simAccumulatorMs = 0;
+  private coreProjectileViews = new Map<number, { spr: Phaser.GameObjects.Sprite; data: SimProjectile }>();
+
+  /**
+   * Read-only compatibility view for old regressions. It returns fresh copies of
+   * core projectile data; callers cannot mutate authoritative projectiles.
+   * The setter is intentionally non-authoritative (legacy test cleanup only);
+   * use resetProjectilesForTest() for an explicit dev reset.
+   */
+  get projectiles(): Array<{ spr: Phaser.GameObjects.Sprite; data: any }> {
+    return [...this.coreProjectileViews.values()].map((view) => ({
+      spr: view.spr,
+      data: {
+        ...view.data, pos: { ...view.data.pos }, vel: { ...view.data.vel },
+        hitIds: [...view.data.hitIds], hitSet: new Set(view.data.hitIds)
+      }
+    }));
+  }
+  set projectiles(_value: Array<{ spr: Phaser.GameObjects.Sprite; data: any }>) {
+    // Compatibility setter must not clear or expose authoritative core state.
+  }
+
+  private static assertDevTest(): void {
+    // Build-time constant: production builds cannot enable this facade.
+    if (!__LAST_SIGNAL_DEV_TEST__) throw new Error('dev/test only');
+  }
+
+  /** Explicit dev/test reset; not a general scene API. */
+  resetProjectilesForTest(): void {
+    World.assertDevTest();
+    // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
+    // memory or pending intent. Echo HP comes verbatim from the checkpoint.
+    this.echoController.reset();
+    this.echoShotsFired = 0;
+    for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
+    this.coreProjectileViews.clear();
+    if (this._sim) this._sim.projectiles = [];
+  }
+
+  /** Read-only loot view over core loot; external code cannot clear core state. */
+  get loot(): Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> {
+    return [...this.coreLootViews.values()];
+  }
+  set loot(_value: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }>) {
+    // Compatibility setter is intentionally non-authoritative.
+  }
+
+  setPlayerPositionForTest(x: number, y: number): void {
+    World.assertDevTest();
+    this._sim.player.x = x;
+    this._sim.player.y = y;
+    this.bumpSimVersion();
+  }
+
+  clearLootForTest(): void {
+    World.assertDevTest();
+    for (const view of this.coreLootViews.values()) if (view.spr.scene) view.spr.destroy();
+    this.coreLootViews.clear();
+    this._sim.loot = [];
+    this.bumpSimVersion();
+  }
+
+  /** Explicit dev/test enemy cleanup; keeps adapter and core in sync. */
+  clearEnemiesForTest(): void {
+    World.assertDevTest();
+    for (const e of this.enemies) if (e.sprite.scene) e.sprite.destroy();
+    this.enemies = [];
+    if (this._sim) {
+      this._sim.drones = [];
+      this._sim.targets = [];
+    }
+    if (this.boss) {
+      if (this.boss.sprite.scene) this.boss.sprite.destroy();
+      this.boss = null;
+    }
+  }
+  private coreLootViews = new Map<number, { spr: Phaser.GameObjects.Sprite; data: LootDrop }>();
+  /** AR-02 visual-only combat effects (reads state, never writes it). */
+  vfx: CombatVfx;
+  private damageStack = new Map<number, { t: number; n: number }>();
   shakeAmount = 0;
   clock = 0;
 
@@ -44,22 +146,351 @@ export class World {
   private callbacks: WorldCallbacks;
   private rng: RNG;
   private enemyIdCounter = 1;
-  private projIdCounter = 1;
+  private worldSpawns: Array<{ kind: EnemyKind; x: number; y: number; room: number; depth: number; boss?: Room }> = [];
+  /** Rooms whose generation command/spawn is queued but not yet committed. */
+  private pendingRoomEnters = new Set<number>();
+  /** C3-b: external agent link state (authorization, pending intents, receipts). */
+  readonly externalLink = new ExternalLinkState();
+  /** P3-a: pure echo intent policy (no Phaser; shared with the Node parity driver). */
+  readonly echoController = new EchoController();
+  /** Real committed echo shots (observability only; no hidden state). */
+  echoShotsFired = 0;
+  /** One Owner-confirmed companion intent, committed by the next core tick. */
+  private pendingCompanionIntent: SimulationIntent | null = null;
+  private echoSprite: Phaser.GameObjects.Container | null = null;
+  private echoLine: Phaser.GameObjects.Graphics | null = null;
+  private signalSprite: Phaser.GameObjects.Container | null = null;
+  private signalLine: Phaser.GameObjects.Graphics | null = null;
+  /** Latest committed supply receipts, keyed by transaction id (session-only). */
+  private supplyReceipts = new Map<string, { transactionId: string; offerKey: string; roomId: number; ok: boolean; reason?: string; price: number; currency: number; hp: number; weaponKey: string }>();
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
   private currentRoomId = -1;
+  /** Public read-only room id (the same value the renderer/tests read). */
+  get roomIdValue(): number { return this.currentRoomId; }
   private enteredRooms = new Set<number>();
   public renderer: WorldRenderer | null = null;
   private _minX = 0;
   private _minY = 0;
   private _maxX = 0;
   private _maxY = 0;
-  private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number; wx: number; wy: number } | null = null;
+  private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number | null; wx: number; wy: number } | null = null;
+  private waves: EnemyKind[][] = [];
+  private activeWave = 0;
+  private roomSeal?: Phaser.GameObjects.Graphics;
+  /** ONE real Relay device per run. Spawned on first room enter only when the
+   *  human has explicitly opted into Signal Collaboration; absent = legacy
+   *  v1 run (portal always open). */
+  private signalDeviceSpawned = false;
+  /** Explicit human opt-in to Signal Collaboration (from save data). Ordinary
+   *  NEW RUNS stay legacy (no device, no gating) until enabled in-game. */
+  private signalCollaborationOptIn = false;
+
+  /** Deep, frozen read-only snapshot. External adapters must never mutate this. */
+  get sim(): SimulationState {
+    if (!this.simSnapshotCache) {
+      this.simSnapshotCache = deepFreeze(JSON.parse(JSON.stringify(this._sim)) as SimulationState);
+    }
+    return this.simSnapshotCache;
+  }
+
+  /** Explicit dev/test fixture access to live core state; production throws. */
+  get simFixture(): SimulationState {
+    World.assertDevTest();
+    this.bumpSimVersion();
+    return this._sim;
+  }
+
+  /** Explicit dev/test fixture access to live player data; production throws. */
+  get playerDataFixture(): any {
+    World.assertDevTest();
+    this.bumpSimVersion();
+    return this._sim.player.data;
+  }
+
+  /** Deep, frozen player data snapshot for HUD/read-only adapters. */
+  get playerDataSnapshot(): any {
+    if (!this.playerDataSnapshotCache) {
+      this.playerDataSnapshotCache = deepFreeze(JSON.parse(JSON.stringify(this._sim.player.data)));
+    }
+    return this.playerDataSnapshotCache;
+  }
+
+  get hasSimulation(): boolean { return !!this._sim; }
+
+  /**
+   * C3-b: queue an external agent intent. It becomes a legal PlayerIntent and
+   * is executed by the existing core tick — never a direct state write.
+   * Returns the receipt: 'queued' means it will be applied by a later tick.
+   */
+  enqueueExternalIntent(command: {
+    actionId: string;
+    requestId: string;
+    intent: PlayerIntent;
+    applyByTick: number;
+    ttlTicks: number;
+    /** Integer REAL core ticks the intent must be delivered for. */
+    durationTicks?: number;
+  }): ExternalActionReceipt {
+    return this.externalLink.enqueueIntent(command, this._sim.tick);
+  }
+
+  /**
+   * The intent the CURRENT rendered frame must run for the external owner.
+   * Only an ACTIVE execution (started and bound to an epoch by the controller)
+   * supplies an intent; a merely queued action never runs early.
+   */
+  takeExternalIntent(): PlayerIntent {
+    return this.externalLink.activeIntent()
+      ?? { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+  }
+
+  /** Read-only legal perception predicate (same crop as the player's view). */
+  isPerceivablePosition(x: number, y: number): boolean {
+    return this.isPerceivable(x, y);
+  }
+
+  // ---------- P3-a echo companion ----------
+
+  get echoActor(): SimEchoState | null { return this._sim?.echo ?? null; }
+  get echoMode(): EchoMode { return this.echoController.mode; }
+  get echoSuggestion(): 'fire' | null { return this.echoController.suggestion; }
+  get echoAssistArmed(): boolean { return this.echoController.assistConfirmed; }
+
+  /**
+   * The echo's OWN bounded perception: centred on the echo, 12 tiles, explored
+   * rooms and line of sight. It never reuses the player's crop or full map.
+   */
+  echoView(): EchoObservation | null {
+    const echo = this._sim.echo;
+    if (!echo) return null;
+    const signal = this._sim.signal;
+    const echoAccount = signal?.actors.echo;
+    return buildEchoObservation({
+      echo,
+      player: { x: this._sim.player.x, y: this._sim.player.y },
+      tick: this._sim.tick,
+      drones: this._sim.drones.map((drone) => ({ id: drone.id, x: drone.x, y: drone.y, hp: drone.hp })),
+      targets: this._sim.targets.map((target) => ({
+        id: target.id, kind: target.kind, x: target.x, y: target.y, hp: target.hp, isBoss: target.isBoss
+      })),
+      isExplored: (x, y) => this.isExploredCell(x, y),
+      isOpaque: (x, y) => this.isOpaqueCell(x, y),
+      // Echo-only Signal knowledge: the builder itself decides whether the
+      // echo currently perceives the device (no player-side leak).
+      signal: signal
+        ? {
+            deviceId: signal.deviceId, x: signal.x, y: signal.y, relay: signal.relay,
+            powered: signal.powered, manualEnabled: signal.manualEnabled,
+            jammedUntilTick: signal.jammedUntilTick
+          }
+        : null,
+      energy: echoAccount
+        ? { current: echoAccount.energy.energy, max: SIGNAL_TUNING.ENERGY_MAX }
+        : undefined,
+      cooldowns: echoAccount
+        ? { scanTicks: echoAccount.cooldowns.scanCooldownTicks, jamTicks: echoAccount.cooldowns.jamCooldownTicks }
+        : undefined
+    });
+  }
+
+  /** Bounded, real Signal state (no hidden fields). Mirrors headless
+   *  worldHeadless.signalView() so Rendered and Headless report byte-parity
+   *  echoSignal. Returns null when no relay device exists (legacy v1 run). */
+  signalView(): Record<string, unknown> | null {
+    const s = this._sim.signal;
+    if (!s) return null;
+    return {
+      deviceId: s.deviceId, roomId: s.roomId, x: s.x, y: s.y,
+      relay: s.relay, manualEnabled: s.manualEnabled, powered: s.powered,
+      jammedUntilTick: s.jammedUntilTick,
+      playerEnergy: s.actors.player.energy.energy,
+      echoEnergy: s.actors.echo.energy.energy,
+      playerScanCD: s.actors.player.cooldowns.scanCooldownTicks,
+      playerJamCD: s.actors.player.cooldowns.jamCooldownTicks,
+      echoScanCD: s.actors.echo.cooldowns.scanCooldownTicks,
+      echoJamCD: s.actors.echo.cooldowns.jamCooldownTicks,
+      evidence: s.evidence.length,
+      exitOpen: s.relay === 'ACTIVE'
+    };
+  }
+
+  /**
+     /** Enqueue a legal Signal command directly on the core. Committed by the next
+   *  processCommands tick; no flush, no direct state write. Returns false when
+   *  no signal device exists or the command is unknown. */
+  private enqueueSignalCommand(
+    command: { type: 'signal-scan' | 'signal-jam'; actor: 'player' | 'echo' }
+      | { type: 'toggle-relay'; enabled: boolean; originRoomId?: number }
+      | { type: 'signal-power'; powered: boolean }
+  ): boolean {
+    if (!this._sim.signal) return false;
+    enqueueCommand(this._sim, command);
+    this.bumpSimVersion();
+    return true;
+  }
+
+  /** Human opt-in to Signal Collaboration. Persisted to save data by the
+   *  caller (GameScene). When enabled, the first room enter spawns the Relay
+   *  device; when false the run stays legacy (portal always open). */
+  setSignalCollaborationOptIn(enabled: boolean): void {
+    this.signalCollaborationOptIn = enabled;
+  }
+
+  /** HUMAN PLAYER scan the Relay using the player's own finite energy account. */
+  playerSignalScan(): boolean { return this.enqueueSignalCommand({ type: 'signal-scan', actor: 'player' }); }
+  /** HUMAN PLAYER jam the relay emission (suppresses, never toggles manual/power). */
+  playerSignalJam(): boolean { return this.enqueueSignalCommand({ type: 'signal-jam', actor: 'player' }); }
+  /** External agent / Companion-confirmed signal command on a named actor's
+   *  energy account. Committed by the next core tick; never a direct state
+   *  write. Returns false when no device exists or the command is unknown. */
+  enqueueSignalCommandByActor(command: {
+    type: 'signal-scan' | 'signal-jam'; actor: 'player' | 'echo'
+  }): boolean { return this.enqueueSignalCommand(command); }
+  /** HUMAN OWNER manual relay + power toggle (JAM is preserved, not a switch). */
+  toggleRelay(enabled?: boolean): boolean {
+    return this.enqueueSignalCommand({ type: 'toggle-relay', enabled: enabled ?? !(this._sim.signal?.manualEnabled ?? false) });
+  }
+  setRelayPower(powered: boolean): boolean { return this.enqueueSignalCommand({ type: 'signal-power', powered }); }
+
+  /** Owner-confirmed companion action -> a SINGLE queued core intent (move/fire/
+   *  aim/stop) consumed by the next stepFrame tick, or a Signal command
+   *  (scan/jam/toggle-relay) committed directly by the core tick. No flush, no
+   *  direct state write. `scan`/`jam` spend the ECHO's own energy account and
+   *  are gated by range/LOS/cooldown inside the core.
+   */
+  enqueueCompanionAction(kind: string, target?: { x: number; y: number }): boolean {
+    const echo = this._sim.echo;
+    if (!echo || echo.data.hp <= 0) return false;
+    switch (kind) {
+      case 'move': {
+        if (!target) return false;
+        const dx = target.x - echo.x, dy = target.y - echo.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 1e-6) return false;
+        this.pendingCompanionIntent = {
+          move: { x: dx / len, y: dy / len }, dash: false, fire: false, aim: null, interact: false
+        };
+        this.bumpSimVersion();
+        return true;
+      }
+      case 'aim':
+        if (!target) return false;
+        this.pendingCompanionIntent = {
+          move: { x: 0, y: 0 }, dash: false, fire: false, aim: { x: target.x, y: target.y }, interact: false
+        };
+        this.bumpSimVersion();
+        return true;
+      case 'fire':
+        this.pendingCompanionIntent = {
+          move: { x: 0, y: 0 }, dash: false, fire: true,
+          aim: target ? { x: target.x, y: target.y } : null, interact: false
+        };
+        this.bumpSimVersion();
+        return true;
+      case 'stop':
+        this.pendingCompanionIntent = {
+          move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false
+        };
+        this.bumpSimVersion();
+        return true;
+      case 'scan':
+        return this.enqueueSignalCommand({ type: 'signal-scan', actor: 'echo' });
+      case 'jam':
+        return this.enqueueSignalCommand({ type: 'signal-jam', actor: 'echo' });
+      case 'toggle-relay':
+        // Trusted internal binding captured synchronously at Owner-confirm
+        // execution time. The core rejects it if the player/device room moved
+        // before commit, so a stale old-room decision cannot flip the gate.
+        return this.enqueueSignalCommand({
+          type: 'toggle-relay',
+          enabled: !(this._sim.signal?.manualEnabled ?? false),
+          originRoomId: this.roomIdValue
+        });
+      default:
+        return false;
+    }
+  }
+
+  get hasPendingCompanionIntent(): boolean { return this.pendingCompanionIntent !== null; }
+
+  /** Human request: spawn the companion next to the protagonist. */
+  enableEcho(): void {
+    if (this._sim.echo) return;
+    let spawn = { x: this.player.x + 1, y: this.player.y };
+    if (!isWalkableFromState(this._sim, spawn.x, spawn.y, 0.5)) spawn = { x: this.player.x, y: this.player.y };
+    enqueueCommand(this._sim, { type: 'spawn-echo', x: spawn.x, y: spawn.y });
+    this.bumpSimVersion();
+  }
+
+  disableEcho(): void {
+    if (!this._sim.echo) return;
+    this.echoController.clearIntent();
+    enqueueCommand(this._sim, { type: 'remove-echo' });
+    this.bumpSimVersion();
+  }
+
+  setEchoMode(mode: EchoMode, target: { x: number; y: number } | null = null): void {
+    this.echoController.setMode(mode, target);
+  }
+
+  /** Only the human confirms assist fire; the controller never arms itself. */
+  confirmEchoAssist(): void {
+    this.echoController.confirmAssist();
+  }
+
+  /** How many core ticks the active external action still needs. */
+  get externalRemainingTicks(): number {
+    return this.externalLink.activeExecution?.remainingTicks ?? 0;
+  }
+
+  /** The core tick actually applied an external intent: the receipt is real. */
+  commitExternalIntent(actionId: string, appliedTick: number): ExternalActionReceipt | null {
+    return this.externalLink.commitApplied(actionId, appliedTick);
+  }
+
+  /** The external intent could not be executed. */
+  rejectExternalIntent(actionId: string, code: string, appliedTick: number): ExternalActionReceipt | null {
+    return this.externalLink.commitRejected(actionId, code, appliedTick);
+  }
+
+  /** Expire external intents whose apply-by tick has passed. */
+  expireExternalIntents(): void {
+    this.externalLink.expireOverdue(this._sim.tick);
+  }
+
+  get playerX(): number { return this._sim.player.x; }
+  get playerY(): number { return this._sim.player.y; }
+  get playerFireTimer(): number { return this._sim.player.fireTimer; }
+  get playerDashTimer(): number { return this._sim.player.dashTimer; }
+  get playerInvuln(): number { return this._sim.player.invuln; }
+  get playerHurtTimer(): number { return this._sim.player.hurtTimer; }
+  get playerAimYaw(): number { return this._sim.player.aimYaw; }
+
+  /** Spawn/generation queue barrier: true while World-held enemy/Boss spawns
+   *  have been requested but not yet committed by stepFrame. */
+  hasPendingSpawns(): boolean {
+    return this.worldSpawns.length > 0 || this.pendingRoomEnters.size > 0;
+  }
+
+  /** Verifiable committed barrier: true while any core command or World-generated
+   *  spawn is still enqueued but not committed. Checkpoint must not capture then. */
+  hasUncommittedCommands(): boolean {
+    return this._sim.pendingCommands.length > 0 || this.hasPendingSpawns();
+  }
+
+  private bumpSimVersion(): void {
+    this.simVersion++;
+    this.simSnapshotCache = null;
+    this.playerDataSnapshotCache = null;
+  }
+
 
   constructor(scene: Phaser.Scene, map: MapData, save: SaveData, callbacks: WorldCallbacks) {
     this.scene = scene;
     this.map = map;
     this.callbacks = callbacks;
-    this.rng = new RNG(map.seed * 7919 + 1);
+    this.signalCollaborationOptIn = !!save.permanent?.signalCollaborationOptIn;
+    this.rng = map.deck === undefined ? new RNG(map.seed * 7919 + 1) : dungeonRng(map.seed);
     this.roomDepth.build(map);
     this._computeBounds();
     // Build the renderer first: Player/Enemy/Boss project() in their constructors and
@@ -68,6 +499,15 @@ export class World {
     const spawn = this.findSpawn();
     this.player = new Player(this, spawn.x, spawn.y, save);
     this.player.id = 0;
+    // C2: create the single first-slice authority. Player.data is the same
+    // object reference; Player getters/setters read and write this state.
+    this._sim = createSimulationState({
+      seed: map.seed,
+      map,
+      playerData: this.player.data,
+      playerX: this.player.wx,
+      playerY: this.player.wy
+    });
     const kb = scene.input.keyboard;
     if (kb) {
       // Register keys by their code name (e.g. 'D') so the KeyboardPlugin stores them
@@ -83,8 +523,12 @@ export class World {
       const cursors = { space: keyW.call(kb, 'SPACE') };
       this.player.registerInput(keys, cursors);
     }
-    this.fxGraphics = this.scene.add.graphics();
-    this.fxGraphics.setDepth(400);
+    this.vfx = new CombatVfx(scene, map.seed);
+  }
+
+  /** Number of rooms whose survey ink has been drawn (visual observation state). */
+  surveyedRooms(): number {
+    return this.map.rooms.filter((r) => this.renderer?.isObserved(r.id)).length;
   }
 
   id(): number { return this.enemyIdCounter++; }
@@ -159,6 +603,111 @@ export class World {
 
   // ---------- Room tracking ----------
 
+  /**
+   * Read-only adapter for the local deterministic controller (AI-NATIVE-02 P1).
+   * It exposes only a bounded perception projection: own state, perceived
+   * actors / boss / portal, and a short-range local walkability probe. It has no
+   * setters and no full-map collision oracle; a controller can never write
+   * coordinates or HP, only return a PlayerIntent for Player.applyIntent().
+   */
+  intentView(): LocalControllerView {
+    const observation = this.observationView();
+    const enemies: ControllerActorView[] = observation.perceivedActors.map((actor) => ({
+      id: actor.id, kind: actor.kind, x: actor.x, y: actor.y, alive: actor.alive
+    }));
+    const boss: ControllerActorView | null = observation.boss
+      ? { id: observation.boss.id, kind: 'boss_warden', x: observation.boss.x, y: observation.boss.y, alive: true }
+      : null;
+    const center = { x: observation.player.x, y: observation.player.y };
+    return {
+      ready: observation.player.alive && !this.player.control.paused,
+      player: { x: center.x, y: center.y, alive: observation.player.alive },
+      roomId: observation.roomId,
+      enemies,
+      boss,
+      portal: observation.portal ? { x: observation.portal.x, y: observation.portal.y } : null,
+      // F-01: bounded local probe. Far / non-finite / unexplored queries are
+      // uniformly rejected and never reach the real terrain predicate.
+      canWalk: createLocalProbe({
+        center,
+        probeRadiusTiles: WORLD_PERCEPTION.probeRadiusTiles,
+        isExplored: (x, y) => this.isExploredCell(x, y),
+        isWalkable: (x, y) => this.isWalkable(x, y, 0.5)
+      }),
+      timeSeconds: this.clock
+    };
+  }
+
+  /** Room id containing a grid point, or null when outside all room bounds. */
+  private roomIdAt(x: number, y: number): number | null {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    for (const r of this.map.rooms) {
+      if (x >= r.gx && x < r.gx + r.w && y >= r.gy && y < r.gy + r.h) return r.id;
+    }
+    return null;
+  }
+
+  /** Only rooms the player has actually entered count as known territory. */
+  private isExploredCell(x: number, y: number): boolean {
+    const id = this.roomIdAt(x, y);
+    return id !== null && this.enteredRooms.has(id);
+  }
+
+  /** Wall cells occlude sight. Lava/water block movement, not sight. */
+  private isOpaqueCell(x: number, y: number): boolean {
+    return this.tileAt(Math.floor(x), Math.floor(y)).type === 'wall';
+  }
+
+  /** F-02: grid-only perception, no camera, viewport or spawn-room shortcut. */
+  private isPerceivable(x: number, y: number): boolean {
+    return gridLineOfSight({ x, y }, {
+      center: { x: this.player.x, y: this.player.y },
+      radiusTiles: WORLD_PERCEPTION.radiusTiles,
+      isExplored: (sx, sy) => this.isExploredCell(sx, sy),
+      isOpaque: (sx, sy) => this.isOpaqueCell(sx, sy),
+      stepTiles: WORLD_PERCEPTION.losStepTiles
+    });
+  }
+
+  /**
+   * Legal read-only projection for AI adapters (see ai-native/worldObservation).
+   * Actors, boss and portal are included only when they satisfy the bounded
+   * grid radius + explored-room + LOS predicate. Portal destination, Boss phase,
+   * seed / RNG / full map never leave the World here.
+   */
+  observationView(): WorldObservationV1 {
+    const room = this.currentRoom();
+    return buildWorldObservation({
+      player: {
+        x: this.player.x, y: this.player.y, alive: this.player.alive,
+        hp: this.player.data.hp, maxHp: this.player.data.maxHp
+      },
+      roomId: room?.id ?? null,
+      enemies: this.enemies.map((enemy) => ({
+        id: enemy._id, kind: enemy.data.kind, x: enemy.x, y: enemy.y,
+        alive: enemy.alive, roomId: enemy.data.spawnRoom
+      })),
+      boss: this.boss
+        ? {
+            id: this.boss._id, x: this.boss.x, y: this.boss.y, alive: this.boss.alive,
+            hp: this.boss._hp, maxHp: this.boss.maxHp(), roomId: this.boss.spawnRoom
+          }
+        : null,
+      portal: this.portal
+        ? { x: this.portal.wx, y: this.portal.wy, targetRoom: this.portal.targetRoom ?? -1 }
+        : null,
+      perception: {
+        basis: 'grid-radius+explored+line-of-sight',
+        center: { x: this.player.x, y: this.player.y },
+        radiusTiles: WORLD_PERCEPTION.radiusTiles,
+        probeRadiusTiles: WORLD_PERCEPTION.probeRadiusTiles,
+        requiresExplored: true,
+        requiresLineOfSight: true
+      },
+      isPerceivable: (x, y) => this.isPerceivable(x, y)
+    });
+  }
+
   currentRoom(): RoomInfo | null {
     const px = this.player.x, py = this.player.y;
     for (const r of this.map.rooms) {
@@ -169,48 +718,232 @@ export class World {
     return null;
   }
 
+  private get exitRoom(): Room | undefined {
+    return this.map.rooms.find(({ kind }) => kind === 'boss' || kind === 'extraction');
+  }
+
+  private get exitUnlocked(): boolean {
+    const exit = this.exitRoom;
+    return this.map.rooms.every((room) => room === exit || room.cleared);
+  }
+
+  private isDeckExit(room: Room): boolean {
+    return this.map.deck !== undefined && room === this.exitRoom;
+  }
+
+  private get nextDeck(): number | undefined {
+    const deck = this.map.deck;
+    return deck !== undefined && deck + 1 < TOTAL_DECKS ? deck + 1 : undefined;
+  }
+
+  canMovePlayer(x: number, y: number): boolean {
+    const room = this.map.rooms[this.currentRoomId];
+    return this.canMoveInRoom(x, y, this.player.getRadius(), room?.spawned && !room.cleared ? room.id : undefined);
+  }
+
+  canMoveInRoom(x: number, y: number, radius: number, roomId?: number): boolean {
+    const room = this.map.deck !== undefined && roomId !== undefined ? this.map.rooms[roomId] : undefined;
+    if (room && (x < room.gx || x >= room.gx + room.w || y < room.gy || y >= room.gy + room.h)) return false;
+    return this.isWalkable(x, y, radius);
+  }
+
+  get roomObjective(): string {
+    const room = this.map.rooms[this.currentRoomId];
+    if (!room) return '';
+    if (this.isDeckExit(room) && !this.exitUnlocked) return 'EXIT LOCKED · CLEAR OTHER ROOMS';
+    if (room.cleared && this.isDeckExit(room) && this.nextDeck !== undefined) return `F · DESCEND TO ${deckLabel(this.nextDeck)}`;
+    if (!room.cleared && this.waves.length) return `WAVE ${this.activeWave}/${this.waves.length}`;
+    return this.portal && room.cleared ? 'F AT PORTAL · NEXT ROOM' : '';
+  }
+
   updateRoom(): void {
-    const room = this.currentRoom();
+    let room = this.currentRoom();
+    let roomChanged = false;
+    if (!room && this.currentRoomId === -1) {
+      // After a teleport transition, currentRoomId is -1 until the room is
+      // re-resolved from the player's new position.
+      room = this.map.rooms.find((r) =>
+        this._sim.player.x >= r.gx && this._sim.player.x < r.gx + r.w &&
+        this._sim.player.y >= r.gy && this._sim.player.y < r.gy + r.h
+      ) as RoomInfo | null;
+      if (room) {
+        this.currentRoomId = room.id;
+        roomChanged = true;
+      }
+    }
     if (!room) return;
-    if (room.id !== this.currentRoomId) {
+    if (roomChanged || room.id !== this.currentRoomId) {
       this.currentRoomId = room.id;
       this.onEnterRoom(room);
     }
-    // clear when all enemies in room dead
+    // clear when all enemies in room dead — but only after the room's own
+    // generation has committed (spawned) and is no longer pending.
     const inRoom = this.enemies.filter((e) => e.data.spawnRoom === room.id && e.alive);
     const r = this.map.rooms[room.id];
-    if (r.spawned && inRoom.length === 0 && !r.cleared) {
+    if (r.spawned && !this.pendingRoomEnters.has(room.id) && inRoom.length === 0 && !r.cleared &&
+        (this.map.deck === undefined || !this.boss)) {
+      if (this.map.deck !== undefined && this.activeWave < this.waves.length) {
+        this.spawnSectorWave(r);
+        return;
+      }
       r.cleared = true;
+      this.clearRoomSeal();
+      if (this.map.deck !== undefined && !this.won) this.placePortal(r);
+      this.callbacks.onRoomCleared(room);
+      r.cleared = true;
+      this.clearRoomSeal();
+      if (this.map.deck !== undefined && !this.won) this.placePortal(r);
       this.callbacks.onRoomCleared(room);
     }
   }
 
   private onEnterRoom(room: RoomInfo): void {
     const r = this.map.rooms[room.id];
+    this.activeWave = 0;
+    this.waves = [];
     this.enteredRooms.add(room.id);
-    if (!r.spawned) {
-      if (r.kind === 'boss') this.spawnBoss(r);
-      else this.spawnForRoom(r);
+    // Survey ink: entering a room is an observation; the mast's pulse draws it in.
+    if (this.renderer) {
+      const p = this.player.sprite;
+      this.renderer.observeRoom(room.id, p.x, p.y);
+    }
+    const depth = this.roomDepth.of(r.id);
+    const isNew = !r.spawned && !this.pendingRoomEnters.has(r.id);
+
+    if (isNew && this.isDeckExit(r) && !this.exitUnlocked) {
+      this.placePortal(r);
+      return;
+    }
+
+    if (isNew && this.map.deck !== undefined) {
+      if (r.kind === 'boss') {
+        this.spawnBoss(r);
+        r.spawned = true;
+      } else {
+        r.spawned = true;
+        this.waves = encounter(this.map.seed, this.map.deck, r.id, r.kind);
+        if (this.waves.length) this.spawnSectorWave(r);
+      }
       if (r.kind === 'resource' || r.kind === 'shop') this.spawnResourceLoot(r);
       this.callbacks.onRoomEntered(room);
+    } else if (isNew && r.kind === 'boss') {
+      this.enqueueSpawnBoss(r);
+      this.pendingRoomEnters.add(r.id);
+      this.callbacks.onRoomEntered(room);
+      this.placePortal(r);
+    } else if (isNew) {
+      const enemyCount = this.roomEnemyCount(r, depth);
+      const enemyPositions: Vec2[] = [];
+      for (let i = 0; i < enemyCount; i++) {
+        enemyPositions.push({
+          x: r.gx + 3 + (i % 3) * (r.w - 6) / 3,
+          y: r.gy + 3 + Math.floor(i / 3) * (r.h - 6)
+        });
+      }
+      const resourceCount = this.roomResourceCount(r, depth);
+      const resourcePositions: Vec2[] = [];
+      for (let i = 0; i < resourceCount; i++) {
+        resourcePositions.push({ x: r.gx + 2 + (i + 1) * 2, y: r.gy + 2 + (i % 2) * 2 });
+      }
+      const neighbors = r.connectedTo.filter((n) => n !== r.id);
+      enqueueCommand(this._sim, {
+        type: 'room-enter', roomId: r.id, roomKind: r.kind,
+        gx: r.gx, gy: r.gy, w: r.w, h: r.h, depth,
+        savedPortalTarget: null,
+        neighbors, enemyCount, enemyPositions, resourceCount, resourcePositions,
+        firstEnemyId: this.enemyIdCounter
+      });
+      this.enemyIdCounter += enemyCount;
+      this.bumpSimVersion();
+      this.pendingRoomEnters.add(r.id);
+      this.callbacks.onRoomEntered(room);
+      this.placePortal(r);
+      if (this.signalCollaborationOptIn && !this.signalDeviceSpawned) {
+        this.signalDeviceSpawned = true;
+        enqueueCommand(this._sim, {
+          type: 'spawn-signal-device',
+          deviceId: 'relay_main',
+          roomId: r.id,
+          x: r.gx + Math.floor(r.w / 2),
+          y: r.gy + Math.floor(r.h / 2)
+        });
+      }
+    } else if (!this.portal) {
+      this.placePortal(r);
     }
-    this.placePortal(r);
+
+    if (this.map.deck !== undefined && !r.cleared && (this.boss || this.waves.length)) this.showRoomSeal(r);
+    if (this.map.deck === undefined || r.cleared) this.placePortal(r);
+    else this.clearPortal();
+  }
+
+  private showRoomSeal(room: Room): void {
+    this.clearRoomSeal();
+    const seal = this.scene.add.graphics().setDepth(58);
+    seal.lineStyle(3, 0xff805b, 0.9);
+    const edge = (x: number, y: number, ax: number, ay: number, bx: number, by: number) => {
+      if (this.tileAt(x, y).type === 'wall') return;
+      const from = this.worldToScreen(ax, ay);
+      const to = this.worldToScreen(bx, by);
+      seal.lineBetween(from.x, from.y, to.x, to.y);
+    };
+    const right = room.gx + room.w;
+    const bottom = room.gy + room.h;
+    for (let x = room.gx; x < right; x++) {
+      edge(x, room.gy - 1, x, room.gy, x + 1, room.gy);
+      edge(x, bottom, x, bottom, x + 1, bottom);
+    }
+    for (let y = room.gy; y < bottom; y++) {
+      edge(room.gx - 1, y, room.gx, y, room.gx, y + 1);
+      edge(right, y, right, y, right, y + 1);
+    }
+    this.roomSeal = seal;
+  }
+
+  private clearRoomSeal(): void {
+    this.roomSeal?.destroy();
+    this.roomSeal = undefined;
+  }
+
+  private roomEnemyCount(r: Room, depth: number): number {
+    if (r.kind === 'start') return 0;
+    if (r.kind === 'elite') return 4 + depth;
+    if (r.kind === 'shop') return 1;
+    return 2 + depth;
+  }
+
+  private roomResourceCount(r: Room, depth: number): number {
+    // C1: resource loot exists only in resource / shop rooms. Ordinary combat
+    // and start rooms never drop resource loot.
+    if (r.kind !== 'resource' && r.kind !== 'shop') return 0;
+    return r.kind === 'shop' ? 3 : 2 + (depth % 3);
   }
 
   private placePortal(r: Room, savedTarget?: number | null): void {
+    if (this.isDeckExit(r) && r.cleared && this.nextDeck !== undefined) {
+      this.makePortal(null, this.findWalkableInRoom(r));
+      return;
+    }
     // Prefer the first step toward any unvisited room. If every room is already
     // visited, allow backtracking instead of destroying the portal and soft-locking
     // the run in a leaf room.
     let target = savedTarget ?? this.nextRoomTowardUnvisited(r.id);
     if (target === null) {
-      const neighbors = r.connectedTo.filter((n) => n !== r.id);
+      const neighbors = r.connectedTo.filter((n) => n !== r.id &&
+        (this.map.deck === undefined || this.exitUnlocked || this.map.rooms[n] !== this.exitRoom));
       if (neighbors.length === 0) {
-        if (this.portal) this.portal.spr.destroy();
-        this.portal = null;
+        this.clearPortal();
         return;
       }
-      target = this.rng.pick(neighbors);
+      // Portal target is drawn from the core RNG when the room-enter command
+      // commits; this deterministic fallback is only reachable for restored
+      // frames that did not persist a portal target.
+      target = neighbors[0];
     }
+    this.placePortalForTarget(r, target);
+  }
+
+  private placePortalForTarget(r: Room, target: number): void {
     const tr = this.map.rooms[target];
     const targetCenter = { x: tr.gx + tr.w / 2, y: tr.gy + tr.h / 2 };
 
@@ -233,12 +966,32 @@ export class World {
       }
     }
 
-    if (this.portal) { this.portal.spr.destroy(); this.portal = null; }
-    const s = this.worldToScreen(best.x, best.y);
-    const spr = this.scene.add.sprite(s.x, s.y, 'icon_pause');
-    spr.setDepth(60);
-    spr.setScale(0.8);
-    this.scene.add.tween({ targets: spr, alpha: { from: 0.4, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+    this.makePortal(target, best);
+  }
+
+  private clearPortal(): void {
+    if (!this.portal) return;
+    this.scene.tweens.killTweensOf(this.portal.spr);
+    this.portal.spr.destroy();
+    this.portal = null;
+  }
+
+  private makePortal(target: number | null, best: Vec2): void {
+    this.clearPortal();
+    // Display at the visual centre of the chosen cell; interaction still uses (best.x, best.y).
+    const s = this.worldToScreen(best.x + 0.5, best.y + 0.5);
+    const spr = this.scene.add.sprite(s.x, s.y, 'portal_beacon');
+    spr.setOrigin(0.5, 54 / 64).setDepth(DEPTH.decal + 1);
+    if (target === null) spr.setTint(0xffd233);
+    this.scene.add.tween({ targets: spr, alpha: { from: 0.65, to: 1 }, duration: 900, yoyo: true, repeat: -1 });
+    const labelText = target === null
+      ? 'F · DESCEND'
+      : `F · R-${String(target).padStart(2, '0')} ${this.map.rooms[target].kind.toUpperCase()}`;
+    const label = this.scene.add.text(s.x + 16, s.y - 58, labelText, {
+      fontFamily: FONT.mono, fontSize: '11px', color: CSS.interact
+    }).setOrigin(0, 0.5).setDepth(DEPTH.decal + 1);
+    const glow = this.scene.add.image(s.x, s.y, 'light_interact').setBlendMode(Phaser.BlendModes.ADD).setScale(0.6).setAlpha(0.35).setDepth(DEPTH.light);
+    spr.once('destroy', () => { label.destroy(); glow.destroy(); });
     this.portal = { spr, targetRoom: target, wx: best.x, wy: best.y };
   }
 
@@ -250,8 +1003,12 @@ export class World {
     let goal: number | null = null;
     while (queue.length) {
       const cur = queue.shift()!;
-      if (cur !== startId && !this.enteredRooms.has(cur)) { goal = cur; break; }
+      if (cur !== startId && (this.map.deck === undefined ? !this.enteredRooms.has(cur) : !this.map.rooms[cur].cleared)) {
+        goal = cur;
+        break;
+      }
       for (const nb of this.map.rooms[cur].connectedTo) {
+        if (this.map.deck !== undefined && !this.exitUnlocked && this.map.rooms[nb] === this.exitRoom) continue;
         if (!parent.has(nb)) { parent.set(nb, cur); queue.push(nb); }
       }
     }
@@ -310,17 +1067,59 @@ export class World {
 
   tryInteract(player: Player): void {
     if (!this.portal) return;
+    // Only an ACTIVE relay opens the exit. No device => legacy v1 run
+    // unchanged (portal always open). JAMMED/DISABLED relay keeps the gate
+    // shut: scan→confirm→ACTIVE is required to pass.
+    const sig = this.signalView();
+    if (sig && sig.relay !== 'ACTIVE') return;
+    if (this.map.deck !== undefined) {
+      const room = this.currentRoom();
+      if (!room || (!this.map.rooms[room.id].cleared && !this.isDeckExit(this.map.rooms[room.id]))) return;
+    }
     const dx = player.x - this.portal.wx, dy = player.y - this.portal.wy;
     if (Math.hypot(dx, dy) < 2.0) {
+      if (this.portal.targetRoom === null) {
+        this.callbacks.onNextDeck();
+        return;
+      }
       const target = this.map.rooms[this.portal.targetRoom];
       const landing = this.findWalkableInRoom(target);
       this.currentRoomId = -1;
       this.enteredRooms.delete(this.portal.targetRoom);
-      this.portal.spr.destroy();
-      this.portal = null;
-      player.reset(landing.x, landing.y);
+      this.clearPortal();
+      if (this.map.deck !== undefined) {
+        player.reset(landing.x, landing.y, false);
+        this.updateRoom();
+      } else {
+        // Ordinary transition is a command committed by the next core tick with
+        // a validated walkable landing; updateRoom() enters the destination and
+        // queues its spawn/portal on that tick. The companion migrates with the
+        // protagonist on that SAME tick, and the old room's armed assist +
+        // pending companion intent + echo memory are dropped (never carried into
+        // the new encounter).
+        this.echoController.clearForRoomTransition();
+        this.pendingCompanionIntent = null;
+        this.enqueueTeleport(landing.x, landing.y, true, true);
+      }
       audio.wave();
     }
+  }
+
+  private spawnSectorWave(room: Room): void {
+    const rng = dungeonRng(this.map.seed ^ Math.imul(room.id + 1, 0x27d4eb2d) ^ this.activeWave);
+    const spots: Vec2[] = [];
+    for (let x = room.gx + 1; x < room.gx + room.w - 1; x++) {
+      for (let y = room.gy + 1; y < room.gy + room.h - 1; y++) {
+        if (Math.hypot(x - this.player.x, y - this.player.y) >= 2 && this.isWalkable(x, y)) spots.push({ x, y });
+      }
+    }
+    const positions = rng.shuffle(spots);
+    const depth = this.roomDepth.of(room.id) + Math.floor((this.map.deck ?? 0) / 2);
+    for (const kind of this.waves[this.activeWave++]) {
+      const { x, y } = positions.pop() ?? this.findWalkableInRoom(room);
+      this.spawnEnemy(kind, x, y, room.id, depth);
+    }
+    audio.wave();
   }
 
   private spawnForRoom(r: Room): void {
@@ -338,22 +1137,26 @@ export class World {
   }
 
   private pickEnemyForRoom(r: Room, depth: number): EnemyKind {
-    const pool: EnemyKind[] = [];
-    if (r.kind === 'elite') pool.push('sentinel', 'hunter', 'stalker', 'drone');
-    else {
-      const roll = (r.id * 53 + depth * 11) % 4;
-      const all: EnemyKind[] = ['drone', 'stalker', 'hunter', 'sentinel'];
-      pool.push(all[roll], all[(roll + 1) % 4]);
+    if (r.kind === 'elite') {
+      const elite = ['sentinel', 'hunter', 'stalker'] as const;
+      return elite[r.id % elite.length];
     }
-    return this.rng.pick(pool);
+    const all: EnemyKind[] = ['drone', 'stalker', 'hunter', 'sentinel'];
+    return all[(r.id * 53 + depth * 11) % 4];
   }
 
   private spawnResourceLoot(r: Room): void {
+    if (this.map.deck !== undefined) {
+      const center = this.findWalkableInRoom(r);
+      this.spawnLoot(center.x - 1, center.y, 'health', 'health', 0);
+      this.spawnLoot(center.x + 1, center.y, 'currency', 'currency', 12);
+      return;
+    }
     const n = r.kind === 'shop' ? 3 : 2 + (this.roomDepth.of(r.id) % 3);
     for (let i = 0; i < n; i++) {
       const x = r.gx + 2 + (i + 1) * 2;
       const y = r.gy + 2 + (i % 2) * 2;
-      const kind = this.rng.int(0, 1) === 0 ? 'currency' : 'health';
+      const kind = (r.id + i) % 2 === 0 ? 'currency' : 'health';
       this.spawnLoot(x, y, kind, kind, kind === 'currency' ? 10 : 0);
     }
   }
@@ -365,6 +1168,23 @@ export class World {
     e._id = this.enemyIdCounter++;
     e.initHp();
     this.enemies.push(e);
+    if (kind === 'drone') {
+      const drone = registerDrone(this._sim, {
+        id: e._id, x: e.x, y: e.y, hp: e._hp, data: e.data,
+        attackTimer: e.attackTimer, wanderTimer: e.wanderTimer
+      });
+      e.attachSimDrone(drone);
+    } else {
+      const target = registerTarget(this._sim, {
+        id: e._id, kind, x: e.x, y: e.y, hp: e._hp, maxHp: e.data.stats.maxHp,
+        armor: e.data.stats.armor, radius: e.getRadius(), isBoss: false,
+        xpValue: e.data.stats.xpValue, currencyValue: e.data.stats.currencyValue
+      });
+      e.attachSimTarget(target);
+    }
+    // A direct core spawn is a committed mutation: invalidate the public
+    // read-only snapshot so the next `world.sim` reflects the new actor.
+    this.bumpSimVersion();
     return e;
   }
 
@@ -374,45 +1194,162 @@ export class World {
     this.boss = new Boss(this, landing.x, landing.y, r.id, depth);
     this.boss._id = this.enemyIdCounter++;
     this.boss.initHp();
+    // Boss room generation is now committed.
+    r.spawned = true;
+    this.pendingRoomEnters.delete(r.id);
+    const target = registerTarget(this._sim, {
+      id: this.boss._id, kind: 'boss_warden', x: this.boss.x, y: this.boss.y,
+      hp: this.boss._hp, maxHp: this.boss.maxHp(),
+      armor: ENEMY_STATS.boss_warden.armor, radius: this.boss.getRadius() + 1, isBoss: true,
+      xpValue: ENEMY_STATS.boss_warden.xpValue, currencyValue: ENEMY_STATS.boss_warden.currencyValue
+    });
+    this.boss.attachSimTarget(target);
+    this.bumpSimVersion();
   }
 
   boss: Boss | null = null;
 
-  spawnProjectile(ownerId: number, x: number, y: number, angle: number, spec: any, side: 'player' | 'enemy'): ProjectileData {
-    const shots = spec.shots ?? 1;
-    const results: ProjectileData[] = [];
-    for (let i = 0; i < shots; i++) {
-      const spread = spec.spread ?? 0;
-      const a = angle + (shots > 1 ? (i / (shots - 1) - 0.5) * spread * shots : 0);
-      const px = x + Math.cos(a) * 16 / GAME.PIXEL_TO_TILE;
-      const py = y + Math.sin(a) * 16 / GAME.PIXEL_TO_TILE;
-      const crit = this.rng.float() < spec.critChance;
-      const dmg = (crit ? spec.critDamage : 1) * spec.damage;
-      const data: ProjectileData = {
-        id: this.projIdCounter++, ownerId, side, pos: { x: px, y: py },
-        vel: { x: Math.cos(a) * spec.speed, y: Math.sin(a) * spec.speed },
-        // Collision radius is expressed in tile-world units. Convert the px-authored
-        // value, then keep a small minimum hitbox so fast bullets remain hittable
-        // without falling back to the old 6-tile "magnet" radius.
-        damage: dmg, lifetime: spec.lifetime,
-        radius: Math.max((spec.magazine > 0 && spec.kind === 'scatter' ? 5 : 6) / GAME.PIXEL_TO_TILE, 0.2),
-        crit, pierce: spec.pierce ?? 0, hitSet: new Set()
-      };
-      this.addProjectileSprite(data, spec.kind, side === 'enemy');
-      results.push(data);
-    }
-    return results[0];
+  /** Legal adapter commands: committed by the next core tick, never written live. */
+  enqueueTargetMove(targetId: number, x: number, y: number): void {
+    enqueueCommand(this._sim, { type: 'move-target', targetId, x, y });
+    this.bumpSimVersion();
   }
 
-  spawnEnemyProjectile(ownerId: number, x: number, y: number, damage: number, vel: Vec2 = { x: 0, y: 0 }): ProjectileData {
-    const data: ProjectileData = {
-      id: this.projIdCounter++, ownerId, side: 'enemy', pos: { x, y },
-      vel: { x: vel.x, y: vel.y }, damage, lifetime: 2.5,
-      radius: Math.max(6 / GAME.PIXEL_TO_TILE, 0.2),
-      crit: false, pierce: 0, hitSet: new Set()
-    };
-    this.addProjectileSprite(data, 'plasma', true);
-    return data;
+  enqueueTargetHp(targetId: number, hp: number): void {
+    enqueueCommand(this._sim, { type: 'set-target-hp', targetId, hp });
+    this.bumpSimVersion();
+  }
+
+  enqueueHeal(amount: number): void {
+    enqueueCommand(this._sim, { type: 'heal-player', amount });
+    this.bumpSimVersion();
+  }
+
+  enqueueCurrency(amount: number): void {
+    enqueueCommand(this._sim, { type: 'add-currency', amount });
+    this.bumpSimVersion();
+  }
+
+  enqueueApplyUpgrade(key: string, level: number): void {
+    enqueueCommand(this._sim, { type: 'apply-upgrade', key, level });
+    this.bumpSimVersion();
+  }
+
+  enqueueAddXp(base: number): void {
+    enqueueCommand(this._sim, { type: 'add-xp', base });
+    this.bumpSimVersion();
+  }
+
+  enqueueSpawnLoot(x: number, y: number, kind: SimLootKind, key: string, amount: number, bob = 0): void {
+    enqueueCommand(this._sim, { type: 'spawn-loot', x, y, kind, key, amount, bob });
+    this.bumpSimVersion();
+  }
+
+  #setPlayerData(data: PlayerData): void {
+    this._sim.player.data = JSON.parse(JSON.stringify(data)) as PlayerData;
+  }
+
+  #resetPlayer(x: number, y: number): void {
+    const recovered = ensureWalkableFromState(this._sim, { x, y });
+    this._sim.player.x = recovered.x;
+    this._sim.player.y = recovered.y;
+    this._sim.player.data.hp = this._sim.player.data.maxHp;
+    this._sim.player.invuln = 1.0;
+    this._sim.player.fireTimer = 0;
+    this.bumpSimVersion();
+  }
+
+  /** Core-owned equip transaction; UI calls this instead of writing player.data. */
+  enqueueEquipWeapon(key: string): boolean {
+    enqueueCommand(this._sim, { type: 'equip-weapon', key });
+    this.bumpSimVersion();
+    return true;
+  }
+
+  /** Deck transition: carry the previous deck's player data into the new scene. Deep-copied; used only by a new-run scene transition (never mid-tick). */
+  applyTransitionPlayerData(data: PlayerData): void {
+    this.#setPlayerData(data);
+    this.bumpSimVersion();
+  }
+
+  /** Fixture/Owner-only full-state write. Normal gameplay must use semantic
+   *  commands (purchase-supply / heal-player / add-currency / equip-weapon...).
+   *  Guarded by dev/test so a live Player cannot overwrite HP/currency wholesale. */
+  enqueueSetPlayerData(data: PlayerData): void {
+    World.assertDevTest();
+    enqueueCommand(this._sim, { type: 'set-player-data', data });
+    this.bumpSimVersion();
+  }
+
+  /** Queues an atomic supply purchase; the core validates offer, room safety,
+   *  balance and eligibility at commit time and emits a receipt event. */
+  enqueuePurchaseSupply(transactionId: string, offerKey: string, roomId: number): void {
+    enqueueCommand(this._sim, { type: 'purchase-supply', transactionId, offerKey, roomId });
+    this.bumpSimVersion();
+  }
+
+  /** Committed supply receipt for a transaction id, if already processed. */
+  getSupplyReceipt(transactionId: string) {
+    return this.supplyReceipts.get(transactionId);
+  }
+
+  /** Read-only: the weapon key queued by an equip-weapon command, if any. */
+  getPendingEquipWeapon(): string | null {
+    for (const command of this._sim.pendingCommands) {
+      if (command.type === 'equip-weapon') return command.key;
+    }
+    return null;
+  }
+
+  /** Queues an enemy/Boss spawn; committed at the start of the next core tick. */
+  enqueueSpawnEnemy(kind: EnemyKind, x: number, y: number, room: number, depth: number): void {
+    this.worldSpawns.push({ kind, x, y, room, depth });
+    this.bumpSimVersion();
+  }
+
+  enqueueSpawnBoss(room: Room): void {
+    this.worldSpawns.push({ kind: 'boss_warden', x: 0, y: 0, room: room.id, depth: this.roomDepth.of(room.id), boss: room });
+    this.bumpSimVersion();
+  }
+
+  private processWorldSpawns(): void {
+    if (this.worldSpawns.length === 0) return;
+    const queue = this.worldSpawns;
+    this.worldSpawns = [];
+    for (const entry of queue) {
+      if (entry.boss) this.spawnBoss(entry.boss);
+      else this.spawnEnemy(entry.kind, entry.x, entry.y, entry.room, entry.depth);
+    }
+  }
+
+  /** Sector-compat alias: fire a projectile at an angle with a damage spec.
+   *  Used by sector bosses; side is cosmetic here because core spawn commands
+   *  are side-agnostic for collision. */
+  spawnProjectile(ownerId: number, x: number, y: number, angle: number, spec: {
+    damage: number; speed: number; critChance?: number; critDamage?: number;
+    pierce?: number; lifetime?: number; kind?: string; shots?: number; spread?: number;
+  }, side: 'player' | 'enemy' = 'enemy'): void {
+    const speed = Number.isFinite(spec.speed) ? spec.speed : 160;
+    const damage = Number.isFinite(spec.damage) ? spec.damage : 1;
+    const vel = { x: Math.cos(angle) * speed / GAME.PIXEL_TO_TILE, y: Math.sin(angle) * speed / GAME.PIXEL_TO_TILE };
+    this.spawnEnemyProjectile(ownerId, x, y, damage, vel, spec.lifetime);
+  }
+
+  /** Queues a validated room teleport; committed by the next core tick. */
+  enqueueTeleport(x: number, y: number, healToFull = true, migrateEcho = false): void {
+    enqueueCommand(this._sim, { type: 'teleport-player', x, y, healToFull, migrateEcho });
+    this.bumpSimVersion();
+  }
+
+  /** Queues a legacy ranged attack; core commits it on the next tick. */
+  spawnEnemyProjectile(ownerId: number, x: number, y: number, damage: number, vel: Vec2 = { x: 0, y: 0 }, lifetime?: number): void {
+    enqueueCommand(this._sim, { type: 'spawn-enemy-projectile', ownerId, x, y, damage, vel, lifetime });
+    this.bumpSimVersion();
+  }
+
+  /** Explicit sprite cleanup helper used by compatibility tests. */
+  private destroyProjectileSprite(p: { spr: Phaser.GameObjects.Sprite }): void {
+    if (p.spr && p.spr.scene) p.spr.destroy();
   }
 
   private projSprite(kind: any, enemy: boolean): string {
@@ -421,22 +1358,9 @@ export class World {
     return map[kind] ?? 'proj_pulse';
   }
 
-  private addProjectileSprite(data: ProjectileData, kind: any, enemy: boolean): void {
-    const s = this.worldToScreen(data.pos.x, data.pos.y);
-    const spr = this.scene.add.sprite(s.x, s.y, this.projSprite(kind, enemy));
-    spr.setDepth(80);
-    spr.setScale(enemy ? 1.4 : 1.1);
-    if (enemy) spr.setTint(0xff5533);
-    this.projectiles.push({ spr, data });
-  }
-
-  spawnLoot(x: number, y: number, kind: ItemKind, key: string, amount: number, bob = Math.random() * Math.PI * 2): void {
-    const drop: LootDrop = { x, y, kind, key, amount, bob };
-    const color = kind === 'health' ? 0xff3355 : kind === 'currency' ? 0xffd233 : 0x33e0ff;
-    const s = this.worldToScreen(x, y);
-    const spr = this.scene.add.sprite(s.x, s.y, 'icon_' + (kind === 'currency' ? 'currency' : kind === 'health' ? 'health' : 'upgrade'));
-    spr.setDepth(70);
-    this.loot.push({ spr, data: drop });
+  /** Queues a visible loot drop; core owns the data and the pickup transaction. */
+  spawnLoot(x: number, y: number, kind: ItemKind, key: string, amount: number, bob = 0): void {
+    this.enqueueSpawnLoot(x, y, kind as SimLootKind, key, amount, bob);
   }
 
   // ---------- FX ----------
@@ -445,203 +1369,565 @@ export class World {
     this.shakeAmount = Math.min(18, this.shakeAmount + mag);
   }
 
-  /** Takes world-grid coordinates; the text object is placed in display space. */
-  addDamageNumber(x: number, y: number, amount: number, crit: boolean): void {
+  /**
+   * Takes world-grid coordinates; the text object is placed in display space.
+   * AR-02: numbers start above the head and successive hits on the same target are
+   * staggered horizontally (03 §4: ±8 px × index) so "12 22 2" no longer stacks.
+   */
+  addDamageNumber(x: number, y: number, amount: number, crit: boolean, targetId = -1, headPx = 48): void {
     const s = this.worldToScreen(x, y);
-    const t = this.scene.add.text(s.x, s.y - 20, Math.round(amount).toString(), {
-      fontFamily: 'monospace', fontSize: '14px', fontStyle: 'bold',
-      color: crit ? '#ffd233' : '#ffb060', stroke: '#000', strokeThickness: 3
-    }).setOrigin(0.5, 0.5).setDepth(400);
+    const st = this.damageStack.get(targetId);
+    const n = st && this.clock - st.t < 0.6 ? st.n + 1 : 0;
+    this.damageStack.set(targetId, { t: this.clock, n });
+    const k = n % 5;
+    const dx = k === 0 ? 0 : (k % 2 ? 1 : -1) * 8 * Math.ceil(k / 2);
+    const t = this.scene.add.text(s.x + dx, s.y - headPx, crit ? `${Math.round(amount)}×` : Math.round(amount).toString(), {
+      fontFamily: FONT.mono, fontSize: crit ? '17px' : '13px', fontStyle: 'bold',
+      color: crit ? CSS.priority : CSS.known, stroke: CSS.shadow, strokeThickness: 3
+    }).setOrigin(0.5, 1).setDepth(DEPTH.label);
     t.setAlpha(1);
-    this.scene.tweens.add({ targets: t, y: s.y - 44, alpha: 0, duration: 800, onComplete: () => t.destroy() });
-    this.damageTexts.push(t);
+    this.scene.tweens.add({ targets: t, y: s.y - headPx - 22, alpha: 0, duration: 800, ease: 'Cubic.easeOut', onComplete: () => t.destroy() });
   }
 
-  /** Takes world-grid coordinates; fx are drawn directly in display space by updateFx(). */
+  /** Takes world-grid coordinates; drawn by CombatVfx as survey ink debris. */
   addHitFx(x: number, y: number, color: number): void {
     const s = this.worldToScreen(x, y);
-    this.fx.push({ x: s.x, y: s.y, color, life: 0.3, vy: 0 });
+    this.vfx.impact(s.x, s.y - 4, color, false, 3);
+  }
+
+  /** Dash: two bone afterimages + a ground drag mark (03 §8 Special). Visual only. */
+  onDash(): void {
+    const p = this.player.sprite;
+    const from = { x: p.x, y: p.y };
+    for (let i = 0; i < 2; i++) {
+      this.scene.time.delayedCall(i * 40, () => {
+        if (!p.scene) return;
+        const ghost = this.scene.add.image(p.x, p.y, p.texture.key, p.frame.name)
+          .setOrigin(p.originX, p.originY).setScale(p.scaleX, p.scaleY).setFlipX(p.flipX)
+          .setAlpha(0.35).setDepth(p.depth - 0.001).setBlendMode(Phaser.BlendModes.ADD);
+        this.scene.tweens.add({ targets: ghost, alpha: 0, duration: 160, onComplete: () => ghost.destroy() });
+      });
+    }
+    this.scene.time.delayedCall(140, () => { if (p.scene) this.vfx.drag(from.x, from.y, p.x, p.y); });
   }
 
   // ---------- Update ----------
 
-  update(dt: number): void {
+  /** C2: fixed 60Hz core ticks; render frame delta is only an accumulator input. */
+  stepFrame(frameDeltaMs: number, intent: SimulationIntent, echoIntentOverride?: SimulationIntent): SimEvent[] {
+    const delta = Math.max(0, Math.min(frameDeltaMs, SIM_TUNING.MAX_FRAME_DELTA_MS));
+    this.simAccumulatorMs += delta;
+    // Epsilon: 250ms must yield exactly 15 ticks despite binary rounding.
+    let ticks = Math.floor((this.simAccumulatorMs + 1e-9) / SIM_TUNING.TICK_MS);
+    if (ticks > SIM_TUNING.MAX_TICKS_PER_FRAME) {
+      ticks = SIM_TUNING.MAX_TICKS_PER_FRAME;
+      // Drop the excess instead of catching up on later frames.
+      this.simAccumulatorMs = Math.max(0, this.simAccumulatorMs % SIM_TUNING.TICK_MS);
+    } else {
+      this.simAccumulatorMs = Math.max(0, this.simAccumulatorMs - ticks * SIM_TUNING.TICK_MS);
+    }
+    let events: SimEvent[] = [];
+    if (ticks > 0) {
+      // World-level spawns and ordinary room spawns commit at the tick boundary.
+      this.processWorldSpawns();
+      // P3-a: the echo decides BEFORE the tick from its own perception, then the
+      // same core tick commits its move/fire. No separate state mutation.
+      // An explicit echo intent is used ONLY by the parity/diagnostic driver;
+      // normal rendered play always takes the EchoController decision.
+      const echoIntent = this.pendingCompanionIntent ?? echoIntentOverride
+        ?? (this.echoView() ? this.echoController.decide(this.echoView()!) : undefined);
+      this.pendingCompanionIntent = null;
+      // C3-b fix: an external action's intent must be delivered for EXACTLY
+      // its remaining integer core ticks. If one frame contains more ticks than
+      // the action has left, split the core call so the surplus ticks run with
+      // a neutral intent. Counting is by core ticks, never by RAF frames.
+      const active = this.externalLink.activeExecution;
+      if (active && active.remainingTicks > 0 && ticks > active.remainingTicks) {
+        const first = active.remainingTicks;
+        events = stepSimulationTicks(this._sim, first, intent, echoIntent);
+        this.externalLink.advanceExecution(first, this._sim.tick, this.externalLink.epoch);
+        const rest = ticks - first;
+        if (rest > 0) {
+          const neutral: SimulationIntent = {
+            move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false
+          };
+          events.push(...stepSimulationTicks(this._sim, rest, neutral, echoIntent));
+        }
+      } else {
+        events = stepSimulationTicks(this._sim, ticks, intent, echoIntent);
+        if (active) {
+          this.externalLink.advanceExecution(ticks, this._sim.tick, this.externalLink.epoch);
+        }
+      }
+      this.applySimEvents(events);
+      this.bumpSimVersion();
+    }
+    this.syncCoreEntities(delta / 1000);
+    if (ticks > 0) this.updateLegacy(delta / 1000);
+    return events;
+  }
+
+  resetSimulationAccumulator(): void { this.simAccumulatorMs = 0; }
+
+  /** Legacy melee/attack adapter: queue a player hit; core commits it next tick. */
+  enqueuePlayerHit(damage: number, fromX: number, fromY: number): void {
+    enqueuePlayerHit(this._sim, damage, fromX, fromY);
+  }
+
+  /**
+   * Strict dev/test-only diagnostic facade. It must NOT be used as official
+   * Node/Rendered parity evidence (parity drives stepFrame/accumulator).
+   */
+  stepSimulationTicksForTest(ticks: number, intent: SimulationIntent): SimEvent[] {
+    if (!__LAST_SIGNAL_DEV_TEST__) throw new Error('dev/test only');
+    const events = stepSimulationTicks(this._sim, Math.max(0, Math.floor(ticks)), intent);
+    this.applySimEvents(events);
+    this.syncCoreEntities(0);
+    return events;
+  }
+
+  private applySimEvents(events: SimEvent[]): void {
+    for (const event of events) {
+      switch (event.type) {
+        case 'player-moved':
+          if (event.dashStarted) { this.addShake(4); audio.ui(); }
+          break;
+        case 'player-fired':
+          this.player.playFireFeedback(event.spec.kind);
+          break;
+        case 'echo-fired':
+          this.echoController.suggestion = null;
+          this.echoShotsFired += 1;
+          break;
+        case 'echo-moved':
+          if (event.dashStarted) this.addShake(2);
+          break;
+        case 'echo-hurt':
+          this.addShake(3);
+          break;
+        case 'echo-death':
+          this.echoController.reset();
+          this.addShake(6);
+          break;
+        case 'echo-spawned':
+        case 'echo-despawned':
+          break;
+        case 'drone-step': {
+          const enemy = this.enemies.find((e) => e._id === event.droneId);
+          if (enemy && event.step.faceAngle !== null) enemy.sprite.setRotation(event.step.faceAngle);
+          break;
+        }
+        case 'enemy-hit': {
+          if (this.boss && this.boss._id === event.enemyId) {
+            this.boss.hitFlash = event.hit.hitFlash;
+            this.boss.syncPhaseFromHp();
+            this.addDamageNumber(this.boss.x, this.boss.y, event.damage, event.crit);
+            this.callbacks.onStats({ enemies: 0, items: 0, dmg: event.damage });
+          } else {
+            const enemy = this.enemies.find((e) => e._id === event.enemyId);
+            if (enemy) {
+              enemy.data.hitFlash = event.hit.hitFlash;
+              enemy.applyVisual();
+              this.addDamageNumber(enemy.x, enemy.y, event.damage, event.crit);
+              this.callbacks.onStats({ enemies: 0, items: 0, dmg: event.damage });
+            }
+          }
+          break;
+        }
+        case 'enemy-died': {
+          if (this.boss && this.boss._id === event.enemyId) this.killBoss();
+          else {
+            const enemy = this.enemies.find((e) => e._id === event.enemyId);
+            if (enemy) this.killEnemy(enemy);
+          }
+          break;
+        }
+        case 'enemy-spawned': {
+          const e = new Enemy(this, event.kind as EnemyKind, event.x, event.y, event.room, this.roomDepth.of(event.room));
+          e._id = event.id;
+          e.initHp();
+          if (event.kind === 'drone') {
+            const droneState = this._sim.drones.find((d) => d.id === event.id);
+            if (droneState) e.attachExistingSimDrone(droneState);
+          } else {
+            const targetState = this._sim.targets.find((t) => t.id === event.id);
+            if (targetState) e.attachExistingSimTarget(targetState);
+          }
+          this.enemies.push(e);
+          break;
+        }
+        case 'player-hurt':
+          this.player.syncVisual();
+          audio.hurt();
+          this.addShake(6);
+          break;
+        case 'player-death':
+          this.onPlayerDeath();
+          break;
+        case 'player-healed':
+          this.player.syncVisual();
+          audio.pickup();
+          break;
+        case 'currency-gained':
+        case 'xp-gained':
+          this.player.syncVisual();
+          break;
+        case 'player-levelup':
+          this.onLevelUp(event.level);
+          break;
+        case 'player-upgraded':
+          this.player.syncVisual();
+          break;
+        case 'supply-purchase-result':
+          this.supplyReceipts.set(event.transactionId, {
+            transactionId: event.transactionId, offerKey: event.offerKey, roomId: event.roomId,
+            ok: event.ok, reason: event.reason, price: event.price,
+            currency: event.currency, hp: event.hp, weaponKey: event.weaponKey
+          });
+          // Receipts are a bounded UI cache, not the authority: drop the oldest
+          // entries once past the ledger cap. The core ledger stays authoritative.
+          while (this.supplyReceipts.size > PURCHASE_LEDGER_CAP) {
+            const oldest = this.supplyReceipts.keys().next().value as string | undefined;
+            if (oldest === undefined) break;
+            this.supplyReceipts.delete(oldest);
+          }
+          this.player.syncVisual();
+          break;
+        case 'enemy-spawned':
+          this.spawnEnemyFromCore(event as any);
+          break;
+        case 'room-generated': {
+          const room = this.map.rooms[event.roomId];
+          if (room) {
+            // The room's generation has now committed: enemies/loot exist.
+            // Only from here on may updateRoom() evaluate the cleared state.
+            room.spawned = true;
+            this.pendingRoomEnters.delete(room.id);
+          }
+          if (room && event.portalTarget !== null && event.portalTarget !== undefined) {
+            this.placePortalForTarget(room, event.portalTarget);
+          }
+          break;
+        }
+        case 'loot-dropped':
+          this.syncCoreLoot();
+          break;
+        case 'loot-collected':
+          this.syncCoreLoot();
+          this.callbacks.onStats({ enemies: 0, items: 1, dmg: 0 });
+          this.addHitFx(event.x, event.y, event.kind === 'health' ? 0xff3355 : 0xffd233);
+          break;
+        case 'projectile-wall':
+          this.addHitFx(event.x, event.y, 0x88aacc);
+          break;
+      }
+    }
+  }
+
+  private spawnEnemyFromCore(event: { id: number; kind: string; x: number; y: number; room: number }): void {
+    if (this.enemies.some((e) => e._id === event.id)) return;
+    const droneState = this._sim.drones.find((d) => d.id === event.id);
+    const targetState = this._sim.targets.find((t) => t.id === event.id);
+    if (!droneState && !targetState) return;
+    const e = new Enemy(this, event.kind as EnemyKind, event.x, event.y, event.room, this.roomDepth.of(event.room));
+    e._id = event.id;
+    if (droneState) e.attachExistingSimDrone(droneState);
+    else if (targetState) e.attachExistingSimTarget(targetState);
+    this.enemies.push(e);
+  }
+
+  private syncCoreEntities(dt: number): void {
+    this.player.syncVisual(dt);
+    this.syncEchoVisual();
+    this.syncSignalVisual();
+    this.syncCoreLoot();
+    for (const drone of this._sim.drones) {
+      const enemy = this.enemies.find((e) => e._id === drone.id);
+      if (enemy) enemy.applyVisual();
+    }
+    const alive = new Set<number>();
+    for (const projectile of this._sim.projectiles) {
+      alive.add(projectile.id);
+      let view = this.coreProjectileViews.get(projectile.id);
+      if (!view) {
+        const screen = this.worldToScreen(projectile.pos.x, projectile.pos.y);
+        const spr = this.scene.add.sprite(screen.x, screen.y, this.projSprite(projectile.kind, projectile.side === 'enemy'));
+        spr.setDepth(80);
+        spr.setScale(projectile.side === 'enemy' ? 1.4 : 1.1);
+        if (projectile.side === 'enemy') spr.setTint(0xff5533);
+        view = { spr, data: projectile };
+        this.coreProjectileViews.set(projectile.id, view);
+      }
+      view.data = projectile;
+      const screen = this.worldToScreen(projectile.pos.x, projectile.pos.y);
+      view.spr.setPosition(screen.x, screen.y);
+    }
+    for (const [id, view] of this.coreProjectileViews) {
+      if (alive.has(id)) continue;
+      if (view.spr.scene) view.spr.destroy();
+      this.coreProjectileViews.delete(id);
+    }
+  }
+
+  /** Code-native companion visuals: distinct body, facing wedge, target line. */
+  private syncEchoVisual(): void {
+    const echo = this._sim.echo;
+    if (!echo) {
+      if (this.echoSprite) { this.echoSprite.destroy(); this.echoSprite = null; }
+      if (this.echoLine) { this.echoLine.destroy(); this.echoLine = null; }
+      return;
+    }
+    if (!this.echoSprite) {
+      const g = this.scene.add.graphics();
+      g.fillStyle(0x33e0ff, 1); g.fillCircle(0, 0, 10);
+      g.lineStyle(2, 0xffffff, 0.9); g.strokeCircle(0, 0, 10);
+      g.fillStyle(0xeafaff, 1); g.fillTriangle(11, 0, 2, -5, 2, 5);
+      this.echoSprite = this.scene.add.container(0, 0, [g]).setDepth(75);
+    }
+    const screen = this.worldToScreen(echo.x, echo.y);
+    this.echoSprite.setPosition(screen.x, screen.y);
+    this.echoSprite.setRotation(echo.aimYaw);
+    this.echoSprite.setAlpha(echo.data.hp > 0 ? 1 : 0.25);
+    if (!this.echoLine) this.echoLine = this.scene.add.graphics().setDepth(74);
+    this.echoLine.clear();
+    const view = this.echoView();
+    let target: { x: number; y: number } | null = null;
+    let bestD = Infinity;
+    for (const drone of [...(view?.drones ?? []), ...(view?.targets ?? [])]) {
+      const d = Math.hypot(drone.x - echo.x, drone.y - echo.y);
+      if (d < bestD) { target = drone; bestD = d; }
+    }
+    if (target) {
+      const t = this.worldToScreen(target.x, target.y);
+      this.echoLine.lineStyle(1, 0x33e0ff, this.echoController.assistConfirmed ? 0.6 : 0.25);
+      this.echoLine.lineBetween(screen.x, screen.y, t.x, t.y);
+    }
+  }
+
+  /** Code-native relay visual: device sprite coloured by relay state plus a
+   *  target line from ECHO to the relay when alive and discovered/in range.
+   *  No hidden state. */
+  private syncSignalVisual(): void {
+    const sig = this._sim.signal;
+    if (!sig) {
+      if (this.signalSprite) { this.signalSprite.destroy(); this.signalSprite = null; }
+      if (this.signalLine) { this.signalLine.destroy(); this.signalLine = null; }
+      return;
+    }
+    const color = sig.relay === 'ACTIVE' ? 0x00ff77
+      : sig.relay === 'JAMMED' ? 0xff3333
+      : sig.relay === 'DISABLED' ? 0x444444
+      : 0x7777ff;
+    if (!this.signalSprite) {
+      const g = this.scene.add.graphics();
+      g.fillStyle(color, 1); g.fillCircle(0, 0, 9);
+      g.lineStyle(2, 0xffffff, 0.9); g.strokeCircle(0, 0, 9);
+      g.fillStyle(0xeafaff, 1); g.fillTriangle(10, 0, 2, -5, 2, 5);
+      this.signalSprite = this.scene.add.container(0, 0, [g]).setDepth(75);
+    } else {
+      const g = this.signalSprite.getAt(0) as Phaser.GameObjects.Graphics;
+      g.clear();
+      g.fillStyle(color, 1); g.fillCircle(0, 0, 9);
+      g.lineStyle(2, 0xffffff, 0.9); g.strokeCircle(0, 0, 9);
+      g.fillStyle(0xeafaff, 1); g.fillTriangle(10, 0, 2, -5, 2, 5);
+    }
+    const screen = this.worldToScreen(sig.x, sig.y);
+    this.signalSprite.setPosition(screen.x, screen.y);
+
+    const echo = this._sim.echo;
+    if (!this.signalLine) this.signalLine = this.scene.add.graphics().setDepth(74);
+    this.signalLine.clear();
+    if (echo && echo.data.hp > 0) {
+      const discovered = sig.evidence.some((e) => e.id === sig.deviceId);
+      const within = Math.hypot(echo.x - sig.x, echo.y - sig.y) <= 12;
+      if (discovered || within) {
+        const t = this.worldToScreen(sig.x, sig.y);
+        const eScreen = this.worldToScreen(echo.x, echo.y);
+        this.signalLine.lineStyle(1, color, sig.relay === 'ACTIVE' ? 0.8 : 0.5);
+        this.signalLine.lineBetween(eScreen.x, eScreen.y, t.x, t.y);
+      }
+    }
+  }
+
+  /**
+   * Legal, echo-centred visibility for an enemy: the same grid radius +
+   * explored-room + wall LOS predicate used by the companion. Enemies never
+   * learn about an actor they cannot see.
+   */
+  private isActorVisibleFrom(self: { x: number; y: number }, x: number, y: number): boolean {
+    return gridLineOfSight({ x, y }, {
+      center: { x: self.x, y: self.y },
+      radiusTiles: WORLD_PERCEPTION.radiusTiles,
+      isExplored: (sx, sy) => this.isExploredCell(sx, sy),
+      isOpaque: (sx, sy) => this.isOpaqueCell(sx, sy),
+      stepTiles: WORLD_PERCEPTION.losStepTiles
+    });
+  }
+
+  /**
+   * Read-only actor view + legal damage facade for legacy enemies. The player is
+   * always a candidate (frozen no-echo behaviour); the ECHO is only a candidate
+   * when it is actually visible to that enemy. Ties keep the player.
+   */
+  private enemyCombatPort(self: { x: number; y: number }): ActorCombatPort | null {
+    const candidates: ActorTargetView[] = [];
+    if (this._sim.player.data.hp > 0) {
+      candidates.push({
+        actorId: 0, kind: 'player',
+        x: this._sim.player.x, y: this._sim.player.y,
+        hp: this._sim.player.data.hp, alive: true
+      });
+    }
+    const echo = this._sim.echo;
+    if (echo && echo.data.hp > 0 && this.isActorVisibleFrom(self, echo.x, echo.y)) {
+      candidates.push({
+        actorId: ECHO_ACTOR_ID, kind: 'echo',
+        x: echo.x, y: echo.y, hp: echo.data.hp, alive: true
+      });
+    }
+    const target = chooseNearestActor(self, candidates);
+    if (!target) return null;
+    return {
+      target,
+      hurtTarget: (amount: number, fromX: number, fromY: number): boolean => {
+        if (target.kind === 'player') return this.player.hurt(amount, fromX, fromY);
+        // Echo damage is a queued core command; the legacy adapter never writes
+        // authoritative HP and never bypasses processCommands.
+        enqueueEchoHit(this._sim, amount, fromX, fromY);
+        this.bumpSimVersion();
+        return true;
+      }
+    };
+  }
+
+  private updateLegacy(dt: number): void {
     this.clock += dt;
-    this.player.update(dt);
-    // enemies
     for (const e of this.enemies) {
-      e.update(dt, this.player);
-      e.applyVisual();
+      if (e.data.kind === 'drone') continue; // core owns drone FSM and timers
+      const port = this.enemyCombatPort(e);
+      if (port) e.update(dt, port);
+      e.applyVisual(dt, this.clock);
     }
     if (this.boss) {
-      this.boss.update(dt, this.player);
+      const port = this.enemyCombatPort(this.boss);
+      if (port) this.boss.update(dt, port);
     }
-    this.updateProjectiles(dt);
-    this.updateLoot(dt);
-    this.updateFx(dt);
     this.updateRoom();
+    this.player.updateView(dt);
+    this.updateFx(dt);
     this.updateCamera(dt);
-    if (this.renderer) this.renderer.updateLight(this.player.wx, this.player.wy);
+    if (this.renderer) {
+      this.renderer.update(dt);
+      this.renderer.updateLight(this.player.wx, this.player.wy);
+    }
     this.shakeAmount = Math.max(0, this.shakeAmount - dt * 10);
   }
 
-  /** Shortest distance from point P to segment AB; used for swept projectile hits. */
-  private segmentPointDistance(ax: number, ay: number, bx: number, by: number, px: number, py: number): number {
-    const dx = bx - ax, dy = by - ay;
-    const l2 = dx * dx + dy * dy;
-    if (l2 <= 1e-9) return Math.hypot(px - ax, py - ay);
-    let t = ((px - ax) * dx + (py - ay) * dy) / l2;
-    t = Math.max(0, Math.min(1, t));
-    const cx = ax + t * dx, cy = ay + t * dy;
-    return Math.hypot(px - cx, py - cy);
-  }
-
-  /** Remove a projectile's display sprite exactly once (reset()/other paths may have done it already). */
-  private destroyProjectileSprite(p: { spr: Phaser.GameObjects.Sprite; data: ProjectileData }): void {
-    if (p.spr && p.spr.scene) p.spr.destroy();
-  }
-
-  private updateProjectiles(dt: number): void {
-    const remaining: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
-    for (const p of this.projectiles) {
-      const prevX = p.data.pos.x;
-      const prevY = p.data.pos.y;
-      p.data.pos.x += p.data.vel.x * dt;
-      p.data.pos.y += p.data.vel.y * dt;
-      p.data.lifetime -= dt;
-      const s = this.worldToScreen(p.data.pos.x, p.data.pos.y);
-      p.spr.setPosition(s.x, s.y);
-      const t = this.tileAt(p.data.pos.x, p.data.pos.y);
-      const hitWall = t.type === 'wall';
-      const expired = p.data.lifetime <= 0 || hitWall ||
-        p.data.pos.x < -40 || p.data.pos.x > this.map.width + 40 ||
-        p.data.pos.y < -40 || p.data.pos.y > this.map.height + 40;
-      if (expired) {
-        if (hitWall) this.addHitFx(p.data.pos.x, p.data.pos.y, 0x88aacc);
-        // lifetime / hitWall / out-of-bounds: the entry leaves the array, so the sprite must go too.
-        this.destroyProjectileSprite(p);
-        continue;
+  private syncCoreLoot(): void {
+    const alive = new Set<number>();
+    for (const loot of this._sim.loot) {
+      alive.add(loot.id);
+      let view = this.coreLootViews.get(loot.id);
+      if (!view) {
+        const s = this.worldToScreen(loot.x, loot.y);
+        const kind = loot.kind as ItemKind;
+        const spr = this.scene.add.sprite(s.x, s.y, 'icon_' + (kind === 'currency' ? 'currency' : kind === 'health' ? 'health' : 'upgrade'));
+        spr.setDepth(70);
+        view = { spr, data: { x: loot.x, y: loot.y, kind, key: loot.key, amount: loot.amount, bob: loot.bob } };
+        this.coreLootViews.set(loot.id, view);
       }
-      // Swept collision: a fast bullet can cross a small hitbox between frames.
-      const hit = (tx: number, ty: number, targetRadius: number): boolean =>
-        this.segmentPointDistance(prevX, prevY, p.data.pos.x, p.data.pos.y, tx, ty)
-          <= targetRadius + p.data.radius;
-      // collisions
-      let alive = true;
-      if (p.data.side === 'player') {
-        for (const e of this.enemies) {
-          if (e._hp <= 0 || p.data.hitSet.has(e._id)) continue;
-          if (hit(e.x, e.y, e.getRadius())) {
-            const dmg = p.data.damage;
-            e.hit(dmg, p.data.pos);
-            this.addDamageNumber(e.x, e.y, dmg, p.data.crit);
-            this.callbacks.onStats({ enemies: 0, items: 0, dmg: dmg });
-            if (e._hp <= 0) this.killEnemy(e);
-            if (p.data.pierce > 0) { p.data.pierce--; p.data.hitSet.add(e._id); }
-            else { alive = false; break; }
-          }
-        }
-        if (this.boss && this.boss._hp > 0 && !p.data.hitSet.has(this.boss._id)) {
-          if (hit(this.boss.x, this.boss.y, this.boss.getRadius() + 1)) {
-            const dmg = p.data.damage;
-            this.boss.hit(dmg, p.data.pos);
-            this.addDamageNumber(this.boss.x, this.boss.y, dmg, p.data.crit);
-            this.callbacks.onStats({ enemies: 0, items: 0, dmg: dmg });
-            if (this.boss._hp <= 0) this.killBoss();
-            if (p.data.pierce > 0) { p.data.pierce--; p.data.hitSet.add(this.boss._id); }
-            else { alive = false; }
-          }
-        }
-      } else {
-        if (this.player.alive && hit(this.player.x, this.player.y, this.player.getRadius())) {
-          this.player.hurt(p.data.damage, p.data.pos.x, p.data.pos.y);
-          alive = false;
-        }
-      }
-      // Anything that is no longer alive (hit an enemy / boss / player, without pierce)
-      // also has to release its sprite instead of becoming a ghost on screen.
-      if (alive) remaining.push(p);
-      else this.destroyProjectileSprite(p);
+      view.data = { x: loot.x, y: loot.y, kind: loot.kind as ItemKind, key: loot.key, amount: loot.amount, bob: loot.bob };
+      const screen = this.worldToScreen(loot.x, loot.y);
+      view.spr.setPosition(screen.x, screen.y);
     }
-    this.projectiles = remaining;
-  }
-
-  private updateLoot(dt: number): void {
-    const remaining: Array<{ spr: Phaser.GameObjects.Sprite; data: LootDrop }> = [];
-    for (const l of this.loot) {
-      l.data.bob += dt * 4;
-      const dx = this.player.x - l.data.x, dy = this.player.y - l.data.y;
-      const d = Math.hypot(dx, dy);
-      // magnet
-      if (d > 0 && d < this.player.data.pickupRange) {
-        const pull = 120 * (1 - d / this.player.data.pickupRange);
-        l.data.x += (dx / d) * pull * dt;
-        l.data.y += (dy / d) * pull * dt;
-        const s = this.worldToScreen(l.data.x, l.data.y);
-        l.spr.setPosition(s.x, s.y);
-      }
-      if (d < this.player.getRadius() + 12) {
-        // Collected drops must remove their display sprite too, otherwise the
-        // icon stays on screen forever after the item was already banked.
-        l.spr.destroy();
-        this.collectLoot(l.data);
-        continue;
-      }
-      remaining.push(l);
+    for (const [id, view] of this.coreLootViews) {
+      if (alive.has(id)) continue;
+      if (view.spr.scene) view.spr.destroy();
+      this.coreLootViews.delete(id);
     }
-    this.loot = remaining;
-  }
-
-  private collectLoot(drop: LootDrop): void {
-    switch (drop.kind) {
-      case 'health': this.player.heal(30); break;
-      case 'currency': this.player.data.currency += drop.amount || 10; break;
-      case 'restore': this.player.heal(this.player.data.maxHp); break;
-    }
-    this.callbacks.onStats({ enemies: 0, items: 1, dmg: 0 });
-    // spawn a pickup visual flash
-    this.addHitFx(drop.x, drop.y, drop.kind === 'health' ? 0xff3355 : 0xffd233);
   }
 
   private updateFx(dt: number): void {
-    // draw hit flashes
-    this.fxGraphics.clear();
-    for (const f of this.fx) f.life -= dt;
-    const alive = this.fx.filter((f) => f.life > 0);
-    for (const f of alive) {
-      const a = Math.max(0, f.life / 0.3);
-      this.fxGraphics.fillStyle(f.color, a * 0.5);
-      this.fxGraphics.fillCircle(f.x, f.y, 10);
+    // Bolts (player pulse / hostile) and hostile telegraphs, read from live state.
+    const bolts: BoltView[] = [];
+    for (const p of this.projectiles) {
+      const a = this.worldToScreen(p.data.pos.x, p.data.pos.y);
+      const b = this.worldToScreen(p.data.pos.x + p.data.vel.x * 0.01, p.data.pos.y + p.data.vel.y * 0.01);
+      bolts.push({ x: a.x, y: a.y, vx: b.x - a.x, vy: b.y - a.y, enemy: p.data.side === 'enemy', kind: (p.spr as any).__kind ?? 'pulse' });
     }
-    this.fx = alive;
-    // fade damage numbers (managed by tweens); cleanup destroyed ones
-    if (this.damageTexts.length && !this.damageTexts[0].scene) {
-      this.damageTexts = this.damageTexts.filter((t) => !t.scene);
+    const tele: TelegraphView[] = [];
+    const ps = this.player.sprite;
+    for (const e of this.enemies) {
+      const v = e.view;
+      if (!v || v.telegraph <= 0 || !this.player.alive) continue;
+      const ap = v.aperture();
+      const melee = !!e.data.stats.reachEnemy;
+      tele.push({
+        ax: melee ? e.sprite.x : ap.x, ay: melee ? e.sprite.y : ap.y,
+        tx: ps.x, ty: melee ? ps.y : ps.y - BOLT_HEIGHT,
+        strength: v.telegraph, melee, detect: e.data.state === 'detect',
+        // melee reach used by Enemy.doAttack: attackRange + 1.5 tiles, in screen px (iso x-scale)
+        reach: (e.data.stats.attackRange + 1.5) * GAME.TILE_W / Math.SQRT2,
+      });
     }
+    this.vfx.update(dt, bolts, tele);
   }
 
   private killEnemy(e: Enemy): void {
-    e._hp = 0;
+    // Core already committed HP/death, XP, currency and drop RNG. The adapter
+    // only removes presentation and emits stats.
+    this.damageStack.delete(e._id);
+    this.enemyDeathVisual(e);
     e.sprite.destroy();
     this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
-    // drop currency + health
-    if (this.rng.float() < 0.6) this.spawnLoot(e.x, e.y, 'currency', 'currency', 4);
-    if (this.rng.float() < 0.25) this.spawnLoot(e.x, e.y, 'health', 'health', 0);
-    // xp
-    this.player.addXp(e.data.stats.xpValue);
     this.enemies = this.enemies.filter((x) => x !== e);
+  }
+
+  /**
+   * Death (03 §8): the mass collapses inward (400 ms), the aperture goes out, and
+   * the wreck's ink outline stays 2 s before fading to dotted "history". Visual only;
+   * it runs after the kill was resolved and never delays drops / XP / room clear.
+   */
+  private enemyDeathVisual(e: Enemy): void {
+    const sp = e.sprite;
+    if (!sp?.scene) return;
+    const frame = String(sp.frame.name).replace(/_flash$/, '');
+    const husk = this.scene.add.image(sp.x, sp.y, sp.texture.key, `${frame.startsWith('tele') ? 'idle_0' : frame}_flash`)
+      .setOrigin(sp.originX, sp.originY).setFlipX(sp.flipX).setDepth(sp.depth).setAlpha(0.9);
+    const body = this.scene.add.image(sp.x, sp.y, sp.texture.key, frame.startsWith('tele') ? 'idle_0' : frame)
+      .setOrigin(sp.originX, sp.originY).setFlipX(sp.flipX).setDepth(sp.depth);
+    this.scene.tweens.add({ targets: husk, alpha: 0, duration: 90, onComplete: () => husk.destroy() });
+    this.scene.tweens.add({ targets: body, scaleY: 0.25, scaleX: 1.15, alpha: 0, duration: 400, ease: 'Cubic.easeIn', onComplete: () => body.destroy() });
+    const w = e.view ? e.view.art.shadowW : 32;
+    this.vfx.wreck(sp.x, sp.y, w, e.data.kind);
+    this.vfx.impact(sp.x, sp.y - 14, INK.known, false, 6);
   }
 
   private killBoss(): void {
     if (!this.boss) return;
-    this.boss._hp = 0;
+    const bossRoom = this.map.rooms[this.boss.spawnRoom];
     this.boss.sprite.destroy();
     this.boss = null;
+    this.clearRoomSeal();
+    if (this.nextDeck !== undefined) {
+      for (const enemy of this.enemies) enemy.sprite.destroy();
+      this.enemies = [];
+      for (const projectile of this.projectiles) this.destroyProjectileSprite(projectile);
+      this.projectiles = [];
+      bossRoom.cleared = true;
+      this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
+      this.placePortal(bossRoom);
+      this.callbacks.onRoomCleared(bossRoom);
+      this.player.addXp(60);
+      return;
+    }
     this.won = true;
     this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
     this.player.addXp(200);
-    const bx = this.player.x, by = this.player.y;
-    for (let i = 0; i < 12; i++) this.spawnLoot(bx + (Math.random() - 0.5) * 120, by + (Math.random() - 0.5) * 120, 'currency', 'currency', 10);
+    if (this.map.deck === undefined) {
+      const bx = this.player.x, by = this.player.y;
+      for (let i = 0; i < 12; i++) this.spawnLoot(bx + (Math.random() - 0.5) * 120, by + (Math.random() - 0.5) * 120, 'currency', 'currency', 10);
+    }
     audio.bossroar();
     this.callbacks.onBossWin();
   }
@@ -676,53 +1962,151 @@ export class World {
     if (!room || !this.map.rooms[room.id].cleared || !this.player.alive ||
         this.won || this.boss || this.enemies.some((enemy) => enemy.alive) ||
         this.map.rooms.some((entry) => entry.spawned && !entry.cleared)) return null;
-    return {
-      id, seed, stats, roomId: room.id,
+    // Checkpoint must only capture fully committed transactions. If commands
+    // are still pending (enqueued but not yet consumed by processCommands),
+    // refuse to capture — the caller must wait for the next stepFrame commit.
+    if (this.hasUncommittedCommands()) return null;
+    // Deep copy: the returned frame must not keep references to the live
+    // player / loot. Any in-memory holder (AI harness, checkpoint UI, test)
+    // would otherwise observe silently mutating "snapshots" (review R-03).
+    return cloneCheckpoint({
+      id, seed, deck: this.map.deck, stats, roomId: room.id,
       position: { x: this.player.x, y: this.player.y },
       clearedRooms: this.map.rooms.filter((entry) => entry.cleared).map((entry) => entry.id),
       portalTarget: this.currentRoomId === room.id ? this.portal?.targetRoom ?? null : null,
       rngState: this.rng.snapshot(),
       player: this.player.data,
-      loot: this.loot.map(({ data }) => data)
-    };
+      loot: this._sim.loot.map((l) => ({ x: l.x, y: l.y, kind: l.kind as ItemKind, key: l.key, amount: l.amount, bob: l.bob })),
+      coreState: {
+        tick: this._sim.tick,
+        rngState: this._sim.rngState,
+        playerTimers: {
+          dashTimer: this._sim.player.dashTimer, invuln: this._sim.player.invuln,
+          hurtTimer: this._sim.player.hurtTimer, fireTimer: this._sim.player.fireTimer, aimYaw: this._sim.player.aimYaw
+        },
+        nextProjectileId: this._sim.nextProjectileId,
+        purchaseTransactions: [...this._sim.purchaseTransactions],
+        // Optional echo / Signal snapshots: deep-copied by cloneCheckpoint.
+        ...(this._sim.echo ? { echo: this._sim.echo } : {}),
+        ...(this._sim.signal ? { signal: this._sim.signal } : {})
+      }
+    });
   }
 
   restoreCheckpoint(run: RunCheckpoint): boolean {
     const room = this.map.rooms[run.roomId];
-    if (!room || !run.clearedRooms.every((id) => this.map.rooms[id]?.kind && this.map.rooms[id].kind !== 'boss') ||
+    if (!room || !run.clearedRooms.every((id) => this.map.rooms[id] &&
+          (this.map.rooms[id].kind !== 'boss' || this.nextDeck !== undefined)) ||
         (run.portalTarget !== null && !room.connectedTo.includes(run.portalTarget))) return false;
 
     for (const id of run.clearedRooms) {
       this.map.rooms[id].cleared = this.map.rooms[id].spawned = true;
       this.enteredRooms.add(id);
     }
-    this.player.data = run.player;
+    // F-08: deep copy the incoming frame before assigning it to the live state.
+    const frame = cloneCheckpoint(run);
+    this.#setPlayerData(frame.player);
     // Capture the checkpoint's HP *before* reset(): reset() heals to full, but a
     // resumed run must keep exactly the HP it had when the checkpoint was saved.
     const restoredHp = this.player.data.hp;
     const { x, y } = run.position;
     const inside = x >= room.gx && x < room.gx + room.w && y >= room.gy && y < room.gy + room.h;
     const position = inside && this.isWalkable(x, y) ? run.position : this.findWalkableInRoom(room);
-    this.player.reset(position.x, position.y);
-    this.player.data.hp = restoredHp;
+    this.#resetPlayer(position.x, position.y);
+    this._sim.player.data.hp = restoredHp;
+    this.bumpSimVersion();
     this.currentRoomId = room.id;
+    // Visual: rooms surveyed before the checkpoint are drawn immediately (no pulse).
+    for (const id of new Set([...run.clearedRooms, room.id])) this.renderer?.observeRoom(id, 0, 0, true);
     this.placePortal(room, run.portalTarget);
     this.rng.restore(run.rngState);
-    for (const drop of run.loot) this.spawnLoot(drop.x, drop.y, drop.kind, drop.key, drop.amount, drop.bob);
+    this._sim.tick = 0;
+    this._sim.drones = [];
+    this._sim.targets = [];
+    this._sim.projectiles = [];
+    this._sim.pendingPlayerHits = [];
+    // Restore must not inherit uncommitted commands/spawns from a prior live run.
+    // The processed-purchase ledger is part of committed history: it is restored
+    // from the checkpoint below (and only cleared when the checkpoint lacks it).
+    this._sim.pendingCommands = [];
+    this.worldSpawns = [];
+    this.pendingRoomEnters.clear();
+    this._sim.loot = [];
+    this._sim.player.dashTimer = 0; this._sim.player.invuln = 0; this._sim.player.hurtTimer = 0;
+    this._sim.player.fireTimer = 0; this._sim.player.aimYaw = 0;
+    if (run.coreState) {
+      // Restore the authoritative fixed-tick core contract so the resumed run
+      // keeps the exact tick / RNG / timer / projectile-id sequence it had at
+      // save time. Without this the core would silently re-randomise.
+      this._sim.tick = run.coreState.tick;
+      this._sim.rngState = run.coreState.rngState;
+      const t = run.coreState.playerTimers;
+      this._sim.player.dashTimer = t.dashTimer; this._sim.player.invuln = t.invuln;
+      this._sim.player.hurtTimer = t.hurtTimer; this._sim.player.fireTimer = t.fireTimer; this._sim.player.aimYaw = t.aimYaw;
+      this._sim.nextProjectileId = run.coreState.nextProjectileId;
+      this._sim.purchaseTransactions = Array.isArray(run.coreState.purchaseTransactions)
+        ? [...run.coreState.purchaseTransactions]
+        : [];
+      // Old saves have no echo: leave the run solo-compatible.
+      if (run.coreState.echo) {
+        this._sim.echo = JSON.parse(JSON.stringify(run.coreState.echo)) as typeof this._sim.echo;
+      } else {
+        delete this._sim.echo;
+      }
+      if (run.coreState.signal) {
+        this._sim.signal = JSON.parse(JSON.stringify(run.coreState.signal)) as typeof this._sim.signal;
+      } else {
+        delete this._sim.signal;
+      }
+    } else {
+      // Legacy frame: re-derive the core RNG from the map seed so a restored
+      // run still produces a deterministic core stream.
+      this._sim.rngState = new RNG(run.seed * 7919 + 1).snapshot();
+    }
+    // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
+    // memory or pending intent. Echo HP comes verbatim from the checkpoint.
+    this.echoController.reset();
+    this.echoShotsFired = 0;
+    for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
+    this.coreProjectileViews.clear();
+    this._sim.loot = run.loot.map((drop, i) => ({ id: i + 1, x: drop.x, y: drop.y, kind: drop.kind as SimLootKind, key: drop.key, amount: drop.amount, bob: drop.bob }));
+    this._sim.nextLootId = run.loot.length + 1;
+    this.bumpSimVersion();
     return true;
   }
 
   reset(): void {
     for (const e of this.enemies) e.sprite.destroy();
     this.enemies = [];
-    for (const p of this.projectiles) p.spr.destroy();
-    this.projectiles = [];
+    // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
+    // memory or pending intent. Echo HP comes verbatim from the checkpoint.
+    this.echoController.reset();
+    this.echoShotsFired = 0;
+    for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
+    this.coreProjectileViews.clear();
+    this._sim.drones = [];
+    this._sim.targets = [];
+    this._sim.projectiles = [];
     for (const l of this.loot) l.spr.destroy();
     this.loot = [];
     this.boss = null;
+    delete this._sim.echo;
+    this.pendingCompanionIntent = null;
+    this.echoController.reset();
+    this.echoShotsFired = 0;
+    if (this.echoSprite) { this.echoSprite.destroy(); this.echoSprite = null; }
+    if (this.echoLine) { this.echoLine.destroy(); this.echoLine = null; }
   }
 
   statsSnapshot(): { enemies: number; items: number; dmg: number } {
     return { enemies: 0, items: 0, dmg: 0 };
   }
+}
+
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === 'object') {
+    for (const key of Object.keys(value as any)) deepFreeze((value as any)[key]);
+    Object.freeze(value as any);
+  }
+  return value;
 }

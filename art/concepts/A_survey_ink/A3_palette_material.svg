@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="Consolas, 'Microsoft YaHei', monospace">
+  <title>CONCEPT A · SURVEY INK — semantic palette, value check, materials, light</title>
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0" result="g"/>
+      <feComponentTransfer in="g" result="g2"><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feComposite in="g2" in2="SourceGraphic" operator="in" result="m"/>
+      <feBlend in="SourceGraphic" in2="m" mode="multiply"/>
+    </filter>
+    <filter id="wear" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.91 0 0 0 0 0.886 0 0 0 0 0.816 0 0 0 14 -9.4" result="chips0"/>
+      <feComponentTransfer in="chips0" result="chips"><feFuncA type="linear" slope="0.28"/></feComponentTransfer>
+      <feComposite in="chips" in2="SourceGraphic" operator="in" result="c"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="c"/></feMerge>
+    </filter>
+    <filter id="gray"><feColorMatrix type="saturate" values="0"/></filter>
+    <g id="swatches">
+      <!-- role, hex, x -->
+      <rect x="0" y="0" width="140" height="90" fill="#15191d"/>
+      <rect x="150" y="0" width="140" height="90" fill="#07090b"/>
+      <rect x="300" y="0" width="140" height="90" fill="#e8e2d0"/>
+      <rect x="450" y="0" width="140" height="90" fill="#ff4a3d"/>
+      <rect x="600" y="0" width="140" height="90" fill="#f2a93b"/>
+      <rect x="750" y="0" width="140" height="90" fill="#7fb7ff"/>
+      <rect x="900" y="0" width="140" height="90" fill="#4fe3d6"/>
+      <rect x="1050" y="0" width="140" height="90" fill="#9fe870"/>
+      <rect x="1200" y="0" width="140" height="90" fill="#ffffff"/>
+      <rect x="1350" y="0" width="140" height="90" fill="#0b0d10" stroke="#e8e2d0" stroke-opacity="0.3"/>
+    </g>
+  </defs>
+  <rect width="1600" height="900" fill="#0b0e11"/>
+  <text x="40" y="52" fill="#e8e2d0" font-size="24" letter-spacing="2">A · SURVEY INK — COLOR &amp; MATERIAL 色彩与材质</text>
+  <text x="40" y="78" fill="#e8e2d0" fill-opacity="0.55" font-size="13">Concept board. Value carries faction (light = executor/known, dark = hostile mass); hue carries meaning. 概念样稿。</text>
+
+  <g transform="translate(40 110)">
+    <use href="#swatches"/>
+    <g font-size="12" fill="#e8e2d0">
+      <text x="0" y="112">ENV 环境</text><text x="0" y="128" fill-opacity="0.6">#15191D</text>
+      <text x="150" y="112">SHADOW 阴影/未观测</text><text x="150" y="128" fill-opacity="0.6">#07090B</text>
+      <text x="300" y="112">EXECUTOR 主角/墨线</text><text x="300" y="128" fill-opacity="0.6">#E8E2D0 · 11.2:1</text>
+      <text x="450" y="112">HOSTILE 敌对</text><text x="450" y="128" fill-opacity="0.6">#FF4A3D · 6.0:1</text>
+      <text x="600" y="112">UNKNOWN 未知/危险</text><text x="600" y="128" fill-opacity="0.6">#F2A93B · 10.0:1</text>
+      <text x="750" y="112">SIGNAL 稳定信号</text><text x="750" y="128" fill-opacity="0.6">#7FB7FF · 9.6:1</text>
+      <text x="900" y="112">INTERACT 交互协议</text><text x="900" y="128" fill-opacity="0.6">#4FE3D6 · 12.6:1</text>
+      <text x="1050" y="112">RARE 稀有样本</text><text x="1050" y="128" fill-opacity="0.6">#9FE870 · 13.5:1</text>
+      <text x="1200" y="112">PRIORITY 高优先</text><text x="1200" y="128" fill-opacity="0.6">#FFFFFF</text>
+      <text x="1350" y="112">UI PANEL 面板</text><text x="1350" y="128" fill-opacity="0.6">#0B0D10 @85%</text>
+    </g>
+    <text x="0" y="150" font-size="10" fill="#e8e2d0" fill-opacity="0.45">Contrast vs #07090B computed by WCAG relative luminance (hand-computed, to be machine-verified in AR-07). Hostile vs rare differ in value (L 0.27 vs 0.66) for deutan/protan safety; shapes also differ.</text>
+  </g>
+  <!-- value check -->
+  <g transform="translate(40 296)">
+    <text y="-8" font-size="12" fill="#e8e2d0">VALUE CHECK 灰度检验 (same swatches, desaturated)</text>
+    <g filter="url(#gray)" transform="scale(1 0.4)"><use href="#swatches"/></g>
+  </g>
+
+  <!-- materials -->
+  <g transform="translate(40 360)" font-size="12" fill="#e8e2d0">
+    <text y="-10">MATERIALS 材质 (procedural; Canvas-bakeable: gradient + noise + chips)</text>
+    <!-- painted steel, worn -->
+    <rect x="0" y="0" width="240" height="180" fill="#1b2127" filter="url(#wear)"/>
+    <path d="M0,60 H240 M0,120 H240 M80,0 V180 M160,0 V180" stroke="#0c0f12" stroke-width="3"/>
+    <g fill="#0c0f12"><circle cx="10" cy="10" r="3"/><circle cx="230" cy="10" r="3"/><circle cx="10" cy="170" r="3"/></g>
+    <text y="200">PAINTED STEEL 涂装钢板 · 边缘磨损露底</text>
+    <!-- cast concrete -->
+    <g transform="translate(260 0)">
+      <rect width="240" height="180" fill="#232a30" filter="url(#grain)"/>
+      <path d="M0,45 H240 M0,90 H240 M0,135 H240" stroke="#000" stroke-opacity="0.3"/>
+      <g fill="#000" fill-opacity="0.35"><circle cx="60" cy="22" r="2"/><circle cx="180" cy="22" r="2"/><circle cx="60" cy="112" r="2"/><circle cx="180" cy="112" r="2"/></g>
+      <path d="M150,0 q-6,40 4,90 q4,40 -4,90" stroke="#0a0c0e" stroke-width="5" fill="none" opacity="0.7"/>
+      <text y="200">CAST CONCRETE 浇筑混凝土 · 渗水痕</text>
+    </g>
+    <!-- floor plate + ink overlay -->
+    <g transform="translate(520 0)">
+      <rect width="240" height="180" fill="#15191d" filter="url(#grain)"/>
+      <g stroke="#e8e2d0" fill="none"><path d="M0,60 H240 M0,120 H240 M60,0 V180 M120,0 V180 M180,0 V180" stroke-opacity="0.16"/><rect x="0.5" y="0.5" width="239" height="179" stroke-opacity="0.6"/></g>
+      <ellipse cx="160" cy="110" rx="60" ry="22" fill="#07090b" opacity="0.7"/>
+      <text y="200">FLOOR PLATE + SURVEY INK 地板 + 测绘墨线</text>
+    </g>
+    <!-- optic / lens (hostile) -->
+    <g transform="translate(780 0)">
+      <rect width="240" height="180" fill="#0a0b0d"/>
+      <circle cx="120" cy="90" r="50" fill="#14181c" stroke="#2a3036" stroke-width="6"/>
+      <circle cx="120" cy="90" r="22" fill="#ff4a3d"/><circle cx="112" cy="82" r="6" fill="#fff" opacity="0.8"/>
+      <circle cx="120" cy="90" r="34" fill="none" stroke="#ff4a3d" stroke-opacity="0.4"/>
+      <text y="200">HOSTILE OPTIC 敌对光圈 · 唯一红色来源</text>
+    </g>
+    <!-- suit fabric/ceramic -->
+    <g transform="translate(1040 0)">
+      <rect width="240" height="180" fill="#e8e2d0" filter="url(#grain)"/>
+      <path d="M0,70 Q120,40 240,70 M0,120 Q120,90 240,120" stroke="#bdb6a2" stroke-width="3" fill="none"/>
+      <rect x="20" y="130" width="60" height="16" fill="#14181c"/><text x="26" y="142" font-size="10" fill="#e8e2d0">EX-17</text>
+      <text y="200">EXECUTOR SHELL 执行者外壳 · 编号磨损</text>
+    </g>
+    <!-- signal glass -->
+    <g transform="translate(1300 0)">
+      <rect width="220" height="180" fill="#0b0d10"/>
+      <circle cx="110" cy="90" r="40" fill="#7fb7ff" opacity="0.18"/>
+      <circle cx="110" cy="90" r="10" fill="#7fb7ff"/>
+      <circle cx="110" cy="90" r="24" fill="none" stroke="#7fb7ff" stroke-opacity="0.6"/>
+      <circle cx="110" cy="90" r="40" fill="none" stroke="#7fb7ff" stroke-opacity="0.25"/>
+      <text y="200">RELAY EMITTER 中继发射口</text>
+    </g>
+  </g>
+
+  <!-- light ramp + rules -->
+  <g transform="translate(40 620)" font-size="12" fill="#e8e2d0">
+    <text y="-8">LIGHT 光照层次 (baked: floor AO → wall gradient → actor lamp → signal emissive)</text>
+    <defs>
+      <linearGradient id="ramp" x1="0" x2="1"><stop offset="0" stop-color="#07090b"/><stop offset="0.35" stop-color="#15191d"/><stop offset="0.6" stop-color="#2a3138"/><stop offset="0.85" stop-color="#4fe3d6" stop-opacity="0.8"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+    </defs>
+    <rect width="1520" height="34" fill="url(#ramp)"/>
+    <g fill-opacity="0.7"><text x="0" y="54">0 void / unobserved</text><text x="460" y="54">1 ambient mass</text><text x="860" y="54">2 key edge / ink</text><text x="1250" y="54">3 emissive</text><text x="1440" y="54">4 flash</text></g>
+    <g fill-opacity="0.75" font-size="13">
+      <text y="100">• 只有已观测区域被墨线"画出"；未观测区只保留体块明度 → 把 Scan 变成视觉叙事，而非叠加特效。</text>
+      <text y="124">• 红色只来自敌对光圈与敌弹；琥珀 = 未知/不稳定（GDB 12.3）；冷蓝 = 稳定信号；青 = 可交互协议。</text>
+      <text y="148">• 磨损用"露底"而不是脏污：边缘、铆点、编号被反复触碰处变亮 → 读出"被使用过多次"的设施（呼应多次苏醒）。</text>
+      <text y="172">• 社区角色（鲸鱼娘等）统一接入：脚底接触阴影 + 1px 骨白外描线 + 环境色调映射，不改原图。</text>
+      <text y="196">• Canvas 可实现：所有材质为离屏 Canvas 烘焙（渐变 + 噪声 + 刻线），无需 WebGL FX（Phaser 3.90：FX/Light2D 仅 WebGL）。</text>
+    </g>
+  </g>
+</svg>

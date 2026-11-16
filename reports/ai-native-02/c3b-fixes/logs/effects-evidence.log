@@ -1,0 +1,12 @@
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\c3b-external-link.spec.ts:297:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[chromium] › tests\c3b-external-link.spec.ts:297:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+C3B_EFFECT ticks {"d1":0.08102265201096025,"d120":6.065044071711918,"executed1":1,"executed120":120,"started1":10,"completed1":11,"started120":22,"completed120":142}
+
+[2/2] [chromium] › tests\c3b-external-link.spec.ts:587:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[chromium] › tests\c3b-external-link.spec.ts:587:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+C3B_EFFECT damage {"droneId":1,"hpBefore":28,"lowestHp":0,"executedTicks":120}
+
+  2 passed (10.3s)

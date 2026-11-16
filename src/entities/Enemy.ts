@@ -1,11 +1,15 @@
 import Phaser from 'phaser';
-import { EnemyData, EnemyStateName, Vec2 } from '../types';
+import { EnemyData, EnemyStateName } from '../types';
 import { ENEMY_STATS, EnemyKind } from '../config/enemies';
 import { GAME } from '../config/game';
 import { clamp, unit, angleDiff } from '../core/random';
 import { isoToScreen } from '../core/iso';
 import { World } from '../world/World';
-import { Player } from './Player';
+import { axisSlideToward, distanceWithin, rangedAttackDescriptor } from '../world/sim/rules';
+import type { SimDroneState, SimTarget } from '../world/sim/core';
+import { toCombatPort, type ActorCombatPort, type ActorTargetView, type PlayerLikeCombat } from '../world/actorTarget';
+import { HostileView } from '../art/survey/ActorView';
+import { actorDepth } from '../art/survey/tokens';
 
 export interface EnemySpec {
   kind: EnemyKind; x: number; y: number; room: number; depth: number;
@@ -14,13 +18,55 @@ export interface EnemySpec {
 // General enemy FSM. Boss is handled in a subclass for phased attacks.
 export class Enemy {
   sprite: Phaser.GameObjects.Sprite;
-  data: EnemyData;
-  wx: number;
-  wy: number;
-  // per-enemy attack timer
-  private attackTimer = 0;
-  private wanderTimer = 0;
+  private _data!: EnemyData;
+  private _wx: number;
+  private _wy: number;
+  private __hp = 0;
+  private _attackTimer = 0;
+  private _wanderTimer = 0;
   private hitDir = { x: 0, y: 0 };
+  /** Visual facing (grid-space angle); replaces sprite rotation which also spun the baked shadow. */
+  facing = 0;
+  view: HostileView | null = null;
+  /** C2: drone state is owned by World.sim.drones; other kinds stay legacy. */
+  private simDrone: SimDroneState | null = null;
+  private simTarget: SimTarget | null = null;
+
+  get data(): EnemyData { return this.simDrone ? this.simDrone.data : this._data; }
+  set data(value: EnemyData) { if (this.simDrone) this.simDrone.data = value; else this._data = value; }
+  get wx(): number { return this.simDrone ? this.simDrone.x : this.simTarget ? this.simTarget.x : this._wx; }
+  get wy(): number { return this.simDrone ? this.simDrone.y : this.simTarget ? this.simTarget.y : this._wy; }
+  get _hp(): number { return this.simDrone ? this.simDrone.hp : this.simTarget ? this.simTarget.hp : this.__hp; }
+  get attackTimer(): number { return this.simDrone ? this.simDrone.attackTimer : this._attackTimer; }
+  set attackTimer(value: number) { if (this.simDrone) this.simDrone.attackTimer = value; else this._attackTimer = value; }
+  get wanderTimer(): number { return this.simDrone ? this.simDrone.wanderTimer : this._wanderTimer; }
+  set wanderTimer(value: number) { if (this.simDrone) this.simDrone.wanderTimer = value; else this._wanderTimer = value; }
+
+  attachSimDrone(state: SimDroneState): void {
+    state.data = this._data;
+    state.x = this._wx;
+    state.y = this._wy;
+    state.hp = this.__hp;
+    state.attackTimer = this._attackTimer;
+    state.wanderTimer = this._wanderTimer;
+    this.simDrone = state;
+  }
+
+  /** Attach an already-created core state (room-enter command); no core writes. */
+  attachExistingSimDrone(state: SimDroneState): void {
+    this.simDrone = state;
+    this.simTarget = null;
+  }
+
+  attachExistingSimTarget(state: SimTarget): void {
+    this.simTarget = state;
+    this.simDrone = null;
+  }
+
+  attachSimTarget(state: SimTarget): void {
+    // Read-only authority reference: initial x/y/hp were passed to registerTarget.
+    this.simTarget = state;
+  }
 
   constructor(public world: World, kind: EnemyKind, x: number, y: number, room: number, depth: number) {
     const base = ENEMY_STATS[kind];
@@ -37,8 +83,10 @@ export class Enemy {
     stats.attackRange /= TILE;
     this.sprite = world.scene.add.sprite(x, y, this.texture(kind));
     this.sprite.setDepth(90);
-    this.wx = x;
-    this.wy = y;
+    // Visual phase offset from spawn position only (no RNG draw) so idle cycles desync.
+    this.view = new HostileView(this.sprite, kind, ((x * 7 + y * 13) % 10) / 10);
+    this._wx = x;
+    this._wy = y;
     this.data = {
       kind, stats, state: 'idle', stateTimer: 0, targetId: null,
       patrolPoints: [], patrolIndex: 0, hitFlash: 0, stunTimer: 0, spawnRoom: room
@@ -60,7 +108,8 @@ export class Enemy {
   private texture(kind: EnemyKind): string {
     const map: Record<string, string> = {
       drone: 'enemy_drone', stalker: 'enemy_stalker', sentinel: 'enemy_sentinel',
-      hunter: 'enemy_hunter', boss_warden: 'enemy_hunter'
+      hunter: 'enemy_hunter', boss_warden: 'enemy_hunter',
+      sentry: 'enemy_sentry', shiver: 'enemy_shiver', slag: 'enemy_slag'
     };
     return map[kind] ?? 'enemy_drone';
   }
@@ -73,34 +122,38 @@ export class Enemy {
   project(): void {
     const s = this.world.worldToScreen(this.wx, this.wy);
     this.sprite.setPosition(s.x, s.y);
-    this.sprite.setDepth(Math.floor(this.wy));
+    // Iso depth (wx + wy), replacing floor(wy) which drew front/back in the wrong order.
+    this.sprite.setDepth(actorDepth(this.wx, this.wy));
   }
 
   // HP stored on sprite? We'll keep hp in a parallel field.
   get hp(): number { return this._hp; }
-  _hp = 0;
 
-  initHp(): void { this._hp = this.data.stats.maxHp; }
+  /** Approx. head height in px for damage-number placement. */
+  headPx(): number { return this.view ? -this.view.art.apertureY + 18 : 40; }
 
-  update(dt: number, player: Player): void {
+  initHp(): void { this.__hp = this.data.stats.maxHp; }
+
+  update(dt: number, combat: ActorCombatPort | PlayerLikeCombat): void {
+    // C2: drone timers/FSM/projectiles are owned by World.sim (fixed ticks).
+    if (this.data.kind === 'drone') return;
     if (this._hp <= 0) return;
+    const port = toCombatPort(combat);
+    this.data.targetActorKind = port.target.kind;
     this.data.hitFlash = Math.max(0, this.data.hitFlash - dt);
     this.attackTimer = Math.max(0, this.attackTimer - dt);
     this.wanderTimer -= dt;
     this.data.stateTimer -= dt;
-    this.stateMachine(dt, player);
+    this.legacyStateMachine(dt, port);
   }
 
-  private distanceTo(player: Player): number {
-    const dx = player.x - this.x, dy = player.y - this.y;
-    return Math.hypot(dx, dy);
+  private inRange(player: ActorTargetView, range: number): boolean {
+    return distanceWithin({ x: this.x, y: this.y }, { x: player.x, y: player.y }, range);
   }
 
-  private inRange(player: Player, range: number): boolean {
-    return this.distanceTo(player) <= range;
-  }
-
-  private stateMachine(dt: number, player: Player): void {
+  /** Non-drone kinds only; drone FSM is owned by World.sim/core. */
+  private legacyStateMachine(dt: number, combat: ActorCombatPort): void {
+    const player = combat.target;
     switch (this.data.state) {
       case 'idle':
         if (this.data.stateTimer <= 0 || this.wanderTimer <= 0) this.data.state = 'patrol';
@@ -112,7 +165,7 @@ export class Enemy {
         break;
       case 'detect':
         this.data.stateTimer -= dt;
-        this.data.targetId = 0;
+        this.data.targetId = player.actorId;
         if (this.data.stateTimer <= 0) this.data.state = 'chase';
         if (!this.detects(player)) this.data.state = 'idle';
         break;
@@ -124,7 +177,7 @@ export class Enemy {
       case 'attack':
         if (this.detects(player)) {
           this.facePlayer(player);
-          this.doAttack(player);
+          this.doAttack(combat);
           this.data.stateTimer = 0.4;
           if (this.data.stateTimer <= 0) this.data.state = 'chase';
         } else {
@@ -132,7 +185,7 @@ export class Enemy {
         }
         break;
       case 'reposition':
-        this.reposition(dt);
+        this.reposition(dt, player);
         if (this.data.stateTimer <= 0) this.data.state = this.detects(player) ? 'chase' : 'patrol';
         break;
       case 'stun':
@@ -142,28 +195,29 @@ export class Enemy {
     }
   }
 
-  private detects(player: Player): boolean {
-    return this.distanceTo(player) <= this.data.stats.aggroRange;
+  private detects(player: ActorTargetView): boolean {
+    return distanceWithin({ x: this.x, y: this.y }, { x: player.x, y: player.y }, this.data.stats.aggroRange);
   }
 
-  private enterDetect(player: Player): void {
-    this.data.targetId = 0;
+  private enterDetect(player: ActorTargetView): void {
+    this.data.targetId = player.actorId;
     this.data.state = 'detect';
     this.data.stateTimer = 0.5;
   }
 
-  private facePlayer(player: Player): void {
-    const a = Math.atan2(player.y - this.y, player.x - this.x);
-    this.sprite.setRotation(a);
+  private facePlayer(player: ActorTargetView): void {
+    this.facing = Math.atan2(player.y - this.y, player.x - this.x);
   }
 
-  private moveToPlayer(dt: number, player: Player): void {
+  private canMove(x: number, y: number, radius = this.getRadius()): boolean {
+    return this.world.canMoveInRoom(x, y, radius, this.data.spawnRoom);
+  }
+
+  private moveToPlayer(dt: number, player: ActorTargetView): void {
     const stats = this.data.stats;
-    const dx = player.x - this.x, dy = player.y - this.y;
-    const d = Math.hypot(dx, dy) || 1;
-    let vx = dx / d * stats.speed, vy = dy / d * stats.speed;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    const next = axisSlideToward({ x: this.wx, y: this.wy }, { x: player.x, y: player.y }, stats.speed, dt,
+      (x, y) => this.canMove(x, y));
+    this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.facePlayer(player);
     this.project();
   }
@@ -180,62 +234,47 @@ export class Enemy {
       this.data.stateTimer = 1.2;
       return;
     }
-    let vx = dx / d * stats.speed * 0.5, vy = dy / d * stats.speed * 0.5;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    const next = axisSlideToward({ x: this.wx, y: this.wy }, target, stats.speed * 0.5, dt,
+      (x, y) => this.canMove(x, y));
+    this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.project();
   }
 
-  private reposition(dt: number): void {
+  private reposition(dt: number, player: ActorTargetView): void {
     const stats = this.data.stats;
-    // move away from player, perpendicular preferred
-    const player = this.world.player;
-    const dx = this.x - player.x, dy = this.y - player.y;
-    const d = Math.hypot(dx, dy) || 1;
-    let vx = dx / d * stats.speed, vy = dy / d * stats.speed;
-    if (this.world.isWalkable(this.wx + vx * dt, this.wy)) this.wx += vx * dt;
-    if (this.world.isWalkable(this.wx, this.wy + vy * dt)) this.wy += vy * dt;
+    const away = { x: 2 * this.x - player.x, y: 2 * this.y - player.y };
+    const next = axisSlideToward({ x: this.wx, y: this.wy }, away, stats.speed, dt,
+      (x, y) => this.canMove(x, y));
+    this.world.enqueueTargetMove(this._id, next.x, next.y);
     this.facePlayer(player);
     this.project();
   }
 
-  private doAttack(player: Player): void {
+  private doAttack(combat: ActorCombatPort | PlayerLikeCombat): void {
+    const port = toCombatPort(combat);
+    const player = port.target;
     if (this.attackTimer > 0) return;
     const stats = this.data.stats;
     this.attackTimer = stats.attackCooldown;
     if (stats.reachEnemy) {
       // melee
       if (this.inRange(player, stats.attackRange + 1.5)) {
-        player.hurt(stats.damage, this.x, this.y);
+        port.hurtTarget(stats.damage, this.x, this.y);
       }
     } else if (stats.ranged) {
-      // ranged projectile: spawn at the enemy and travel toward the player in grid space
-      const a = Math.atan2(player.y - this.y, player.x - this.x);
-      const speed = 160 / GAME.PIXEL_TO_TILE;
-      this.world.spawnEnemyProjectile(this.id, this.x, this.y, stats.damage, { x: Math.cos(a) * speed, y: Math.sin(a) * speed });
+      const shot = rangedAttackDescriptor({ x: this.x, y: this.y }, { x: player.x, y: player.y }, GAME.PIXEL_TO_TILE);
+      const a = Math.atan2(shot.velocity.y, shot.velocity.x);
+      const speed = Math.hypot(shot.velocity.x, shot.velocity.y);
+      const offsets = this.data.kind === 'sentry' ? [-0.22, 0.22] : this.data.kind === 'shiver' ? [-0.3, 0, 0.3] : [0];
+      for (const offset of offsets) {
+        this.world.spawnEnemyProjectile(this.id, this.x, this.y, stats.damage,
+          { x: Math.cos(a + offset) * speed, y: Math.sin(a + offset) * speed });
+      }
     }
   }
 
   get id(): number { return this._id; }
   _id = 0;
-
-  hit(damage: number, source: Vec2): boolean {
-    if (this.data.stunTimer > 0) return false;
-    const reduction = 1 - Math.min(0.75, this.data.stats.armor / (this.data.stats.armor + 80));
-    const dmg = Math.max(1, damage * reduction);
-    this._hp -= dmg;
-    this.data.hitFlash = 0.15;
-    // Knockback is a small grid-space nudge (16px), not a 3-tile teleport.
-    // Do not push the enemy into a wall.
-    const dx = this.wx - source.x, dy = this.wy - source.y;
-    const d = Math.hypot(dx, dy) || 1;
-    const kb = 16 / GAME.PIXEL_TO_TILE;
-    const nx = this.wx + (dx / d) * kb;
-    const ny = this.wy + (dy / d) * kb;
-    if (this.world.isWalkable(nx, ny, 0.4)) { this.wx = nx; this.wy = ny; }
-    this.project();
-    return true;
-  }
 
   stun(seconds: number): void {
     this.data.stunTimer = seconds;
@@ -243,11 +282,14 @@ export class Enemy {
     this.data.stateTimer = seconds;
   }
 
-  applyVisual(): void {
-    if (this.data.hitFlash > 0) this.sprite.setTint(0xffffff);
-    else this.sprite.clearTint();
+  /** Visual sync only: frames / flip / flash / telegraph read from FSM state. */
+  applyVisual(dt = 0, clock = 0): void {
     this.project();
+    this.view?.update(dt, clock, {
+      kind: this.data.kind, wx: this.wx, wy: this.wy, facing: this.facing, state: this.data.state,
+      hitFlash: this.data.hitFlash, attackCharge: this.attackTimer, ranged: this.data.stats.ranged, alive: this._hp > 0,
+    }, this.world);
   }
 
-  getDepth(): number { return Math.floor(this.wy); }
+  getDepth(): number { return actorDepth(this.wx, this.wy); }
 }

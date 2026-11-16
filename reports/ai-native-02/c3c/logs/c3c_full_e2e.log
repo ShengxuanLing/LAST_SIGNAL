@@ -1,0 +1,88 @@
+
+Running 69 tests using 1 worker
+
+[1/69] [chromium] › tests\ai-native-world.spec.ts:257:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+[2/69] [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1920x1080
+[3/69] [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1366x768
+[4/69] [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1280x720
+[5/69] [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1024x768
+[6/69] [chromium] › tests\ai-native-world.spec.ts:691:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 800x600
+[7/69] [chromium] › tests\ai-native-world.spec.ts:772:3 › AI-NATIVE-02 P1 real World › F-04/F-05: inventory/pause/level-up overlay ownership, UI clicks vs fire/F takeover
+[8/69] [chromium] › tests\ai-native-world.spec.ts:965:3 › AI-NATIVE-02 P1 real World › F-01/F-02: perception radius, occlusion, unexplored rooms, boss/portal and bounded canWalk
+[9/69] [chromium] › tests\ai-native-world.spec.ts:1129:3 › AI-NATIVE-02 P1 real World › C1: rendered World applies the shared pure rules (movement, aim, pulse fire, drone FSM, hit)
+[10/69] [chromium] › tests\audit.spec.ts:65:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[11/69] [chromium] › tests\audit.spec.ts:508:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+[12/69] [chromium] › tests\boss-room.spec.ts:14:1 › boss room: player, camera bounds and shake stay sane after addShake(18)
+[13/69] [chromium] › tests\c2-parity.spec.ts:42:3 › AI-NATIVE-02 C2 fixed-tick core › subframe, 15-tick cap, pause freeze and no catch-up
+[14/69] [chromium] › tests\c2-parity.spec.ts:104:3 › AI-NATIVE-02 C2 fixed-tick core › controlled intent queue: Rendered canonical state/events for Node parity
+[15/69] [chromium] › tests\c2-parity.spec.ts:171:3 › AI-NATIVE-02 C2 fixed-tick core › B6/H2: real kill rewards, events and post-kill shot parity fixture
+[16/69] [chromium] › tests\c2-parity.spec.ts:251:3 › AI-NATIVE-02 C2 fixed-tick core › B11: loot magnet uses pixel->tile units; far 20/40/85 tiles stay, near loot collects
+[17/69] [chromium] › tests\c2-parity.spec.ts:362:3 › AI-NATIVE-02 C2 fixed-tick core › F-08: restoreCheckpoint uses a deep copy of the incoming frame
+[18/69] [chromium] › tests\c2-parity.spec.ts:392:3 › AI-NATIVE-02 C2 fixed-tick core › B1-B4: normal stepFrame damages all enemy kinds/Boss; laser/setter/player-hit authority
+[19/69] [chromium] › tests\c2-parity.spec.ts:500:3 › AI-NATIVE-02 C2 fixed-tick core › H10: non-Boss enemy-hit consumes hit flash state
+[20/69] [chromium] › tests\c2-parity.spec.ts:539:3 › AI-NATIVE-02 C2 fixed-tick core › B4: blocked hit is not a hurt fact; two lethal queued hits yield one death
+[21/69] [chromium] › tests\c2-parity.spec.ts:580:3 › AI-NATIVE-02 C2 fixed-tick core › H3: checkpoint capture/restore preserves core tick/rng/nextProjectileId
+[22/69] [chromium] › tests\c3b-external-link.spec.ts:85:1 › human authorization links the rendered world to the bridge; actions commit on a real tick
+[23/69] [chromium] › tests\c3b-external-link.spec.ts:213:1 › takeover / overlay / agent disconnect yield the link; no automatic re-take
+[24/69] [chromium] › tests\c3b-external-link.spec.ts:305:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[chromium] › tests\c3b-external-link.spec.ts:305:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+C3B_EFFECT ticks {"d1":0.08102265201096025,"d120":6.06505644955968,"executed1":1,"executed120":120,"started1":11,"completed1":12,"started120":22,"completed120":142}
+
+[25/69] [chromium] › tests\c3b-external-link.spec.ts:379:1 › fire honours real cooldown / ammo / real projectiles; interact is one legal commit
+[26/69] [chromium] › tests\c3b-external-link.spec.ts:449:1 › blocked legal move still gets a receipt but cannot fake displacement
+[27/69] [chromium] › tests\c3b-external-link.spec.ts:491:1 › Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation
+[28/69] [chromium] › tests\c3b-external-link.spec.ts:567:1 › takeover while a long action is in flight: no pageerror, no ACK after the new epoch
+[29/69] [chromium] › tests\c3b-external-link.spec.ts:595:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[chromium] › tests\c3b-external-link.spec.ts:595:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+C3B_EFFECT damage {"droneId":1,"hpBefore":28,"lowestHp":0,"executedTicks":120}
+
+[30/69] [chromium] › tests\c3b-external-link.spec.ts:660:1 › a queued stop preempts the ACTIVE long action; other actions keep FIFO
+[31/69] [chromium] › tests\c3b-hard-disconnect.spec.ts:100:1 › SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach
+[32/69] [chromium] › tests\c3b-link-form.spec.ts:63:1 › the form is reachable without the console, masks the token and isolates typing
+[33/69] [chromium] › tests\c3b-link-form.spec.ts:97:1 › AUTHORIZE from the form links the rendered world; a wrong token shows a REAL error
+[34/69] [chromium] › tests\c3b-link-form.spec.ts:131:1 › the connection form fits and stays usable at five viewports
+[35/69] [chromium] › tests\c3c-bridge-reclaim.spec.ts:91:1 › browser reload -> LOST -> a NEW human AUTHORIZE reclaims the session without restarting the bridge
+[36/69] [chromium] › tests\c3c-bridge-reclaim.spec.ts:146:1 › a live connected link cannot be silently replaced (duplicate still 409)
+[37/69] [chromium] › tests\c3c-headless-parity.spec.ts:35:1 › Rendered canonical/events export for headless same-core parity
+[38/69] [chromium] › tests\canvas.spec.ts:6:1 › full HUD renders and stays locked during camera movement
+[chromium] › tests\canvas.spec.ts:6:1 › full HUD renders and stays locked during camera movement
+HUD {"zoom":0.8,"hp":747,"xp":408,"credits":227,"level":148,"timer":65,"hpBar":1248,"weapon":256,"room":246,"enemies":369,"stats":742}
+
+[39/69] [chromium] › tests\checkpoint.spec.ts:71:1 › inventory equips an owned weapon and the safe checkpoint restores the selection
+[40/69] [chromium] › tests\checkpoint.spec.ts:152:1 › number keys select an upgrade when four choices are eligible
+[41/69] [chromium] › tests\checkpoint.spec.ts:172:1 › loss recap shows run stats and retries the same seed
+[42/69] [chromium] › tests\checkpoint.spec.ts:197:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress
+[43/69] [chromium] › tests\checkpoint.spec.ts:316:1 › death routes to Game Over and clears the run checkpoint
+[44/69] [chromium] › tests\economy.spec.ts:11:1 › earns and spends run credits, with purchases restored from the checkpoint
+[45/69] [chromium] › tests\economy.spec.ts:123:1 › a failed checkpoint save keeps the purchase pending and completes once after recovery
+[46/69] [chromium] › tests\gameplay.spec.ts:17:1 › menu + gameplay render
+[chromium] › tests\gameplay.spec.ts:17:1 › menu + gameplay render
+CONSOLE ERRORS: 0
+
+[47/69] [chromium] › tests\purchase-ledger.spec.ts:51:1 › processed purchase id is persisted and cannot be replayed (rendered + restore)
+[48/69] [chromium] › tests\resume-no-step.spec.ts:26:1 › pause resume does not advance: real onResume/onLevelUpClosed + sub-tick update
+[49/69] [chromium] › tests\resume-no-step.spec.ts:75:1 › level-up close path does not advance; upgrade commits once on a real tick
+[50/69] [chromium] › tests\resume-no-step.spec.ts:124:1 › inventory close path commits the equipped weapon once via normal frames
+[51/69] [chromium] › tests\runtime-bugs.spec.ts:36:1 › runtime bug regressions: viewport scaling, text rendering, wall alignment, projectile cleanup
+[52/69] [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited
+[53/69] [chromium] › tests\supply-transaction.spec.ts:64:1 › supply purchase commits on close, saves once, and blocks duplicate clicks
+[54/69] [chromium] › tests\supply-transaction.spec.ts:114:1 › insufficient credits disables every supply offer
+[55/69] [chromium] › tests\supply-transaction.spec.ts:131:1 › uncommitted purchase is discarded on reload and keeps the last checkpoint
+[56/69] [chromium] › tests\vs00.spec.ts:70:1 › E1: real Scan -> Jam -> WASD through the door (default, no fixture)
+[57/69] [chromium] › tests\vs00.spec.ts:105:1 › E2: Jam expiry while standing in the doorway never clamps the player
+[58/69] [chromium] › tests\vs00.spec.ts:130:1 › E3: Pause freezes movement and timers; resume does not catch up
+[59/69] [chromium] › tests\vs00.spec.ts:152:1 › E4: energy-insufficient feedback from a storage fixture, then natural recovery
+[60/69] [chromium] › tests\vs00.spec.ts:174:1 › E5: save/reload keeps main+economy key byte-identical; restart clears only the slice key
+[61/69] [chromium] › tests\vs00.spec.ts:204:1 › E6: a rejected save is preserved, never overwritten by Save or by completion auto-save
+[62/69] [chromium] › tests\vs00.spec.ts:224:1 › E7: storage write failure surfaces an explicit message and stays playable
+[63/69] [chromium] › tests\vs00.spec.ts:240:1 › E9: near the sealed door, F reports E_LINK_UNAVAILABLE without opening it
+[64/69] [chromium] › tests\vs00.spec.ts:256:1 › E8: reload after completion restores a passed-consistent position, not the spawn
+[65/69] [chromium] › tests\vs01.spec.ts:25:1 › each action key event is handled once when Scan and Jam arrive in the same frame
+[66/69] [chromium] › tests\vs01.spec.ts:43:1 › VS-01 follows real keyboard input from the lab to a safe collapse and across the rebuilt bridge
+[67/69] [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+[chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+Route B reached SAFE_E in 5515ms / 332 logic ticks
+
+[68/69] [chromium] › tests\vs01.spec.ts:198:1 › a lethal collapse clears the run and permits a fresh start
+[69/69] [chromium] › tests\whale-character.spec.ts:17:1 › whale appearance persists and responds to real movement and shots
+  69 passed (6.0m)

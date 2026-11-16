@@ -1,0 +1,11 @@
+PASS | task0_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3c/logs/task0_typecheck.log
+PASS | task0_build | npm run build | rc=0 | reports/ai-native-02/c3c/logs/task0_build.log
+PASS | task0_build_test | npm run build:test | rc=0 | reports/ai-native-02/c3c/logs/task0_build_test.log
+PASS | task0_mcp_build | npm run game:mcp:build | rc=0 | reports/ai-native-02/c3c/logs/task0_mcp_build.log
+PASS | task0_f03_gate | npx vite-node scripts/c3b-f03-gate.mts | rc=0 | reports/ai-native-02/c3c/logs/task0_f03_gate.log
+PASS | task0_token_acl | npx vite-node scripts/c3b-token-acl-gate.mts | rc=0 | reports/ai-native-02/c3c/logs/task0_token_acl.log
+PASS | task0_lease_smoke | npx vite-node src/ai-native/worldMcpLeaseSmoke.mts | rc=0 | reports/ai-native-02/c3c/logs/task0_lease_smoke.log
+TASK0_GATE_DONE
+PASS | task0_unit | npx vitest run | 506/506 | reports/ai-native-02/c3c/logs/task0_unit.log
+PASS | task0_c3b_repeat3 | PORT=5173 npx playwright test c3b-external-link c3b-hard-disconnect c3b-link-form --repeat-each=3 | 39/39 | reports/ai-native-02/c3c/logs/task0_c3b_repeat3.log
+PASS | task0_full_e2e | PORT=5173 npx playwright test --workers=1 | 66/66 (five viewports + C2) | reports/ai-native-02/c3c/logs/task0_full_e2e.log

@@ -1,0 +1,14 @@
+PASS typecheck | npm run typecheck | exit 0 | reports/ai-native-02/c2-resume-fix/logs/typecheck.log
+PASS unit | npx vitest run | 429/429 passed (26 files) | reports/ai-native-02/c2-resume-fix/logs/unit.log
+PASS build | npm run build | vite build ok | reports/ai-native-02/c2-resume-fix/logs/build.log
+PASS mcp-build | npm run game:mcp:build | dist-mcp/mcpServer.mjs ok | reports/ai-native-02/c2-resume-fix/logs/mcp-build.log
+PASS full-E2E | PORT=5173 npx playwright test --reporter=list --workers=1 | 53 passed / 0 failed | reports/ai-native-02/c2-resume-fix/logs/full-e2e-run3.log
+PASS resume-no-step | tests/resume-no-step.spec.ts (3 tests) x3 repeats | 3/3 each run | reports/ai-native-02/c2-resume-fix/logs/targeted-repeats.log
+PASS economy-storage-retry | new economy storage-fail -> retry test | pass | reports/ai-native-02/c2-resume-fix/logs/full-e2e-run3.log
+PASS audit-default-magnet | audit adds default-range +18 tile non-pickup | pass | reports/ai-native-02/c2-resume-fix/logs/full-e2e-run3.log
+PASS parity-room | npx vite-node scripts/c2-room-generation-parity.ts | C1_ROOM_PARITY_PASS seeds=220 | reports/ai-native-02/c2-resume-fix/logs/parity-room.log
+PASS parity-node | npx vite-node scripts/c2-node-parity.ts | PARITY_PASS checks=8 failures=0 | reports/ai-native-02/c2-resume-fix/logs/parity-node.log
+PASS parity-kill | npx vite-node scripts/c2-kill-parity.ts | KILL_PARITY_PASS checks=13 failures=0 | reports/ai-native-02/c2-resume-fix/logs/parity-kill.log
+PASS parity-loot | npx vite-node scripts/c2-loot-pickup-parity.ts | LOOT_PICKUP_PARITY_PASS failures=0 | reports/ai-native-02/c2-resume-fix/logs/parity-loot.log
+PASS probe-ledger | npx vite-node reports/ai-native-02/c2-purchase-ledger/probe-ledger.ts | PURCHASE_LEDGER_PASS failures=0 | reports/ai-native-02/c2-resume-fix/logs/probe-ledger.log
+FLAKE full-E2E run1/run2 | ai-native-world:257 (run1) then vs01:131 (run2) | each passes individually + 3x repeat | reports/ai-native-02/c2-resume-fix/logs/full-e2e.log, full-e2e-run3.log, flake-evidence.log

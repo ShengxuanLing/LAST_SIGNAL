@@ -1,0 +1,5149 @@
+{
+  "meta": {
+    "url": "http://localhost:5282/",
+    "viewport": {
+      "w": 1280,
+      "h": 720
+    },
+    "fixture": false,
+    "fixtureDeclaration": "NO stabilizeEvidenceRun; NO invuln refresh; NO HP/coordinate mutation; NO forced hurt/addXp/spawnEnemy. Real NEW RUN + Pause menu AI CONTROL + real keyboard/mouse input only.",
+    "startedUtc": "2026-11-13T19:08:40.950Z",
+    "endedUtc": "2026-11-13T19:09:21.578Z"
+  },
+  "steps": [
+    {
+      "name": "new-run",
+      "tMs": 3599,
+      "detail": {
+        "seed": 18073529,
+        "hp": 100,
+        "grid": {
+          "x": 8,
+          "y": 45
+        },
+        "active": [
+          "GameScene"
+        ],
+        "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED"
+      }
+    },
+    {
+      "name": "pause-open",
+      "tMs": 4379,
+      "detail": {
+        "active": [
+          "GameScene",
+          "PauseScene"
+        ],
+        "labels": [
+          "AI CONTROL: OFF",
+          "CONTROL  HUMAN · HUMAN ONLY",
+          "EXTERNAL AGENT  NOT CONNECTED",
+          "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL"
+        ]
+      }
+    },
+    {
+      "name": "ai-control-on",
+      "tMs": 4963,
+      "detail": {
+        "labels": [
+          "AI CONTROL: ON · LOCAL DEMO",
+          "CONTROL  AI · LOCAL DETERMINISTIC DEMO",
+          "EXTERNAL AGENT  NOT CONNECTED",
+          "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL"
+        ],
+        "state": {
+          "active": [
+            "GameScene",
+            "PauseScene"
+          ],
+          "world": true,
+          "seed": 18073529,
+          "paused": true,
+          "hp": 100,
+          "maxHp": 100,
+          "invuln": 0,
+          "grid": {
+            "x": 8,
+            "y": 45
+          },
+          "walkable": true,
+          "room": {
+            "id": 0,
+            "kind": "start"
+          },
+          "enemies": 0,
+          "projectiles": 0,
+          "owner": "ai",
+          "aiEnabled": true,
+          "mode": "PAUSED",
+          "pausedAuthority": true,
+          "action": null,
+          "target": null,
+          "actionCount": 0,
+          "takeoverCount": 0,
+          "takeoverReason": null,
+          "lastIntentOwner": "human",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": false
+          },
+          "txtControl": "CONTROL  HUMAN",
+          "txtAiAction": "AI ACTION  —",
+          "txtAiTarget": "AI TARGET  —",
+          "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+          "gameOver": false,
+          "levelUp": false
+        }
+      }
+    },
+    {
+      "name": "resumed",
+      "tMs": 5682,
+      "detail": {
+        "owner": "ai",
+        "mode": "AI",
+        "hp": 100,
+        "grid": {
+          "x": 25,
+          "y": 46
+        },
+        "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+        "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED"
+      }
+    },
+    {
+      "name": "normal-run-end",
+      "tMs": 28598,
+      "detail": {
+        "occurred": false,
+        "last": {
+          "hp": 25.36357780487817,
+          "grid": {
+            "x": 151.68337329474238,
+            "y": 84.43135438630483
+          },
+          "active": [
+            "GameScene"
+          ],
+          "owner": "ai",
+          "aiEnabled": true,
+          "mode": "AI"
+        },
+        "hpStart": 100,
+        "hpMin": 6.531174146341577,
+        "hpEnd": 25.36357780487817,
+        "actions": [
+          "ENGAGE",
+          "TRAVEL",
+          "MOVE"
+        ],
+        "rooms": [
+          "combat",
+          "elite"
+        ],
+        "aiIntentOwnerSamples": 100,
+        "levelUps": 2
+      }
+    },
+    {
+      "name": "move-KeyD-takeover",
+      "tMs": 29213,
+      "detail": {
+        "pass": true,
+        "owner": "human",
+        "reason": "human-input"
+      }
+    },
+    {
+      "name": "fire-mouse-enable-ai",
+      "tMs": 30980,
+      "detail": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "fire-mouse-takeover",
+      "tMs": 31615,
+      "detail": {
+        "pass": true,
+        "owner": "human",
+        "reason": "human-input"
+      }
+    },
+    {
+      "name": "interact-KeyF-enable-ai",
+      "tMs": 33381,
+      "detail": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "interact-KeyF-takeover",
+      "tMs": 33797,
+      "detail": {
+        "pass": true,
+        "owner": "human",
+        "reason": "human-input"
+      }
+    },
+    {
+      "name": "pause-off-enable-ai",
+      "tMs": 35539,
+      "detail": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "pause-off",
+      "tMs": 40204,
+      "detail": {
+        "before": {
+          "owner": "ai",
+          "aiEnabled": true,
+          "mode": "AI"
+        },
+        "onLabels": [
+          "AI CONTROL: ON · LOCAL DEMO",
+          "CONTROL  AI · LOCAL DETERMINISTIC DEMO",
+          "EXTERNAL AGENT  NOT CONNECTED",
+          "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL"
+        ],
+        "frozen": {
+          "gridSame": true,
+          "actionCountSame": true,
+          "mode": "PAUSED"
+        },
+        "disabled": {
+          "owner": "human",
+          "aiEnabled": false,
+          "reason": "pause-menu",
+          "takeoverCount": 4
+        },
+        "offLabels": [
+          "AI CONTROL: OFF",
+          "CONTROL  HUMAN · HUMAN ONLY",
+          "EXTERNAL AGENT  NOT CONNECTED",
+          "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL"
+        ],
+        "afterResume": {
+          "owner": "human",
+          "aiEnabled": false,
+          "txtControl": "CONTROL  HUMAN"
+        },
+        "after2s": {
+          "owner": "human",
+          "aiEnabled": false,
+          "lastAiAction": null
+        },
+        "pass": true
+      }
+    }
+  ],
+  "samples": [
+    {
+      "i": 0,
+      "tMs": 5851,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.6833200000000005,
+      "grid": {
+        "x": 25,
+        "y": 46
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #2 hunter",
+      "actionCount": 3,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×3",
+      "txtAiTarget": "AI TARGET  HOSTILE #2 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 1,
+      "tMs": 6064,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.4666900000000007,
+      "grid": {
+        "x": 25,
+        "y": 46
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #2 hunter",
+      "actionCount": 5,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×5",
+      "txtAiTarget": "AI TARGET  HOSTILE #2 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 2,
+      "tMs": 6281,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.250030000000001,
+      "grid": {
+        "x": 25,
+        "y": 46
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 4,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #3 hunter",
+      "actionCount": 6,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×6",
+      "txtAiTarget": "AI TARGET  HOSTILE #3 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 3,
+      "tMs": 6498,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.03336000000000096,
+      "grid": {
+        "x": 25,
+        "y": 46
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 4,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #2 hunter",
+      "actionCount": 7,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×7",
+      "txtAiTarget": "AI TARGET  HOSTILE #2 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 4,
+      "tMs": 6718,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 89,
+      "maxHp": 100,
+      "invuln": 0.1833200000000001,
+      "grid": {
+        "x": 25.118585412256312,
+        "y": 46.35575623676894
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #3 hunter",
+      "actionCount": 8,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×8",
+      "txtAiTarget": "AI TARGET  HOSTILE #3 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 5,
+      "tMs": 6938,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 89,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 25.118585412256312,
+        "y": 46.35575623676894
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #2 hunter",
+      "actionCount": 9,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×9",
+      "txtAiTarget": "AI TARGET  HOSTILE #2 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 6,
+      "tMs": 7172,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 78,
+      "maxHp": 100,
+      "invuln": 0.26666999999999996,
+      "grid": {
+        "x": 25.343121630649243,
+        "y": 46.656103513483416
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #2 hunter",
+      "actionCount": 9,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×9",
+      "txtAiTarget": "AI TARGET  HOSTILE #2 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 7,
+      "tMs": 7391,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 78,
+      "maxHp": 100,
+      "invuln": 0.05001999999999995,
+      "grid": {
+        "x": 25.343121630649243,
+        "y": 46.656103513483416
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 2,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #3 hunter",
+      "actionCount": 10,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×10",
+      "txtAiTarget": "AI TARGET  HOSTILE #3 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 8,
+      "tMs": 7607,
+      "active": [
+        "GameScene",
+        "LevelUpScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": true,
+      "hp": 78,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 25.343121630649243,
+        "y": 46.656103513483416
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 1,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "PAUSED",
+      "pausedAuthority": true,
+      "action": "ENGAGE",
+      "target": "HOSTILE #3 hunter",
+      "actionCount": 10,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  PAUSED",
+      "txtAiAction": "AI ACTION  ENGAGE ×10",
+      "txtAiTarget": "AI TARGET  HOSTILE #3 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": true
+    },
+    {
+      "i": 9,
+      "tMs": 8170,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 78.4550100000001,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 25.218818063002605,
+        "y": 46.55664582674559
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 1,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #1 hunter",
+      "actionCount": 13,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×13",
+      "txtAiTarget": "AI TARGET  HOSTILE #1 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 10,
+      "tMs": 8386,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 78.65500000000014,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 24.970210927709328,
+        "y": 46.35773045326993
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 1,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #1 hunter",
+      "actionCount": 15,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×15",
+      "txtAiTarget": "AI TARGET  HOSTILE #1 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 11,
+      "tMs": 8602,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 78.88832000000019,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 24.721678359643192,
+        "y": 46.15887474247378
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 1,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #1 hunter",
+      "actionCount": 17,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×17",
+      "txtAiTarget": "AI TARGET  HOSTILE #1 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 12,
+      "tMs": 8824,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 79.10495000000023,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 24.76538297821549,
+        "y": 46.00545834387107
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.9686146514412005,
+          "y": 0.24856720824244197
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 13,
+      "tMs": 9043,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 79.32163000000028,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 25.85712784959689,
+        "y": 45.65428218436682
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.9686146514412012,
+          "y": 0.2485672082424396
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 14,
+      "tMs": 9260,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 79.53830000000032,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 26.948822335854064,
+        "y": 45.30312223199562
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.9686146514412016,
+          "y": 0.2485672082424384
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 15,
+      "tMs": 9481,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 79.75492000000035,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 28.040264896490196,
+        "y": 44.95204331528979
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.968614651441201,
+          "y": 0.24856720824244033
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 16,
+      "tMs": 9697,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 79.9716000000004,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 29.132009767871587,
+        "y": 44.60086715578552
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.9686146514412014,
+          "y": 0.2485672082424394
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 17,
+      "tMs": 9913,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 80.18825000000042,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 28.361659715754218,
+        "y": 43.05828264911721
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.6930590673120537,
+          "y": -0.720880800976518
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 18,
+      "tMs": 10119,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 80.38824000000045,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 28.35913171175072,
+        "y": 41.86780787730111
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.9629904312220544,
+          "y": 0.26953558090679225
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 19,
+      "tMs": 10323,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 80.60491000000049,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 29.51129918153312,
+        "y": 41.618507244819625
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.9292333016295165,
+          "y": 0.3694935332894314
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 20,
+      "tMs": 10545,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 80.82158000000054,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 30.918909799271603,
+        "y": 42.1160860933159
+      },
+      "walkable": true,
+      "room": {
+        "id": 3,
+        "kind": "combat"
+      },
+      "enemies": 0,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 20,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": -0.8780708465678948,
+          "y": 0.47853065566120273
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×20",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 21,
+      "tMs": 10763,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.8833500000000001,
+      "grid": {
+        "x": 115,
+        "y": 44
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 6,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 23,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×23",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 22,
+      "tMs": 10981,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.66669,
+      "grid": {
+        "x": 115,
+        "y": 44
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 6,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #8 stalker",
+      "actionCount": 24,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×24",
+      "txtAiTarget": "AI TARGET  HOSTILE #8 stalker",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 23,
+      "tMs": 11199,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.4500400000000003,
+      "grid": {
+        "x": 115,
+        "y": 44
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 6,
+      "projectiles": 4,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #8 stalker",
+      "actionCount": 24,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×24",
+      "txtAiTarget": "AI TARGET  HOSTILE #8 stalker",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 24,
+      "tMs": 11404,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.23337999999999998,
+      "grid": {
+        "x": 115,
+        "y": 44
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 6,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #8 stalker",
+      "actionCount": 24,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×24",
+      "txtAiTarget": "AI TARGET  HOSTILE #8 stalker",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 25,
+      "tMs": 11623,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.016720000000000124,
+      "grid": {
+        "x": 115,
+        "y": 44
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 6,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #8 stalker",
+      "actionCount": 24,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×24",
+      "txtAiTarget": "AI TARGET  HOSTILE #8 stalker",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 26,
+      "tMs": 11840,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 84.13332000000003,
+      "maxHp": 100,
+      "invuln": 0.1666800000000001,
+      "grid": {
+        "x": 115.06164962023954,
+        "y": 43.63010227856295
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 25,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×25",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 27,
+      "tMs": 12057,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 84.34999000000006,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.06164962023954,
+        "y": 43.63010227856295
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #5 hunter",
+      "actionCount": 26,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×26",
+      "txtAiTarget": "AI TARGET  HOSTILE #5 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 28,
+      "tMs": 12276,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 84.5666200000001,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.06164962023954,
+        "y": 43.63010227856295
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 27,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×27",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 29,
+      "tMs": 12495,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 84.78330000000015,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.06164962023954,
+        "y": 43.63010227856295
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #4 hunter",
+      "actionCount": 28,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×28",
+      "txtAiTarget": "AI TARGET  HOSTILE #4 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 30,
+      "tMs": 12699,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 84.98327000000019,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.06164962023954,
+        "y": 43.63010227856295
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #5 hunter",
+      "actionCount": 29,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×29",
+      "txtAiTarget": "AI TARGET  HOSTILE #5 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 31,
+      "tMs": 12903,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 85.19994000000024,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.06164962023954,
+        "y": 43.63010227856295
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #4 hunter",
+      "actionCount": 31,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×31",
+      "txtAiTarget": "AI TARGET  HOSTILE #4 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 32,
+      "tMs": 13125,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 77.41661000000028,
+      "maxHp": 100,
+      "invuln": 0.3,
+      "grid": {
+        "x": 115.21482679953145,
+        "y": 43.28781328992298
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 32,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×32",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 33,
+      "tMs": 13344,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 77.6332500000003,
+      "maxHp": 100,
+      "invuln": 0.08335999999999988,
+      "grid": {
+        "x": 115.21482679953145,
+        "y": 43.28781328992298
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 33,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×33",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 34,
+      "tMs": 13560,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 56.84993000000032,
+      "maxHp": 100,
+      "invuln": 0.18331000000000014,
+      "grid": {
+        "x": 115.17042017568052,
+        "y": 43.66017474302757
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #5 hunter",
+      "actionCount": 34,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×34",
+      "txtAiTarget": "AI TARGET  HOSTILE #5 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 35,
+      "tMs": 13765,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 57.04988000000032,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.17042017568052,
+        "y": 43.66017474302757
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #4 hunter",
+      "actionCount": 35,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×35",
+      "txtAiTarget": "AI TARGET  HOSTILE #4 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 36,
+      "tMs": 13983,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 57.26655000000031,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.17042017568052,
+        "y": 43.66017474302757
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #7 drone",
+      "actionCount": 37,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×37",
+      "txtAiTarget": "AI TARGET  HOSTILE #7 drone",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 37,
+      "tMs": 14199,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 57.483230000000304,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.17042017568052,
+        "y": 43.66017474302757
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 38,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×38",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 38,
+      "tMs": 14417,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 57.6998800000003,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.17042017568052,
+        "y": 43.66017474302757
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #5 hunter",
+      "actionCount": 39,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×39",
+      "txtAiTarget": "AI TARGET  HOSTILE #5 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 39,
+      "tMs": 14634,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 49.916540000000296,
+      "maxHp": 100,
+      "invuln": 0.23334999999999997,
+      "grid": {
+        "x": 115.33818399743457,
+        "y": 43.32479391454974
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 41,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×41",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 40,
+      "tMs": 14854,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 50.14985000000029,
+      "maxHp": 100,
+      "invuln": 0.00004000000000013715,
+      "grid": {
+        "x": 115.33818399743457,
+        "y": 43.32479391454974
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #5 hunter",
+      "actionCount": 42,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×42",
+      "txtAiTarget": "AI TARGET  HOSTILE #5 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 41,
+      "tMs": 15246,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 50.533190000000275,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.33818399743457,
+        "y": 43.32479391454974
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 4,
+      "projectiles": 4,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #4 hunter",
+      "actionCount": 44,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×44",
+      "txtAiTarget": "AI TARGET  HOSTILE #4 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 42,
+      "tMs": 15463,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 37.74983000000027,
+      "maxHp": 100,
+      "invuln": 0.20001000000000002,
+      "grid": {
+        "x": 115.59013350292066,
+        "y": 43.6025464063213
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 3,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 45,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×45",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 43,
+      "tMs": 15682,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 16.966510000000273,
+      "maxHp": 100,
+      "invuln": 0.2833299999999999,
+      "grid": {
+        "x": 115.59459255216599,
+        "y": 43.97751989455724
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 47,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×47",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 44,
+      "tMs": 15898,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 17.18314000000029,
+      "maxHp": 100,
+      "invuln": 0.06669999999999977,
+      "grid": {
+        "x": 115.59459255216599,
+        "y": 43.97751989455724
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #7 drone",
+      "actionCount": 48,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×48",
+      "txtAiTarget": "AI TARGET  HOSTILE #7 drone",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 45,
+      "tMs": 16114,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 17.399810000000308,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.59459255216599,
+        "y": 43.97751989455724
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #7 drone",
+      "actionCount": 48,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×48",
+      "txtAiTarget": "AI TARGET  HOSTILE #7 drone",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 46,
+      "tMs": 16317,
+      "active": [
+        "GameScene",
+        "LevelUpScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": true,
+      "hp": 39.549810000000306,
+      "maxHp": 100,
+      "invuln": 0.1666599999999998,
+      "grid": {
+        "x": 115.95735796968447,
+        "y": 43.88251330608754
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "PAUSED",
+      "pausedAuthority": true,
+      "action": "ENGAGE",
+      "target": "HOSTILE #7 drone",
+      "actionCount": 48,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  PAUSED",
+      "txtAiAction": "AI ACTION  ENGAGE ×48",
+      "txtAiTarget": "AI TARGET  HOSTILE #7 drone",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": true
+    },
+    {
+      "i": 47,
+      "tMs": 16849,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 39.94983000000029,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.95735796968447,
+        "y": 43.88251330608754
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 50,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×50",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 48,
+      "tMs": 17055,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 40.16647000000028,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.95735796968447,
+        "y": 43.88251330608754
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 50,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×50",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 49,
+      "tMs": 17272,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 40.383130000000286,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.95735796968447,
+        "y": 43.88251330608754
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 50,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×50",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 50,
+      "tMs": 17489,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 40.59976000000028,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.95735796968447,
+        "y": 43.88251330608754
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 51,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×51",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 51,
+      "tMs": 17706,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 40.81643000000028,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.95735796968447,
+        "y": 43.88251330608754
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 51,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×51",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 52,
+      "tMs": 17924,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 41.03309000000028,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.95735796968447,
+        "y": 43.88251330608754
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 51,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×51",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 53,
+      "tMs": 18141,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 41.24974000000027,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.93231406747734,
+        "y": 43.66345439378296
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 53,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×53",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 54,
+      "tMs": 18357,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 41.46640000000026,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.93231406747734,
+        "y": 43.66345439378296
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 53,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×53",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 55,
+      "tMs": 18576,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 41.68306000000026,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.93231406747734,
+        "y": 43.66345439378296
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 2,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #6 sentinel",
+      "actionCount": 53,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×53",
+      "txtAiTarget": "AI TARGET  HOSTILE #6 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 56,
+      "tMs": 18794,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 41.89974000000025,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.80268106190088,
+        "y": 44.39889827809859
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 1,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "MOVE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 54,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": -0.9438146249810999,
+          "y": 0.33047534502861997
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  MOVE ×54",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 57,
+      "tMs": 19010,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 42.11636000000024,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.80268106190088,
+        "y": 44.39889827809859
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 1,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 55,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×55",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 58,
+      "tMs": 19228,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 42.33304000000023,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.80268106190088,
+        "y": 44.39889827809859
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 1,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 55,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×55",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 59,
+      "tMs": 19444,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 42.54971000000022,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 115.80268106190088,
+        "y": 44.39889827809859
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 1,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #9 sentinel",
+      "actionCount": 55,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×55",
+      "txtAiTarget": "AI TARGET  HOSTILE #9 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 60,
+      "tMs": 19661,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 42.76634000000022,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 116.50595689515349,
+        "y": 45.55147006464521
+      },
+      "walkable": true,
+      "room": {
+        "id": 5,
+        "kind": "elite"
+      },
+      "enemies": 0,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "TRAVEL",
+      "target": "PORTAL",
+      "actionCount": 56,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": -0.4357971369761737,
+          "y": 0.9000449185476078
+        },
+        "fire": false
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  TRAVEL ×56",
+      "txtAiTarget": "AI TARGET  PORTAL",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 61,
+      "tMs": 19879,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.9666600000000002,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #11 sentinel",
+      "actionCount": 58,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×58",
+      "txtAiTarget": "AI TARGET  HOSTILE #11 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 62,
+      "tMs": 20097,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.7500100000000001,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #11 sentinel",
+      "actionCount": 60,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×60",
+      "txtAiTarget": "AI TARGET  HOSTILE #11 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 63,
+      "tMs": 20301,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.55,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #11 sentinel",
+      "actionCount": 62,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×62",
+      "txtAiTarget": "AI TARGET  HOSTILE #11 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 64,
+      "tMs": 20517,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.3333400000000002,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #12 hunter",
+      "actionCount": 63,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×63",
+      "txtAiTarget": "AI TARGET  HOSTILE #12 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 65,
+      "tMs": 20721,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0.11670999999999954,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #11 sentinel",
+      "actionCount": 64,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×64",
+      "txtAiTarget": "AI TARGET  HOSTILE #11 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 66,
+      "tMs": 20941,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 65,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×65",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 67,
+      "tMs": 21159,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #12 hunter",
+      "actionCount": 66,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×66",
+      "txtAiTarget": "AI TARGET  HOSTILE #12 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 68,
+      "tMs": 21378,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #11 sentinel",
+      "actionCount": 69,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×69",
+      "txtAiTarget": "AI TARGET  HOSTILE #11 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 69,
+      "tMs": 21595,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 100,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151,
+        "y": 83
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #10 sentinel",
+      "actionCount": 70,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×70",
+      "txtAiTarget": "AI TARGET  HOSTILE #10 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 70,
+      "tMs": 21799,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 77.71097560975613,
+      "maxHp": 100,
+      "invuln": 0.15000000000000002,
+      "grid": {
+        "x": 151.35575623676897,
+        "y": 83.11858541225628
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #12 hunter",
+      "actionCount": 71,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×71",
+      "txtAiTarget": "AI TARGET  HOSTILE #12 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 71,
+      "tMs": 22017,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 77.92764560975617,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.35575623676897,
+        "y": 83.11858541225628
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 72,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×72",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 72,
+      "tMs": 22234,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 78.14428560975621,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.35575623676897,
+        "y": 83.11858541225628
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 72,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×72",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 73,
+      "tMs": 22439,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 55.92192121951233,
+      "maxHp": 100,
+      "invuln": 0.2499999999999996,
+      "grid": {
+        "x": 151.63665870223227,
+        "y": 83.36701810917164
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 75,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×75",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 74,
+      "tMs": 22656,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 56.13859121951232,
+      "maxHp": 100,
+      "invuln": 0.033329999999999166,
+      "grid": {
+        "x": 151.63665870223227,
+        "y": 83.36701810917164
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 76,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×76",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 75,
+      "tMs": 22874,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 41.7210948780489,
+      "maxHp": 100,
+      "invuln": 0.1833500000000004,
+      "grid": {
+        "x": 151.6182095900944,
+        "y": 83.74156400790946
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 77,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×77",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 76,
+      "tMs": 23091,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 41.93775487804889,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.6182095900944,
+        "y": 83.74156400790946
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 78,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×78",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 77,
+      "tMs": 23309,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 42.15442487804888,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.6182095900944,
+        "y": 83.74156400790946
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 78,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×78",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 78,
+      "tMs": 23530,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 42.37106487804888,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.6182095900944,
+        "y": 83.74156400790946
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 0,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 78,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×78",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 79,
+      "tMs": 23748,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 42.58773487804886,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.6182095900944,
+        "y": 83.74156400790946
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 80,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×80",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 80,
+      "tMs": 23966,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 20.365360487804953,
+      "maxHp": 100,
+      "invuln": 0.2000200000000001,
+      "grid": {
+        "x": 151.95003984219363,
+        "y": 83.91624567206392
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 81,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×81",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 81,
+      "tMs": 24325,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 20.732010487804967,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.95003984219363,
+        "y": 83.91624567206392
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 82,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×82",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 82,
+      "tMs": 24543,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 20.94866048780498,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.95003984219363,
+        "y": 83.91624567206392
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 84,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×84",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 83,
+      "tMs": 24762,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 6.531174146341577,
+      "maxHp": 100,
+      "invuln": 0.26667999999999953,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 87,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×87",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 84,
+      "tMs": 24981,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 6.747834146341576,
+      "maxHp": 100,
+      "invuln": 0.050019999999999634,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 88,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×88",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 85,
+      "tMs": 25197,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 6.964514146341576,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 88,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×88",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 86,
+      "tMs": 25416,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 7.1811541463415764,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 88,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×88",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 87,
+      "tMs": 25634,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 7.397814146341576,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 5,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #13 sentinel",
+      "actionCount": 88,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×88",
+      "txtAiTarget": "AI TARGET  HOSTILE #13 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 88,
+      "tMs": 25854,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 7.6311341463415765,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 4,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 89,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×89",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 89,
+      "tMs": 26070,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 7.847804146341578,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 4,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #12 hunter",
+      "actionCount": 90,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×90",
+      "txtAiTarget": "AI TARGET  HOSTILE #12 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 90,
+      "tMs": 26288,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 8.064424146341578,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 4,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #12 hunter",
+      "actionCount": 90,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×90",
+      "txtAiTarget": "AI TARGET  HOSTILE #12 hunter",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 91,
+      "tMs": 26507,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 38.28111414634157,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #10 sentinel",
+      "actionCount": 91,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×91",
+      "txtAiTarget": "AI TARGET  HOSTILE #10 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 92,
+      "tMs": 26724,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 38.49779414634156,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 152.0028907768747,
+        "y": 84.28750269718714
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 3,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #10 sentinel",
+      "actionCount": 91,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×91",
+      "txtAiTarget": "AI TARGET  HOSTILE #10 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 93,
+      "tMs": 26930,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 24.063627804878152,
+      "maxHp": 100,
+      "invuln": 0.11667999999999955,
+      "grid": {
+        "x": 151.90684646082903,
+        "y": 84.64999475138325
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 92,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×92",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 94,
+      "tMs": 27147,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 24.280267804878147,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.90684646082903,
+        "y": 84.64999475138325
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 92,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×92",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 95,
+      "tMs": 27365,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 24.49691780487815,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.90684646082903,
+        "y": 84.64999475138325
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #14 sentinel",
+      "actionCount": 92,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×92",
+      "txtAiTarget": "AI TARGET  HOSTILE #14 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 96,
+      "tMs": 27582,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 24.713587804878156,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.8095476926827,
+        "y": 84.52491645114507
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "MOVE",
+      "target": "HOSTILE #11 sentinel",
+      "actionCount": 93,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0.24239107458663967,
+          "y": -0.9701786263161718
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  MOVE ×93",
+      "txtAiTarget": "AI TARGET  HOSTILE #11 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 97,
+      "tMs": 27799,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 24.930237804878153,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.8095476926827,
+        "y": 84.52491645114507
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 1,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #11 sentinel",
+      "actionCount": 94,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×94",
+      "txtAiTarget": "AI TARGET  HOSTILE #11 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 98,
+      "tMs": 28004,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 25.146907804878165,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.68337329474238,
+        "y": 84.43135438630483
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #10 sentinel",
+      "actionCount": 96,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×96",
+      "txtAiTarget": "AI TARGET  HOSTILE #10 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    },
+    {
+      "i": 99,
+      "tMs": 28222,
+      "active": [
+        "GameScene"
+      ],
+      "world": true,
+      "seed": 18073529,
+      "paused": false,
+      "hp": 25.36357780487817,
+      "maxHp": 100,
+      "invuln": 0,
+      "grid": {
+        "x": 151.68337329474238,
+        "y": 84.43135438630483
+      },
+      "walkable": true,
+      "room": {
+        "id": 1,
+        "kind": "combat"
+      },
+      "enemies": 3,
+      "projectiles": 2,
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI",
+      "pausedAuthority": false,
+      "action": "ENGAGE",
+      "target": "HOSTILE #10 sentinel",
+      "actionCount": 96,
+      "takeoverCount": 0,
+      "takeoverReason": null,
+      "lastIntentOwner": "ai",
+      "intent": {
+        "move": {
+          "x": 0,
+          "y": 0
+        },
+        "fire": true
+      },
+      "txtControl": "CONTROL  AI · LOCAL DETERMINISTIC",
+      "txtAiAction": "AI ACTION  ENGAGE ×96",
+      "txtAiTarget": "AI TARGET  HOSTILE #10 sentinel",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+      "gameOver": false,
+      "levelUp": false
+    }
+  ],
+  "screenshots": [
+    "00-new-run.png",
+    "01-ai-enabled.png",
+    "02-run-40.png",
+    "02-run-80.png",
+    "03-normal-run-end.png",
+    "04-after-pause-off.png"
+  ],
+  "errors": [],
+  "takeoverTrials": [
+    {
+      "kind": "move-KeyD",
+      "pass": true,
+      "before": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "takeoverCount": 0,
+        "grid": {
+          "x": 151.4630846837869,
+          "y": 84.21176170935153
+        }
+      },
+      "after": {
+        "owner": "human",
+        "aiEnabled": false,
+        "takeoverCount": 1,
+        "takeoverReason": "human-input",
+        "grid": {
+          "x": 152.09321280878686,
+          "y": 83.58163358435148
+        },
+        "txtControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "kind": "fire-mouse",
+      "pass": true,
+      "before": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "takeoverCount": 1,
+        "grid": {
+          "x": 151.60552185519933,
+          "y": 83.2067199478213
+        }
+      },
+      "after": {
+        "owner": "human",
+        "aiEnabled": false,
+        "takeoverCount": 2,
+        "takeoverReason": "human-input",
+        "grid": {
+          "x": 151.60552185519933,
+          "y": 83.2067199478213
+        },
+        "txtControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "kind": "interact-KeyF",
+      "pass": true,
+      "before": {
+        "owner": "ai",
+        "aiEnabled": true,
+        "takeoverCount": 2,
+        "grid": {
+          "x": 151.23681864834285,
+          "y": 82.9871835734515
+        }
+      },
+      "after": {
+        "owner": "human",
+        "aiEnabled": false,
+        "takeoverCount": 3,
+        "takeoverReason": "human-input",
+        "grid": {
+          "x": 151.23681864834285,
+          "y": 82.9871835734515
+        },
+        "txtControl": "CONTROL  HUMAN"
+      }
+    }
+  ],
+  "pauseOff": {
+    "before": {
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI"
+    },
+    "onLabels": [
+      "AI CONTROL: ON · LOCAL DEMO",
+      "CONTROL  AI · LOCAL DETERMINISTIC DEMO",
+      "EXTERNAL AGENT  NOT CONNECTED",
+      "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL"
+    ],
+    "frozen": {
+      "gridSame": true,
+      "actionCountSame": true,
+      "mode": "PAUSED"
+    },
+    "disabled": {
+      "owner": "human",
+      "aiEnabled": false,
+      "reason": "pause-menu",
+      "takeoverCount": 4
+    },
+    "offLabels": [
+      "AI CONTROL: OFF",
+      "CONTROL  HUMAN · HUMAN ONLY",
+      "EXTERNAL AGENT  NOT CONNECTED",
+      "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL"
+    ],
+    "afterResume": {
+      "owner": "human",
+      "aiEnabled": false,
+      "txtControl": "CONTROL  HUMAN"
+    },
+    "after2s": {
+      "owner": "human",
+      "aiEnabled": false,
+      "lastAiAction": null
+    },
+    "pass": true
+  },
+  "naturalDeath": {
+    "occurred": false,
+    "last": {
+      "hp": 25.36357780487817,
+      "grid": {
+        "x": 151.68337329474238,
+        "y": 84.43135438630483
+      },
+      "active": [
+        "GameScene"
+      ],
+      "owner": "ai",
+      "aiEnabled": true,
+      "mode": "AI"
+    },
+    "hpStart": 100,
+    "hpMin": 6.531174146341577,
+    "hpEnd": 25.36357780487817,
+    "actions": [
+      "ENGAGE",
+      "TRAVEL",
+      "MOVE"
+    ],
+    "rooms": [
+      "combat",
+      "elite"
+    ],
+    "aiIntentOwnerSamples": 100,
+    "levelUps": 2
+  },
+  "restart": null,
+  "wall": {
+    "samples": 100,
+    "allWalkable": true,
+    "nonWalkableSamples": 0,
+    "sameRoomSteps": 97,
+    "maxSameRoomStep": 1.7242407497244556,
+    "meanSameRoomStep": 0.1998648911240584,
+    "blockedIntentSamples": 0
+  },
+  "levelUps": [
+    {
+      "i": 8,
+      "tMs": 7607,
+      "owner": "ai",
+      "actionCount": 10,
+      "grid": {
+        "x": 25.343121630649243,
+        "y": 46.656103513483416
+      }
+    },
+    {
+      "i": 46,
+      "tMs": 16317,
+      "owner": "ai",
+      "actionCount": 48,
+      "grid": {
+        "x": 115.95735796968447,
+        "y": 43.88251330608754
+      }
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+PASS | reclaim_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/c3c/logs/reclaim_typecheck.log
+PASS | reclaim_unit | npx vitest run | (all suites) rc=0 | reports/ai-native-02/c3c/logs/reclaim_unit.log
+PASS | reclaim_repeat2 | PORT=5173 npx playwright test c3b-external-link c3b-hard-disconnect c3b-link-form c3c-bridge-reclaim --repeat-each=2 | 30/30 | reports/ai-native-02/c3c/logs/reclaim_repeat2.log

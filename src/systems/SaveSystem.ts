@@ -2,7 +2,7 @@
 // Never silently destroys existing valid save data; recovers from invalid/outdated saves.
 import { SAVE_KEY, SAVE_VERSION, DEFAULT_SETTINGS } from '../config/game';
 import { WEAPON_LIST } from '../config/weapons';
-import type { RunCheckpoint, SaveData } from '../types';
+import { AVATARS, type Avatar, type RunCheckpoint, type SaveData } from '../types';
 import { validateCheckpoint } from './RunCheckpoint';
 
 export const PERMANENT_TALENTS = [
@@ -23,7 +23,8 @@ function emptySave(): SaveData {
       maxHpBonus: 0, speedBonus: 0, damageBonus: 0, critChanceBonus: 0,
       armorBonus: 0, xpBonus: 0, currencyBonus: 0,
       unlockedWeapons: ['pulse'], unlockedAbilities: [],
-      cores: 0, runs: 0, bossesDefeated: 0, bestSeed: 0
+      cores: 0, runs: 0, bossesDefeated: 0, bestSeed: 0,
+      signalCollaborationOptIn: false
     },
     settings: { ...DEFAULT_SETTINGS },
     stats: { enemiesKilled: 0, itemsCollected: 0, damageDealt: 0, playTimeSeconds: 0 }
@@ -37,6 +38,10 @@ const PERMANENT_NUMBERS = [
 const SETTINGS_NUMBERS = ['masterVolume', 'sfxVolume', 'mouseDpi'];
 const STATS_NUMBERS = ['enemiesKilled', 'itemsCollected', 'damageDealt', 'playTimeSeconds'];
 
+function isAvatar(value: unknown): value is Avatar {
+  return AVATARS.some((avatar) => avatar === value);
+}
+
 export function validate(data: any): data is SaveData {
   if (!data || typeof data !== 'object') return false;
   if (data.version !== SAVE_VERSION) return false;
@@ -48,6 +53,7 @@ export function validate(data: any): data is SaveData {
     if (typeof v !== 'number' || !Number.isFinite(v)) return false;
   }
   if (!Array.isArray(p.unlockedWeapons) || !Array.isArray(p.unlockedAbilities)) return false;
+  if (typeof p.signalCollaborationOptIn !== 'boolean') return false;
 
   const s = data.settings;
   if (!s || typeof s !== 'object') return false;
@@ -55,7 +61,7 @@ export function validate(data: any): data is SaveData {
     if (typeof (s as any)[k] !== 'number') return false;
   }
   if (typeof s.fullscreen !== 'boolean' || typeof s.screenShake !== 'boolean') return false;
-  if (s.avatar !== undefined && s.avatar !== 'operator' && s.avatar !== 'whale') return false;
+  if (s.avatar !== undefined && !isAvatar(s.avatar)) return false;
 
   const st = data.stats;
   if (!st || typeof st !== 'object') return false;
@@ -121,6 +127,7 @@ export class SaveSystem {
     base.permanent.currencyBonus = typeof p.currencyBonus === 'number' ? p.currencyBonus : base.permanent.currencyBonus;
     base.permanent.unlockedWeapons = Array.isArray(p.unlockedWeapons) ? p.unlockedWeapons : base.permanent.unlockedWeapons;
     base.permanent.unlockedAbilities = Array.isArray(p.unlockedAbilities) ? p.unlockedAbilities : base.permanent.unlockedAbilities;
+    base.permanent.signalCollaborationOptIn = typeof p.signalCollaborationOptIn === 'boolean' ? p.signalCollaborationOptIn : false;
     base.permanent.runs = typeof p.runs === 'number' ? p.runs : base.permanent.runs;
     base.permanent.bossesDefeated = typeof p.bossesDefeated === 'number' ? p.bossesDefeated : base.permanent.bossesDefeated;
     base.permanent.bestSeed = typeof p.bestSeed === 'number' ? p.bestSeed : base.permanent.bestSeed;
@@ -129,7 +136,7 @@ export class SaveSystem {
     base.settings.mouseDpi = typeof s.mouseDpi === 'number' ? s.mouseDpi : base.settings.mouseDpi;
     base.settings.fullscreen = typeof s.fullscreen === 'boolean' ? s.fullscreen : base.settings.fullscreen;
     base.settings.screenShake = typeof s.screenShake === 'boolean' ? s.screenShake : base.settings.screenShake;
-    if (s.avatar === 'operator' || s.avatar === 'whale') base.settings.avatar = s.avatar;
+    if (isAvatar(s.avatar)) base.settings.avatar = s.avatar;
     base.stats.enemiesKilled = typeof st.enemiesKilled === 'number' ? st.enemiesKilled : base.stats.enemiesKilled;
     base.stats.itemsCollected = typeof st.itemsCollected === 'number' ? st.itemsCollected : base.stats.itemsCollected;
     base.stats.damageDealt = typeof st.damageDealt === 'number' ? st.damageDealt : base.stats.damageDealt;

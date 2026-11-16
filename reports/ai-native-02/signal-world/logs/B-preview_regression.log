@@ -1,0 +1,46 @@
+
+Running 20 tests using 1 worker
+
+  ok  1 [chromium] › tests\checkpoint.spec.ts:71:1 › inventory equips an owned weapon and the safe checkpoint restores the selection (2.7s)
+  ok  2 [chromium] › tests\checkpoint.spec.ts:152:1 › number keys select an upgrade when four choices are eligible (2.0s)
+  ok  3 [chromium] › tests\checkpoint.spec.ts:172:1 › loss recap shows run stats and retries the same seed (2.5s)
+  ok  4 [chromium] › tests\checkpoint.spec.ts:197:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress (5.9s)
+  ok  5 [chromium] › tests\checkpoint.spec.ts:316:1 › death routes to Game Over and clears the run checkpoint (1.7s)
+  ok  6 [chromium] › tests\economy.spec.ts:11:1 › earns and spends run credits, with purchases restored from the checkpoint (3.6s)
+  ok  7 [chromium] › tests\economy.spec.ts:123:1 › a failed checkpoint save keeps the purchase pending and completes once after recovery (2.6s)
+  ok  8 [chromium] › tests\vs00.spec.ts:70:1 › E1: real Scan -> Jam -> WASD through the door (default, no fixture) (2.4s)
+  ok  9 [chromium] › tests\vs00.spec.ts:105:1 › E2: Jam expiry while standing in the doorway never clamps the player (8.9s)
+  ok 10 [chromium] › tests\vs00.spec.ts:130:1 › E3: Pause freezes movement and timers; resume does not catch up (1.6s)
+  ok 11 [chromium] › tests\vs00.spec.ts:152:1 › E4: energy-insufficient feedback from a storage fixture, then natural recovery (3.5s)
+  ok 12 [chromium] › tests\vs00.spec.ts:174:1 › E5: save/reload keeps main+economy key byte-identical; restart clears only the slice key (908ms)
+  ok 13 [chromium] › tests\vs00.spec.ts:204:1 › E6: a rejected save is preserved, never overwritten by Save or by completion auto-save (1.9s)
+  ok 14 [chromium] › tests\vs00.spec.ts:224:1 › E7: storage write failure surfaces an explicit message and stays playable (552ms)
+  ok 15 [chromium] › tests\vs00.spec.ts:240:1 › E9: near the sealed door, F reports E_LINK_UNAVAILABLE without opening it (1.3s)
+  ok 16 [chromium] › tests\vs00.spec.ts:256:1 › E8: reload after completion restores a passed-consistent position, not the spawn (2.3s)
+  ok 17 [chromium] › tests\vs01.spec.ts:25:1 › each action key event is handled once when Scan and Jam arrive in the same frame (488ms)
+  ok 18 [chromium] › tests\vs01.spec.ts:43:1 › VS-01 follows real keyboard input from the lab to a safe collapse and across the rebuilt bridge (22.2s)
+  x  19 [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance (8.7s)
+  ok 20 [chromium] › tests\vs01.spec.ts:198:1 › a lethal collapse clears the run and permits a fresh start (3.7s)
+
+
+  1) [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 10.5
+    Received: 10.6
+
+      143 |   await expect(relay).toHaveAttribute('data-cooldown-ticks', '0', { timeout: 10000 });
+      144 |   expect(await coordinate(page, 'x')).toBeLessThanOrEqual(2.6);
+    > 145 |   expect(await coordinate(page, 'y')).toBe(10.5);
+          |                                       ^
+      146 |   const labCheckpoint = await readSave(page);
+      147 |   expect(labCheckpoint.corridor).toBeUndefined();
+      148 |
+        at D:\Project\LAST_SIGNAL\tests\vs01.spec.ts:145:39
+
+    Error Context: test-results\vs01-route-B-reaches-the-e-46720--Jam-from-the-real-entrance-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance 
+  19 passed (1.4m)

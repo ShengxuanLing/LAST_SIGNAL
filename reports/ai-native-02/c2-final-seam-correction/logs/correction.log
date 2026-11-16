@@ -1,0 +1,12 @@
+FAIL tests/audit.spec.ts:65 fixed-seed playability regression: synchronous enqueue* state writes removed; needs stepFrame tick commit between commands and state reads
+FAIL tests/checkpoint.spec.ts:61 inventory equip: weaponKey not committed until stepFrame; added stepFrame after EQUIP click but checkpoint save timing still flaky
+FAIL tests/checkpoint.spec.ts:140 number key upgrade: upgrade state not committed until stepFrame; added stepFrame in pickFirstCard helper + after call
+FAIL tests/checkpoint.spec.ts:185 resume: checkpoint not saved before poll; added extra stepFrame after pickFirstCard but save timing still flaky
+FAIL tests/economy.spec.ts:11 Supply terminal dialog not opening after 'g': safeRoom() requires cleared room + no alive enemies; dialog open blocked by contract
+PASS typecheck npm run typecheck typecheck passed
+PASS build npm run build build passed
+PASS mcp-build npm run game:mcp:build mcp build passed
+PASS unit-tests npx vitest run 398/398 passed (24 files)
+PASS c1-parity npx vite-node scripts/c2-room-generation-parity.ts C1_ROOM_PARITY_PASS seeds=220 kinds=drone,hunter,sentinel,stalker
+PASS B12 paused/zero-dt test src/world/sim/core.test.ts verifies stepFrame(0) commits no state
+FAIL playwright-full PORT=5173 npx playwright test 39/45 passed, 6 failed (5 test-contract + 1 flaky ai-native-world)

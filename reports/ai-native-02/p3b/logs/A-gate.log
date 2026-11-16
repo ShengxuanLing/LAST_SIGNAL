@@ -1,0 +1,7 @@
+PASS | A_typecheck | npm run typecheck | rc=0 | reports/ai-native-02/p3b/logs/A-typecheck.log
+PASS | A_unit | npx vitest run src/ai-native/companionFacet.test.ts | 13/13 | reports/ai-native-02/p3b/logs/A-unit.log
+PASS | A_build | npm run build | rc=0 | reports/ai-native-02/p3b/logs/A-build.log
+PASS | A_mcp | npm run game:mcp:build | rc=0 | reports/ai-native-02/p3b/logs/A-mcp.log
+PASS | A_headless_smoke | npx vite-node src/ai-native/worldHeadlessMcpSmoke.mts | HEADLESS_MCP_SMOKE_PASS | reports/ai-native-02/p3b/logs/A-smoke.log
+PASS | A_player_crop | npx vite-node src/ai-native/worldHeadlessPlayerCrop.mts | PLAYER_CROP_NEGATIVE_PASS | reports/ai-native-02/p3b/logs/A-crop.log
+NOTE | A_full_unit | npx vitest run | 613 passed / 2 failed | 仅 2 个 CLI 进程测试在满负载下 15s 超时；单独复跑 src/ai-native/runtime.test.ts 40/40 通过（flaky，非回归） | reports/ai-native-02/p3b/logs/A-full-unit.log

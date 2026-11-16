@@ -22,6 +22,7 @@ import { createSessionManager, createProcessSessionBudget, type DevFixture } fro
 import { Harness, toolMatrix, type HarnessResult, type RunSummary } from './harness';
 import { CoopManager, type CoopSession, type CoopFixture } from './coop';
 import type { ActionResultV1, EventV1, ObservationV1, StepResultV1 } from './protocol';
+import { startWorldMcpServer } from './worldMcpTools';
 
 const RESULT_SCHEMA = 'last_signal.mcp.tool-result.v1';
 const SESSION_RE = /^ses_[0-9a-f]{24}$/;
@@ -529,7 +530,24 @@ function registerCoopTools(server: McpServer, coop: CoopManager): void {
 // Process entry
 // ---------------------------------------------------------------------------
 async function main(): Promise<void> {
-  const dev = process.argv.slice(2).includes('--dev');
+  const args = process.argv.slice(2);
+  const dev = args.includes('--dev');
+  const worldMode = args.includes('--world');
+  const headlessMode = args.includes('--world-headless');
+  if (headlessMode) {
+    // C3-c: official HEADLESS same-core WORLD surface. Player tools only unless
+    // --dev is also present (Dev/OWNER fixture surface). StationZero default
+    // behaviour is unchanged when neither flag is present.
+    const { startWorldHeadlessMcpServer } = await import('./worldHeadlessMcpTools');
+    await startWorldHeadlessMcpServer(dev);
+    return;
+  }
+  if (worldMode) {
+    // C3-b: official WORLD surface. StationZero compatibility: WITHOUT
+    // --world the server behaves exactly as before (no world tools, no bridge).
+    await startWorldMcpServer();
+    return;
+  }
   const budget = createProcessSessionBudget(10);
   const manager = createSessionManager({
     maxSessions: 10, maxConcurrentSteps: 2,

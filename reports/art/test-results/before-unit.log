@@ -1,0 +1,20 @@
+$ ..\..\..\..\..\..\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1111-570-0_26.1111.570.0_x64__3k8sg7r9htsxt\dependencies\node\bin\node.exe node_modules\vitest\vitest.mjs run --no-cache
+# cwd C:\Users\CANCAN\Documents\ChatGPT\小游戏制作\LAST_SIGNAL\
+# started 2026-11-13T11:03:48.785Z
+
+
+ RUN  v2.1.9 C:/Users/CANCAN/Documents/ChatGPT/小游戏制作/LAST_SIGNAL
+
+ ✓ src/slice/vs00.room.test.ts (3 tests) 4ms
+ ✓ src/core/runtime.test.ts (15 tests) 17ms
+ ✓ src/slice/corridorGuard.test.ts (3 tests) 11ms
+ ✓ src/slice/vs00.rules.test.ts (28 tests) 24ms
+ ✓ src/slice/vs01.corridor.test.ts (14 tests) 34ms
+
+ Test Files  5 passed (5)
+      Tests  63 passed (63)
+   Start at  12:03:49
+   Duration  811ms (transform 522ms, setup 0ms, collect 1.01s, tests 90ms, environment 1ms, prepare 987ms)
+
+
+# exit 0 in 1.5 s

@@ -1,0 +1,28 @@
+PASS player_surface_only | {"count":7}
+PASS player_permission_negative | {"devToolRejected":true,"seedRejected":true}
+PASS player_step_channel | {"directRejected":true,"neutralStable":true,"actStepMoved":true}
+PASS player_create_session | {"session":"ses_dc0c7bb4a9e27f677af44b05","epoch":1,"tick":0,"status":"running"}
+PASS player_observe_cropped | {"tick":0,"drones":1}
+PASS player_step_executing | {"executing":{"actionId":"aid_000000000000000000000001","requestId":"req_000000000000000000000001","actionType":"fire","startedTick":0,"executedTicks":10,"remainingTicks":110,"durationTicks":120}}
+PASS player_step_completed_120 | {"fromTick":10,"toTick":120,"status":"cleared"}
+PASS player_step_idempotent
+PASS player_observe_post_step | {"tick":120,"hp":100}
+PASS player_stale_epoch_rejected
+PASS signal_unsupported
+PASS player_close_releases
+PASS dev_step_intent | {"fromTick":0,"toTick":20}
+PASS dev_inspect | {"tick":20,"mapHash":"fnv1a32:c364a6bf"}
+PASS dev_snapshot | {"ref":"frameref_e33350c114379da692773226","bytes":954573}
+PASS dev_load_room | {"roomId":3,"epoch":2,"spawned":1}
+PASS dev_spawn_enemies | {"epoch":3,"spawned":2}
+PASS dev_real_combat | {"tick":260,"drones":2}
+PASS dev_replay | {"sameState":true,"sameEvents":true,"firstDivergence":null}
+PASS dev_export_failure | {"path":"D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\c3c\\failures\\ses_90a4e69280f33c76eddef87d-1794722814316.failure.json","bytes":1149947,"replayable":true}
+PASS dev_batch | {"runs":2,"deaths":0,"cleared":2,"running":0,"totalTicks":50,"totalKills":2,"totalShots":6,"totalDamageTaken":0}
+PASS dev_compare | [{"policy":"hold","runs":2,"deaths":0,"cleared":0,"running":2,"totalTicks":1200,"totalKills":0,"totalShots":0,"totalDamageTaken":98},{"policy":"seek-and-fire","runs":2,"deaths":0,"cleared":2,"running":0,"totalTicks":50,"totalKills":2,"totalShots":6,"totalDamageTaken":0}]
+PASS dev_perf | {"ticks":1000,"sessions":10,"wallMs":1966.82,"cpuUserMs":2078,"heapUsedBytes":0,"events":30340,"liveTicks":9200}
+PASS dev_restore_epoch | {"epoch":4}
+PASS dev_batch_deterministic | {"hash":"fnv1a32:2ddbf9be"}
+PASS dev_replay_history | {"baselineEvents":172,"historyPreserved":true,"tamperDivergence":0}
+PASS dev_snapshot_boundary | {"midRejected":true,"restoredEpoch":2}
+HEADLESS_MCP_SMOKE_PASS

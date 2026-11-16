@@ -1,0 +1,241 @@
+{
+  "meta": {
+    "url": "http://localhost:5285/",
+    "normalFramePathOnly": true,
+    "notCalled": [
+      "stepFrame",
+      "stepSimulationTicksForTest",
+      "resetSimulationAccumulator"
+    ],
+    "fixtures": [
+      "one spawned drone for real pulse combat",
+      "restoreCheckpoint boundary check at the end"
+    ],
+    "notFixtures": [
+      "no seed injection",
+      "no HP/coordinate writes",
+      "no i-frame refresh",
+      "no addXp/hurt"
+    ],
+    "startedUtc": "2026-11-13T21:49:08.853Z",
+    "endedUtc": "2026-11-13T21:49:20.848Z"
+  },
+  "steps": [
+    {
+      "name": "start",
+      "detail": {
+        "active": [
+          "GameScene"
+        ],
+        "tick": 48,
+        "seed": 424926975,
+        "simPlayer": {
+          "x": 8,
+          "y": 45,
+          "hp": 100
+        },
+        "player": {
+          "x": 8,
+          "y": 45,
+          "hp": 100
+        },
+        "drones": [],
+        "worldEnemies": [],
+        "coreProjectiles": 0,
+        "projectilesView": 0,
+        "damageDealt": 0,
+        "kills": 0,
+        "paused": false,
+        "levelUp": false,
+        "gameOver": false,
+        "txtControl": "CONTROL  HUMAN",
+        "agentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED"
+      }
+    },
+    {
+      "name": "cadence",
+      "detail": {
+        "samples": 10,
+        "tickStart": 49,
+        "tickEnd": 112,
+        "deltas": [
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ],
+        "nonzeroSamples": 9,
+        "maxDelta": 7,
+        "minDelta": 7,
+        "pass": true
+      }
+    },
+    {
+      "name": "movement",
+      "detail": {
+        "tickBefore": 119,
+        "tickAfter": 166,
+        "simDelta": {
+          "x": 1.7760416666666483,
+          "y": -1.7760416666665932
+        },
+        "renderedDelta": {
+          "x": 1.7760416666666483,
+          "y": -1.7760416666665932
+        },
+        "simEqualsRendered": true,
+        "pass": true
+      }
+    },
+    {
+      "name": "drone-setup",
+      "detail": {
+        "enemyId": 1,
+        "hp": 28,
+        "target": {
+          "x": 12.276041666666648,
+          "y": 43.22395833333341
+        },
+        "tick": 166,
+        "simDrones": 1
+      }
+    },
+    {
+      "name": "combat",
+      "detail": {
+        "setup": {
+          "enemyId": 1,
+          "hp": 28,
+          "target": {
+            "x": 12.276041666666648,
+            "y": 43.22395833333341
+          },
+          "tick": 166,
+          "simDrones": 1
+        },
+        "preTick": 182,
+        "postTick": 287,
+        "simDronesBefore": 1,
+        "simDronesAfter": 0,
+        "droneRemovedFromSim": true,
+        "droneRemovedFromWorld": true,
+        "damageDealt": 36,
+        "kills": 1,
+        "maxCoreProjectiles": 2,
+        "tickAdvanced": true,
+        "hpSampleMin": 4,
+        "pass": true
+      }
+    },
+    {
+      "name": "pause",
+      "detail": {
+        "paused": true,
+        "tickFrozen": true,
+        "frozenDelta": 0,
+        "resumeDelta": 27,
+        "catchUpThreshold": 60,
+        "noCatchUp": true,
+        "pass": true
+      }
+    },
+    {
+      "name": "restore-mutation",
+      "detail": {
+        "available": true,
+        "restored": true,
+        "hp": 93,
+        "x": 9.401041666666648,
+        "simX": 9.401041666666648,
+        "hpAfter": 93,
+        "xAfter": 9.401041666666648,
+        "simXAfter": 9.401041666666648,
+        "pass": true
+      }
+    }
+  ],
+  "cadence": {
+    "samples": 10,
+    "tickStart": 49,
+    "tickEnd": 112,
+    "deltas": [
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7
+    ],
+    "nonzeroSamples": 9,
+    "maxDelta": 7,
+    "minDelta": 7,
+    "pass": true
+  },
+  "movement": {
+    "tickBefore": 119,
+    "tickAfter": 166,
+    "simDelta": {
+      "x": 1.7760416666666483,
+      "y": -1.7760416666665932
+    },
+    "renderedDelta": {
+      "x": 1.7760416666666483,
+      "y": -1.7760416666665932
+    },
+    "simEqualsRendered": true,
+    "pass": true
+  },
+  "combat": {
+    "setup": {
+      "enemyId": 1,
+      "hp": 28,
+      "target": {
+        "x": 12.276041666666648,
+        "y": 43.22395833333341
+      },
+      "tick": 166,
+      "simDrones": 1
+    },
+    "preTick": 182,
+    "postTick": 287,
+    "simDronesBefore": 1,
+    "simDronesAfter": 0,
+    "droneRemovedFromSim": true,
+    "droneRemovedFromWorld": true,
+    "damageDealt": 36,
+    "kills": 1,
+    "maxCoreProjectiles": 2,
+    "tickAdvanced": true,
+    "hpSampleMin": 4,
+    "pass": true
+  },
+  "pause": {
+    "paused": true,
+    "tickFrozen": true,
+    "frozenDelta": 0,
+    "resumeDelta": 27,
+    "catchUpThreshold": 60,
+    "noCatchUp": true,
+    "pass": true
+  },
+  "restore": {
+    "available": true,
+    "restored": true,
+    "hp": 93,
+    "x": 9.401041666666648,
+    "simX": 9.401041666666648,
+    "hpAfter": 93,
+    "xAfter": 9.401041666666648,
+    "simXAfter": 9.401041666666648,
+    "pass": true
+  },
+  "errors": []
+}

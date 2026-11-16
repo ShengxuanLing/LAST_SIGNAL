@@ -1,0 +1,28 @@
+
+Running 1 test using 1 worker
+
+  x  1 [chromium] › tests\p3a-enemy-target.spec.ts:47:1 › legacy hunter legally targets and damages the echo, then re-selects the player (18.1s)
+
+
+  1) [chromium] › tests\p3a-enemy-target.spec.ts:47:1 › legacy hunter legally targets and damages the echo, then re-selects the player 
+
+    Error: legacy enemy damaged the echo (not only chased the player)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      111 |     if (echoHurt) break;
+      112 |   }
+    > 113 |   expect(echoHurt, 'legacy enemy damaged the echo (not only chased the player)').toBe(true);
+          |                                                                                  ^
+      114 |   expect(targetKind, 'legacy FSM locked the echo actor id, not the player').toBe('1');
+      115 |   const after = await probe(page);
+      116 |   expect(after.playerHp, 'protagonist HP untouched while the enemy fought the echo').toBe(playerHp);
+        at D:\Project\LAST_SIGNAL\tests\p3a-enemy-target.spec.ts:113:82
+
+    Error Context: test-results\p3a-enemy-target-legacy-hu-92429--then-re-selects-the-player-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\p3a-enemy-target.spec.ts:47:1 › legacy hunter legally targets and damages the echo, then re-selects the player 

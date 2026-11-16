@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAST SIGNAL · 观测墨线实机对比</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #111418; color: #e8e2d0; font: 16px/1.6 system-ui, sans-serif; }
+  main { max-width: 1540px; margin: auto; padding: 32px clamp(14px, 4vw, 64px); }
+  h1 { margin: 0; font-size: clamp(26px, 4vw, 48px); }
+  h2 { margin: 0; font-size: 21px; }
+  p { margin: 8px 0 20px; color: #cfc8b4; }
+  nav { display: flex; gap: 10px 22px; flex-wrap: wrap; }
+  a { color: #7fb7ff; }
+  section { margin-top: 42px; border-top: 1px solid #4a4f51; padding-top: 18px; }
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  figure { margin: 0; }
+  figcaption { margin-bottom: 8px; font-weight: 600; }
+  img { width: 100%; height: auto; display: block; border: 1px solid #353a3e; }
+  @media (max-width: 720px) { .pair { grid-template-columns: 1fr; } }
+</style>
+<main>
+  <h1>LAST SIGNAL · 观测墨线</h1>
+  <p>AR-02 实机对比。主游戏使用种子 1、固定推进帧数、相同镜头缩放和世界坐标焦点。新版地图为高墙增加了 88 像素的画布上边距，清单中的滚动坐标反映了这项偏移。Station Zero 使用相同按键流程和等待间隔。所有画面均为 Chromium 中的 1280 × 720 实机截图。点击图片可查看原图。</p>
+  <nav aria-label="画面对比"></nav>
+  <div id="comparisons"></div>
+</main>
+<script>
+  const scenes = [
+    ['02-explore-start', '起始房探索', '探索时，骨白标注与地面接缝随房间观测出现。'],
+    ['03-room-combat', '战斗房与 HUD', '种子 1 的自然遭遇，五个 Hunter 及 Pulse 步枪。'],
+    ['23-pulse-muzzle', 'Pulse 枪口', '脚本触发射击后的固定帧。'],
+    ['24-pulse-flight', 'Pulse 射击后续', '同一次射击的后续固定帧，展示后坐恢复和伤害读数。'],
+    ['25-enemy-lineup', '敌人轮廓', '受控实机阵列。使用游戏的敌人生成入口，将 Drone、Stalker、Hunter 从左到右排列。'],
+    ['07-room-elite', '精英房', '切片之外的共享渲染回归。'],
+    ['12-boss-phase3-barrage', 'Boss 弹幕', '受控阶段状态，用于检查共享弹幕和 HUD。'],
+    ['13-level-up', '升级界面', '游戏内升级选择叠加到战斗场景。'],
+    ['19-signal-lab-idle', 'Station Zero · 待机', '门关闭，扫描尚未揭示设备连接。'],
+    ['26-signal-scan-sweep', 'Station Zero · 扫描传播', '施放初段，测绘刻线随投影向外扩散。'],
+    ['20-signal-lab-scan', 'Station Zero · 扫描', '露出源、门接收器和连线。'],
+    ['21-signal-lab-jam', 'Station Zero · 压制', '接收器被压制，门可通行。'],
+    ['22-signal-corridor-scan', 'Station Zero · 走廊', '扫描显示中继器、桥梁与守卫感知的关系。'],
+  ];
+  const navigation = document.querySelector('nav');
+  const comparisons = document.querySelector('#comparisons');
+  for (const [id, title, note] of scenes) {
+    const anchor = document.createElement('a');
+    anchor.href = '#' + id;
+    anchor.textContent = title;
+    navigation.append(anchor);
+
+    const section = document.createElement('section');
+    section.id = id;
+    const heading = document.createElement('h2');
+    heading.textContent = title;
+    const description = document.createElement('p');
+    description.textContent = note;
+    const pair = document.createElement('div');
+    pair.className = 'pair';
+    for (const [directory, label] of [['before', '升级前'], ['after', '升级后']]) {
+      const figure = document.createElement('figure');
+      const caption = document.createElement('figcaption');
+      caption.textContent = label;
+      const link = document.createElement('a');
+      link.href = '../' + directory + '/' + id + '.png';
+      const image = document.createElement('img');
+      image.src = link.href;
+      image.alt = title + ' · ' + label;
+      image.width = 1280;
+      image.height = 720;
+      image.loading = 'lazy';
+      link.append(image);
+      figure.append(caption, link);
+      pair.append(figure);
+    }
+    section.append(heading, description, pair);
+    comparisons.append(section);
+  }
+</script>
+</html>

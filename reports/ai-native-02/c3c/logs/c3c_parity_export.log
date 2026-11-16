@@ -1,0 +1,5 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\c3c-headless-parity.spec.ts:35:1 › Rendered canonical/events export for headless same-core parity
+  1 passed (5.4s)

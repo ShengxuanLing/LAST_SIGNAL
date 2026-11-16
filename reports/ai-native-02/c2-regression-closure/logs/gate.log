@@ -1,0 +1,19 @@
+PASS typecheck | npm run typecheck | exit 0 | reports/ai-native-02/c2-regression-closure/logs/typecheck.log
+PASS unit | npx vitest run | 429/429 passed (26 files) | reports/ai-native-02/c2-regression-closure/logs/unit.log
+PASS build | npm run build | vite build ok | reports/ai-native-02/c2-regression-closure/logs/build.log
+PASS mcp-build | npm run game:mcp:build | dist-mcp/mcpServer.mjs 301.22 kB | reports/ai-native-02/c2-regression-closure/logs/mcp-build.log
+PASS full-E2E | PORT=5173 npx playwright test --reporter=list --workers=1 | 49 passed / 0 failed | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS five-viewports | HUD fully visible 1920x1080/1366x768/1280x720/1024x768/800x600 | 5/5 pass | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS e2e-audit-65 | fixed-seed playability regression | pass | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS e2e-checkpoint-71 | inventory equips an owned weapon + checkpoint restores selection | pass | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS e2e-checkpoint-152 | number keys select an upgrade | pass | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS e2e-checkpoint-197 | resume reuses checkpoint id / HP / run-scoped progress | pass | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS e2e-economy-11 | earns/spends credits, purchases restored from checkpoint | pass | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS e2e-purchase-ledger | processed id persisted + replay rejected (rendered + restore) | 1 pass | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS e2e-supply-transaction | 3/3 purchase commit/save, insufficient, uncommitted reload | pass | reports/ai-native-02/c2-regression-closure/logs/full-e2e.log
+PASS parity-room | npx vite-node scripts/c2-room-generation-parity.ts | C1_ROOM_PARITY_PASS seeds=220 | reports/ai-native-02/c2-regression-closure/logs/parity-room.log
+PASS parity-node | npx vite-node scripts/c2-node-parity.ts | PARITY_PASS checks=8 failures=0 | reports/ai-native-02/c2-regression-closure/logs/parity-node.log
+PASS parity-kill | npx vite-node scripts/c2-kill-parity.ts | KILL_PARITY_PASS checks=13 failures=0 | reports/ai-native-02/c2-regression-closure/logs/parity-kill.log
+PASS parity-loot | npx vite-node scripts/c2-loot-pickup-parity.ts | LOOT_PICKUP_PARITY_PASS failures=0 | reports/ai-native-02/c2-regression-closure/logs/parity-loot.log
+PASS probe-purchase-ledger | npx vite-node reports/ai-native-02/c2-purchase-ledger/probe-ledger.ts | PURCHASE_LEDGER_PASS failures=0 | reports/ai-native-02/c2-regression-closure/logs/probe-ledger.log
+PASS cli-coldstart-x6 | 3x restore + 3x quit, independent cold starts | 6/6 pass, 4.5–4.7s each | reports/ai-native-02/c2-regression-closure/logs/cli-coldstart.log

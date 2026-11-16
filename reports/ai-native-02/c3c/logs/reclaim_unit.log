@@ -1,0 +1,85 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Project/LAST_SIGNAL[39m
+
+ [32m✓[39m src/ai-native/protocol.test.ts [2m([22m[2m72 tests[22m[2m)[22m[90m 136[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldGateway.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 367[2mms[22m[39m
+ [32m✓[39m src/ai-native/coop.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 638[2mms[22m[39m
+   [33m[2m✓[22m[39m instance identity and full-payload snapshot authorization[2m > [22meviction is explicit and repeated valid restore works [33m358[2mms[22m[39m
+ [32m✓[39m src/slice/vs00.rules.test.ts [2m([22m[2m28 tests[22m[2m)[22m[90m 57[2mms[22m[39m
+ [32m✓[39m src/slice/vs01.corridor.test.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 82[2mms[22m[39m
+ [32m✓[39m src/ai-native/sessions.test.ts [2m([22m[2m43 tests[22m[2m)[22m[33m 1882[2mms[22m[39m
+ [32m✓[39m src/ai-native/harness.test.ts [2m([22m[2m32 tests[22m[2m)[22m[33m 2265[2mms[22m[39m
+   [33m[2m✓[22m[39m scenario / batch / compare[2m > [22msame seed reproduces state and gameplay events; a different seed changes only state [33m897[2mms[22m[39m
+   [33m[2m✓[22m[39m scenario / batch / compare[2m > [22mrun_batch isolates seeds, cleans sessions up, and rejects invalid inputs [33m495[2mms[22m[39m
+ [32m✓[39m src/ai-native/c3bBridge.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 763[2mms[22m[39m
+ [32m✓[39m src/world/sim/rules.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 50[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldBridgeServer.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1143[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-a loopback bridge auth / origin / lifecycle[2m > [22mrejects missing/wrong credentials and wrong origins without wildcard CORS [33m367[2mms[22m[39m
+ [32m✓[39m src/world/sim/core.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 4128[2mms[22m[39m
+   [33m[2m✓[22m[39m C2 fixed-tick authoritative core[2m > [22mis reproducible from a serializable snapshot (same seed + intents + ticks) [33m1990[2mms[22m[39m
+   [33m[2m✓[22m[39m C2 fixed-tick authoritative core[2m > [22mH1/H6: canonical state is authoritative and events are not rounded [33m1133[2mms[22m[39m
+ [32m✓[39m src/world/sim/parity.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 31[2mms[22m[39m
+ [32m✓[39m src/slice/evidence.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 44[2mms[22m[39m
+ [32m✓[39m src/core/runtime.test.ts [2m([22m[2m15 tests[22m[2m)[22m[90m 38[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLinkDuration.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 178[2mms[22m[39m
+ [32m✓[39m src/ai-native/control.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 34[2mms[22m[39m
+ [32m✓[39m src/world/sim/rewiring.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 46[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLinkLifecycle.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 28[2mms[22m[39m
+ [32m✓[39m src/ai-native/p4.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 173[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLink.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalObservation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 41[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldProtocol.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 78[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldObservation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/slice/corridorGuard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+ [32m✓[39m src/config/supplies.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+ [32m✓[39m src/ai-native/agentLease.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 5258[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-b fix — bridge / MCP lease integration[2m > [22mattach returns a lease; agent-status reports attached:true only while live [33m310[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-b fix — bridge / MCP lease integration[2m > [22ma browser heartbeat does NOT renew the Agent lease; expiry closes the session [33m4720[2mms[22m[39m
+ [32m✓[39m src/ai-native/budget.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+ [32m✓[39m src/world/sim/purchaseLedger.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 4608[2mms[22m[39m
+   [33m[2m✓[22m[39m purchase ledger determinism and bounded replay protection[2m > [22mledger is part of canonical state (same ledger => same future; different ledger => different canonical) [33m4432[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldPerception.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/ai-native/c3bControl.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/systems/runCheckpoint.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/slice/vs00.room.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m src/ai-native/task0.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 8617[2mms[22m[39m
+   [33m[2m✓[22m[39m Task0 — bounded lease history[2m > [22mreal HTTP bridge routes stay bounded across many sessions [33m8170[2mms[22m[39m
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=restricted (public commands only); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/worldHeadless.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 15429[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22muses the REAL generated map, a REAL combat room, a REAL drone and the REAL pulse weapon [33m840[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mobservation is perception-cropped: no seed / RNG / full map / hidden goal [33m750[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mreal combat: fire -> projectile -> hit -> enemy-died -> cleared; real damage taken [33m2319[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mreal death: the core emits player-death and the session reports dead [33m2559[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mcollision is the real core: sustained movement never enters a wall cell [33m448[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mtwo worlds with the same seed + same intents produce identical canonical state/events [33m1915[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22man owner snapshot carries state, commands, RNG, ledger and map identity [33m1045[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mrestore bumps the epoch and replay reproduces the real canonical state/events [33m2662[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mrestore rejects a malformed frame without mutating the session [33m1076[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mDev room loading spawns REAL enemies from real enemy config [33m415[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22ma Dev failure export never contains credentials or a Phaser object [33m1394[2mms[22m[39m
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m)[22m[33m 52480[2mms[22m[39m
+   [33m[2m✓[22m[39m B5 — canonical hash is authoritative-state only[2m > [22mCLI 0-step replay hash equals the source snapshot hash [33m15072[2mms[22m[39m
+   [33m[2m✓[22m[39m B6 — CLI Dev channel identity (no audience upgrade)[2m > [22msnapshot/replay/restore require the explicit --dev channel [33m5825[2mms[22m[39m
+   [33m[2m✓[22m[39m B6 — CLI Dev channel identity (no audience upgrade)[2m > [22mobserve never leaks seed/RNG/full model even on the Dev channel [33m5566[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mstep/replay reject non-array actions/steps instead of silently using [] [33m5260[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22menforces instance count, id length and JSON line size [33m5023[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mrestore requires hashes and only accepts this instance issued frame [33m4980[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mquit exits and cleans up without waiting for stdin EOF [33m5090[2mms[22m[39m
+   [33m[2m✓[22m[39m purity and real Node CLI process[2m > [22mfull CLI cycle: create/step/observe/snapshot/replay/pause/resume/close/quit [33m4968[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m35 passed[39m[22m[90m (35)[39m
+[2m      Tests [22m [1m[32m506 passed[39m[22m[90m (506)[39m
+[2m   Start at [22m 00:45:09
+[2m   Duration [22m 55.13s[2m (transform 7.47s, setup 0ms, collect 22.51s, tests 98.76s, environment 26ms, prepare 15.58s)[22m
+

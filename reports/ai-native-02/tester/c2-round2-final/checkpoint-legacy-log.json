@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "url": "http://localhost:5288/",
+    "target": "0df1514",
+    "fixtures": [
+      "rooms marked cleared",
+      "enemies cleared",
+      "fixed seed"
+    ]
+  },
+  "checks": [
+    {
+      "name": "checkpoint-available",
+      "ok": true,
+      "detail": {
+        "available": true,
+        "hasCoreState": true,
+        "before": {
+          "tick": 46,
+          "rng": 0,
+          "pid": 1
+        },
+        "coreOk": true,
+        "afterCore": {
+          "tick": 46,
+          "rng": 0,
+          "pid": 1
+        },
+        "legacyOk": true,
+        "afterLegacy": {
+          "tick": 0,
+          "rng": 0,
+          "pid": 1
+        }
+      }
+    },
+    {
+      "name": "coreState-captured",
+      "ok": true
+    },
+    {
+      "name": "coreState-restore-ok",
+      "ok": true
+    },
+    {
+      "name": "coreState-tick-restored",
+      "ok": true,
+      "detail": {
+        "before": {
+          "tick": 46,
+          "rng": 0,
+          "pid": 1
+        },
+        "after": {
+          "tick": 46,
+          "rng": 0,
+          "pid": 1
+        }
+      }
+    },
+    {
+      "name": "coreState-rng-restored",
+      "ok": true
+    },
+    {
+      "name": "coreState-pid-restored",
+      "ok": true
+    },
+    {
+      "name": "legacy-frame-accepted",
+      "ok": true
+    },
+    {
+      "name": "legacy-frame-resets-tick",
+      "ok": true
+    },
+    {
+      "name": "legacy-restore-run-resumes",
+      "ok": true,
+      "detail": {
+        "t0": {
+          "tick": 1,
+          "rng": 0,
+          "pid": 1,
+          "hp": 100,
+          "x": 8,
+          "y": 45
+        },
+        "t1": {
+          "tick": 37,
+          "rng": 0,
+          "pid": 1,
+          "hp": 100,
+          "x": 8,
+          "y": 45
+        }
+      }
+    },
+    {
+      "name": "legacy-restore-no-console-error",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "flow": {
+    "available": true,
+    "hasCoreState": true,
+    "before": {
+      "tick": 46,
+      "rng": 0,
+      "pid": 1
+    },
+    "coreOk": true,
+    "afterCore": {
+      "tick": 46,
+      "rng": 0,
+      "pid": 1
+    },
+    "legacyOk": true,
+    "afterLegacy": {
+      "tick": 0,
+      "rng": 0,
+      "pid": 1
+    }
+  },
+  "errors": []
+}

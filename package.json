@@ -19,7 +19,19 @@
     "game:agent-client": "vite-node src/ai-native/agentClient.mts",
     "game:replay-p4": "vite-node src/ai-native/replayPlayerTrace.mts",
     "game:coop-demo": "vite-node src/ai-native/coopDemo.mts",
-    "game:budget-client": "vite-node src/ai-native/budgetClient.mts"
+    "game:budget-client": "vite-node src/ai-native/budgetClient.mts",
+    "game:sim:parity": "vite-node scripts/c2-node-parity.ts",
+    "build:test": "vite build --mode test --outDir dist-test",
+    "game:world": "vite-node src/ai-native/mcpServer.ts --world",
+    "game:world:bridge": "vite-node scripts/c3b-bridge.mts",
+    "game:world:console": "vite-node scripts/c3b-world-console.mts",
+    "game:world:mcp-console": "vite-node scripts/c3b-mcp-console.mts",
+    "game:world:headless": "vite-node src/ai-native/worldHeadlessMcpServer.ts",
+    "game:world:headless:dev": "vite-node src/ai-native/worldHeadlessMcpServer.ts --dev",
+    "game:world:lease-smoke": "vite-node src/ai-native/worldMcpLeaseSmoke.mts",
+    "game:world:smoke": "vite-node src/ai-native/worldMcpSmoke.mts",
+    "game:world:integration": "vite-node src/ai-native/worldMcpIntegration.mts",
+    "game:f03:gate": "vite-node scripts/c3b-f03-gate.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",

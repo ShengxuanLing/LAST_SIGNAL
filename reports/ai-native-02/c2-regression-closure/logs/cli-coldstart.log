@@ -1,0 +1,26 @@
+=== independent cold starts (each run = fresh vitest + fresh CLI child) ===
+-- restore run 1 --
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m | [22m[33m39 skipped[39m[2m)[22m[33m 4715[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mrestore requires hashes and only accepts this instance issued frame [33m4713[2mms[22m[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[2m | [22m[33m39 skipped[39m[90m (40)[39m
+-- quit run 1 --
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m | [22m[33m39 skipped[39m[2m)[22m[33m 4690[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mquit exits and cleans up without waiting for stdin EOF [33m4688[2mms[22m[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[2m | [22m[33m39 skipped[39m[90m (40)[39m
+-- restore run 2 --
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m | [22m[33m39 skipped[39m[2m)[22m[33m 4593[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mrestore requires hashes and only accepts this instance issued frame [33m4591[2mms[22m[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[2m | [22m[33m39 skipped[39m[90m (40)[39m
+-- quit run 2 --
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m | [22m[33m39 skipped[39m[2m)[22m[33m 4550[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mquit exits and cleans up without waiting for stdin EOF [33m4548[2mms[22m[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[2m | [22m[33m39 skipped[39m[90m (40)[39m
+-- restore run 3 --
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m | [22m[33m39 skipped[39m[2m)[22m[33m 4724[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mrestore requires hashes and only accepts this instance issued frame [33m4723[2mms[22m[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[2m | [22m[33m39 skipped[39m[90m (40)[39m
+-- quit run 3 --
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m | [22m[33m39 skipped[39m[2m)[22m[33m 4564[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mquit exits and cleans up without waiting for stdin EOF [33m4562[2mms[22m[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[2m | [22m[33m39 skipped[39m[90m (40)[39m
+budget: CliChannel.next 15000ms, per-test 20000ms, kill/reap on timeout

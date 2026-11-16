@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" font-family="'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <title>CONCEPT C · CONSENSUS GHOST — game screen concept (not an in-game capture)</title>
+  <!-- Same room/camera/moment as A1 and B1. A clinical porcelain lab in darkness.
+       Anything whose state is not agreed by the Consensus Field is printed "off-register":
+       cyan / magenta / yellow plates separate by an amount = its instability. -->
+  <defs>
+    <radialGradient id="pool" cx="608" cy="330" r="420" gradientUnits="userSpaceOnUse" gradientTransform="translate(608 330) scale(1 0.55) translate(-608 -330)">
+      <stop offset="0" stop-color="#e9e6df"/><stop offset="0.55" stop-color="#b9b5ac"/><stop offset="1" stop-color="#2a2a2c"/>
+    </radialGradient>
+    <linearGradient id="wallR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9d6cf"/><stop offset="1" stop-color="#8f8c86"/></linearGradient>
+    <linearGradient id="wallL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9a69f"/><stop offset="1" stop-color="#5e5c58"/></linearGradient>
+    <pattern id="halftone" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="1.6" fill="#15151a"/></pattern>
+    <pattern id="halftoneM" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(15)"><circle cx="4" cy="4" r="1.8" fill="#e0447c"/></pattern>
+    <radialGradient id="fade" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+    <mask id="dotsMask"><ellipse cx="820" cy="190" rx="200" ry="90" fill="url(#fade)"/></mask>
+  </defs>
+  <rect width="1280" height="720" fill="#0b0b0e"/>
+
+  <!-- floor: porcelain tiles under a single overhead pool of light -->
+  <polygon points="640,150 1088,374 704,566 256,342" fill="url(#pool)"/>
+  <g transform="matrix(32 16 -32 16 640 150)" fill="none" stroke="#15151a" stroke-opacity="0.12">
+    <path vector-effect="non-scaling-stroke" d="M1 0V12M2 0V12M3 0V12M4 0V12M5 0V12M6 0V12M7 0V12M8 0V12M9 0V12M10 0V12M11 0V12M12 0V12M13 0V12M0 1H14M0 2H14M0 3H14M0 4H14M0 5H14M0 6H14M0 7H14M0 8H14M0 9H14M0 10H14M0 11H14"/>
+  </g>
+  <polygon points="256,342 704,566 704,580 256,356" fill="#1a1a1d"/>
+  <polygon points="704,566 1088,374 1088,388 704,580" fill="#232327"/>
+  <!-- walls: glazed panels, clean seams, one rust tear -->
+  <polygon points="640,150 1088,374 1088,264 640,40" fill="url(#wallR)"/>
+  <polygon points="640,150 256,342 256,232 640,40" fill="url(#wallL)"/>
+  <g stroke="#15151a" stroke-opacity="0.25" fill="none">
+    <path d="M704,72V182 M768,104V214 M832,136V246 M896,168V278 M1024,232V342 M576,72V182 M512,104V214 M448,136V246 M384,168V278 M320,200V310"/>
+    <path d="M640,95 L1088,319 M640,95 L256,287"/>
+  </g>
+  <polygon points="1040,262 1060,270 1052,330 1046,300" fill="#6b3a2a" opacity="0.6"/>
+  <!-- the same wall, misregistered: this stretch of wall is not agreed -->
+  <g style="mix-blend-mode:multiply" opacity="0.9">
+    <polygon points="256,342 448,246 448,136 256,232" fill="#00b8d4" opacity="0.35" transform="translate(-6 2)"/>
+    <polygon points="256,342 448,246 448,136 256,232" fill="#e0447c" opacity="0.3" transform="translate(5 -3)"/>
+  </g>
+  <!-- door, receiver: interactive = deep ink-teal frame on porcelain -->
+  <polygon points="928,294 992,326 992,226 928,194" fill="#15151a"/>
+  <polygon points="934,292 986,318 986,234 934,208" fill="#2b2b30"/>
+  <circle cx="1004" cy="220" r="8" fill="#0b0b0e" stroke="#007f8c" stroke-width="3"/>
+
+  <!-- RELAY: its output state is uncertain -> two states printed off-register -->
+  <g transform="translate(672 198)">
+    <ellipse cy="8" rx="26" ry="10" fill="#15151a" opacity="0.35"/>
+    <g style="mix-blend-mode:multiply">
+      <g transform="translate(-7 0)" fill="#00b8d4" opacity="0.7"><rect x="-12" y="-70" width="24" height="70"/><circle cy="-82" r="9"/></g>
+      <g transform="translate(6 -3)" fill="#e0447c" opacity="0.7"><rect x="-12" y="-70" width="24" height="70"/><circle cy="-82" r="9"/></g>
+      <g transform="translate(1 4)" fill="#f4c430" opacity="0.7"><rect x="-12" y="-70" width="24" height="70"/></g>
+    </g>
+    <g fill="none" stroke="#15151a" stroke-width="1.5"><rect x="-12" y="-70" width="24" height="70"/><circle cy="-82" r="9"/></g>
+    <!-- registration marks: the UI admits uncertainty -->
+    <g stroke="#15151a" stroke-width="1"><circle cx="34" cy="-60" r="5" fill="none"/><path d="M26,-60 h16 M34,-68 v16"/></g>
+  </g>
+  <!-- signal as halftone density field (stronger = denser) toward the door -->
+  <rect x="600" y="80" width="460" height="230" fill="url(#halftone)" mask="url(#dotsMask)" opacity="0.55"/>
+  <g fill="none" stroke="#15151a" stroke-width="1.2"><path d="M690,120 Q840,120 994,214" stroke-dasharray="1 5" stroke-linecap="round" stroke-width="3"/></g>
+
+  <!-- labels: clinical, small -->
+  <g font-size="11">
+    <rect x="706" y="82" width="150" height="36" fill="#f6f4ef"/>
+    <path d="M706,82 h6 M706,82 v6" stroke="#15151a"/>
+    <text x="714" y="96" fill="#15151a">R-2 · 状态：未达成共识</text>
+    <text x="714" y="112" fill="#7a2747">ON 52% / OFF 48%</text>
+    <path d="M1012,214 L1040,186 H1160" fill="none" stroke="#e9e6df" stroke-opacity="0.7"/>
+    <text x="1044" y="180" fill="#e9e6df">RECEIVER · SEALED</text>
+  </g>
+
+  <!-- loot: yellow-plate sample (rare) -->
+  <g transform="translate(480 358)"><ellipse cy="4" rx="10" ry="4" fill="#15151a" opacity="0.3"/><polygon points="0,-18 9,-8 0,2 -9,-8" fill="#f4c430" stroke="#15151a" stroke-width="1.5"/></g>
+  <!-- hostiles: pure ink silhouettes with a single vermilion aperture; their "afterimage" lags -->
+  <g transform="translate(640 246)">
+    <ellipse cy="10" rx="14" ry="5" fill="#15151a" opacity="0.35"/>
+    <polygon points="0,-40 16,-22 0,-6 -16,-22" fill="#15151a" opacity="0.18" transform="translate(-14 6)"/>
+    <polygon points="0,-40 16,-22 0,-6 -16,-22" fill="#15151a"/>
+    <circle cy="-22" r="4" fill="#ff5a1f"/>
+  </g>
+  <g transform="translate(864 358)">
+    <ellipse cy="4" rx="18" ry="7" fill="#15151a" opacity="0.35"/>
+    <g opacity="0.2" transform="translate(16 -4)"><rect x="-12" y="-40" width="24" height="18" rx="9" fill="#15151a"/></g>
+    <rect x="-12" y="-40" width="24" height="18" rx="9" fill="#15151a"/>
+    <path d="M-8,-22 L-12,2 M8,-22 L12,2" stroke="#15151a" stroke-width="3"/>
+    <circle cx="-3" cy="-31" r="4.5" fill="#ff5a1f"/>
+    <!-- hit: the target briefly splits into plates -->
+    <g style="mix-blend-mode:multiply" opacity="0.8"><rect x="-17" y="-42" width="24" height="18" rx="9" fill="#00b8d4"/><rect x="-7" y="-38" width="24" height="18" rx="9" fill="#e0447c"/></g>
+  </g>
+  <text x="834" y="300" font-size="16" font-weight="bold" fill="#15151a">18</text>
+  <g transform="translate(736 454)">
+    <ellipse cy="4" rx="22" ry="7" fill="#15151a" opacity="0.35"/>
+    <path d="M-18,0 Q0,-30 18,0 Z" fill="#15151a"/>
+    <path d="M-18,0 Q0,-30 18,0 Z" fill="#15151a" opacity="0.18" transform="translate(-12 -8)"/>
+    <rect x="-5" y="-12" width="10" height="3" fill="#ff5a1f"/>
+  </g>
+  <g fill="#ff5a1f"><circle cx="784" cy="404" r="4"/><circle cx="702" cy="304" r="4"/></g>
+
+  <!-- PLAYER: ink-outlined figure, porcelain suit, the only object always perfectly in register -->
+  <g transform="translate(608 358)">
+    <ellipse cy="2" rx="15" ry="6" fill="#15151a" opacity="0.45"/>
+    <path d="M-7,0 L-6,-14 M7,0 L6,-14" stroke="#15151a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-12,-14 Q-13,-36 0,-40 Q13,-36 12,-14 Z" fill="#f6f4ef" stroke="#15151a" stroke-width="2"/>
+    <circle cy="-47" r="8" fill="#f6f4ef" stroke="#15151a" stroke-width="2"/>
+    <rect x="-2" y="-50" width="9" height="5" fill="#15151a"/>
+    <path d="M6,-26 L30,-24" stroke="#15151a" stroke-width="4"/>
+  </g>
+  <!-- player shots: ink dashes -->
+  <g stroke="#15151a" stroke-width="3" stroke-linecap="round"><path d="M690,345 L724,345"/><path d="M790,339 L824,338"/></g>
+  <!-- scan: concentric registration rings -->
+  <g transform="translate(608 358)" fill="none" stroke="#15151a"><ellipse rx="226" ry="113" stroke-opacity="0.35"/><ellipse rx="230" ry="115" stroke="#e0447c" stroke-opacity="0.4"/><ellipse rx="222" ry="111" stroke="#00b8d4" stroke-opacity="0.4"/></g>
+
+  <!-- HUD: clinical print, crop + registration marks -->
+  <g font-size="12" fill="#e9e6df">
+    <g transform="translate(28 26)">
+      <path d="M-8,0 h6 M0,-8 v6" stroke="#e9e6df"/>
+      <text x="6" y="10" font-size="10" letter-spacing="3" fill-opacity="0.7">SUBJECT 0 · AWAKENING #17</text>
+      <rect x="6" y="18" width="220" height="8" fill="#2a2a2c"/><rect x="6" y="18" width="158" height="8" fill="#e9e6df"/>
+      <text x="234" y="26">72</text>
+      <rect x="6" y="32" width="220" height="4" fill="#2a2a2c"/><rect x="6" y="32" width="141" height="4" fill="#00b8d4"/>
+      <text x="234" y="38" font-size="10" fill="#00b8d4">SIGNAL 64</text>
+    </g>
+    <g transform="translate(28 620)" font-size="10">
+      <g><circle cx="26" cy="26" r="24" fill="none" stroke="#e9e6df" stroke-opacity="0.7"/><text x="20" y="30" font-size="12">Z</text><text x="2" y="64" fill-opacity="0.7">SCAN 10</text></g>
+      <g transform="translate(66 0)"><circle cx="26" cy="26" r="24" fill="#e9e6df"/><text x="20" y="30" font-size="12" fill="#0b0b0e">X</text><text x="6" y="64">JAM 25</text></g>
+      <g transform="translate(132 0)"><circle cx="26" cy="26" r="24" fill="none" stroke="#e9e6df" stroke-opacity="0.3"/><path d="M26,2 A24,24 0 0 1 50,26" fill="none" stroke="#f4c430" stroke-width="3"/><text x="20" y="30" font-size="12" fill-opacity="0.4">C</text><text x="0" y="64" fill="#f4c430">DECOY 3.2s</text></g>
+    </g>
+    <g transform="translate(1252 36)" text-anchor="end"><text font-size="10" letter-spacing="3" fill-opacity="0.7">PULSE RIFLE</text><text y="20" font-size="16">∞</text></g>
+    <g transform="translate(860 626)">
+      <path d="M0,0 h392 v48 h-392 z" fill="#0b0b0e" stroke="#e9e6df" stroke-opacity="0.3"/>
+      <text x="12" y="18" font-size="10" letter-spacing="2" fill="#00b8d4">ECHO · 推测 <tspan fill="#e9e6df" fill-opacity="0.5">CONF 0.62</tspan></text>
+      <text x="12" y="38" font-size="13">门锁读的是 R-2 的输出，不是门本身。</text>
+    </g>
+  </g>
+  <rect x="440" y="684" width="400" height="24" fill="#e9e6df"/>
+  <text x="640" y="701" text-anchor="middle" font-size="12" fill="#0b0b0e">CONCEPT C · CONSENSUS GHOST 共识残影 · 概念样稿，非实机截图</text>
+</svg>
