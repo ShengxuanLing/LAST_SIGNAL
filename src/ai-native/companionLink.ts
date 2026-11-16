@@ -36,6 +36,19 @@ export class CompanionLink {
   #heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
   #heartbeatActive = false;
   #heartbeatIntervalMs: number;
+  /**
+   * LOCAL room barrier (no network): bumped synchronously at the committed room
+   * boundary, so a suggestion from the previous room is dead for this renderer
+   * even while the async /companion-room notification is still in flight.
+   */
+  #roomId: number | null = null;
+  #roomGeneration = 0;
+  #roomTick = -1;
+  /** Any authority change (authorize / re-authorize / disconnect / room) bumps this. */
+  #lifecycle = 0;
+  /** Generation/room of the LAST decision this renderer actually applied. */
+  #lastApplyGeneration = -1;
+  #lastApplyRoomId: number | null = null;
 
   constructor(private readonly config: CompanionLinkConfig) {
     this.#cap = config.ownerCap;
@@ -46,6 +59,50 @@ export class CompanionLink {
   get error(): string { return this.#lastError; }
   get session(): string { return this.config.session; }
   get epoch(): number { return this.config.epoch; }
+  get roomId(): number | null { return this.#roomId; }
+  get roomGeneration(): number { return this.#roomGeneration; }
+  /** Execution generation of the last applied decision (truth for receipts). */
+  get lastApplyGeneration(): number { return this.#lastApplyGeneration; }
+  get lastApplyRoomId(): number | null { return this.#lastApplyRoomId; }
+
+  /**
+   * SYNCHRONOUS room barrier. Called by the renderer at the committed room
+   * boundary BEFORE any HTTP, so the local Owner path can never consume a
+   * previous-room proposal during the notification's flight time.
+   */
+  enterRoom(roomId: number, tick: number): void {
+    if (this.#roomId === roomId) {
+      if (tick > this.#roomTick) this.#roomTick = tick;
+      return;
+    }
+    this.#roomId = roomId;
+    this.#roomGeneration += 1;
+    this.#roomTick = Math.max(this.#roomTick, tick);
+    this.#lifecycle += 1;
+  }
+
+  /** Captured authority; every await must re-validate against it. */
+  #capture(): { session: string; epoch: number; roomId: number | null; generation: number; lifecycle: number } {
+    return {
+      session: this.config.session, epoch: this.config.epoch,
+      roomId: this.#roomId, generation: this.#roomGeneration, lifecycle: this.#lifecycle
+    };
+  }
+
+  #sameAuthority(c: { session: string; epoch: number; roomId: number | null; generation: number; lifecycle: number }): boolean {
+    return this.#state === 'CONNECTED' && !!this.#cap
+      && c.session === this.config.session && c.epoch === this.config.epoch
+      && c.roomId === this.#roomId && c.generation === this.#roomGeneration
+      && c.lifecycle === this.#lifecycle;
+  }
+
+  /** A proposal is only consumable in the room/generation it was made in. */
+  #inCurrentRoom(suggestion: { roomId?: number | null }): boolean {
+    if (this.#roomId === null) return true;
+    const room = suggestion?.roomId;
+    if (room === undefined || room === null) return true;
+    return room === this.#roomId;
+  }
 
   /** No enumerable secrets even under dev diagnostics / JSON.stringify. */
   toJSON(): Record<string, never> { return {}; }
@@ -105,6 +162,7 @@ export class CompanionLink {
     this.#cap = '';
     this.#state = 'FALLBACK:NO_MODEL';
     this.#lastError = 'E_LINK_UNAVAILABLE companion.link_fallback';
+    this.#lifecycle += 1;
   }
 
   /**
@@ -126,6 +184,7 @@ export class CompanionLink {
     }
     if (typeof r.ownerCap === 'string') this.#cap = r.ownerCap;
     this.#state = ownerMode === 'human' ? 'CONNECTED' : 'READ_ONLY';
+    this.#lifecycle += 1;
     if (ownerMode === 'human') this.startHeartbeat();
     return true;
   }
@@ -139,11 +198,15 @@ export class CompanionLink {
    */
   async notifyRoom(roomId: number, tick: number): Promise<boolean> {
     if (this.#state !== 'CONNECTED' || !this.#cap) return false;
+    const captured = this.#capture();
     try {
       const r = await this.post('/world-link/companion-room', {
-        session: this.config.session, epoch: this.config.epoch, roomId, tick
+        session: this.config.session, epoch: this.config.epoch, roomId, tick,
+        // Monotonic room commit sequence: a delayed report can never roll back.
+        roomSeq: this.#roomGeneration
       });
-      return r?.ok === true;
+      // A response that arrives after another transition speaks for a dead room.
+      return this.#sameAuthority(captured) && r?.ok === true;
     } catch {
       return false;
     }
@@ -155,18 +218,26 @@ export class CompanionLink {
     if (this.#state !== 'CONNECTED' || this.#inFlight) return;
     const observation = this.config.observation();
     if (!observation) return;
+    const captured = this.#capture();
+    const stamped = this.#roomId === null
+      ? observation
+      : { ...(observation as Record<string, unknown>), roomId: this.#roomId };
     this.#inFlight = true;
     try {
       await this.post('/world-link/companion-observation', {
-        session: this.config.session, epoch: this.config.epoch, observation
+        session: this.config.session, epoch: this.config.epoch, observation: stamped
       });
     } finally { this.#inFlight = false; }
+    void captured; // the gateway rejects observations whose roomId is stale
   }
 
   async pending(): Promise<readonly CompanionSuggestion[]> {
     if (this.#state !== 'CONNECTED') return [];
+    const captured = this.#capture();
     const r = await this.get(`/world-link/companion-suggestions?session=${this.config.session}&epoch=${this.config.epoch}`);
-    return r.ok ? (r.value as CompanionSuggestion[]) : [];
+    if (!this.#sameAuthority(captured)) return []; // never surface work from a left room
+    if (!r.ok) return [];
+    return (r.value as CompanionSuggestion[]).filter((s) => this.#inCurrentRoom(s as { roomId?: number | null }));
   }
 
   /**
@@ -180,26 +251,52 @@ export class CompanionLink {
       this.#lastError = 'E_PERMISSION companion.owner_capability_required';
       return false;
     }
+    // 1) LOCAL BARRIER, before any network: a proposal from a previous room is
+    //    dead here immediately, even while the cancel notification is in flight.
+    if (!this.#inCurrentRoom(suggestion as { roomId?: number | null })) {
+      this.#lastError = 'E_STALE_GENERATION companion.suggestion_room_changed';
+      return false;
+    }
+    const captured = this.#capture();
     const tick = this.config.appliedTick();
     const r = await this.post('/world-link/companion-decision', {
       session: this.config.session, epoch: this.config.epoch,
       suggestionId: suggestion.suggestionId, decision, tick
     });
+    // 2) After EVERY await: the authority captured before the request must still
+    //    be the live one. A room/epoch/lifecycle change makes this response
+    //    unusable: never apply, never enqueue.
+    if (!this.#sameAuthority(captured)) {
+      this.#lastError = 'E_STALE_GENERATION companion.suggestion_room_changed';
+      return false;
+    }
     if (!r.ok) { this.#lastError = `${r.code} ${r.messageKey}`; return false; }
     if (decision === 'reject') return true;
+    if (!this.#sameAuthority(captured)) {
+      this.#lastError = 'E_STALE_GENERATION companion.suggestion_room_changed';
+      return false;
+    }
+    const applyGeneration = captured.generation;
     if (!this.config.apply(suggestion.kind, suggestion.target ?? undefined, suggestion.suggestionId)) {
       this.#lastError = 'E_PERMISSION companion.action_not_applicable';
       return false;
     }
+    // Truth for the later receipt: this execution happened in THAT generation.
+    this.#lastApplyGeneration = applyGeneration;
+    this.#lastApplyRoomId = captured.roomId;
     // Receipt is posted by the Scene AFTER the core tick actually commits it.
     return true;
   }
 
   /** Post the post-commit receipt once the core consumed the confirmed intent. */
-  async postApplied(suggestionId: string, appliedTick: number): Promise<boolean> {
+  async postApplied(
+    suggestionId: string, appliedTick: number,
+    execution?: { generation: number; roomId: number | null }
+  ): Promise<boolean> {
     if (this.#state !== 'CONNECTED' || !this.#cap) return false;
     const receipt = await this.post('/world-link/companion-applied', {
-      session: this.config.session, suggestionId, appliedTick
+      session: this.config.session, suggestionId, appliedTick,
+      ...(execution ? { generation: execution.generation, ...(execution.roomId !== null ? { roomId: execution.roomId } : {}) } : {})
     });
     return !!receipt.ok;
   }
@@ -215,6 +312,7 @@ export class CompanionLink {
   /** Explicit disconnect: NO_MODEL fallback, never a fake connected state. */
   disconnect(): void {
     this.stopHeartbeat();
+    this.#lifecycle += 1;
     if (this.#state === 'OFF') return;
     void this.post('/world-link/companion-disconnect', { session: this.config.session });
     this.#cap = '';

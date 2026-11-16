@@ -32,6 +32,11 @@ export interface CompanionDecisionRecord {
   readonly applied: boolean;
   /** Real post-commit tick, set only by markApplied. */
   readonly appliedTick: number | null;
+  /** Room generation this decision was made in (execution truth, not arrival order). */
+  readonly generation: number;
+  readonly roomId: number | null;
+  /** The room changed while this decision was still unapplied. */
+  readonly stale?: boolean;
 }
 
 /** Read-only truthful receipt for one suggestion (no Owner secret). */
@@ -123,8 +128,14 @@ export class CompanionGateway {
       return err('E_SCHEMA', 'companion.observation_invalid');
     }
     // Server-side allowlist: no seed/map/RNG/hidden fields may enter.
-    const allowedTop = new Set(['epoch', 'tick', 'echo', 'player', 'drones', 'targets', 'relay', 'objectiveBlocked', 'energy', 'cooldowns', 'schema', 'perception']);
+    const allowedTop = new Set(['epoch', 'tick', 'echo', 'player', 'drones', 'targets', 'relay', 'objectiveBlocked', 'energy', 'cooldowns', 'schema', 'perception', 'roomId']);
     for (const key of Object.keys(view)) if (!allowedTop.has(key)) return err('E_SCHEMA', 'companion.observation_invalid');
+    // A LATE observation from a room the renderer already left must never
+    // re-seed perception (nor justify a proposal) in the new room.
+    if (typeof view.roomId === 'number' && state.facet.currentRoom !== null
+        && view.roomId !== state.facet.currentRoom) {
+      return err('E_STALE_GENERATION', 'companion.observation_stale_room');
+    }
     const observed = state.facet.observe({ ...view, epoch });
     if (!observed.ok) return err(observed.code, observed.messageKey);
     state.observation = observed.value;
@@ -207,7 +218,12 @@ export class CompanionGateway {
     const receipts: CompanionReceipt[] = [
       ...[...state.decisions.values()].map((d): CompanionReceipt => ({
         suggestionId: d.suggestionId,
-        status: d.applied ? 'applied' : d.decision === 'confirm' ? 'confirmed' : 'rejected',
+        status: d.applied
+          ? 'applied'
+          : d.stale
+            ? 'cancelled'
+            : d.decision === 'confirm' ? 'confirmed' : 'rejected',
+        ...(d.stale && !d.applied ? { reason: 'room_changed' as const } : {}),
         decidedAtTick: d.decidedAtTick,
         appliedTick: d.appliedTick
       })),
@@ -232,25 +248,52 @@ export class CompanionGateway {
    * new room before proposing again) and the generation is bumped. Same-room
    * repeats are idempotent, so pause/resume never cancels a live proposal.
    */
-  roomChanged(sessionId: string, epoch: number, roomId: number, tick: number): Result<{
-    cancelled: readonly string[]; generation: number; roomId: number;
+  roomChanged(sessionId: string, epoch: number, roomId: number, tick: number, roomSeq?: number): Result<{
+    cancelled: readonly string[]; generation: number; roomId: number; stale?: boolean;
   }> {
     const s = this.session(sessionId, epoch);
     if ('ok' in s && s.ok === false) return s;
     const state = s as CompanionSession;
     if (!Number.isInteger(roomId) || roomId < 0) return err('E_SCHEMA', 'companion.room_invalid');
     if (!Number.isFinite(tick) || tick < 0) return err('E_SCHEMA', 'companion.tick_invalid');
-    const generationBefore = state.facet.currentGeneration;
-    // A decision that was confirmed but never reached a core tick belongs to the
-    // room it was made in: cancel it (and tombstone it) instead of letting a
-    // late markApplied/applied receipt report a phantom execution.
+
+    const currentRoom = state.facet.currentRoom;
+    const currentGeneration = state.facet.currentGeneration;
+    const noop = (room: number) => ({
+      ok: true as const,
+      value: { cancelled: Object.freeze([]) as readonly string[], generation: currentGeneration, roomId: room, stale: true }
+    });
+
+    // 1) SAME ROOM: idempotent no-op BEFORE touching any decision/generation.
+    //    A repeated or pause-driven notification must never retire a confirmed
+    //    but still unapplied decision.
+    if (currentRoom === roomId) return noop(roomId);
+
+    // 2) MONOTONIC room commit order: the renderer sends its own room sequence
+    //    (its local generation). A delayed report from a room we already left
+    //    can never roll the session back, and can never cancel the NEW room's
+    //    legitimate proposal. Tick is the fallback for older callers.
+    const seq = Number.isFinite(roomSeq as number) ? (roomSeq as number) : null;
+    // The renderer-supplied monotonic sequence is authoritative when present;
+    // tick is only the fallback for older callers (a fabricated/older tick must
+    // not reject a newer sequence).
+    const stale = seq !== null ? seq <= currentGeneration : tick < state.facet.currentRoomTickValue;
+    if (stale) return noop(currentRoom ?? roomId);
+
+    const generationBefore = currentGeneration;
+    // 3) A decision confirmed in the old room but never applied: KEEP the record
+    //    (it is the only truthful "execution generation" evidence) but mark it
+    //    stale and tombstone the id. A late `markApplied` from the ORIGINAL
+    //    generation is still recorded as applied(generation=old); a receipt
+    //    claiming another generation is refused.
     const confirmedUnapplied = [...state.decisions.entries()]
       .filter(([, record]) => record.applied !== true)
       .map(([id]) => id);
-    for (const id of confirmedUnapplied) state.decisions.delete(id);
+    for (const id of confirmedUnapplied) {
+      const record = state.decisions.get(id);
+      if (record) state.decisions.set(id, { ...record, stale: true });
+    }
     const outcome = state.facet.applyRoomChange(roomId, tick, confirmedUnapplied);
-    // A REAL change (generation bumped) invalidates the published observation;
-    // an idempotent same-room notification leaves it untouched.
     if (outcome.generation !== generationBefore) state.observation = null;
     return { ok: true, value: { cancelled: outcome.cancelled, generation: outcome.generation, roomId } };
   }
@@ -280,7 +323,8 @@ export class CompanionGateway {
     const validated = validateOwnerDecision(input, {
       status: state.facet.status(),
       suggestion: state.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId),
-      alreadyDecided: state.decisions.has(input.suggestionId),
+      alreadyDecided: state.decisions.get(input.suggestionId)?.stale !== true
+        && state.decisions.has(input.suggestionId),
       maxEpochSeen: input.maxEpochSeen ?? input.epoch,
       roomCancelled: state.facet.roomCancellation(input.suggestionId) === 'room_changed'
     });
@@ -292,7 +336,9 @@ export class CompanionGateway {
       epoch: input.epoch,
       decidedAtTick: validated.value.decidedAtTick,
       applied: false,
-      appliedTick: null
+      appliedTick: null,
+      generation: state.facet.currentGeneration,
+      roomId: state.facet.currentRoom
     });
     state.decisions.set(input.suggestionId, record);
     return { ok: true, value: record };
@@ -302,13 +348,29 @@ export class CompanionGateway {
    * Post-commit receipt. Only a CONFIRM that really reached the core tick may
    * become applied; a rejected decision can never be reported as executed.
    */
-  markApplied(sessionId: string, suggestionId: string, appliedTick: number): Result<CompanionDecisionRecord> {
+  markApplied(
+    sessionId: string, suggestionId: string, appliedTick: number,
+    execution?: { generation?: number; roomId?: number | null }
+  ): Result<CompanionDecisionRecord> {
     const state = this.sessions.get(sessionId);
-    if (state && state.facet.roomCancellation(suggestionId) === 'room_changed') {
-      return err('E_STALE_GENERATION', 'companion.suggestion_room_changed');
-    }
     const record = state?.decisions.get(suggestionId);
-    if (!state || !record) return err('E_TARGET_DESTROYED', 'companion.decision_unknown');
+    if (!state) return err('E_TARGET_DESTROYED', 'companion.decision_unknown');
+    if (!record) {
+      if (state.facet.roomCancellation(suggestionId) === 'room_changed') {
+        return err('E_STALE_GENERATION', 'companion.suggestion_room_changed');
+      }
+      return err('E_TARGET_DESTROYED', 'companion.decision_unknown');
+    }
+    // The renderer reports WHICH room generation it executed in. A receipt that
+    // claims a different generation is a late/foreign execution and is refused;
+    // the record keeps its own generation, so truth never flips by arrival order.
+    if (execution?.generation !== undefined && execution.generation !== record.generation) {
+      return err('E_STALE_GENERATION', 'companion.applied_generation_mismatch');
+    }
+    if (execution?.roomId !== undefined && execution.roomId !== null && record.roomId !== null
+        && execution.roomId !== record.roomId) {
+      return err('E_STALE_GENERATION', 'companion.applied_generation_mismatch');
+    }
     if (record.decision !== 'confirm') return err('E_PERMISSION', 'companion.decision_not_confirmed');
     if (record.applied) return err('E_RETRYABLE', 'companion.decision_already_applied');
     if (!Number.isInteger(appliedTick) || appliedTick < record.decidedAtTick) {

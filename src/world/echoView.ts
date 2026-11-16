@@ -66,7 +66,7 @@ export function isEchoObservation(value: unknown): value is EchoObservation {
   const p = v.perception as Record<string, unknown> | undefined;
   if (!p || p.requiresExplored !== true || p.requiresLineOfSight !== true ||
       p.radiusTiles !== ECHO_LIMITS.perceptionTiles || !finite(p.center)) return false;
-  const allowed = new Set(['schema', 'perception', 'tick', 'player', 'echo', 'drones', 'targets', 'energy', 'cooldowns', 'relay', 'objectiveBlocked']);
+  const allowed = new Set(['schema', 'perception', 'tick', 'player', 'echo', 'drones', 'targets', 'energy', 'cooldowns', 'relay', 'objectiveBlocked', 'roomId']);
   for (const key of Object.keys(v)) if (!allowed.has(key)) return false;
   if (!Array.isArray(v.drones) || !Array.isArray(v.targets)) return false;
   const center = p.center as { x: number; y: number };

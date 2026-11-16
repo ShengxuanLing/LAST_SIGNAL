@@ -58,7 +58,7 @@ export class GameScene extends Phaser.Scene {
   companionLink: CompanionLink | null = null;
   private companionFrame = 0;
   /** Confirmed companion suggestion awaiting its post-commit receipt. */
-  private pendingCompanionReceipt: { suggestionId: string; enqueuedTick: number } | null = null;
+  private pendingCompanionReceipt: { suggestionId: string; enqueuedTick: number; generation: number; roomId: number | null } | null = null;
   /** Player signal keys (independent, unoccupied keys: T=scan, Y=jam, R=toggle relay). */
   private signalKeyCooldown = false;
   private keyT!: Phaser.Input.Keyboard.Key;
@@ -447,9 +447,9 @@ export class GameScene extends Phaser.Scene {
     // Companion receipt: only AFTER a real core tick consumed the confirmed
     // intent (never early, never while paused with no tick).
     if (this.pendingCompanionReceipt && this.world.sim.tick > this.pendingCompanionReceipt.enqueuedTick) {
-      const { suggestionId } = this.pendingCompanionReceipt;
+      const { suggestionId, generation, roomId } = this.pendingCompanionReceipt;
       this.pendingCompanionReceipt = null;
-      void this.companionLink?.postApplied(suggestionId, this.world.sim.tick).then((ok) => {
+      void this.companionLink?.postApplied(suggestionId, this.world.sim.tick, { generation, roomId }).then((ok) => {
         // Publish the fresh post-commit observation so the model reads its own
         // real result (damage / state). Never advances the simulation.
         if (ok) void this.companionLink?.pushObservation();
@@ -705,10 +705,18 @@ export class GameScene extends Phaser.Scene {
     // publish the NEW room's committed observation, so the agent must observe
     // here before it may propose again. A pause/resume never reaches this.
     const link = this.companionLink;
-    if (link && link.status === 'CONNECTED') {
-      void link.notifyRoom(room.id, this.world.sim.tick).then((ok) => {
-        if (ok) void link.pushObservation();
-      });
+    if (link) {
+      // SYNCHRONOUS barrier BEFORE any await: the previous room's proposals are
+      // unusable for this renderer immediately, even while the HTTP cancel is
+      // still in flight (delayed/lost/out-of-order notifications included).
+      link.enterRoom(room.id, this.world.sim.tick);
+      // A receipt for a decision applied in the old room is no longer publishable.
+      this.pendingCompanionReceipt = null;
+      if (link.status === 'CONNECTED') {
+        void link.notifyRoom(room.id, this.world.sim.tick).then((ok) => {
+          if (ok) void link.pushObservation();
+        });
+      }
     }
     const p = this.world.player;
     const s = this.world.worldToScreen(p.x, p.y);
@@ -942,15 +950,35 @@ export class GameScene extends Phaser.Scene {
         heartbeatIntervalMs: 1000,
         apply: (kind, target, suggestionId) => {
           const ok = this.world.enqueueCompanionAction(kind, target);
-          if (ok && suggestionId) this.pendingCompanionReceipt = { suggestionId, enqueuedTick: this.world.sim.tick };
+          if (ok && suggestionId) {
+            this.pendingCompanionReceipt = {
+              suggestionId,
+              enqueuedTick: this.world.sim.tick,
+              // Execution generation/room: the receipt must describe where the
+              // action really ran, not where a later response arrived.
+              generation: this.companionLink?.lastApplyGeneration ?? -1,
+              roomId: this.companionLink?.lastApplyRoomId ?? null
+            };
+          }
           return ok;
         },
         appliedTick: () => this.world.sim.tick
       });
+      // Seed the local room barrier with the CURRENT room BEFORE any HTTP, so a
+      // proposal can never be created/consumed with an unknown room (and the
+      // server learns the start room on the same authorize).
+      const startRoom = this.world.roomIdValue;
+      const startTick = this.world.sim.tick;
+      this.companionLink.enterRoom(startRoom, startTick);
       const ok = await this.companionLink.authorize();
-      // Push the committed echo observation immediately so Agent echo_observe
-      // succeeds right away, WITHOUT resuming the game tick (no manual step).
-      if (ok) void this.companionLink.pushObservation();
+      if (ok) {
+        // 1) tell the bridge which room this session starts in (monotonic seq),
+        // 2) then publish the committed observation for THAT room, so
+        //    echo_observe succeeds immediately.
+        void this.companionLink.notifyRoom(startRoom, startTick)
+          .then(() => this.companionLink?.pushObservation())
+          .catch(() => undefined);
+      }
       return ok;
     } catch {
       return false;

@@ -161,6 +161,8 @@ export class World {
   private supplyReceipts = new Map<string, { transactionId: string; offerKey: string; roomId: number; ok: boolean; reason?: string; price: number; currency: number; hp: number; weaponKey: string }>();
   private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
   private currentRoomId = -1;
+  /** Public read-only room id (the same value the renderer/tests read). */
+  get roomIdValue(): number { return this.currentRoomId; }
   private enteredRooms = new Set<number>();
   public renderer: WorldRenderer | null = null;
   private _minX = 0;

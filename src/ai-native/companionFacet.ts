@@ -113,6 +113,8 @@ export interface CompanionObservationView extends EchoView {
   objectiveBlocked?: boolean;
   /** The echo's OWN resource account (separate from the player's). */
   energy?: { current: number; max: number };
+  /** Room this observation belongs to (renderer stamps it; mismatches are refused). */
+  roomId?: number;
   cooldowns?: { scanTicks: number; jamTicks: number };
 }
 
@@ -271,6 +273,8 @@ export class CompanionFacet {
   /** Room generation: bumps ONLY on a committed room change. */
   private roomGeneration = 0;
   private currentRoomId: number | null = null;
+  /** Tick of the committed room boundary: older notifications are stale. */
+  private currentRoomTick = -1;
   /**
    * Tombstones for suggestions killed by a room change. NEVER cleared by a
    * generation change (only FIFO-trimmed at the same hard bound as dedup), so a
@@ -544,7 +548,10 @@ export class CompanionFacet {
   applyRoomChange(
     roomId: number, tick: number, alsoCancel: readonly string[] = []
   ): { cancelled: readonly string[]; generation: number } {
-    if (this.currentRoomId === roomId && alsoCancel.length === 0) {
+    // Contract: a repeat notification for the CURRENT room is idempotent no
+    // matter what else the caller passes in. The early return happens before
+    // any mutation (generation, tombstones, observation, memory).
+    if (this.currentRoomId === roomId) {
       return { cancelled: Object.freeze([]), generation: this.roomGeneration };
     }
     const cancelled: string[] = [];
@@ -563,6 +570,7 @@ export class CompanionFacet {
     this.suggestions.clear();
     this.roomGeneration += 1;
     this.currentRoomId = roomId;
+    this.currentRoomTick = Math.max(this.currentRoomTick, tick);
     this.lastObservation = null;
     this.lastObservationTick = null;
     this.memoryValue = [];
@@ -582,6 +590,7 @@ export class CompanionFacet {
 
   get currentGeneration(): number { return this.roomGeneration; }
   get currentRoom(): number | null { return this.currentRoomId; }
+  get currentRoomTickValue(): number { return this.currentRoomTick; }
 
   private recordMemory(
     tick: number,

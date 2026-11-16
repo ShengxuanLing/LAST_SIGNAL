@@ -102,17 +102,63 @@ describe('room generation retires the previous room proposals', () => {
     expect((companion.status(session, epoch) as any).value.pending).toHaveLength(0);
   });
 
-  it('cancels a CONFIRMED but not-yet-applied decision instead of applying it', () => {
+  it('a CONFIRMED-but-unapplied decision goes stale, and only the ORIGINAL generation can report applied', () => {
     const { companion, session, epoch } = setup();
     const id = 'sug_' + '2'.repeat(24);
     expect(companion.suggest({ session, epoch, ...suggestion(3, { suggestionId: id }) } as never).ok).toBe(true);
     expect(companion.decide({ session, epoch, suggestionId: id, decision: 'confirm', tick: 101 }).ok).toBe(true);
+    const decidedGeneration = (companion.status(session, epoch) as any).value.status.roomGeneration;
 
     companion.roomChanged(session, epoch, ROOM_B, 120);
-    const receipts = (companion.status(session, epoch) as any).value.receipts as Array<Record<string, unknown>>;
-    expect(receipts.find((r) => r.suggestionId === id)).toMatchObject({ status: 'cancelled', reason: 'room_changed' });
-    expect(companion.markApplied(session, id, 121))
+    const stale = (companion.status(session, epoch) as any).value.receipts as Array<Record<string, unknown>>;
+    expect(stale.find((r) => r.suggestionId === id)).toMatchObject({ status: 'cancelled', reason: 'room_changed' });
+    // A receipt claiming the NEW generation is refused (it never ran there).
+    expect(companion.markApplied(session, id, 121, { generation: decidedGeneration + 1 }))
       .toMatchObject({ ok: false, code: 'E_STALE_GENERATION' });
+    // A late receipt from the ORIGINAL generation is truthful history: applied.
+    expect(companion.markApplied(session, id, 102, { generation: decidedGeneration }).ok).toBe(true);
+    const after = (companion.status(session, epoch) as any).value.receipts as Array<Record<string, unknown>>;
+    expect(after.find((r) => r.suggestionId === id)).toMatchObject({ status: 'applied', appliedTick: 102 });
+  });
+
+  it('SAME-ROOM repeat with a confirmed-but-unapplied decision is still a no-op (no generation bump)', () => {
+    const { companion, session, epoch } = setup();
+    const id = 'sug_' + '6'.repeat(24);
+    expect(companion.suggest({ session, epoch, ...suggestion(11, { suggestionId: id }) } as never).ok).toBe(true);
+    expect(companion.decide({ session, epoch, suggestionId: id, decision: 'confirm', tick: 101 }).ok).toBe(true);
+    const before = (companion.status(session, epoch) as any).value.status.roomGeneration;
+
+    for (let i = 0; i < 3; i += 1) {
+      const same = companion.roomChanged(session, epoch, ROOM_A, 110 + i);
+      expect(same.ok).toBe(true);
+      expect((same as any).value.generation, 'same-room repeat must not bump').toBe(before);
+      expect((same as any).value.cancelled).toHaveLength(0);
+    }
+    const status = companion.status(session, epoch) as any;
+    expect(status.value.receipts.find((r: any) => r.suggestionId === id))
+      .toMatchObject({ status: 'confirmed' });
+    // and the decision can still be applied truthfully in its own generation
+    expect(companion.markApplied(session, id, 102).ok).toBe(true);
+  });
+
+  it('an OUT-OF-ORDER (late) report for a left room neither rolls back nor cancels the new proposal', () => {
+    const { companion, session, epoch } = setup();
+    expect(companion.roomChanged(session, epoch, ROOM_A, 90, 1).ok).toBe(true);
+    expect(companion.roomChanged(session, epoch, ROOM_B, 95, 2).ok).toBe(true);
+    const newId = 'sug_' + '7'.repeat(24);
+    expect(companion.pushObservation(session, epoch, observation({ tick: 96 })).ok).toBe(true);
+    expect(companion.suggest({ session, epoch, ...suggestion(12, { suggestionId: newId }) } as never).ok).toBe(true);
+
+    // The delayed A report (older sequence AND older tick) arrives last.
+    const late = companion.roomChanged(session, epoch, ROOM_A, 91, 1);
+    expect(late.ok).toBe(true);
+    expect((late as any).value.stale, 'the late report is classified stale').toBe(true);
+    expect((late as any).value.cancelled, 'it cancels nothing').toHaveLength(0);
+
+    const status = companion.status(session, epoch) as any;
+    expect(status.value.status.roomId, 'the session stays in the newest room').toBe(ROOM_B);
+    expect(status.value.pending.map((p: { suggestionId: string }) => p.suggestionId))
+      .toContain(newId);
   });
 
   it('keeps an ALREADY APPLIED suggestion as applied history', () => {

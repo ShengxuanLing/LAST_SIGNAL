@@ -135,10 +135,11 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const epoch = asInt(body.epoch);
     const roomId = asInt(body.roomId);
     const tick = asInt(body.tick);
+    const roomSeq = asInt(body.roomSeq);
     if (!session || epoch === null || roomId === null || tick === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
     if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
-    companionResult(res, companions.roomChanged(session, epoch, roomId, tick));
+    companionResult(res, companions.roomChanged(session, epoch, roomId, tick, roomSeq ?? undefined));
   }
   function companionObservationGet(req: IncomingMessage, res: ServerResponse): void {
     const { session, epoch } = companionQuery(req);
@@ -212,10 +213,15 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     const session = asString(body.session);
     const suggestionId = asString(body.suggestionId);
     const appliedTick = asInt(body.appliedTick);
+    const generation = asInt(body.generation);
+    const roomId = asInt(body.roomId);
     if (!session || !suggestionId || appliedTick === null) return badRequest(res);
     if (!originMatches(req, options.gateway, session)) return originDenied(res);
     if (!capOk(session, body.ownerCap)) return ownerDenied(res);
-    companionResult(res, companions.markApplied(session, suggestionId, appliedTick));
+    companionResult(res, companions.markApplied(session, suggestionId, appliedTick, {
+      ...(generation !== null ? { generation } : {}),
+      ...(roomId !== null ? { roomId } : {})
+    }));
   }
   async function companionMode(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const body = await jsonBody(req, res, bodyMax);
@@ -290,7 +296,6 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
       (pathname === '/world-link/agent-renew' && method === 'POST') ||
       (pathname === '/world-link/agent-status' && method === 'GET') ||
       (pathname === '/world-link/companion-observation' && method === 'GET') ||
-      (pathname === '/world-link/companion-room' && method === 'POST') ||
       (pathname === '/world-link/companion-suggest' && method === 'POST') ||
       (pathname === '/world-link/companion-status' && method === 'GET') ||
       (pathname === '/world-link/companion-memory' && method === 'GET');
