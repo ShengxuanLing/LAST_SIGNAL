@@ -116,7 +116,7 @@ describe('room generation retires the previous room proposals', () => {
     expect(companion.markApplied(session, id, 121, { generation: decidedGeneration + 1 }))
       .toMatchObject({ ok: false, code: 'E_STALE_GENERATION' });
     // A late receipt from the ORIGINAL generation is truthful history: applied.
-    expect(companion.markApplied(session, id, 102, { generation: decidedGeneration }).ok).toBe(true);
+    expect(companion.markApplied(session, id, 102, { generation: decidedGeneration, roomId: ROOM_A }).ok).toBe(true);
     const after = (companion.status(session, epoch) as any).value.receipts as Array<Record<string, unknown>>;
     expect(after.find((r) => r.suggestionId === id)).toMatchObject({ status: 'applied', appliedTick: 102 });
   });

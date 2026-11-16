@@ -4,6 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { HeadlessWorldManager } from './worldHeadlessMcpTools';
 import { HeadlessWorld, neutralIntent } from './worldHeadless';
 import { cloneSimulationState, type SimulationState } from '../world/sim/core';
+import { roomAt } from '../config/supplies';
+
+function spawnRelay(world: HeadlessWorld, echo: { x: number; y: number }) {
+  const room = roomAt(world.state.map.rooms, world.state.player.x, world.state.player.y)?.id ?? 0;
+  world.enableSignalDevice({ deviceId: 'relay_main', roomId: room, x: echo.x + 0.5, y: echo.y });
+}
 
 const body = (r: any): any => r.structuredContent ?? { ok: false, code: 'E_SCHEMA' };
 function dev(): HeadlessWorldManager {
@@ -53,7 +59,7 @@ describe('Headless Signal E2E cooperation chain (Task C item 5)', () => {
 
     const echo = world.state.echo!;
     // Device beside the echo: legal LOS/range for echo actor
-    world.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echo.x + 0.5, y: echo.y });
+    spawnRelay(world, echo);
     world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
 
     // 1. Echo scan: costs echo energy, records evidence
@@ -96,7 +102,7 @@ describe('Headless Signal E2E cooperation chain (Task C item 5)', () => {
     world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
 
     const echo = world.state.echo!;
-    world.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echo.x + 0.5, y: echo.y });
+    spawnRelay(world, echo);
     world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
 
     // Enable relay first
@@ -126,7 +132,7 @@ describe('Headless Signal E2E cooperation chain (Task C item 5)', () => {
     world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
 
     const echo = world.state.echo!;
-    world.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echo.x + 0.5, y: echo.y });
+    spawnRelay(world, echo);
     world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
 
     world.enqueueSignalCommand({ type: 'signal-scan', actor: 'echo' });
@@ -152,7 +158,7 @@ describe('Rendered↔Headless signal canonical parity', () => {
     worldA.enableEcho();
     worldA.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     const echoA = worldA.state.echo!;
-    worldA.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echoA.x + 0.5, y: echoA.y });
+    spawnRelay(worldA, echoA);
     worldA.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     for (const action of actions) {
       worldA.enqueueSignalCommand(action);
@@ -167,7 +173,7 @@ describe('Rendered↔Headless signal canonical parity', () => {
     worldB.enableEcho();
     worldB.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     const echoB = worldB.state.echo!;
-    worldB.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echoB.x + 0.5, y: echoB.y });
+    spawnRelay(worldB, echoB);
     worldB.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     for (const action of actions) {
       worldB.enqueueSignalCommand(action);
@@ -194,7 +200,7 @@ describe('Rendered↔Headless signal canonical parity', () => {
     worldA.enableEcho();
     worldA.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     const echoA = worldA.state.echo!;
-    worldA.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echoA.x + 0.5, y: echoA.y });
+    spawnRelay(worldA, echoA);
     worldA.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     worldA.enqueueSignalCommand({ type: 'signal-scan', actor: 'echo' });
     worldA.runSteps([{ ticks: 1, intent: neutralIntent() }]);
@@ -204,7 +210,7 @@ describe('Rendered↔Headless signal canonical parity', () => {
     worldB.enableEcho();
     worldB.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     const echoB = worldB.state.echo!;
-    worldB.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echoB.x + 0.5, y: echoB.y });
+    spawnRelay(worldB, echoB);
     worldB.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     worldB.enqueueSignalCommand({ type: 'signal-jam', actor: 'player' });
     worldB.runSteps([{ ticks: 1, intent: neutralIntent() }]);

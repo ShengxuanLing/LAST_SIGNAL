@@ -8,6 +8,7 @@ import {
   createSimulationState, enqueueCommand, stepSimulationTicks, canonicalSimulationState,
   cloneSimulationState, isWalkableFromState, type SimulationIntent, type SimulationState
 } from './core';
+import { roomAt } from '../../config/supplies';
 import { tickSignalDevice, commitToggleRelay, signalExitOpen, validSignalDevice } from './signalState';
 
 function playerData(): PlayerData {
@@ -51,7 +52,9 @@ describe('optional core Signal device', () => {
 
   it('spawn/scan/jam/toggle commit ONLY at the tick boundary', () => {
     const s = state();
-    const device = { deviceId: 'relay_main', roomId: 0, x: s.player.x, y: s.player.y };
+    const device = { deviceId: 'relay_main',
+      roomId: roomAt(s.map.rooms, s.player.x, s.player.y)?.id ?? 0,
+      x: s.player.x, y: s.player.y };
     enqueueCommand(s, { type: 'spawn-signal-device', ...device });
     expect(s.signal, 'enqueue only').toBeUndefined();
     const spawned = stepSimulationTicks(s, 1, neutral());
@@ -78,7 +81,9 @@ describe('optional core Signal device', () => {
 
   it('jam suppresses emission (never ACTIVE), toggle preserves power, expiry recomputes', () => {
     const s = state();
-    enqueueCommand(s, { type: 'spawn-signal-device', deviceId: 'relay', roomId: 0, x: s.player.x, y: s.player.y });
+    enqueueCommand(s, { type: 'spawn-signal-device', deviceId: 'relay',
+      roomId: roomAt(s.map.rooms, s.player.x, s.player.y)?.id ?? 0,
+      x: s.player.x, y: s.player.y });
     stepSimulationTicks(s, 1, neutral());
     enqueueCommand(s, { type: 'signal-jam', actor: 'player' });
     stepSimulationTicks(s, 1, neutral());
@@ -99,7 +104,9 @@ describe('optional core Signal device', () => {
 
   it('paused ticks never regen and evidence expires by absolute TTL', () => {
     const s = state();
-    enqueueCommand(s, { type: 'spawn-signal-device', deviceId: 'relay', roomId: 0, x: s.player.x, y: s.player.y });
+    enqueueCommand(s, { type: 'spawn-signal-device', deviceId: 'relay',
+      roomId: roomAt(s.map.rooms, s.player.x, s.player.y)?.id ?? 0,
+      x: s.player.x, y: s.player.y });
     stepSimulationTicks(s, 1, neutral());
     s.signal!.actors.player.energy.energy = 50;
     for (let i = 0; i < 120; i += 1) tickSignalDevice(s.signal!, s.tick + i, true);

@@ -11,6 +11,7 @@
 import { performance } from 'node:perf_hooks';
 import { HeadlessWorld, neutralIntent, type HeadlessStatus } from './worldHeadless';
 import type { SimulationIntent } from '../world/sim/core';
+import { roomAt } from '../config/supplies';
 
 export type BaselinePolicyId = 'hold' | 'seek-and-fire';
 
@@ -259,7 +260,8 @@ export function signalCombatBatch(seeds: readonly number[]): { runs: SignalComba
     world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     const echo = world.state.echo!;
     // ONE real device beside the echo: legal LOS/range for the echo actor.
-    world.enableSignalDevice({ deviceId: 'relay_main', roomId: 0, x: echo.x + 0.5, y: echo.y });
+    const room = roomAt(world.state.map.rooms, world.state.player.x, world.state.player.y)?.id ?? 0;
+    world.enableSignalDevice({ deviceId: 'relay_main', roomId: room, x: echo.x + 0.5, y: echo.y });
     world.runSteps([{ ticks: 1, intent: neutralIntent() }]);
     world.enqueueSignalCommand({ type: 'signal-scan', actor: 'echo' });
     world.runSteps([{ ticks: 1, intent: neutralIntent() }]);

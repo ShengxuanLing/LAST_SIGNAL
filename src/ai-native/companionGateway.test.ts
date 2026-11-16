@@ -6,6 +6,8 @@ import { CompanionGateway } from './companionGateway';
 import { COMPANION_LIMITS } from './companionFacet';
 
 const ORIGIN = 'http://localhost:5335';
+const ROOM_A = 0;
+const ROOM_B = 3;
 function setup() {
   const gateway = new WorldGateway();
   const linked = gateway.linkSession({ authorized: true, origin: ORIGIN, nowMs: 1000 });
@@ -109,6 +111,37 @@ describe('CompanionGateway', () => {
     expect(applied.ok).toBe(true);
     if (!applied.ok) return;
     expect(applied.value.applied).toBe(true);
+  });
+
+  it('markApplied requires explicit generation/room evidence for a stale record', () => {
+    const { companion, session, epoch } = setup();
+    companion.pushObservation(session, epoch, observation());
+    const s = companion.suggest({ session, epoch, ...suggestion() } as never);
+    if (!s.ok) throw new Error('suggest failed');
+    const id = s.value.suggestion.suggestionId;
+    expect(companion.decide({ session, epoch, suggestionId: id, decision: 'confirm', tick: 101 }).ok).toBe(true);
+    const before = companion.status(session, epoch) as any;
+    const decidedGeneration = before.value.status.roomGeneration;
+    const decidedRoom = before.value.status.roomId;
+    // A committed room change cancels the unapplied decision and tombstones it.
+    expect(companion.roomChanged(session, epoch, ROOM_B, 120).ok).toBe(true);
+    expect((companion.status(session, epoch) as any).value.receipts.find((r: any) => r.suggestionId === id))
+      .toMatchObject({ status: 'cancelled', reason: 'room_changed' });
+    // Omitting execution evidence on a stale record is refused.
+    expect(companion.markApplied(session, id, 102))
+      .toMatchObject({ ok: false, code: 'E_STALE_GENERATION' });
+    // Wrong generation is refused.
+    expect(companion.markApplied(session, id, 102, { generation: decidedGeneration + 1 }))
+      .toMatchObject({ ok: false, code: 'E_STALE_GENERATION' });
+    // Wrong room is refused.
+    expect(companion.markApplied(session, id, 102, { generation: decidedGeneration, roomId: ROOM_B }))
+      .toMatchObject({ ok: false, code: 'E_STALE_GENERATION' });
+    // The ORIGINAL generation+room is accepted as truthful late execution history.
+    expect(companion.markApplied(session, id, 102, { generation: decidedGeneration, roomId: decidedRoom }).ok)
+      .toBe(true);
+    const final = companion.status(session, epoch) as any;
+    expect(final.value.receipts.find((r: any) => r.suggestionId === id))
+      .toMatchObject({ status: 'applied', appliedTick: 102 });
   });
 
   it('stale epoch, expired TTL and AI/External owner mode are refused', () => {

@@ -553,12 +553,13 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       case 'toggle-relay': {
         const device = state.signal;
         if (!device) break;
-        const result = commitToggleRelay(device, command.enabled, state.tick);
+        const currentRoom = roomAt(state.map.rooms, state.player.x, state.player.y);
+        const result = commitToggleRelay(device, command.enabled, state.tick, currentRoom?.id);
+        if (!result.ok) break;
         events.push({
           type: 'signal-relay-changed', relay: device.relay,
           manualEnabled: device.manualEnabled, powered: device.powered
         });
-        void result;
         break;
       }
       case 'signal-power': {

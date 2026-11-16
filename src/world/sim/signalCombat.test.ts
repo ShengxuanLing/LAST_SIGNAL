@@ -17,6 +17,7 @@ import {
   createSimulationState, enqueueCommand, stepSimulationTicks,
   canonicalSimulationState, isWalkableFromState, type SimulationIntent, type SimulationState
 } from './core';
+import { roomAt } from '../../config/supplies';
 import {
   commitSignalScan, commitSignalJam, commitToggleRelay,
   createSignalDevice, signalExitOpen, validSignalDevice,
@@ -58,10 +59,25 @@ function state(): SimulationState {
 const neutral = (): SimulationIntent => ({ move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false });
 
 function spawnRelay(s: SimulationState, deviceId = 'relay_main', x?: number, y?: number) {
-  enqueueCommand(s, { type: 'spawn-signal-device', deviceId, roomId: 0, x: x ?? s.player.x, y: y ?? s.player.y });
+  const playerRoom = roomAt(s.map.rooms, s.player.x, s.player.y)?.id ?? 0;
+  enqueueCommand(s, { type: 'spawn-signal-device', deviceId, roomId: playerRoom,
+    x: x ?? s.player.x, y: y ?? s.player.y });
   stepSimulationTicks(s, 1, neutral());
   expect(s.signal).toBeTruthy();
   return s.signal!;
+}
+
+/** A walkable tile far (>40 tiles) from the echo, hence in a different room. */
+function farWalkable(s: SimulationState): { x: number; y: number } {
+  const center = s.echo ?? { x: s.player.x, y: s.player.y };
+  for (const row of s.map.tiles) {
+    for (const tile of row) {
+      if (tile.type !== 'floor' && tile.type !== 'spawn') continue;
+      if (!isWalkableFromState(s, tile.x, tile.y, 0.5)) continue;
+      if (Math.hypot(tile.x - center.x, tile.y - center.y) > 40) return { x: tile.x, y: tile.y };
+    }
+  }
+  throw new Error('no far tile');
 }
 
 function spawnEcho(s: SimulationState) {
@@ -507,5 +523,71 @@ describe('External agent signal permission (Task C item 3)', () => {
     expect(jamResult.ok).toBe(true);
     expect(s.signal!.actors.player.energy.energy).toBeLessThan(beforeJam);
     expect(s.signal!.relay).toBe('JAMMED');
+  });
+
+  describe('toggle-relay is bound to the device room across a teleport', () => {
+    it('a toggle queued before the real portal command still runs in the old room', () => {
+      const s = state();
+      spawnRelay(s);
+      const deviceRoom = s.signal!.roomId;
+      const far = farWalkable(s);
+      // Both commands are queued in this order before the next tick boundary:
+      // the toggle must commit while the player is still in the device room.
+      enqueueCommand(s, { type: 'toggle-relay', enabled: true });
+      enqueueCommand(s, { type: 'teleport-player', x: far.x, y: far.y, healToFull: true, migrateEcho: true });
+      const events = stepSimulationTicks(s, 1, neutral());
+      expect(s.signal!.relay).toBe('ACTIVE');
+      expect(signalExitOpen(s.signal)).toBe(true);
+      expect(events.filter((e) => e.type === 'signal-relay-changed')).toHaveLength(1);
+      expect(roomAt(s.map.rooms, s.player.x, s.player.y)?.id).not.toBe(deviceRoom);
+    });
+
+    it('a toggle committed before teleport runs in the old room and opens the exit', () => {
+      const s = state();
+      spawnRelay(s);
+      enqueueCommand(s, { type: 'toggle-relay', enabled: true });
+      stepSimulationTicks(s, 1, neutral());
+      expect(s.signal!.relay).toBe('ACTIVE');
+      expect(signalExitOpen(s.signal)).toBe(true);
+    });
+
+    it('a toggle committed after teleport is rejected: relay/exitOpen unchanged', () => {
+      const s = state();
+      spawnRelay(s);
+      enqueueCommand(s, { type: 'toggle-relay', enabled: true });
+      stepSimulationTicks(s, 1, neutral());
+      expect(s.signal!.relay).toBe('ACTIVE');
+
+      const deviceRoom = s.signal!.roomId;
+      const far = farWalkable(s);
+      enqueueCommand(s, { type: 'teleport-player', x: far.x, y: far.y, healToFull: true, migrateEcho: true });
+      stepSimulationTicks(s, 1, neutral()); // commit the teleport first
+      const playerRoom = roomAt(s.map.rooms, s.player.x, s.player.y)?.id;
+      expect(playerRoom).not.toBe(deviceRoom);
+
+      enqueueCommand(s, { type: 'toggle-relay', enabled: false });
+      const events = stepSimulationTicks(s, 1, neutral());
+      expect(s.signal!.relay).toBe('ACTIVE');
+      expect(signalExitOpen(s.signal)).toBe(true);
+      // A rejected toggle commits nothing: no relay-changed event at all.
+      expect(events.some((e) => e.type === 'signal-relay-changed')).toBe(false);
+    });
+
+    it('scan/jam after teleport are refused without charging energy', () => {
+      const s = state();
+      spawnRelay(s);
+      spawnEcho(s);
+      const far = farWalkable(s);
+      enqueueCommand(s, { type: 'teleport-player', x: far.x, y: far.y, healToFull: true, migrateEcho: true });
+      const beforeEcho = s.signal!.actors.echo.energy.energy;
+      const beforePlayer = s.signal!.actors.player.energy.energy;
+      enqueueCommand(s, { type: 'signal-scan', actor: 'echo' });
+      enqueueCommand(s, { type: 'signal-jam', actor: 'player' });
+      stepSimulationTicks(s, 1, neutral());
+      expect(s.signal!.actors.echo.energy.energy).toBe(beforeEcho);
+      expect(s.signal!.actors.player.energy.energy).toBe(beforePlayer);
+      expect(s.signal!.evidence.length).toBe(0);
+      expect(s.signal!.relay).toBe('INACTIVE');
+    });
   });
 });

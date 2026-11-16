@@ -361,15 +361,29 @@ export class CompanionGateway {
       }
       return err('E_TARGET_DESTROYED', 'companion.decision_unknown');
     }
-    // The renderer reports WHICH room generation it executed in. A receipt that
-    // claims a different generation is a late/foreign execution and is refused;
-    // the record keeps its own generation, so truth never flips by arrival order.
-    if (execution?.generation !== undefined && execution.generation !== record.generation) {
-      return err('E_STALE_GENERATION', 'companion.applied_generation_mismatch');
-    }
-    if (execution?.roomId !== undefined && execution.roomId !== null && record.roomId !== null
-        && execution.roomId !== record.roomId) {
-      return err('E_STALE_GENERATION', 'companion.applied_generation_mismatch');
+    // A record cancelled by a room change can only be reported applied by the
+    // renderer that executed it in THAT room/generation. Omitting the evidence
+    // (old client or constructed request) must NOT flip a cancelled decision
+    // back to applied; truth never flips by arrival order.
+    if (record.stale) {
+      if (!execution || execution.generation === undefined
+          || execution.generation !== record.generation) {
+        return err('E_STALE_GENERATION', 'companion.applied_generation_mismatch');
+      }
+      if (execution.roomId === undefined
+          || execution.roomId !== record.roomId) {
+        return err('E_STALE_GENERATION', 'companion.applied_generation_mismatch');
+      }
+    } else {
+      // Non-stale records keep the loose contract: the renderer always sends
+      // generation/roomId, but an old client omitting them is still accepted.
+      if (execution?.generation !== undefined && execution.generation !== record.generation) {
+        return err('E_STALE_GENERATION', 'companion.applied_generation_mismatch');
+      }
+      if (execution?.roomId !== undefined && execution.roomId !== null && record.roomId !== null
+          && execution.roomId !== record.roomId) {
+        return err('E_STALE_GENERATION', 'companion.applied_generation_mismatch');
+      }
     }
     if (record.decision !== 'confirm') return err('E_PERMISSION', 'companion.decision_not_confirmed');
     if (record.applied) return err('E_RETRYABLE', 'companion.decision_already_applied');
