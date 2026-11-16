@@ -37,7 +37,9 @@ export interface CompanionDecisionRecord {
 /** Read-only truthful receipt for one suggestion (no Owner secret). */
 export interface CompanionReceipt {
   readonly suggestionId: string;
-  readonly status: 'confirmed' | 'rejected' | 'applied' | 'expired';
+  readonly status: 'confirmed' | 'rejected' | 'applied' | 'expired' | 'cancelled';
+  /** Present when the suggestion was retired without a human decision. */
+  readonly reason?: 'room_changed' | 'expired';
   readonly decidedAtTick: number | null;
   readonly appliedTick: number | null;
 }
@@ -143,6 +145,13 @@ export class CompanionGateway {
     const s = this.session(input.session, input.epoch);
     if ('ok' in s && s.ok === false) return s;
     const state = s as CompanionSession;
+    // A proposal retired by a room change stays retired: replaying its request
+    // (or reusing its id) can never resurrect it, and the reason is explicit.
+    // This gate runs BEFORE the observation gate so the agent learns the real
+    // reason instead of a generic "no observation".
+    if (state.facet.roomCancellation(input.suggestionId) === 'room_changed') {
+      return err('E_STALE_GENERATION', 'companion.suggestion_room_changed');
+    }
     if (!state.observation) return err('E_LINK_UNAVAILABLE', 'companion.no_observation');
     state.facet.advanceTo(state.observation.tick);
     if (!COMPANION_ID_PATTERN.test(input.suggestionId)) return err('E_SCHEMA', 'companion.suggestion_id_invalid');
@@ -194,6 +203,7 @@ export class CompanionGateway {
     const state = s as CompanionSession;
     const pending = state.facet.pendingSuggestions().filter((p) => !state.decisions.has(p.suggestionId));
     const base = state.facet.status();
+    const cancelledIds = new Set(state.facet.cancelledSuggestionIds());
     const receipts: CompanionReceipt[] = [
       ...[...state.decisions.values()].map((d): CompanionReceipt => ({
         suggestionId: d.suggestionId,
@@ -201,11 +211,48 @@ export class CompanionGateway {
         decidedAtTick: d.decidedAtTick,
         appliedTick: d.appliedTick
       })),
-      ...state.facet.expiredSuggestionIds()
+      ...[...cancelledIds]
         .filter((id) => !state.decisions.has(id))
-        .map((id): CompanionReceipt => ({ suggestionId: id, status: 'expired', decidedAtTick: null, appliedTick: null }))
+        .map((id): CompanionReceipt => ({
+          suggestionId: id, status: 'cancelled', reason: 'room_changed', decidedAtTick: null, appliedTick: null
+        })),
+      ...state.facet.expiredSuggestionIds()
+        .filter((id) => !state.decisions.has(id) && !cancelledIds.has(id))
+        .map((id): CompanionReceipt => ({
+          suggestionId: id, status: 'expired', reason: 'expired', decidedAtTick: null, appliedTick: null
+        }))
     ];
     return { ok: true, value: { status: { ...base, pendingSuggestions: pending.length }, pending, receipts } };
+  }
+
+  /**
+   * Browser-only mutation: the rendered game COMMITTED a room change.
+   * Everything proposed in the previous room is cancelled with a real
+   * tombstone, the published observation is dropped (the agent must observe the
+   * new room before proposing again) and the generation is bumped. Same-room
+   * repeats are idempotent, so pause/resume never cancels a live proposal.
+   */
+  roomChanged(sessionId: string, epoch: number, roomId: number, tick: number): Result<{
+    cancelled: readonly string[]; generation: number; roomId: number;
+  }> {
+    const s = this.session(sessionId, epoch);
+    if ('ok' in s && s.ok === false) return s;
+    const state = s as CompanionSession;
+    if (!Number.isInteger(roomId) || roomId < 0) return err('E_SCHEMA', 'companion.room_invalid');
+    if (!Number.isFinite(tick) || tick < 0) return err('E_SCHEMA', 'companion.tick_invalid');
+    const generationBefore = state.facet.currentGeneration;
+    // A decision that was confirmed but never reached a core tick belongs to the
+    // room it was made in: cancel it (and tombstone it) instead of letting a
+    // late markApplied/applied receipt report a phantom execution.
+    const confirmedUnapplied = [...state.decisions.entries()]
+      .filter(([, record]) => record.applied !== true)
+      .map(([id]) => id);
+    for (const id of confirmedUnapplied) state.decisions.delete(id);
+    const outcome = state.facet.applyRoomChange(roomId, tick, confirmedUnapplied);
+    // A REAL change (generation bumped) invalidates the published observation;
+    // an idempotent same-room notification leaves it untouched.
+    if (outcome.generation !== generationBefore) state.observation = null;
+    return { ok: true, value: { cancelled: outcome.cancelled, generation: outcome.generation, roomId } };
   }
 
   /** Browser-only: list unconfirmed proposals for the human UI. */
@@ -234,7 +281,8 @@ export class CompanionGateway {
       status: state.facet.status(),
       suggestion: state.facet.pendingSuggestions().find((p) => p.suggestionId === input.suggestionId),
       alreadyDecided: state.decisions.has(input.suggestionId),
-      maxEpochSeen: input.maxEpochSeen ?? input.epoch
+      maxEpochSeen: input.maxEpochSeen ?? input.epoch,
+      roomCancelled: state.facet.roomCancellation(input.suggestionId) === 'room_changed'
     });
     if (!validated.ok) return err(validated.code, validated.messageKey);
     state.facet.advanceTo(input.tick);
@@ -256,6 +304,9 @@ export class CompanionGateway {
    */
   markApplied(sessionId: string, suggestionId: string, appliedTick: number): Result<CompanionDecisionRecord> {
     const state = this.sessions.get(sessionId);
+    if (state && state.facet.roomCancellation(suggestionId) === 'room_changed') {
+      return err('E_STALE_GENERATION', 'companion.suggestion_room_changed');
+    }
     const record = state?.decisions.get(suggestionId);
     if (!state || !record) return err('E_TARGET_DESTROYED', 'companion.decision_unknown');
     if (record.decision !== 'confirm') return err('E_PERMISSION', 'companion.decision_not_confirmed');

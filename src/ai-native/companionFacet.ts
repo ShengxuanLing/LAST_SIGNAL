@@ -163,6 +163,10 @@ export interface CompanionSuggestion {
   confidence: number | null;
   createdAtTick: number;
   expiresAtTick: number;
+  /** The room this proposal belongs to. A committed room change retires it. */
+  roomId: number | null;
+  /** Monotonic room generation; a decision from an older one is refused. */
+  generation: number;
   /** Always 'proposed': only the human owner can move it forward. */
   status: 'proposed';
 }
@@ -178,6 +182,8 @@ export interface CompanionStatus {
   ownerMode: CompanionOwnerMode;
   readOnly: boolean;
   lastObservationTick: number | null;
+  roomId: number | null;
+  roomGeneration: number;
   memoryEntries: number;
   pendingSuggestions: number;
   dedupRecords: number;
@@ -262,6 +268,15 @@ export class CompanionFacet {
   private readonly seen = new Map<string, string>();
   private readonly evicted = new Set<string>();
   private dedupRecords = 0;
+  /** Room generation: bumps ONLY on a committed room change. */
+  private roomGeneration = 0;
+  private currentRoomId: number | null = null;
+  /**
+   * Tombstones for suggestions killed by a room change. NEVER cleared by a
+   * generation change (only FIFO-trimmed at the same hard bound as dedup), so a
+   * late decision on a held old object stays refused instead of resurrecting.
+   */
+  private readonly cancelledByRoom = new Map<string, 'room_changed'>();
 
   constructor(options: CompanionFacetOptions) {
     this.session = options.session;
@@ -372,6 +387,8 @@ export class CompanionFacet {
       confidence: input.confidence ?? null,
       createdAtTick,
       expiresAtTick: createdAtTick + ttl,
+      roomId: this.currentRoomId,
+      generation: this.roomGeneration,
       status: 'proposed'
     });
     const fingerprint = JSON.stringify({ kind, reason: input.reason, target: candidate.target, ttl });
@@ -410,6 +427,8 @@ export class CompanionFacet {
       fallbackLabel: this.fallbackLabel,
       ownerMode: this.ownerMode,
       lastObservationTick: this.lastObservationTick,
+      roomId: this.currentRoomId,
+      roomGeneration: this.roomGeneration,
       memory: this.memoryValue.map((entry) => ({ ...entry })),
       pending: [...this.suggestions.values()].map((entry) => entry.suggestion),
       dedupRecords: this.dedupRecords,
@@ -433,6 +452,8 @@ export class CompanionFacet {
       ownerMode: this.ownerMode,
       readOnly: this.ownerMode !== 'human',
       lastObservationTick: this.lastObservationTick,
+      roomId: this.currentRoomId,
+      roomGeneration: this.roomGeneration,
       memoryEntries: this.memoryValue.length,
       pendingSuggestions: this.suggestions.size,
       dedupRecords: this.dedupRecords,
@@ -511,6 +532,56 @@ export class CompanionFacet {
     for (const id of this.suggestions.keys()) this.evicted.add(id);
     this.suggestions.clear();
   }
+
+  /**
+   * A COMMITTED room change. Everything proposed in the previous room belongs
+   * to a dead generation: it is cancelled (tombstoned so a late Owner decision
+   * on a held old object is refused, never re-armed) and the published
+   * observation is dropped, so the agent must observe the new room before it
+   * can propose again. Same-room notifications are idempotent no-ops, so a
+   * pause/resume or a repeated browser heartbeat never cancels anything.
+   */
+  applyRoomChange(
+    roomId: number, tick: number, alsoCancel: readonly string[] = []
+  ): { cancelled: readonly string[]; generation: number } {
+    if (this.currentRoomId === roomId && alsoCancel.length === 0) {
+      return { cancelled: Object.freeze([]), generation: this.roomGeneration };
+    }
+    const cancelled: string[] = [];
+    for (const id of [...this.suggestions.keys(), ...alsoCancel]) {
+      if (this.cancelledByRoom.has(id)) continue;
+      cancelled.push(id);
+      this.evicted.add(id);
+      this.cancelledByRoom.set(id, 'room_changed');
+      // FIFO bound: tombstones are trimmed oldest-first, never wiped wholesale.
+      while (this.cancelledByRoom.size > this.maxDedupRecords) {
+        const oldest = this.cancelledByRoom.keys().next().value as string | undefined;
+        if (oldest === undefined) break;
+        this.cancelledByRoom.delete(oldest);
+      }
+    }
+    this.suggestions.clear();
+    this.roomGeneration += 1;
+    this.currentRoomId = roomId;
+    this.lastObservation = null;
+    this.lastObservationTick = null;
+    this.memoryValue = [];
+    this.advanceTo(tick);
+    return { cancelled: Object.freeze(cancelled), generation: this.roomGeneration };
+  }
+
+  /** Ids retired by a room change (bounded; the tombstone ledger itself). */
+  cancelledSuggestionIds(): readonly string[] {
+    return Object.freeze([...this.cancelledByRoom.keys()]);
+  }
+
+  /** Why this id can never be decided any more (room change), or null. */
+  roomCancellation(suggestionId: string): 'room_changed' | null {
+    return this.cancelledByRoom.get(suggestionId) ?? null;
+  }
+
+  get currentGeneration(): number { return this.roomGeneration; }
+  get currentRoom(): number | null { return this.currentRoomId; }
 
   private recordMemory(
     tick: number,
@@ -605,6 +676,8 @@ export function validateOwnerDecision(
     readonly suggestion: CompanionSuggestion | undefined;
     readonly alreadyDecided: boolean;
     readonly maxEpochSeen: number;
+    /** Set when this id was cancelled by a committed room change. */
+    readonly roomCancelled?: boolean;
   }
 ): CompanionResult<OwnerDecision> {
   if (input.decision !== 'confirm' && input.decision !== 'reject') {
@@ -625,6 +698,7 @@ export function validateOwnerDecision(
   if (!Number.isFinite(input.tick) || (input.tick as number) < 0) return fail('E_SCHEMA', 'companion.tick_invalid');
   const tick = input.tick as number;
   if (context.alreadyDecided) return fail('E_RETRYABLE', 'companion.decision_exists');
+  if (context.roomCancelled) return fail('E_STALE_GENERATION', 'companion.suggestion_room_changed');
   const suggestion = context.suggestion;
   if (!suggestion) return fail('E_TARGET_DESTROYED', 'companion.suggestion_expired');
   if (tick >= suggestion.expiresAtTick) return fail('E_ACTION_EXPIRED', 'companion.suggestion_expired');
@@ -649,6 +723,8 @@ export interface CompanionSnapshot {
   readonly fallbackLabel: CompanionFallbackLabel;
   readonly ownerMode: CompanionOwnerMode;
   readonly lastObservationTick: number | null;
+  readonly roomId: number | null;
+  readonly roomGeneration: number;
   readonly memory: readonly CompanionMemoryEntry[];
   readonly pending: readonly CompanionSuggestion[];
   readonly dedupRecords: number;

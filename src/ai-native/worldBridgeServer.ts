@@ -121,6 +121,25 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
     companionResult(res, companions.pushObservation(session, epoch, body.observation));
   }
+  /**
+   * Browser-only: the rendered game COMMITTED a room change. This retires the
+   * previous room's suggestions (unconfirmed AND confirmed-but-unapplied) by
+   * bumping the room generation, so a held old suggestion object can never be
+   * confirmed into the new room. Needs the issued Owner capability + the game
+   * Origin, so an Agent token can never cancel the Owner's work.
+   */
+  async function companionRoom(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await jsonBody(req, res, bodyMax);
+    if (!body) return;
+    const session = asString(body.session);
+    const epoch = asInt(body.epoch);
+    const roomId = asInt(body.roomId);
+    const tick = asInt(body.tick);
+    if (!session || epoch === null || roomId === null || tick === null) return badRequest(res);
+    if (!originMatches(req, options.gateway, session)) return originDenied(res);
+    if (!capOk(session, body.ownerCap, epoch)) return ownerDenied(res);
+    companionResult(res, companions.roomChanged(session, epoch, roomId, tick));
+  }
   function companionObservationGet(req: IncomingMessage, res: ServerResponse): void {
     const { session, epoch } = companionQuery(req);
     if (!session || epoch === null) return badRequest(res);
@@ -271,6 +290,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
       (pathname === '/world-link/agent-renew' && method === 'POST') ||
       (pathname === '/world-link/agent-status' && method === 'GET') ||
       (pathname === '/world-link/companion-observation' && method === 'GET') ||
+      (pathname === '/world-link/companion-room' && method === 'POST') ||
       (pathname === '/world-link/companion-suggest' && method === 'POST') ||
       (pathname === '/world-link/companion-status' && method === 'GET') ||
       (pathname === '/world-link/companion-memory' && method === 'GET');
@@ -308,6 +328,7 @@ export async function startWorldBridge(options: WorldBridgeOptions): Promise<Run
     if (pathname === '/world-link/close' && req.method === 'POST') return closeLink(req, res);
     if (pathname === '/world-link/companion-authorize' && req.method === 'POST') return companionAuthorize(req, res);
     if (pathname === '/world-link/companion-observation' && req.method === 'POST') return companionObservation(req, res);
+    if (pathname === '/world-link/companion-room' && req.method === 'POST') return companionRoom(req, res);
     if (pathname === '/world-link/companion-observation' && req.method === 'GET') return companionObservationGet(req, res);
     if (pathname === '/world-link/companion-suggest' && req.method === 'POST') return companionSuggest(req, res);
     if (pathname === '/world-link/companion-status' && req.method === 'GET') return companionStatus(req, res);

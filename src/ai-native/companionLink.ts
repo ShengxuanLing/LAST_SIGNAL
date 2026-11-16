@@ -130,6 +130,25 @@ export class CompanionLink {
     return true;
   }
 
+  /**
+   * Renderer-only: report a COMMITTED room change so the previous room's
+   * proposals (unconfirmed + confirmed-but-unapplied) are retired by a real
+   * generation bump. The Agent can never call this: the bridge requires the
+   * Owner capability and the game Origin. Returns false when the link is not
+   * connected; it never throws and never changes game state.
+   */
+  async notifyRoom(roomId: number, tick: number): Promise<boolean> {
+    if (this.#state !== 'CONNECTED' || !this.#cap) return false;
+    try {
+      const r = await this.post('/world-link/companion-room', {
+        session: this.config.session, epoch: this.config.epoch, roomId, tick
+      });
+      return r?.ok === true;
+    } catch {
+      return false;
+    }
+  }
+
   /** Push the echo's own committed observation (safe to call immediately after
    *  authorize, without resuming the game tick). */
   async pushObservation(): Promise<void> {

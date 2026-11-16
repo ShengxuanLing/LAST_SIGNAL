@@ -699,6 +699,17 @@ export class GameScene extends Phaser.Scene {
   private onRoomEntered(room: RoomInfo): void {
     if (room.kind === 'boss') audio.bossroar();
     else audio.wave();
+    // Committed room boundary: the companion's previous-room work dies with the
+    // room. This is a RENDERER-only report (Owner capability + game Origin), so
+    // an Agent can never cancel the Owner's proposals. After the cancel we
+    // publish the NEW room's committed observation, so the agent must observe
+    // here before it may propose again. A pause/resume never reaches this.
+    const link = this.companionLink;
+    if (link && link.status === 'CONNECTED') {
+      void link.notifyRoom(room.id, this.world.sim.tick).then((ok) => {
+        if (ok) void link.pushObservation();
+      });
+    }
     const p = this.world.player;
     const s = this.world.worldToScreen(p.x, p.y);
     const t = this.add.text(s.x, s.y - 40, `${room.kind.toUpperCase()} ROOM`, {
