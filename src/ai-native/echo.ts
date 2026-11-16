@@ -122,6 +122,20 @@ export class EchoController {
     this.suggestion = null;
   }
 
+  /**
+   * A real room transition invalidates everything the echo learned in the old
+   * room: the armed assist, the pending suggestion and the target memory.
+   * The human's chosen MOVEMENT mode is preserved on purpose.
+   */
+  clearForRoomTransition(): void {
+    this.assistConfirmed = false;
+    this.suggestion = null;
+    this.memory.length = 0;
+    this.lastIntent = neutral();
+    this.moveTarget = null;
+    if (this.mode === 'move-to') this.mode = 'follow';
+  }
+
   /** Disconnect / death / takeover: the echo stops acting immediately. */
   clearIntent(): void {
     this.assistConfirmed = false;

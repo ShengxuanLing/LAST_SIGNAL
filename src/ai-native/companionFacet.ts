@@ -14,6 +14,8 @@ import { WORLD_LIMITS } from './worldProtocol';
 import { isEchoObservation, ECHO_OBSERVATION_SCHEMA } from '../world/echoView';
 import { ECHO_LIMITS, type EchoView } from './echo';
 
+import { SIGNAL_TUNING } from '../signal/signalTuning';
+
 export const COMPANION_SCHEMA = 'last_signal.companion.v1' as const;
 export const COMPANION_ACTOR_ID = 1 as const;
 
@@ -46,18 +48,41 @@ export type CompanionOwnerMode = 'human' | 'ai' | 'external';
 export type CompanionLinkState = 'connected' | 'fallback';
 export type CompanionFallbackLabel = 'NO_MODEL' | null;
 
-/** Perception may contain a target at <=12 tiles, but jam needs STRICT <6. */
+/** Perception may contain a target at <=12 tiles, but jam needs STRICT <6.
+ *  Availability honours the echo's CURRENT energy/cooldowns AND the perceived
+ *  Signal device: scan/jam legitimately apply to the relay too (that is how the
+ *  real cooperation chain opens the exit), so the status must not claim
+ *  "out_of_range" when the relay is right next to the echo. */
 export function companionAvailableActions(observation: CompanionObservation | null): Array<{
   kind: CompanionSuggestionKind; available: boolean; reason: string;
 }> {
-  const all = [...(observation?.drones ?? []), ...((observation as unknown as { targets?: unknown[] })?.targets ?? [])] as Array<{ x: number; y: number }>;
+  const hostiles = [...(observation?.drones ?? []), ...((observation as unknown as { targets?: unknown[] })?.targets ?? [])] as Array<{ x: number; y: number }>;
   const center = observation?.echo ?? { x: 0, y: 0 };
-  const nearest = all.reduce((best, actor) => Math.min(best, Math.hypot(actor.x - center.x, actor.y - center.y)), Infinity);
+  const nearestHostile = hostiles.reduce((best, actor) => Math.min(best, Math.hypot(actor.x - center.x, actor.y - center.y)), Infinity);
+  const relay = observation?.relay ?? null;
+  const relayDistance = relay ? Math.hypot(relay.x - center.x, relay.y - center.y) : Infinity;
+  const hostileScanRange = Number.isFinite(nearestHostile) && nearestHostile < COMPANION_LIMITS.PERCEPTION_TILES;
+  const relayScanRange = relayDistance < COMPANION_LIMITS.PERCEPTION_TILES;
+  const hostileJamRange = Number.isFinite(nearestHostile) && nearestHostile < 6;
+  const relayJamRange = relayDistance < 6;
+  const inScanRange = hostileScanRange || relayScanRange;
+  const inJamRange = hostileJamRange || relayJamRange;
+  const energy = observation?.energy?.current;
+  const scanTicks = observation?.cooldowns?.scanTicks ?? 0;
+  const jamTicks = observation?.cooldowns?.jamTicks ?? 0;
+  const scanBlock = scanTicks > 0
+    ? 'cooldown'
+    : typeof energy === 'number' && energy < SIGNAL_TUNING.SCAN_COST ? 'insufficient_energy' : null;
+  const jamBlock = jamTicks > 0
+    ? 'cooldown'
+    : typeof energy === 'number' && energy < SIGNAL_TUNING.JAM_COST ? 'insufficient_energy' : null;
+  const scanReason = !inScanRange
+    ? 'out_of_range'
+    : (scanBlock ?? (relayScanRange && !hostileScanRange ? 'perceived_relay' : 'perceived_target'));
+  const jamReason = !inJamRange ? 'out_of_range' : (jamBlock ?? 'in_jam_range');
   return [
-    { kind: 'scan', available: Number.isFinite(nearest) && nearest < COMPANION_LIMITS.PERCEPTION_TILES,
-      reason: Number.isFinite(nearest) && nearest < COMPANION_LIMITS.PERCEPTION_TILES ? 'perceived_target' : 'out_of_range' },
-    { kind: 'jam', available: Number.isFinite(nearest) && nearest < 6,
-      reason: Number.isFinite(nearest) && nearest < 6 ? 'in_jam_range' : 'out_of_range' }
+    { kind: 'scan', available: inScanRange && scanBlock === null, reason: scanReason },
+    { kind: 'jam', available: inJamRange && jamBlock === null, reason: jamReason }
   ];
 }
 
@@ -93,7 +118,9 @@ export interface CompanionObservationView extends EchoView {
 
 export interface CompanionMemoryEntry {
   tick: number;
-  kind: 'drone' | 'relay';
+  /** `target` = a cropped non-drone enemy (kind preserved in the id);
+   *  `relay` = the perceived Signal device. Never conflate the two. */
+  kind: 'drone' | 'relay' | 'target';
   id: number | string;
   x: number;
   y: number;
@@ -495,7 +522,7 @@ export class CompanionFacet {
       this.memoryValue.push({ tick, kind: 'drone', id: drone.id, x: drone.x, y: drone.y });
     }
     for (const target of targets) {
-      this.memoryValue.push({ tick, kind: 'relay', id: `target_${target.id}_${target.kind}`, x: target.x, y: target.y });
+      this.memoryValue.push({ tick, kind: 'target', id: `target_${target.id}_${target.kind}`, x: target.x, y: target.y });
     }
     if (relay) this.memoryValue.push({ tick, kind: 'relay', id: relay.id, x: relay.x, y: relay.y });
     const cutoff = tick - COMPANION_LIMITS.MEMORY_TTL_TICKS;

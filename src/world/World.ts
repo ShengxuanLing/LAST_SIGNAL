@@ -943,8 +943,13 @@ export class World {
       this.portal = null;
       // Ordinary transition is a command committed by the next core tick with
       // a validated walkable landing; updateRoom() enters the destination and
-      // queues its spawn/portal on that tick.
-      this.enqueueTeleport(landing.x, landing.y, true);
+      // queues its spawn/portal on that tick. The companion migrates with the
+      // protagonist on that SAME tick, and the old room's armed assist +
+      // pending companion intent + echo memory are dropped (never carried into
+      // the new encounter). No forced teleport of the test's own making.
+      this.echoController.clearForRoomTransition();
+      this.pendingCompanionIntent = null;
+      this.enqueueTeleport(landing.x, landing.y, true, true);
       audio.wave();
     }
   }
@@ -1134,8 +1139,8 @@ export class World {
   }
 
   /** Queues a validated room teleport; committed by the next core tick. */
-  enqueueTeleport(x: number, y: number, healToFull = true): void {
-    enqueueCommand(this._sim, { type: 'teleport-player', x, y, healToFull });
+  enqueueTeleport(x: number, y: number, healToFull = true, migrateEcho = false): void {
+    enqueueCommand(this._sim, { type: 'teleport-player', x, y, healToFull, migrateEcho });
     this.bumpSimVersion();
   }
 

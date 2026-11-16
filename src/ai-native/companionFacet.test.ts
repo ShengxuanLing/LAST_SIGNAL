@@ -76,7 +76,7 @@ describe('CompanionFacet observe', () => {
       targets: [{ id: 9, kind: 'hunter', x: 2, y: 0, hp: 40, isBoss: false }]
     }));
     expect(r.ok).toBe(true);
-    expect(f.memory.some((m) => m.kind === 'relay' && String(m.id).startsWith('target_'))).toBe(true);
+    expect(f.memory.some((m) => m.kind === 'target' && String(m.id).startsWith('target_'))).toBe(true);
     expect(f.status().availableActions.find((a) => a.kind === 'jam')?.available).toBe(true);
     const far = f.status().availableActions;
     expect(far).toHaveLength(2);

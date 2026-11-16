@@ -110,7 +110,7 @@ export type SimCommand =
   | { type: 'move-target'; targetId: number; x: number; y: number }
   | { type: 'spawn-loot'; x: number; y: number; kind: SimLootKind; key: string; amount: number; bob?: number }
   | { type: 'spawn-enemy-projectile'; ownerId: number; x: number; y: number; damage: number; vel: Vec2; lifetime?: number }
-  | { type: 'teleport-player'; x: number; y: number; healToFull: boolean }
+  | { type: 'teleport-player'; x: number; y: number; healToFull: boolean; migrateEcho?: boolean }
   | { type: 'room-enter'; roomId: number; roomKind: string; gx: number; gy: number; w: number; h: number; depth: number; savedPortalTarget: number | null; neighbors: number[]; enemyCount: number; enemyPositions: Vec2[]; resourceCount: number; resourcePositions: Vec2[]; firstEnemyId: number }
   | { type: 'set-target-hp'; targetId: number; hp: number }
   | { type: 'heal-player'; amount: number }
@@ -588,6 +588,21 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
         }
         state.player.fireTimer = 0;
         events.push({ type: 'player-moved', position: recovered, velocity: { x: 0, y: 0 }, dashTimer: state.player.dashTimer, dashStarted: false });
+        // Companion contract: a real room transition carries the ECHO with the
+        // protagonist on the SAME tick. Without this the echo stays stranded in
+        // the previous room and can never perceive the new room's relay.
+        // Debug/checkpoint teleports leave the flag off and keep old behaviour.
+        if (command.migrateEcho === true && state.echo && state.echo.data.hp > 0) {
+          const spot = ensureWalkableFromState(state, { x: recovered.x + 1, y: recovered.y });
+          state.echo.x = spot.x;
+          state.echo.y = spot.y;
+          state.echo.dashTimer = 0;
+          state.echo.fireTimer = 0;
+          events.push({
+            type: 'echo-moved', actorId: state.echo.actorId,
+            position: { x: spot.x, y: spot.y }, velocity: { x: 0, y: 0 }, dashTimer: 0, dashStarted: false
+          });
+        }
         break;
       }
       case 'room-enter': {
