@@ -152,9 +152,15 @@ test('real portal retires old-room suggestions: no stale confirm, no execution; 
     })();
 
     // 1) A legal unconfirmed proposal in room A.
-    const obs = (await sdk.client.callTool({ name: 'echo_observe', arguments: {} })).structuredContent as any;
-    expect(obs.ok, `echo_observe: ${JSON.stringify(obs)}`).toBe(true);
-    const echoAt = obs.observation.echo;
+    // 同步点：enableEcho 后首次 observation 可能尚未在 30 帧 push 周期内到达。
+    // 重试直到真实 observation 就绪（仍要求 ok===true，不放宽断言）。
+    let obs: any = null;
+    for (let i = 0; i < 30 && !obs?.ok; i++) {
+      obs = (await sdk.client.callTool({ name: 'echo_observe', arguments: {} })).structuredContent as any;
+      if (!obs?.ok) await page.waitForTimeout(100);
+    }
+    expect(obs?.ok, `echo_observe: ${JSON.stringify(obs)}`).toBe(true);
+    const echoAt = obs!.observation.echo;
     const oldId = sugId();
     const proposed = (await sdk.client.callTool({
       name: 'echo_suggest',
@@ -298,7 +304,14 @@ test('pause/resume with no room change never cancels a live proposal', async ({ 
     await client.connect(transport);
     sdk = { client, transport };
 
-    const obs = (await client.callTool({ name: 'echo_observe', arguments: {} })).structuredContent as any;
+    // 同步点：enableEcho 后首次 observation 可能尚未在 30 帧 push 周期内到达。
+    // 重试直到真实 observation 就绪（仍要求 ok===true，不放宽断言）。
+    let obs: any = null;
+    for (let i = 0; i < 30 && !obs?.ok; i++) {
+      obs = (await client.callTool({ name: 'echo_observe', arguments: {} })).structuredContent as any;
+      if (!obs?.ok) await page.waitForTimeout(100);
+    }
+    expect(obs?.ok).toBe(true);
     const id = sugId();
     expect(((await client.callTool({
       name: 'echo_suggest',
