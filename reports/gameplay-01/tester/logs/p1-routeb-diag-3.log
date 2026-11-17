@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-01.spec.ts:420:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 3) route B: manual relay OFF (R) selects the other authored route
+[chromium] › tests\gameplay-01.spec.ts:420:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 3) route B: manual relay OFF (R) selects the other authored route
+P1_METRICS D:\Project\LAST_SIGNAL\reports\gameplay-01\tester\evidence\lastrun3\p1-acceptance.json
+
+  1 passed (11.6s)

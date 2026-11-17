@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+[chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+Route B reached SAFE_E in 5500ms / 331 logic ticks
+
+  1 passed (16.6s)

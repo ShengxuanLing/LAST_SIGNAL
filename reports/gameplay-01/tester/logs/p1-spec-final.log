@@ -1,0 +1,14 @@
+
+Running 7 tests using 1 worker
+
+[1/7] [chromium] › tests\gameplay-01.spec.ts:317:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 1) real menu entry: relay ACTIVE, linked drones, T/Y costs and jam expiry
+[2/7] [chromium] › tests\gameplay-01.spec.ts:386:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 2) route A reached by real walking + F after real combat (no teleport, no rescue)
+[3/7] [chromium] › tests\gameplay-01.spec.ts:420:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 3) route B: manual relay OFF (R) selects the other authored route
+[4/7] [chromium] › tests\gameplay-01.spec.ts:450:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 4) standing at the door: natural Y is range-rejected, fixture jam cannot pass
+[5/7] [chromium] › tests\gameplay-01.spec.ts:565:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 5) save -> page reload -> CONTINUE restores room, relay and route target
+[6/7] [chromium] › tests\gameplay-01.spec.ts:594:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 6) three seeds: DEMO 01 either sets up the authored scene or reports it visibly
+[7/7] [chromium] › tests\gameplay-01.spec.ts:615:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 7) HUD + menu at five viewports: readable font, no clipped / unexpected overlap
+[chromium] › tests\gameplay-01.spec.ts:615:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 7) HUD + menu at five viewports: readable font, no clipped / unexpected overlap
+P1_METRICS D:\Project\LAST_SIGNAL\reports\gameplay-01\tester\evidence\p1-acceptance.json
+
+  7 passed (1.4m)

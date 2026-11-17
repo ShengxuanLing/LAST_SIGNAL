@@ -1,8 +1,8 @@
 # GAMEPLAY-01 P1 阶段提交
 
-状态：冻结候选与独立审查通过；Tester 完整 P1 流水尚未结束。不是整个 GAMEPLAY-01 的 ENGINEERING PASS。真人试玩 HUMAN ACCEPTANCE PENDING，真实 LLM 因连接配置缺失 BLOCKED。
+状态：P1 机制与源码独立审查通过；Tester 完整流水已记录但未全绿（浏览器 117 passed / 4 failed / 4 未运行，共 125）。返修后的新增 7 条隔离通过，不能补算为旧全量通过。不是整个 GAMEPLAY-01 的 ENGINEERING PASS。真人试玩 HUMAN ACCEPTANCE PENDING；Magpie 连接与 Headless Player 最小战斗已另行验证，P1 关卡及 ECHO 的真实模型链仍未验证。
 
-基底为 `c7e03c5`（CI 密闭性前置），其前基线为 `main @ 7aa8b51`。本阶段仅提交 12 个冻结源码/规则测试文件，以及设计、P0 实测与 P1 证据；Tester 正在修改的 `tests/**` 不随本提交纳入。后续测试提交和结果会单独记录，不能混用快照。
+源码阶段提交为 `400a73e`，基底为 `c7e03c5`（CI 密闭性前置），其前基线为 `main @ 7aa8b51`。已审两份 P0 旧测试修复另提为 `b6a98e5`。新 P1 E2E 与报告另行提交，测试隔离树为 c7e03c5 加 12 个 P1 冻结文件和两份 P0 测试修复，不包含共享工作区的 P2 改动。
 
 ## 可玩入口与内容
 
@@ -25,5 +25,15 @@
 - [P0 Tester 实测](tester/BASELINE_REPORT.md)
 - [P1 机制与限制](../../docs/gameplay/SIGNAL_INTERACTIONS.md)
 - [P1 独立审查](reviewer/P1_FINAL_REVIEW.md)
+- [Tester 完整及返修测试报告](tester/P1_TEST_REPORT.md)
+- [新 E2E 独立审查（返修要求与证据边界）](reviewer/P1_TEST_REVIEW.md)
+
+## 新 E2E 返修结果与快照边界
+
+新 spec SHA256：`e1c01a959314d0967e4fd14624fcc906ded2dac89ac3fde0d6f56238cdad027b`。
+
+Reviewer 首审要求的两个断言修正已由 Tester 实现、Lead 核对：用提交事件精确断言 Scan 花费 10、Jam 花费 25；三个指定 seed 20261117/18/19 必须全部建立 authored 场景且无错误、两条非 boss/extraction 目标互异，三次实际布局 distinctLayouts=3。非盲驾驶读取 canonical 敌位/HP，移动开火为真实键鼠，不写世界状态；不能称合法 Player 模型链或人类盲测。移除不必要 serial 依赖，失败不再自动丢弃后续独立用例。新版本类型检查与 7/7 隔离通过；独立首审没有重跑这个返修后的版本，不能声称 Reviewer 也实跑了新 7/7。
+
+历史全量的 4 未运行是 serial 第 3 条失败导致第 4–7 条未执行，保留为未验证；返修隔离 7/7 不补算旧流水。vs01 在无 P1 基底也复现，才有既有偶发失败的双基线证据；HUD/route B 隔离转绿不等于已证无回归。HUD 另诊断到采样时 LevelUpScene 正常暂停世界，正在改正测试采样前置，不改变原断言。完整回归仍有待关闭项。
 
 仅本地阶段提交，不 push、PR 或 merge main。

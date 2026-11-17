@@ -1,0 +1,25 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+  1) [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 10.5
+    Received: 10.6
+
+      143 |   await expect(relay).toHaveAttribute('data-cooldown-ticks', '0', { timeout: 10000 });
+      144 |   expect(await coordinate(page, 'x')).toBeLessThanOrEqual(2.6);
+    > 145 |   expect(await coordinate(page, 'y')).toBe(10.5);
+          |                                       ^
+      146 |   const labCheckpoint = await readSave(page);
+      147 |   expect(labCheckpoint.corridor).toBeUndefined();
+      148 |
+        at D:\Project\LAST_SIGNAL\tests\vs01.spec.ts:145:39
+
+    Error Context: test-results\vs01-route-B-reaches-the-e-46720--Jam-from-the-real-entrance-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance 

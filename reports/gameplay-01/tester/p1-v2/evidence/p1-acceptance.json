@@ -1,0 +1,676 @@
+[
+  {
+    "item": "p1-relay-basics",
+    "at": "2026-11-17T21:41:17.291Z",
+    "runner": "agent (real T/Y keys)",
+    "fixtures": "none",
+    "seed": 20261117,
+    "scenario": {
+      "roomId": 0,
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE"
+        }
+      ],
+      "drones": 2
+    },
+    "energy": {
+      "start": 100,
+      "afterScan": 90,
+      "afterJam": 65,
+      "exactScanCost": 10,
+      "exactJamCost": 25,
+      "scanRegenEventsBeforeCommit": 0,
+      "jamRegenEventsBeforeCommit": 0,
+      "netScanDelta": 10,
+      "netJamDelta": 25,
+      "note": "exact costs come from the committed core events; net deltas are post-sample observations that include regen"
+    },
+    "relay": {
+      "start": "ACTIVE",
+      "jammed": "JAMMED",
+      "expired": "ACTIVE"
+    },
+    "ticks": {
+      "atJam": 65,
+      "expired": 446
+    },
+    "routeTargets": {
+      "jammed": null,
+      "expired": 1,
+      "routeA": 1
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p1-v2\\shots\\p1-1-relay-expired.png"
+  },
+  {
+    "item": "p1-route-a",
+    "at": "2026-11-17T21:41:22.559Z",
+    "runner": "agent (real Y jam strategy + real mouse aim/click + real WASD)",
+    "fixtures": "none (no clearEnemiesForTest, no setPlayerPositionForTest, no heal)",
+    "strategy": "jam-first (player-reachable: start tile is inside JAM_RANGE)",
+    "jam": {
+      "relay": "JAMMED",
+      "jamLeft": 332,
+      "energy": 77
+    },
+    "ms": 5158,
+    "fight": {
+      "shots": 2,
+      "approaches": 0,
+      "cleared": true,
+      "hp": 94,
+      "died": false,
+      "firstHp": 100,
+      "minEnemies": 0,
+      "diag": [
+        {
+          "t": 16,
+          "enemies": 2,
+          "hp": 100,
+          "player": {
+            "x": 8,
+            "y": 45
+          },
+          "enemy": {
+            "x": 5,
+            "y": 47,
+            "hp": null,
+            "d": 3.6,
+            "screen": {
+              "x": 512,
+              "y": 347
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 1,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 2,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 545,
+          "enemies": 1,
+          "hp": 94,
+          "player": {
+            "x": 8.312018860376655,
+            "y": 44.79198742641548
+          },
+          "enemy": {
+            "x": 12,
+            "y": 45,
+            "hp": null,
+            "d": 3.7,
+            "screen": {
+              "x": 730,
+              "y": 410
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 1,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 1,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 1087,
+          "enemies": 0,
+          "hp": 94,
+          "player": {
+            "x": 8.312018860376655,
+            "y": 44.79198742641548
+          },
+          "enemy": null,
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 1,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 0,
+            "targets": 0
+          },
+          "portal": null
+        }
+      ]
+    },
+    "cleared": true
+  },
+  {
+    "item": "p1-route-a-walk",
+    "at": "2026-11-17T21:41:29.398Z",
+    "runner": "agent",
+    "fixtures": "none",
+    "walk": {
+      "entered": true,
+      "reason": "interact",
+      "before": {
+        "tick": 418,
+        "seed": 20261117,
+        "paused": false,
+        "room": {
+          "id": 0,
+          "kind": "combat",
+          "cleared": true
+        },
+        "player": {
+          "x": 8.312018860376655,
+          "y": 44.79198742641548,
+          "hp": 94
+        },
+        "portal": {
+          "x": 12,
+          "y": 50,
+          "target": 1
+        },
+        "relay": {
+          "state": "ACTIVE",
+          "manual": true,
+          "powered": true,
+          "jamUntil": 0,
+          "evidence": 0
+        },
+        "energy": {
+          "playerEnergy": 100,
+          "scanCD": 0,
+          "jamCD": 118
+        },
+        "p1": {
+          "roomId": 0,
+          "relay": {
+            "x": 8,
+            "y": 45
+          },
+          "routes": [
+            {
+              "target": 1,
+              "when": "RELAY_ACTIVE"
+            },
+            {
+              "target": 2,
+              "when": "RELAY_INACTIVE"
+            }
+          ],
+          "drones": 2
+        },
+        "linkedFire": true,
+        "jamRemaining": 0,
+        "routeTarget": 1,
+        "objective": "F AT PORTAL · ROUTE A · COMBAT",
+        "enemies": 0,
+        "drones": 0,
+        "active": [
+          "GameScene"
+        ]
+      },
+      "after": {
+        "tick": 541,
+        "seed": 20261117,
+        "paused": false,
+        "room": {
+          "id": 1,
+          "kind": "combat",
+          "cleared": false
+        },
+        "player": {
+          "x": 151,
+          "y": 83,
+          "hp": 100
+        },
+        "portal": null,
+        "relay": {
+          "state": "ACTIVE",
+          "manual": true,
+          "powered": true,
+          "jamUntil": 0,
+          "evidence": 0
+        },
+        "energy": {
+          "playerEnergy": 100,
+          "scanCD": 0,
+          "jamCD": 0
+        },
+        "p1": {
+          "roomId": 0,
+          "relay": {
+            "x": 8,
+            "y": 45
+          },
+          "routes": [
+            {
+              "target": 1,
+              "when": "RELAY_ACTIVE"
+            },
+            {
+              "target": 2,
+              "when": "RELAY_INACTIVE"
+            }
+          ],
+          "drones": 2
+        },
+        "linkedFire": true,
+        "jamRemaining": 0,
+        "routeTarget": 1,
+        "objective": "",
+        "enemies": 5,
+        "drones": 0,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    "room": {
+      "id": 1,
+      "kind": "combat",
+      "cleared": false
+    },
+    "ms": 11717,
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p1-v2\\shots\\p1-2-route-a.png"
+  },
+  {
+    "item": "p1-route-b",
+    "at": "2026-11-17T21:41:37.488Z",
+    "runner": "agent (real R + real walking)",
+    "fixtures": "none",
+    "fight": {
+      "shots": 2,
+      "approaches": 0,
+      "cleared": true,
+      "hp": 100,
+      "died": false,
+      "firstHp": 100,
+      "minEnemies": 0,
+      "diag": [
+        {
+          "t": 17,
+          "enemies": 2,
+          "hp": 100,
+          "player": {
+            "x": 8,
+            "y": 45
+          },
+          "enemy": {
+            "x": 5,
+            "y": 47,
+            "hp": null,
+            "d": 3.6,
+            "screen": {
+              "x": 512,
+              "y": 347
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 1,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 2,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 533,
+          "enemies": 1,
+          "hp": 100,
+          "player": {
+            "x": 8.312018860376655,
+            "y": 44.79198742641548
+          },
+          "enemy": {
+            "x": 12,
+            "y": 45,
+            "hp": null,
+            "d": 3.7,
+            "screen": {
+              "x": 730,
+              "y": 411
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 0,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 1,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 1057,
+          "enemies": 0,
+          "hp": 100,
+          "player": {
+            "x": 8.312018860376655,
+            "y": 44.79198742641548
+          },
+          "enemy": null,
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 1,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 0,
+            "targets": 0
+          },
+          "portal": {
+            "target": 2
+          }
+        }
+      ]
+    },
+    "manualOff": false,
+    "routeTarget": 2,
+    "room": {
+      "id": 2,
+      "kind": "resource",
+      "cleared": false
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p1-v2\\shots\\p1-3-route-b.png"
+  },
+  {
+    "item": "p1-jam-range",
+    "at": "2026-11-17T21:41:49.322Z",
+    "runner": "agent (real walking + real Y)",
+    "fixtures": "none for the natural rejection",
+    "distanceRelayDoor": 6.4031242374328485,
+    "distanceRelayPlayer": 5.9950562264419744,
+    "jamRange": 6,
+    "before": {
+      "energy": 100,
+      "relay": "ACTIVE"
+    },
+    "after": {
+      "energy": 100,
+      "relayState": "ACTIVE",
+      "jamCD": 18,
+      "room": 0
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p1-v2\\shots\\p1-4-door-range-reject.png"
+  },
+  {
+    "item": "p1-jam-door-fixture",
+    "at": "2026-11-17T21:41:51.195Z",
+    "runner": "agent (real F)",
+    "fixtures": "FIXTURE: setPlayerPositionForTest(relay) so the real-key jam is in range; the door approach is real walking",
+    "jammed": {
+      "relay": "JAMMED",
+      "portal": null,
+      "routeTarget": null,
+      "room": 0
+    },
+    "roomAfterF": 0,
+    "roomBefore": 0,
+    "proves": "a JAMMED relay closes the authored route portal and F cannot pass",
+    "cannotProve": "that a player can jam from the door (natural attempt above was range-rejected)"
+  },
+  {
+    "item": "p1-save-reload-continue",
+    "at": "2026-11-17T21:42:01.247Z",
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "none",
+    "before": {
+      "room": {
+        "id": 0,
+        "kind": "combat",
+        "cleared": true
+      },
+      "manual": false,
+      "routeTarget": 2,
+      "tick": 274
+    },
+    "after": {
+      "room": {
+        "id": 0,
+        "kind": "combat",
+        "cleared": true
+      },
+      "manual": false,
+      "routeTarget": 2,
+      "tick": 223
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p1-v2\\shots\\p1-5-continue.png"
+  },
+  {
+    "item": "p1-seeds",
+    "at": "2026-11-17T21:42:10.064Z",
+    "runner": "agent (real menu entry per seed)",
+    "fixtures": "seed override only",
+    "requirement": "each seed must build the authored scene with two legal, distinct routes",
+    "rows": [
+      {
+        "seed": 20261117,
+        "p1": true,
+        "error": null,
+        "routes": [
+          {
+            "target": 1,
+            "when": "RELAY_ACTIVE",
+            "kind": "combat"
+          },
+          {
+            "target": 2,
+            "when": "RELAY_INACTIVE",
+            "kind": "resource"
+          }
+        ],
+        "drones": [
+          {
+            "x": 12,
+            "y": 45
+          },
+          {
+            "x": 5,
+            "y": 47
+          }
+        ],
+        "relay": {
+          "x": 8,
+          "y": 45
+        },
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+        "roomKind": "combat"
+      },
+      {
+        "seed": 20261118,
+        "p1": true,
+        "error": null,
+        "routes": [
+          {
+            "target": 2,
+            "when": "RELAY_ACTIVE",
+            "kind": "resource"
+          },
+          {
+            "target": 5,
+            "when": "RELAY_INACTIVE",
+            "kind": "elite"
+          }
+        ],
+        "drones": [
+          {
+            "x": 5,
+            "y": 47
+          },
+          {
+            "x": 11,
+            "y": 47
+          }
+        ],
+        "relay": {
+          "x": 8,
+          "y": 45
+        },
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+        "roomKind": "combat"
+      },
+      {
+        "seed": 20261119,
+        "p1": true,
+        "error": null,
+        "routes": [
+          {
+            "target": 5,
+            "when": "RELAY_ACTIVE",
+            "kind": "elite"
+          },
+          {
+            "target": 3,
+            "when": "RELAY_INACTIVE",
+            "kind": "combat"
+          }
+        ],
+        "drones": [
+          {
+            "x": 11,
+            "y": 47
+          },
+          {
+            "x": 5,
+            "y": 49
+          }
+        ],
+        "relay": {
+          "x": 8,
+          "y": 45
+        },
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+        "roomKind": "combat"
+      }
+    ],
+    "distinctLayouts": 3
+  },
+  {
+    "item": "p1-viewports",
+    "at": "2026-11-17T21:42:29.428Z",
+    "runner": "agent",
+    "fixtures": "none",
+    "rows": [
+      {
+        "viewport": "1920x1080",
+        "scale": 1.5,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1366x768",
+        "scale": 1.067,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1280x720",
+        "scale": 1,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1024x768",
+        "scale": 0.8,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "800x600",
+        "scale": 0.625,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      }
+    ],
+    "note": "HUD/pause text measured as fontSize * canvas scale (CSS px)"
+  }
+]

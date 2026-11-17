@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\p1-diag-hud.spec.ts:6:1 › diag: AI run pause reason at HUD sample time
+[chromium] › tests\p1-diag-hud.spec.ts:6:1 › diag: AI run pause reason at HUD sample time
+HUD_DIAG {"total":24,"pausedSamples":14,"firstPaused":{"active":["GameScene","LevelUpScene"],"paused":true,"mode":"PAUSED","owner":"ai","aiEnabled":true,"levelUpActive":true,"xp":6,"xpToNext":74,"level":2,"tick":227,"enemies":1,"hp":100},"last":{"active":["GameScene","LevelUpScene"],"paused":true,"mode":"PAUSED","owner":"ai","aiEnabled":true,"levelUpActive":true,"xp":6,"xpToNext":74,"level":2,"tick":227,"enemies":1,"hp":100},"levelUpSamples":14,"xpRange":[0,6]}
+
+  1 passed (13.3s)
