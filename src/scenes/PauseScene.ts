@@ -10,6 +10,12 @@ import {
   type UITokens, type Focusable, type ButtonHandle
 } from '../ui/menuKit';
 import { GameScene } from './GameScene';
+import { UIC, UIN } from '../ui/palette';
+import { frame, sheetChrome, dashed } from '../ui/sheet';
+import { FONT } from '../art/survey/tokens';
+
+/** UI-ART-01: owner-form inputs share the graphite / bone field style. */
+const INPUT_CSS = `width:100%;box-sizing:border-box;padding:9px 10px;font:inherit;background:${UIC.void};color:${UIC.text};border:1px solid rgba(232,226,208,0.22);border-radius:0;outline-color:${UIC.accent}`;
 
 /**
  * UI-REWORK-01 — unified Pause navigator.
@@ -54,6 +60,7 @@ export class PauseScene extends Phaser.Scene {
   private page: Page = 'pause';
   private pageHandle: MenuPage | null = null;
   private dim!: Phaser.GameObjects.Rectangle;
+  private chrome: Phaser.GameObjects.Graphics | null = null;
   private closing = false;
   private inventoryFromPause = false;
   private frame = 0;
@@ -134,10 +141,16 @@ export class PauseScene extends Phaser.Scene {
     this.optInCache = saveSystem.load().permanent.signalCollaborationOptIn === true;
     this.applyTokens(resolveUITokens());
 
-    const dim = this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, 0x04060b, 0.9).setOrigin(0, 0);
+    const dim = this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, UIN.void, 0.9).setOrigin(0, 0);
     dim.setAlpha(0);
     this.dim = dim;
+    // UI-ART-01: every pause page sits on the same manual sheet (Graphics only).
+    const chrome = this.add.graphics();
+    sheetChrome(chrome);
+    chrome.setAlpha(0);
+    this.chrome = chrome;
     this.tweens.add({ targets: dim, alpha: 0.9, duration: 150 });
+    this.tweens.add({ targets: chrome, alpha: 1, duration: 150 });
 
     this.input.keyboard?.on('keydown-ESC', this.onEsc);
     this.input.keyboard?.on('keydown-I', this.onInventoryKey);
@@ -277,7 +290,7 @@ export class PauseScene extends Phaser.Scene {
     this.closeExternalLinkForm();
     const gs = this.gameScene;
     // Restore the HUD only after the fade completes (shutdown runs at stop()).
-    this.tweens.add({ targets: this.dim, alpha: 0, duration: 120, onComplete: () => {
+    this.tweens.add({ targets: [this.dim, ...(this.chrome ? [this.chrome] : [])], alpha: 0, duration: 120, onComplete: () => {
       this.scene.stop();
       gs?.onResume();
     }});
@@ -364,14 +377,14 @@ export class PauseScene extends Phaser.Scene {
     if (sig === this.lastStatusSig) return;
     this.lastStatusSig = sig;
     const t = this.statusTexts;
-    if (t.control) { t.control.setText(this.controlLine(m)); t.control.setColor(m.owner === 'human' ? '#8fb8c8' : '#7ff0ff'); }
-    if (t.ai) { t.ai.setText(this.aiLine(m)); t.ai.setColor(m.aiOn ? '#7ff0ff' : '#8fb8c8'); }
-    if (t.aiMode) { t.aiMode.setText(this.aiModeLine(m)); t.aiMode.setColor(m.aiOn ? '#7ff0ff' : '#8fb8c8'); }
-    if (t.external) { t.external.setText(this.externalLine(m)); t.external.setColor(m.ext === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c'); }
-    if (t.echo) { t.echo.setText(this.echoLine(m)); t.echo.setColor(m.echoHp === null ? '#8fb8c8' : '#33e0ff'); }
-    if (t.companion) { t.companion.setText(this.companionLine(m)); t.companion.setColor(m.linkStatus === 'CONNECTED' ? '#7ff0ff' : '#8fb8c8'); }
-    if (t.llmLink) { t.llmLink.setText(`LLM LINK  ${m.linkStatus}`); t.llmLink.setColor(m.linkStatus === 'CONNECTED' ? '#7ff0ff' : m.linkStatus === 'OFF' ? '#8fb8c8' : '#ff8a3c'); }
-    if (t.signal) { t.signal.setText(this.signalLine(m)); t.signal.setColor(m.optIn ? '#00ff77' : '#8fb8c8'); }
+    if (t.control) { t.control.setText(this.controlLine(m)); t.control.setColor(m.owner === 'human' ? UIC.muted : UIC.signal); }
+    if (t.ai) { t.ai.setText(this.aiLine(m)); t.ai.setColor(m.aiOn ? UIC.signal : UIC.muted); }
+    if (t.aiMode) { t.aiMode.setText(this.aiModeLine(m)); t.aiMode.setColor(m.aiOn ? UIC.signal : UIC.muted); }
+    if (t.external) { t.external.setText(this.externalLine(m)); t.external.setColor(m.ext === 'CONNECTED' ? UIC.signal : UIC.warn); }
+    if (t.echo) { t.echo.setText(this.echoLine(m)); t.echo.setColor(m.echoHp === null ? UIC.muted : UIC.accent); }
+    if (t.companion) { t.companion.setText(this.companionLine(m)); t.companion.setColor(m.linkStatus === 'CONNECTED' ? UIC.signal : UIC.muted); }
+    if (t.llmLink) { t.llmLink.setText(`LLM LINK  ${m.linkStatus}`); t.llmLink.setColor(m.linkStatus === 'CONNECTED' ? UIC.signal : m.linkStatus === 'OFF' ? UIC.muted : UIC.warn); }
+    if (t.signal) { t.signal.setText(this.signalLine(m)); t.signal.setColor(m.optIn ? UIC.signal : UIC.muted); }
   }
 
   // ---------------------------------------------------------------------------
@@ -383,7 +396,7 @@ export class PauseScene extends Phaser.Scene {
     const fx = (n: number, k: number) => (c ? k : n);
     p.title('PAUSED', fx(62, 56));
     p.text(GAME.WINDOW_W / 2, fx(104, 100), 'CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT', {
-      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.muted
     });
     const y0 = fx(168, 152);
     const stride = this.tokens.BTN_STRIDE;
@@ -399,6 +412,7 @@ export class PauseScene extends Phaser.Scene {
     // Independent status footer (never a fake claim, never a control). The
     // rows share words with the AI page on purpose but avoid repeating the same
     // fact twice (control owner + AI mode + link + echo/llm + signal).
+    frame(p.graphics(), 340, fx(458, 420), 940, fx(596, 576), { fillAlpha: 0.5, lineAlpha: 0.08, tickAlpha: 0.45 });
     p.head('STATUS', fx(474, 436));
     const rows: Array<[string, number, number]> = [
       ['control', 500, 462], ['ai', 520, 486], ['external', 540, 510],
@@ -406,11 +420,11 @@ export class PauseScene extends Phaser.Scene {
     ];
     for (const [key, ny, cy] of rows) {
       this.statusTexts[key] = p.text(GAME.WINDOW_W / 2, fx(ny, cy), '', {
-        fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+        fontSize: this.tokens.SMALL_FONT, color: UIC.muted
       });
     }
     p.text(GAME.WINDOW_W / 2, fx(698, 690), 'ESC RESUME · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.faint
     });
     p.refresh = () => this.refreshStatusTexts();
     this.refreshStatusTexts();
@@ -425,22 +439,23 @@ export class PauseScene extends Phaser.Scene {
     const fx = (n: number, k: number) => (c ? k : n);
     p.title('AI & COMPANION', fx(54, 56));
     p.text(GAME.WINDOW_W / 2, fx(86, 100), 'HUMAN ALWAYS RETAINS CONTROL · ANY MOVE / FIRE / F RE-CLAIMS IT', {
-      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.muted
     });
     p.text(GAME.WINDOW_W / 2, fx(110, 128), 'MODES  HUMAN · LOCAL DETERMINISTIC DEMO · EXTERNAL AGENT', {
-      fontSize: this.tokens.SMALL_FONT, color: '#5a7480'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.dim
     });
+    frame(p.graphics(), 300, fx(122, 140), 980, fx(270, 302), { fillAlpha: 0.5, lineAlpha: 0.08, tickAlpha: 0.45 });
     const rows: Array<[string, number, number]> = [
       ['control', 136, 156], ['aiMode', 160, 182], ['external', 184, 208],
       ['echo', 208, 234], ['llmLink', 232, 260], ['signal', 256, 286]
     ];
     for (const [key, ny, cy] of rows) {
       this.statusTexts[key] = p.text(GAME.WINDOW_W / 2, fx(ny, cy), '', {
-        fontSize: this.tokens.BODY_FONT, color: '#cfe8ef'
+        fontSize: this.tokens.BODY_FONT, color: UIC.textMid
       });
     }
     this.aiNotice = p.text(GAME.WINDOW_W / 2, fx(280, 314), '', {
-      fontSize: this.tokens.SMALL_FONT, color: '#ff8a3c'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.warn
     });
 
     const control = this.gameScene.world.player.control;
@@ -458,7 +473,7 @@ export class PauseScene extends Phaser.Scene {
     });
     this.btnAiBack = p.button({ y: y0 + stride * 4, label: 'BACK', onClick: () => this.navigate('pause') });
     p.text(GAME.WINDOW_W / 2, fx(690, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.faint
     });
     p.refresh = () => this.refreshStatusTexts();
     this.refreshStatusTexts();
@@ -501,11 +516,11 @@ export class PauseScene extends Phaser.Scene {
     const fx = (n: number, k: number) => (c ? k : n);
     p.title('ECHO COMPANION', fx(52, 56));
     p.text(GAME.WINDOW_W / 2, fx(84, 100), 'INDEPENDENT ACTOR · OWN 12-TILE PERCEPTION · NEVER DRIVEN BY AN EXTERNAL AGENT', {
-      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.muted
     });
-    this.echoStatus = p.text(GAME.WINDOW_W / 2, fx(124, 132), '', { fontSize: this.tokens.BODY_FONT, color: '#eafaff' });
-    this.echoModeText = p.text(GAME.WINDOW_W / 2, fx(148, 160), '', { fontSize: this.tokens.BODY_FONT, color: '#cfe8ef' });
-    this.echoSuggest = p.text(GAME.WINDOW_W / 2, fx(172, 188), '', { fontSize: this.tokens.SMALL_FONT, color: '#5a7480' });
+    this.echoStatus = p.text(GAME.WINDOW_W / 2, fx(124, 132), '', { fontSize: this.tokens.BODY_FONT, color: UIC.text });
+    this.echoModeText = p.text(GAME.WINDOW_W / 2, fx(148, 160), '', { fontSize: this.tokens.BODY_FONT, color: UIC.textMid });
+    this.echoSuggest = p.text(GAME.WINDOW_W / 2, fx(172, 188), '', { fontSize: this.tokens.SMALL_FONT, color: UIC.dim });
 
     const y0 = fx(214, 224);
     const stride = this.tokens.BTN_STRIDE;
@@ -530,7 +545,7 @@ export class PauseScene extends Phaser.Scene {
     });
     this.btnEchoBack = p.button({ y: y0 + stride * 4 + fx(78, 70), label: 'BACK', onClick: () => this.navigate('ai') });
     p.text(GAME.WINDOW_W / 2, fx(698, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.faint
     });
     p.refresh = () => this.refreshEcho();
     this.refreshEcho(true);
@@ -544,13 +559,13 @@ export class PauseScene extends Phaser.Scene {
     if (this.echoStatus) {
       if (!echo) {
         this.echoStatus.setText('STATUS  DISABLED');
-        this.echoStatus.setColor('#ff8a3c');
+        this.echoStatus.setColor(UIC.warn);
       } else if (echo.data.hp <= 0) {
         this.echoStatus.setText(`STATUS  DOWN — HP 0/${echo.data.maxHp}`);
-        this.echoStatus.setColor('#ff8a3c');
+        this.echoStatus.setColor(UIC.warn);
       } else {
         this.echoStatus.setText(`STATUS  HP ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${world.echoMode.toUpperCase()}`);
-        this.echoStatus.setColor('#eafaff');
+        this.echoStatus.setColor(UIC.text);
       }
     }
     if (this.echoModeText) {
@@ -561,7 +576,7 @@ export class PauseScene extends Phaser.Scene {
       this.echoSuggest.setText(suggestion === 'fire'
         ? 'ASSIST READY: an enemy is inside the echo perception cone — confirm below'
         : 'ASSIST: no perceived target — the echo will not fire');
-      this.echoSuggest.setColor(suggestion === 'fire' ? '#ffd233' : '#5a7480');
+      this.echoSuggest.setColor(suggestion === 'fire' ? UIC.warn : UIC.dim);
     }
     if (this.btnEchoAssist) {
       this.btnEchoAssist.setLabel(world.echoAssistArmed ? 'ASSIST ARMED — CLICK TO REVOKE' : 'CONFIRM ASSIST FIRE');
@@ -578,11 +593,11 @@ export class PauseScene extends Phaser.Scene {
     const fx = (n: number, k: number) => (c ? k : n);
     p.title('LLM COMPANION', fx(50, 48));
     p.text(GAME.WINDOW_W / 2, fx(82, 78), 'ONLY A HUMAN HERE CAN CONFIRM · THE AGENT HAS NO CONFIRM TOOL', {
-      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.muted
     });
     p.head('CONNECTION', fx(108, 104));
-    this.llmState = p.text(GAME.WINDOW_W / 2, fx(130, 126), '', { fontSize: this.tokens.BODY_FONT, color: '#eafaff' });
-    this.llmNotice = p.text(GAME.WINDOW_W / 2, 150, '', { fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8' });
+    this.llmState = p.text(GAME.WINDOW_W / 2, fx(130, 126), '', { fontSize: this.tokens.BODY_FONT, color: UIC.text });
+    this.llmNotice = p.text(GAME.WINDOW_W / 2, 150, '', { fontSize: this.tokens.SMALL_FONT, color: UIC.muted });
     this.btnEnable = p.button({
       y: fx(186, 184), label: 'ENABLE / RE-AUTHORIZE (HUMAN)',
       onClick: () => this.openOwnerForm()
@@ -590,7 +605,7 @@ export class PauseScene extends Phaser.Scene {
 
     p.head('PENDING PROPOSAL', fx(232, 228));
     this.llmPending = p.text(410, fx(256, 254), '', {
-      origin: [0, 0], fontSize: this.compact ? 16 : 13, color: '#8fb8c8', align: 'left', wrapWidth: 460
+      origin: [0, 0], fontSize: this.compact ? 16 : 13, color: UIC.muted, align: 'left', wrapWidth: 460
     });
 
     const y0 = fx(348, 344);
@@ -609,7 +624,7 @@ export class PauseScene extends Phaser.Scene {
     });
     this.btnLlmBack = p.button({ y: y0 + stride * 3, label: 'BACK', onClick: () => this.navigate('ai') });
     this.llmFooter = p.text(GAME.WINDOW_W / 2, fx(690, 686), 'CONFIRM ACTS ON THE ▶ LINE ONLY · COMMIT ON THE NEXT CORE TICK', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.faint
     });
     p.refresh = () => { this.refreshStatusTexts(); this.refreshLlm(); };
     this.refreshStatusTexts();
@@ -628,7 +643,7 @@ export class PauseScene extends Phaser.Scene {
 
   private decide(confirm: boolean): void {
     const id = this.selectedSuggestionId;
-    if (!id) { this.setActionMsg('NO SELECTED PROPOSAL', '#ff8a3c'); return; }
+    if (!id) { this.setActionMsg('NO SELECTED PROPOSAL', UIC.warn); return; }
     const link = this.gameScene.companionLink;
     if (!link) return;
     void link.pending().then((pending) => {
@@ -637,7 +652,7 @@ export class PauseScene extends Phaser.Scene {
         // Never silently switch to a different pending[0]: the id the human saw
         // is gone (expired or replaced). Refuse and refresh the real list.
         this.selectedSuggestionId = null;
-        this.setActionMsg('PROPOSAL CHANGED OR EXPIRED — NOT SENT', '#ff8a3c');
+        this.setActionMsg('PROPOSAL CHANGED OR EXPIRED — NOT SENT', UIC.warn);
         this.refreshLlm(true);
         return;
       }
@@ -662,7 +677,7 @@ export class PauseScene extends Phaser.Scene {
       this.lastCompanionSig = sig;
       if (this.llmState) {
         this.llmState.setText(`STATE  ${status}`);
-        this.llmState.setColor(status === 'CONNECTED' ? '#7ff0ff' : '#ff8a3c');
+        this.llmState.setColor(status === 'CONNECTED' ? UIC.signal : UIC.warn);
       }
       if (this.llmNotice) {
         this.llmNotice.setText(status === 'CONNECTED'
@@ -670,7 +685,7 @@ export class PauseScene extends Phaser.Scene {
           : status === 'FALLBACK:NO_MODEL' ? `MODEL  OFFLINE${error ? ` · ${error}` : ''}`
           : status === 'READ_ONLY' ? 'MODEL  READ ONLY — an external agent controls the protagonist'
           : 'MODEL  NOT CONNECTED');
-        this.llmNotice.setColor(status === 'CONNECTED' ? '#8fb8c8' : '#ff8a3c');
+        this.llmNotice.setColor(status === 'CONNECTED' ? UIC.muted : UIC.warn);
       }
     }
     if (force || this.frame % 60 === 0) this.refreshPending();
@@ -681,7 +696,7 @@ export class PauseScene extends Phaser.Scene {
     if (!this.llmPending) return;
     if (!link || link.status !== 'CONNECTED') {
       this.llmPending.setText('No pending proposal.');
-      this.llmPending.setColor('#8fb8c8');
+      this.llmPending.setColor(UIC.muted);
       this.selectedSuggestionId = null;
       this.setDecideEnabled(false);
       return;
@@ -693,7 +708,7 @@ export class PauseScene extends Phaser.Scene {
       this.lastPendingSig = sig;
       if (!pending.length) {
         this.llmPending.setText('No pending proposal.');
-        this.llmPending.setColor('#8fb8c8');
+        this.llmPending.setColor(UIC.muted);
         this.selectedSuggestionId = null;
         this.setDecideEnabled(false);
         return;
@@ -708,7 +723,7 @@ export class PauseScene extends Phaser.Scene {
           : s.kind === 'fire' ? 'projectile' : 'movement';
         return `${marker}${s.kind.toUpperCase()} · ${s.reason} · ${target} · ${resource}`;
       }).join('\n'));
-      this.llmPending.setColor('#eafaff');
+      this.llmPending.setColor(UIC.text);
       this.setDecideEnabled(true);
     });
   }
@@ -729,14 +744,30 @@ export class PauseScene extends Phaser.Scene {
     const player = gs.world.player;
     const c = this.compact;
     const subFont = c ? 16 : 13;
-    p.text(GAME.WINDOW_W / 2, 90, 'INVENTORY', { fontSize: 30, color: '#33e0ff', bold: true });
+    const invTitle = p.text(GAME.WINDOW_W / 2, 90, 'INVENTORY', { fontSize: 30, color: UIC.text, bold: true, letterSpacing: 8 });
+    p.text(GAME.WINDOW_W / 2, 60, `EX-17 · FIELD KIT · LV ${player.data.level}`, { fontSize: c ? 16 : 11, color: UIC.dim, letterSpacing: 3 });
+    {
+      const g = p.graphics();
+      g.lineStyle(1, UIN.ink, 0.3);
+      g.lineBetween(GAME.WINDOW_W / 2 - invTitle.width / 2 - 36, 116.5, GAME.WINDOW_W / 2 + invTitle.width / 2 + 36, 116.5);
+    }
     // Weapons / stats / upgrades form one scrollable region; the title and the
     // CLOSE control stay fixed. The region only scrolls when a very long run
     // makes it overflow (the normal 1280x720 layout fits).
     p.beginRegion();
 
-    p.text(120, 150, 'WEAPON ARSENAL', { origin: [0, 0], fontSize: 18, color: '#ff8a3c' });
-    const description = p.text(120, 390, '', { origin: [0, 0], fontSize: c ? 16 : 14, color: '#8fb8c8', wrapWidth: 350 });
+    // UI-ART-01: three framed columns of one field-kit sheet (Graphics only;
+    // created inside the region so they scroll with their content).
+    const colTop = 136, colBottom = Math.max(500, 222 + Math.max(0, player.data.upgrades.filter((u) => u.level > 0).length - 1) * 30);
+    const cols = p.graphics();
+    for (const [x0, x1] of [[100, 482], [500, 862], [880, 1180]] as const) {
+      frame(cols, x0, colTop, x1, colBottom, { fillAlpha: 0.55, lineAlpha: 0.1, tickAlpha: 0.5 });
+      cols.lineStyle(1, UIN.ink, 0.16);
+      cols.lineBetween(x0 + 12, 174.5, x1 - 12, 174.5);
+    }
+    const colHead = { origin: [0, 0] as [number, number], fontSize: c ? 16 : 13, color: UIC.dim, bold: true, letterSpacing: 3 };
+    p.text(120, 150, 'WEAPON ARSENAL', colHead);
+    const description = p.text(120, 390, '', { origin: [0, 0], fontSize: c ? 16 : 14, color: UIC.muted, wrapWidth: 350 });
     const equipWeapon = (key: string): void => {
       if (this.closing || !player.equipWeapon(key)) return;
       audio.ui();
@@ -747,9 +778,9 @@ export class PauseScene extends Phaser.Scene {
     const refreshWeaponRows = player.data.weapons.map((w, i) => {
       const def = WEAPONS[w.key];
       const y = 186 + i * 44;
-      const name = p.text(120, y, def?.name ?? w.key, { origin: [0, 0], fontSize: 18 });
+      const name = p.text(120, y, def?.name ?? w.key, { origin: [0, 0], fontSize: 17, bold: true });
       p.text(120, y + 20, `level ${w.level} · ${w.magazine > 0 ? `${w.ammo}/${w.magazine}` : '∞ energy'}`, {
-        origin: [0, 0], fontSize: subFont, color: '#8fb8c8'
+        origin: [0, 0], fontSize: subFont, color: UIC.muted
       });
       // The equip control is an interactive Text (stable handgrip for the
       // existing checkpoint test: y = 186/230/274, label EQUIP/EQUIPPED,
@@ -780,12 +811,12 @@ export class PauseScene extends Phaser.Scene {
         const active = player.data.weaponKey === w.key;
         const queued = !active && pendingEquip() === w.key;
         item.enabled = !active;
-        name.setColor(active ? '#ffd233' : '#cfe8ef');
+        name.setColor(active ? UIC.white : UIC.textMid);
         const label = active ? 'EQUIPPED' : queued ? 'QUEUED' : 'EQUIP';
         if (active) equip.disableInteractive();
         else equip.setInteractive({ useHandCursor: true });
-        if (equipFocused && !active) equip.setText(label).setColor('#04060b').setBackgroundColor('#33e0ff');
-        else equip.setText(label).setColor(active ? '#7ff0ff' : queued ? '#ffd233' : '#eafaff').setBackgroundColor(active ? '#00000000' : '#274a55');
+        if (equipFocused && !active) equip.setText(label).setColor(UIC.void).setBackgroundColor(UIC.accent);
+        else equip.setText(label).setColor(active ? UIC.signal : queued ? UIC.warn : UIC.text).setBackgroundColor(active ? '#00000000' : '#232a30');
       }
       return paint;
     });
@@ -798,27 +829,30 @@ export class PauseScene extends Phaser.Scene {
     this.lastInventorySig = this.inventorySig();
     if (player.data.weapons.length > 1) {
       p.text(120, 355, `1–${Math.min(player.data.weapons.length, shortcuts.length)} EQUIP`, {
-        origin: [0, 0], fontSize: c ? 16 : 13, color: '#7ff0ff'
+        origin: [0, 0], fontSize: c ? 16 : 13, color: UIC.signal
       });
     }
 
     const s = player.data;
-    p.text(520, 150, 'STATS', { origin: [0, 0], fontSize: 18, color: '#ff8a3c' });
+    p.text(520, 150, 'STATS', colHead);
     const stats = [
       `Level ${s.level}`, `HP ${Math.ceil(s.hp)}/${s.maxHp}`, `Speed ${Math.round(s.speed)}`,
       `Damage ${s.damage.toFixed(2)}`, `Crit ${Math.round(s.critChance * 100)}%`, `Crit Dmg ${s.critDamage.toFixed(2)}x`,
       `Armor ${s.armor}`, `Pierce ${s.pierceCount}`, `Regen ${s.hpRegen}/s`, `Magnet ${Math.round(s.pickupRange)}`,
       `Run credits ${s.currency}`
     ];
-    stats.forEach((txt, i) => p.text(520, 186 + i * 26, txt, { origin: [0, 0], fontSize: c ? 16 : 15, color: '#eafaff' }));
+    stats.forEach((txt, i) => {
+      p.text(520, 186 + i * 26, txt, { origin: [0, 0], fontSize: c ? 16 : 15, color: i === 0 ? UIC.text : UIC.textMid });
+      if (i > 0) dashed(cols, 520, 183.5 + i * 26, 842, 183.5 + i * 26, 2, 4, 0.1);
+    });
 
     const activeUp = player.data.upgrades.filter((u) => u.level > 0);
-    p.text(900, 150, 'RUN UPGRADES', { origin: [0, 0], fontSize: 18, color: '#ff8a3c' });
-    if (activeUp.length === 0) p.text(900, 186, 'none yet', { origin: [0, 0], fontSize: c ? 16 : 15, color: '#8fb8c8' });
+    p.text(900, 150, 'RUN UPGRADES', colHead);
+    if (activeUp.length === 0) p.text(900, 186, 'none yet', { origin: [0, 0], fontSize: c ? 16 : 15, color: UIC.muted });
     activeUp.forEach((u, i) => {
       const def = UPGRADES[u.key];
       p.text(900, 186 + i * 30, `${def ? def.name : u.key}  ${u.level}/${def?.maxLevel ?? 1}`, {
-        origin: [0, 0], fontSize: c ? 16 : 15, color: '#eafaff'
+        origin: [0, 0], fontSize: c ? 16 : 15, color: UIC.text
       });
     });
 
@@ -849,7 +883,7 @@ export class PauseScene extends Phaser.Scene {
     const c = this.compact;
     const fx = (n: number, k: number) => (c ? k : n);
     p.title('SETTINGS', 52);
-    p.text(GAME.WINDOW_W / 2, 84, 'APPLIED IMMEDIATELY · SAVED LOCALLY', { fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8' });
+    p.text(GAME.WINDOW_W / 2, 84, 'APPLIED IMMEDIATELY · SAVED LOCALLY', { fontSize: this.tokens.SMALL_FONT, color: UIC.muted });
 
     let master = save.settings.masterVolume;
     let sfxVol = save.settings.sfxVolume;
@@ -867,8 +901,10 @@ export class PauseScene extends Phaser.Scene {
 
     p.head('AUDIO', fx(116, 118));
     const volRow = (label: string, y: number, get: () => number, set: (v: number) => void): void => {
-      p.text(400, y, label, { origin: [0, 0.5], fontSize: this.tokens.BODY_FONT, color: '#eafaff' });
-      const value = p.text(780, y, `${Math.round(get() * 100)}%`, { fontSize: 18, color: '#eafaff' });
+      const name = p.text(400, y, label, { origin: [0, 0.5], fontSize: this.tokens.BODY_FONT, color: UIC.textMid, letterSpacing: 2 });
+      // Manual-table leader from the label to its stepper (Graphics only).
+      dashed(p.graphics(), 400 + name.width + 12, Math.round(y) + 0.5, 668, Math.round(y) + 0.5, 2, 4, 0.22);
+      const value = p.text(780, y, `${Math.round(get() * 100)}%`, { fontSize: 18, color: UIC.text, bold: true });
       const applyDelta = (delta: number) => { set(step(get(), delta)); apply(); value.setText(`${Math.round(get() * 100)}%`); };
       p.button({ x: 700, y, w: 40, h: 30, label: '◀', fontSize: 22, tone: 'neutral', onClick: () => applyDelta(-0.1) });
       p.button({ x: 860, y, w: 40, h: 30, label: '▶', fontSize: 22, tone: 'neutral', onClick: () => applyDelta(0.1) });
@@ -912,11 +948,11 @@ export class PauseScene extends Phaser.Scene {
       this.openExternalLinkForm('external');
     }});
     p.text(GAME.WINDOW_W / 2, fx(496, 518), 'HUMAN OWNER FORM · TOKEN + PAIRING KEY MASKED · NEVER STORED', {
-      fontSize: this.tokens.SMALL_FONT, color: '#5a7480'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.dim
     });
     this.btnSettingsBack = p.button({ y: fx(548, 566), w: 300, label: 'BACK', onClick: () => this.navigate('pause') });
     p.text(GAME.WINDOW_W / 2, fx(690, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: UIC.faint
     });
   }
 
@@ -952,30 +988,31 @@ export class PauseScene extends Phaser.Scene {
     root.style.cssText = [
       'position:fixed', 'inset:0', 'z-index:2147483000',
       'display:flex', 'align-items:center', 'justify-content:center',
-      'background:rgba(4,6,11,0.82)', 'font-family:ui-monospace,SFMono-Regular,Menlo,monospace',
-      'color:#eafaff', 'padding:16px', 'box-sizing:border-box'
+      'background:rgba(7,9,11,0.84)', `font-family:${FONT.mono}`,
+      `color:${UIC.text}`, 'padding:16px', 'box-sizing:border-box'
     ].join(';');
     const panel = document.createElement('form');
     panel.style.cssText = [
       'width:min(560px,94vw)', 'max-height:90vh', 'overflow:auto',
-      'background:#0d1822', 'border:2px solid #33e0ff', 'border-radius:6px',
-      'padding:18px 20px', 'box-sizing:border-box', 'display:flex',
-      'flex-direction:column', 'gap:10px', 'box-shadow:0 0 24px rgba(51,224,255,0.25)'
+      'background:#0b0d10', 'border:1px solid rgba(232,226,208,0.22)', 'border-radius:0',
+      `outline:1px solid ${UIC.accent}`, 'outline-offset:4px',
+      'padding:20px 22px', 'box-sizing:border-box', 'display:flex',
+      'flex-direction:column', 'gap:10px', 'box-shadow:0 18px 48px rgba(0,0,0,0.6)'
     ].join(';');
 
     const title = document.createElement('div');
     title.textContent = mode !== 'external' ? 'COMPANION · HUMAN OWNER PAIRING' : 'EXTERNAL AGENT LINK';
-    title.style.cssText = 'font-size:18px;font-weight:700;letter-spacing:2px;color:#33e0ff';
+    title.style.cssText = `font-size:17px;font-weight:700;letter-spacing:4px;color:${UIC.text};padding-bottom:10px;border-bottom:1px solid rgba(232,226,208,0.18)`;
     const note = document.createElement('div');
     note.textContent = mode !== 'external'
       ? 'Enter the host-private OWNER pairing key. It is masked, used once, then cleared. Only this human can authorize the companion. ESC cancels.'
       : 'Local bridge only. Token and Owner pairing key are masked, never saved and never logged. You must click AUTHORIZE. ESC cancels.';
-    note.style.cssText = 'font-size:12px;line-height:1.5;color:#8fb8c8';
+    note.style.cssText = `font-size:12px;line-height:1.6;color:${UIC.muted}`;
 
     const label = (text: string): HTMLLabelElement => {
       const l = document.createElement('label');
       l.textContent = text;
-      l.style.cssText = 'font-size:12px;color:#8fb8c8;display:block;margin-top:4px';
+      l.style.cssText = `font-size:11px;letter-spacing:2px;color:${UIC.dim};display:block;margin-top:6px`;
       return l;
     };
     const urlInput = document.createElement('input');
@@ -985,7 +1022,7 @@ export class PauseScene extends Phaser.Scene {
     urlInput.autocomplete = 'off';
     urlInput.spellcheck = false;
     urlInput.value = existing?.bridgeUrl ?? 'http://127.0.0.1:8787';
-    urlInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+    urlInput.style.cssText = INPUT_CSS;
 
     const tokenInput = document.createElement('input');
     tokenInput.type = 'password';
@@ -993,7 +1030,7 @@ export class PauseScene extends Phaser.Scene {
     tokenInput.placeholder = 'bridge token (masked)';
     tokenInput.autocomplete = 'new-password';
     tokenInput.spellcheck = false;
-    tokenInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+    tokenInput.style.cssText = INPUT_CSS;
 
     const ownerKeyInput = document.createElement('input');
     ownerKeyInput.type = 'password';
@@ -1001,21 +1038,21 @@ export class PauseScene extends Phaser.Scene {
     ownerKeyInput.placeholder = 'host owner pairing key (masked, 64 hex)';
     ownerKeyInput.autocomplete = 'off';
     ownerKeyInput.spellcheck = false;
-    ownerKeyInput.style.cssText = 'width:100%;box-sizing:border-box;padding:8px;font:inherit;background:#04060b;color:#eafaff;border:1px solid #274a55;border-radius:4px';
+    ownerKeyInput.style.cssText = INPUT_CSS;
 
     const status = document.createElement('div');
     status.setAttribute('role', 'status');
     status.setAttribute('data-testid', 'external-link-status');
-    status.style.cssText = 'font-size:12px;line-height:1.4;color:#8fb8c8;min-height:16px';
+    status.style.cssText = `font-size:12px;line-height:1.4;color:${UIC.muted};min-height:16px`;
 
     const authorize = document.createElement('button');
     authorize.type = 'submit';
     authorize.textContent = 'AUTHORIZE';
-    authorize.style.cssText = 'padding:10px 14px;font:inherit;font-weight:700;letter-spacing:2px;color:#04060b;background:#33e0ff;border:0;border-radius:4px;cursor:pointer';
+    authorize.style.cssText = `padding:10px 18px;font:inherit;font-weight:700;letter-spacing:3px;color:${UIC.void};background:${UIC.accent};border:0;border-radius:0;cursor:pointer`;
     const cancel = document.createElement('button');
     cancel.type = 'button';
     cancel.textContent = 'CANCEL';
-    cancel.style.cssText = 'padding:10px 14px;font:inherit;color:#eafaff;background:#274a55;border:0;border-radius:4px;cursor:pointer';
+    cancel.style.cssText = `padding:10px 18px;font:inherit;letter-spacing:3px;color:${UIC.text};background:#15191d;border:1px solid rgba(232,226,208,0.3);border-radius:0;cursor:pointer`;
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap';
     row.append(cancel, authorize);
@@ -1052,16 +1089,16 @@ export class PauseScene extends Phaser.Scene {
       const bridgeUrl = urlInput.value.trim();
       const token = tokenInput.value;
       if (!/^http:\/\/(127\.0\.0\.1|localhost):\d{1,5}$/.test(bridgeUrl)) {
-        setStatus('BRIDGE URL must be a local http://127.0.0.1:PORT or http://localhost:PORT', '#ff8a3c');
+        setStatus('BRIDGE URL must be a local http://127.0.0.1:PORT or http://localhost:PORT', UIC.warn);
         return;
       }
       if (token.length < 16) {
-        setStatus('TOKEN is empty or too short', '#ff8a3c');
+        setStatus('TOKEN is empty or too short', UIC.warn);
         return;
       }
       const ownerKey = ownerKeyInput.value.trim();
       if (!/^[0-9a-f]{64}$/.test(ownerKey)) {
-        setStatus('OWNER PAIRING KEY must be 64 hex characters from OWNER_KEY_FILE', '#ff8a3c');
+        setStatus('OWNER PAIRING KEY must be 64 hex characters from OWNER_KEY_FILE', UIC.warn);
         return;
       }
       // Clear BOTH secrets from the DOM immediately; the raw key goes only into
@@ -1071,11 +1108,11 @@ export class PauseScene extends Phaser.Scene {
       if (this.linkFormMode === 'companion-reauth') {
         // Re-authorize the EXISTING live link: atomic capability swap, old
         // suggestions cancelled. Never creates a second CompanionLink.
-        setStatus('RE-AUTHORIZING…', '#ffd233');
+        setStatus('RE-AUTHORIZING…', UIC.warn);
         void parent.reauthorizeCompanion(ownerKey).then((ok) => {
           clearOwnerPairing(parent);
           if (ok) {
-            setStatus('RE-AUTHORIZED · capability swapped', '#7ff0ff');
+            setStatus('RE-AUTHORIZED · capability swapped', UIC.signal);
             this.closeExternalLinkForm();
             this.lastCompanionSig = '';
             this.refreshLlm(true);
@@ -1086,7 +1123,7 @@ export class PauseScene extends Phaser.Scene {
             const real = parent.companionStatus;
             setStatus(real === 'CONNECTED'
               ? 'RE-AUTH FAILED — active connection unchanged'
-              : `RE-AUTH FAILED — link ${real}`, '#ff8a3c');
+              : `RE-AUTH FAILED — link ${real}`, UIC.warn);
             this.lastCompanionSig = '';
             this.refreshLlm(true);
           }
@@ -1094,32 +1131,32 @@ export class PauseScene extends Phaser.Scene {
         return;
       }
       if (this.linkFormMode === 'companion') {
-        setStatus('PAIRING OWNER…', '#ffd233');
+        setStatus('PAIRING OWNER…', UIC.warn);
         void parent.authorizeCompanion(bridgeUrl, token, ownerKey).then((ok) => {
           if (ok) {
-            setStatus('CONNECTED · Owner authority registered', '#7ff0ff');
+            setStatus('CONNECTED · Owner authority registered', UIC.signal);
             this.closeExternalLinkForm();
             this.lastCompanionSig = '';
           } else {
-            setStatus('FAILED · owner pairing rejected — control stays human', '#ff8a3c');
+            setStatus('FAILED · owner pairing rejected — control stays human', UIC.warn);
           }
         });
         return;
       }
       // External agent link: use the explicit form parameters only. Never write
       // bridgeUrl/token into a window global.
-      setStatus('AUTHORIZING…', '#ffd233');
+      setStatus('AUTHORIZING…', UIC.warn);
       void parent.authorizeExternalAgent(bridgeUrl, token, ownerKey).then((ok) => {
         if (ok) {
           this.lastStatusSig = '';
           this.refreshStatusTexts();
-          setStatus('CONNECTED · external agent link is live', '#7ff0ff');
+          setStatus('CONNECTED · external agent link is live', UIC.signal);
           this.closeExternalLinkForm();
         } else {
           const error = parent.getExternalLinkError();
           setStatus(
             `FAILED · ${error ? `${error.code} ${error.messageKey}` : 'world.bridge_unreachable'} — control stays human`,
-            '#ff8a3c'
+            UIC.warn
           );
         }
       });

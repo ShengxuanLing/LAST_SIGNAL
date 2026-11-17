@@ -14,6 +14,7 @@ import { WORLD_PROTOCOL_VERSION } from '../ai-native/worldProtocol';
 import { Player } from '../entities/Player';
 import type { RunCheckpoint } from '../types';
 import { CSS, DEPTH, FONT, INK, TIME } from '../art/survey/tokens';
+import { UIC } from '../ui/palette';
 import { deckLabel, deckSeed, sectorFor } from '../config/dungeon';
 import type { MapData } from '../types';
 
@@ -78,10 +79,10 @@ export class GameScene extends Phaser.Scene {
   private txtHelp!: Phaser.GameObjects.Text;
   /** Compact-viewport HUD layout (F-06): larger logical fonts, no z-index tricks. */
   private hudLayout = {
-    weaponY: 20, roomY: 44, enemiesY: 64,
+    vitalsY: 14, weaponY: 20, roomY: 44, enemiesY: 64,
     controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164, signalY: 182,
     helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
-    helpFont: '13px', helpColor: '#8fb8c8'
+    helpFont: '13px', helpColor: UIC.muted
   };
 
   private runStart = 0;
@@ -264,8 +265,8 @@ export class GameScene extends Phaser.Scene {
   private showDeckArrival(deck: number): void {
     const announcement = this.add.text(GAME.WINDOW_W / 2, 126,
       [deckLabel(deck), sectorFor(deck).brief], {
-        fontFamily: 'monospace', fontSize: '16px', align: 'center',
-        color: '#d7f3ff', backgroundColor: '#0b1521', padding: { x: 12, y: 7 }
+        fontFamily: FONT.mono, fontSize: '16px', align: 'center',
+        color: CSS.known, backgroundColor: '#0b0d10', padding: { x: 14, y: 8 }
       }).setOrigin(0.5).setScrollFactor(0).setDepth(501);
     // UI-REWORK-01 B5: the deck announcement is part of the screen readout and
     // must hide with the rest of the HUD when a menu is open.
@@ -349,16 +350,16 @@ export class GameScene extends Phaser.Scene {
     const compact = scale < 0.85;
     this.hudLayout = compact
       ? {
-          weaponY: 16, roomY: 42, enemiesY: 68,
+          vitalsY: 7, weaponY: 16, roomY: 42, enemiesY: 68,
           controlY: 96, actionY: 124, targetY: 152, linkY: 180, echoY: 208, signalY: 236,
           helpY: GAME.WINDOW_H - 52, baseRowFont: '17px', controlFont: '17px', rowFont: '17px',
-          helpFont: '16px', helpColor: '#8fb8c8'
+          helpFont: '16px', helpColor: UIC.muted
         }
       : {
-          weaponY: 20, roomY: 44, enemiesY: 64,
+          vitalsY: 14, weaponY: 20, roomY: 44, enemiesY: 64,
           controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164, signalY: 182,
           helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
-          helpFont: '13px', helpColor: '#8fb8c8'
+          helpFont: '13px', helpColor: UIC.muted
         };
     const L = this.hudLayout;
     const mono = (size: number, color: string, bold = false) =>
@@ -371,7 +372,7 @@ export class GameScene extends Phaser.Scene {
     (this.hud as any).originX = 0; (this.hud as any).originY = 0;
     this.hpShown = -1; this.previousHp = -1; this.hpLossFlash = 0;
 
-    this.txtVitals = add.text(20, 14, 'EX-17 · VITALS', mono(art.tiny, CSS.knownLow)).setLetterSpacing(2).setDepth(HUD_DEPTH);
+    this.txtVitals = add.text(20, L.vitalsY, 'EX-17 · VITALS', mono(art.tiny, CSS.knownLow)).setLetterSpacing(2).setDepth(HUD_DEPTH);
     this.txtHp = add.text(230, 25, '100 / 100', mono(compact ? 17 : 15, CSS.known, true)).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtXp = add.text(230, 44, 'XP 0/30', mono(art.small, CSS.knownMid)).setOrigin(0, 0).setDepth(HUD_DEPTH);
     this.txtCurrency = add.text(20, 58, 'CREDITS 0', mono(art.body, CSS.known)).setOrigin(0, 0).setDepth(HUD_DEPTH);
@@ -390,13 +391,13 @@ export class GameScene extends Phaser.Scene {
 
     // AI-NATIVE-02 control rows (kept from the authoritative world branch, merged
     // with the survey HUD layout rather than replacing it).
-    this.txtControl = add.text(GAME.WINDOW_W - 20, L.controlY, '', { fontFamily: 'monospace', fontSize: L.controlFont, fontStyle: 'bold', color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtAiAction = add.text(GAME.WINDOW_W - 20, L.actionY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtAiTarget = add.text(GAME.WINDOW_W - 20, L.targetY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtAgentLink = add.text(GAME.WINDOW_W - 20, L.linkY, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtEcho = add.text(GAME.WINDOW_W - 20, L.echoY, 'ECHO OFF · PAUSE > ECHO COMPANION', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#33e0ff' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtSignal = add.text(GAME.WINDOW_W - 20, L.signalY, 'RELAY OFF · NO DEVICE', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
+    this.txtControl = add.text(GAME.WINDOW_W - 20, L.controlY, '', { fontFamily: FONT.mono, fontSize: L.controlFont, fontStyle: 'bold', color: UIC.muted }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAiAction = add.text(GAME.WINDOW_W - 20, L.actionY, '', { fontFamily: FONT.mono, fontSize: L.rowFont, color: UIC.muted }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAiTarget = add.text(GAME.WINDOW_W - 20, L.targetY, '', { fontFamily: FONT.mono, fontSize: L.rowFont, color: UIC.muted }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtAgentLink = add.text(GAME.WINDOW_W - 20, L.linkY, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: FONT.mono, fontSize: L.rowFont, color: UIC.warn }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtEcho = add.text(GAME.WINDOW_W - 20, L.echoY, 'ECHO OFF · PAUSE > ECHO COMPANION', { fontFamily: FONT.mono, fontSize: L.rowFont, color: UIC.accent }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtSignal = add.text(GAME.WINDOW_W - 20, L.signalY, 'RELAY OFF · NO DEVICE', { fontFamily: FONT.mono, fontSize: L.rowFont, color: UIC.muted }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: FONT.mono, fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
 
     this.hudObjects = [
       this.hud, this.txtVitals, this.txtHp, this.txtXp, this.txtCurrency, this.txtLevel, this.timer,
@@ -431,7 +432,7 @@ export class GameScene extends Phaser.Scene {
       o.x = w.x; o.y = w.y; o.scaleX = iz; o.scaleY = iz;
     };
     place(this.hud, 0, 0);
-    place(this.txtVitals, 20, 14);
+    place(this.txtVitals, 20, this.hudLayout.vitalsY);
     place(this.txtHp, 230, 25);
     place(this.txtXp, 230, 44);
     place(this.txtCurrency, 20, 58);
@@ -623,9 +624,9 @@ export class GameScene extends Phaser.Scene {
     const secs = Math.floor((this.time.now - this.runStart) / 1000);
     this.timer.setText(`T+${formatDuration(Math.max(0, secs))}`);
 
-    // ---- weapon / room / hostiles (top-right)
-    g.fillStyle(INK.panel, 0.55); g.fillRect(1000, 8, 268, 84);
-    this.ticks(1000, 8, 1268, 92);
+    // ---- weapon / room / hostiles (top-right). UI-ART-01: both right-hand
+    // panels size to their text, so long status rows never spill out of the
+    // frame; the frame is drawn after the texts are updated (see below).
     const weaponState = p.data.weapons.find(({ key }) => key === p.data.weaponKey);
     const ammo = weaponState && weaponState.magazine > 0
       ? weaponState.reloading ? ' · RELOADING' : ` · ${weaponState.ammo}/${weaponState.magazine}`
@@ -641,9 +642,18 @@ export class GameScene extends Phaser.Scene {
     }
     const aliveEnemies = this.world.enemies.length + (this.world.boss ? 1 : 0);
     this.txtEnemies.setText(`HOSTILES ${aliveEnemies}`);
-    // one hollow pip per hostile (shape-coded, not colour-coded)
+    const L = this.hudLayout;
+    const R = GAME.WINDOW_W - 12;
+    const topW = Math.max(this.txtWeapon.width, this.txtRoom.width, this.txtEnemies.width + Math.min(aliveEnemies, 16) * 10 + 14);
+    const topX = Math.min(1000, R - topW - 20);
+    const topBottom = L.enemiesY + this.txtEnemies.height + 4;
+    g.fillStyle(INK.panel, 0.55); g.fillRect(topX, 8, R - topX, topBottom - 8);
+    this.ticks(topX, 8, R, topBottom);
+    // one hollow pip per hostile (shape-coded, not colour-coded), set on the
+    // HOSTILES row to the left of its label so the two never collide
+    const pipY = L.enemiesY + this.txtEnemies.height / 2;
     for (let i = 0; i < Math.min(aliveEnemies, 16); i++) {
-      const x = 1258 - i * 10, y = 80;
+      const x = GAME.WINDOW_W - 20 - this.txtEnemies.width - 12 - i * 10, y = pipY;
       g.lineStyle(1.2, INK.known, 0.8);
       g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.strokePath();
     }
@@ -652,7 +662,7 @@ export class GameScene extends Phaser.Scene {
     // the truthful link state (no external agent is attached in this phase).
     const control = p.control.snapshot();
     this.txtControl.setText(`CONTROL  ${control.modeLabel}`);
-    this.txtControl.setColor(control.owner === 'ai' ? '#7ff0ff' : control.paused ? '#ffd233' : '#8fb8c8');
+    this.txtControl.setColor(control.owner === 'ai' ? UIC.signal : control.paused ? UIC.warn : UIC.muted);
     this.txtAiAction.setText(`AI ACTION  ${control.lastAiAction ?? '—'}${control.aiActionCount > 0 ? ` ×${control.aiActionCount}` : ''}`);
     this.txtAiTarget.setText(`AI TARGET  ${control.lastAiTarget ?? '—'}`);
     // C3-b: the link label is the truth — it reflects the real connection state
@@ -663,10 +673,10 @@ export class GameScene extends Phaser.Scene {
     const echo = this.world.echoActor;
     if (!echo) {
       this.txtEcho.setText('ECHO OFF · PAUSE > ECHO COMPANION');
-      this.txtEcho.setColor('#33e0ff');
+      this.txtEcho.setColor(UIC.accent);
     } else if (echo.data.hp <= 0) {
       this.txtEcho.setText('ECHO DOWN · INDEPENDENT OF YOU');
-      this.txtEcho.setColor('#ff5533');
+      this.txtEcho.setColor(UIC.warn);
     } else {
       const mode = this.world.echoMode === 'follow' ? 'FOLLOW'
         : this.world.echoMode === 'hold' ? 'HOLD' : 'MOVE';
@@ -676,9 +686,16 @@ export class GameScene extends Phaser.Scene {
         : this.companionStatus === 'FALLBACK:NO_MODEL' ? ' · COMPANION NO MODEL'
         : this.companionStatus === 'READ_ONLY' ? ' · COMPANION READ ONLY' : '';
       this.txtEcho.setText(`ECHO ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${mode} · ${assist}${suggest}${link}`);
-      this.txtEcho.setColor(this.world.echoSuggestion ? '#ffd233' : '#33e0ff');
+      this.txtEcho.setColor(this.world.echoSuggestion ? UIC.warn : UIC.accent);
     }
     this.refreshSignalHud();
+    // AI / link status block: its own, quieter panel under the weapon panel.
+    const rows = [this.txtControl, this.txtAiAction, this.txtAiTarget, this.txtAgentLink, this.txtEcho, this.txtSignal];
+    const rowsW = Math.max(...rows.map((t) => t.width));
+    const midX = R - rowsW - 20;
+    const midTop = Math.max(L.controlY - 5, topBottom + 3), midBottom = L.signalY + this.txtSignal.height + 6;
+    g.fillStyle(INK.panel, 0.42); g.fillRect(midX, midTop, R - midX, midBottom - midTop);
+    this.ticks(midX, midTop, R, midBottom, 5, 0.35);
     const settings = saveSystem.getSettings();
     audio.setVolumes(settings.masterVolume, settings.sfxVolume);
   }
@@ -760,7 +777,7 @@ export class GameScene extends Phaser.Scene {
     if (c) txt += c;
     txt += ` · ${exit}`;
     if (this.txtSignal) this.txtSignal.setText(txt);
-    this.txtSignal.setColor(s.relay === 'ACTIVE' ? '#00ff77' : s.relay === 'JAMMED' ? '#ff3333' : '#8fb8c8');
+    this.txtSignal.setColor(s.relay === 'ACTIVE' ? UIC.signal : s.relay === 'JAMMED' ? UIC.warn : UIC.muted);
   }
 
   private runStats(): RunCheckpoint['stats'] {
@@ -899,8 +916,9 @@ export class GameScene extends Phaser.Scene {
     const s = this.world.worldToScreen(p.x, p.y);
     const labelY = Math.max(40, p.sprite.displayOriginY * p.sprite.scaleY + 14);
     const t = this.add.text(s.x, s.y - labelY, 'THE WARDEN DESTROYED', {
-      fontFamily: 'monospace', fontSize: '20px', color: '#ffd233', fontStyle: 'bold'
-    }).setOrigin(0.5, 0.5).setDepth(200);
+      fontFamily: FONT.mono, fontSize: '20px', color: CSS.priority, fontStyle: 'bold',
+      stroke: CSS.shadow, strokeThickness: 4
+    }).setOrigin(0.5, 0.5).setDepth(200).setLetterSpacing(4);
     this.tweens.add({ targets: t, alpha: 0, duration: 1200, onComplete: () => t.destroy() });
     this.time.addEvent({
       delay: 2200,

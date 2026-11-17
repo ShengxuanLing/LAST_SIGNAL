@@ -1,8 +1,23 @@
+/* UI-ART-01: supply terminal in Direction A "SURVEY INK" (docs/art/03 §2).
+   Same semantic tokens as the Phaser UI (src/ui/palette.ts) and Station Zero. */
 :root {
   color-scheme: dark;
-  font-family: monospace;
-  color: #eafaff;
-  background: #05070c;
+  --ink-void: #07090b;
+  --ink-panel: #0b0d10;
+  --ink-mass: #15191d;
+  --ink-lift: #232a30;
+  --ink-line: rgb(232 226 208 / 24%);
+  --ink-line-soft: rgb(232 226 208 / 12%);
+  --ink-text: #e8e2d0;
+  --ink-mid: #cfc8b4;
+  --ink-muted: #aea896;
+  --ink-interact: #4fe3d6;
+  --ink-signal: #7fb7ff;
+  --ink-warn: #f2a93b;
+  --ink-rare: #9fe870;
+  font-family: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+  color: var(--ink-text);
+  background: var(--ink-void);
 }
 
 * { box-sizing: border-box; }
@@ -16,26 +31,28 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
   inset: 0;
   display: grid;
   place-items: center;
-  color: #33e0ff;
-  background: #05070c;
-  letter-spacing: .15em;
+  color: var(--ink-text);
+  background: var(--ink-void);
+  letter-spacing: .3em;
+  font-size: 13px;
 }
 
 button {
   padding: .65rem .85rem;
-  border: 1px solid #33e0ff;
-  border-radius: 3px;
+  border: 1px solid rgb(79 227 214 / 70%);
+  border-radius: 0;
   color: inherit;
-  background: #102b36;
+  background: #0d2a29;
+  letter-spacing: .12em;
   font: inherit;
   font-weight: bold;
   cursor: pointer;
 }
 
-button:hover:not(:disabled) { background: #1b4655; }
-button:focus-visible { outline: 2px solid #ffd233; outline-offset: 3px; }
-button:disabled { color: #91a7b0; border-color: #45616c; background: #16242b; cursor: default; }
-kbd { margin-inline-start: .4rem; padding: .1rem .3rem; border: 1px solid #527581; border-radius: 2px; }
+button:hover:not(:disabled) { background: #123b39; border-color: var(--ink-interact); }
+button:focus-visible { outline: 1px solid var(--ink-interact); outline-offset: 4px; }
+button:disabled { color: #6c685d; border-color: var(--ink-line-soft); background: var(--ink-panel); cursor: default; }
+kbd { margin-inline-start: .5rem; padding: .05rem .35rem; border: 1px solid var(--ink-line); border-radius: 0; color: var(--ink-muted); font: inherit; font-size: .85em; }
 
 #supply-controls, #supply-reward {
   position: fixed;
@@ -48,26 +65,29 @@ kbd { margin-inline-start: .4rem; padding: .1rem .3rem; border: 1px solid #52758
 
 #supply-hint:not(:empty), #supply-reward {
   padding: .5rem .75rem;
-  border: 1px solid #315463;
-  border-radius: 3px;
-  background: #0b151d;
+  border: 1px solid var(--ink-line);
+  border-radius: 0;
+  background: rgb(11 13 16 / 88%);
 }
 
-#supply-reward { bottom: 4.6rem; margin: 0; color: #ffd233; pointer-events: none; }
+#supply-reward { bottom: 4.6rem; margin: 0; color: var(--ink-rare); letter-spacing: .08em; pointer-events: none; }
 
 #supply-dialog {
   width: min(35rem, calc(100% - 2rem));
   max-height: calc(100% - 2rem);
   padding: clamp(1rem, 4vw, 1.6rem);
-  border: 1px solid #33e0ff;
-  border-radius: 4px;
+  border: 1px solid var(--ink-line);
+  border-radius: 0;
+  outline: 1px solid rgb(79 227 214 / 55%);
+  outline-offset: 5px;
   color: inherit;
-  background: #0b151d;
+  background: var(--ink-panel);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 60%);
 }
 
-#supply-dialog::backdrop { background: rgb(3 7 12 / 82%); }
-#supply-title { margin: 0; color: #33e0ff; font-size: 1.5rem; }
-#supply-balance { margin: .6rem 0 1rem; color: #ffd233; font-size: 1rem; }
+#supply-dialog::backdrop { background: rgb(7 9 11 / 84%); }
+#supply-title { margin: 0; padding-bottom: .7rem; border-bottom: 1px solid var(--ink-line-soft); color: var(--ink-text); font-size: 1.25rem; letter-spacing: .3em; text-transform: uppercase; }
+#supply-balance { margin: .7rem 0 1rem; color: var(--ink-muted); font-size: .95rem; letter-spacing: .08em; }
 #supply-stock { display: grid; gap: .65rem; margin: 0; padding: 0; list-style: none; }
 
 #supply-stock li {
@@ -76,13 +96,14 @@ kbd { margin-inline-start: .4rem; padding: .1rem .3rem; border: 1px solid #52758
   align-items: center;
   gap: .5rem 1rem;
   padding: .75rem;
-  border: 1px solid #294552;
-  background: #101e28;
+  border: 1px solid var(--ink-line-soft);
+  border-left: 3px solid rgb(79 227 214 / 55%);
+  background: var(--ink-mass);
 }
 
-#supply-stock h2 { margin: 0; font-size: 1rem; }
-#supply-stock p { margin: .35rem 0 0; color: #a5c2ce; line-height: 1.45; }
-#supply-feedback { min-height: 1.3rem; color: #ffd233; }
+#supply-stock h2 { margin: 0; font-size: 1rem; letter-spacing: .06em; }
+#supply-stock p { margin: .35rem 0 0; color: var(--ink-muted); line-height: 1.5; }
+#supply-feedback { min-height: 1.3rem; color: var(--ink-warn); }
 
 @media (max-width: 420px) {
   #supply-stock li { grid-template-columns: 1fr; }

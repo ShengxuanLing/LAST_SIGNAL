@@ -790,7 +790,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       const help = rects.find((r) => r.name === 'txtHelp');
       expect(help, 'operation hint is present').toBeTruthy();
       expect(help!.h * scale, 'operation hint geometry >=10 CSS px').toBeGreaterThanOrEqual(10);
-      expect(help!.color, 'operation hint uses readable contrast').toBe('#8fb8c8');
+      expect(help!.color, 'operation hint uses readable contrast').toBe('#aea896');
       expect(help!.text, 'operation hint mentions move / fire / F takeover').toContain('ANY MOVE / FIRE / F TAKES HUMAN CONTROL');
       record(`hud-${w}x${h}`, {
         box, scale, canvasCssWidth: box!.w, canvasCssHeight: box!.h,
