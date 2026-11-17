@@ -1,0 +1,27 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\ai-native-world.spec.ts:1306:3 › P3-a echo companion › enable via pause, follow/hold, confirm-before-fire, real damage
+  1) [chromium] › tests\ai-native-world.spec.ts:1306:3 › P3-a echo companion › enable via pause, follow/hold, confirm-before-fire, real damage 
+
+    Error: protagonist HP is unaffected by echo damage
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 100
+    Received: 82
+
+      1467 |     const hurt = await probe();
+      1468 |     expect(hurt.echo!.hp, 'echo takes real damage independently').toBeLessThan(hpBefore);
+    > 1469 |     expect(hurt.player.hp, 'protagonist HP is unaffected by echo damage').toBe(playerHpBefore);
+           |                                                                           ^
+      1470 |     expect(hurt.hud, 'HUD still reports the echo').toContain('ECHO');
+      1471 |
+      1472 |     await page.screenshot({ path: path.join(OUT, 'p3a-echo-4-hurt-1280x720.png') });
+        at D:\tmp\ls-p1-tests\tests\ai-native-world.spec.ts:1469:75
+
+    Error Context: test-results\ai-native-world-P3-a-echo--1883b-irm-before-fire-real-damage-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\ai-native-world.spec.ts:1306:3 › P3-a echo companion › enable via pause, follow/hold, confirm-before-fire, real damage 

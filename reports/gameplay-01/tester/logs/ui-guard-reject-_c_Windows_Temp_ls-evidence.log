@@ -1,0 +1,18 @@
+Error: UI_OUT_DIR must be an isolated directory inside D:\tmp\ls-p1-tests\reports (got C:\Windows\Temp\ls-evidence; relative=C:\Windows\Temp\ls-evidence)
+
+   at ui-menu-layout.spec.ts:101
+
+   99 |   const insideReports = rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel);
+  100 |   if (!insideReports) {
+> 101 |     throw new Error(
+      |           ^
+  102 |       `UI_OUT_DIR must be an isolated directory inside ${reportsRoot} (got ${resolved}; relative=${rel || '<reports root>'})`
+  103 |     );
+  104 |   }
+    at report_safe_guard (D:\tmp\ls-p1-tests\tests\ui-menu-layout.spec.ts:101:11)
+    at D:\tmp\ls-p1-tests\tests\ui-menu-layout.spec.ts:78:1
+
+Error: No tests found.
+Make sure that arguments are regular expressions matching test files.
+You may need to escape symbols like "$" or "*" and quote the arguments.
+

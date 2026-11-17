@@ -76,10 +76,31 @@ type LayoutSnapshot = {
 };
 
 report_safe_guard();
+/**
+ * Evidence-isolation guard.
+ *
+ * SCOPE (P0 fix): any isolated sub-directory inside `<repo>/reports` is allowed,
+ * so another task can keep its own evidence directory (e.g.
+ * reports/gameplay-01/tester/ui) without touching the UI-REWORK evidence.
+ * The old default (reports/ui-rework-01/<phase>) keeps working.
+ *
+ * Rejection stays strict and boundary-aware (path.relative, not startsWith):
+ *   - outside the repository (absolute other dirs, drive roots) → rejected,
+ *   - any `..` traversal that escapes `<repo>/reports` → rejected,
+ *   - `<repo>/reports` itself (a file could clobber the shared root) → rejected.
+ * Note the old `startsWith('reports/ui-rework-01')` check would also have
+ * accepted a sibling like `reports/ui-rework-010`, which is why the boundary is
+ * computed with path.relative here.
+ */
 function report_safe_guard(): void {
+  const reportsRoot = path.resolve(REPO, 'reports');
   const resolved = path.resolve(OUT);
-  if (!resolved.startsWith(path.join(REPO, 'reports', 'ui-rework-01'))) {
-    throw new Error(`UI_OUT_DIR must stay under reports/ui-rework-01 (got ${resolved})`);
+  const rel = path.relative(reportsRoot, resolved);
+  const insideReports = rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel);
+  if (!insideReports) {
+    throw new Error(
+      `UI_OUT_DIR must be an isolated directory inside ${reportsRoot} (got ${resolved}; relative=${rel || '<reports root>'})`
+    );
   }
 }
 

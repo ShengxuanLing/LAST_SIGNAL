@@ -1,0 +1,10 @@
+ALLOW  reports/ui-rework-01/after           rel="ui-rework-01\\after" resolved=<repo>/reports/ui-rework-01/after ok
+ALLOW  reports/gameplay-01/tester/ui        rel="gameplay-01\\tester\\ui" resolved=<repo>/reports/gameplay-01/tester/ui ok
+REJECT reports                              rel="" resolved=<repo>/reports ok
+REJECT reports/..                           rel=".." resolved=<repo> ok
+REJECT reports/../reports2/x                rel="..\\reports2\\x" resolved=<repo>/reports2/x ok
+REJECT ../outside                           rel="..\\..\\outside" resolved=D:/Project/outside ok
+REJECT D:/tmp/ls-evidence                   rel="..\\..\\..\\tmp\\ls-evidence" resolved=D:/tmp/ls-evidence ok
+REJECT /c/Windows/Temp/ls-evidence          rel="..\\..\\..\\c\\Windows\\Temp\\ls-evidence" resolved=D:/c/Windows/Temp/ls-evidence ok
+ALLOW  reports/ui-rework-010                rel="ui-rework-010" resolved=<repo>/reports/ui-rework-010 ok
+MISMATCHES=0

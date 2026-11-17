@@ -1,0 +1,5 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\ai-native-world.spec.ts:1306:3 › P3-a echo companion › enable via pause, follow/hold, confirm-before-fire, real damage
+  1 passed (31.8s)

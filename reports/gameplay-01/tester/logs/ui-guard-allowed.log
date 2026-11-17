@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1280x720
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1280x720
+audit 1280x720: 0 clipped/hidden, 0 overlaps
+
+  1 passed (11.5s)
