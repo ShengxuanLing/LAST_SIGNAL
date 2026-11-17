@@ -738,14 +738,29 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       const scale = ((await canvasBox(page))!.w) / GAME_W;
       await enableAiViaPause(page);
       await page.waitForTimeout(1200);
-      // A real run may open the real LevelUpScene; choose its first card.
-      for (let i = 0; i < 6; i++) {
-        const active = await page.evaluate(() =>
-          (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key));
-        if (!active.includes('LevelUpScene')) break;
-        await page.keyboard.press('1');
-        await page.waitForTimeout(450);
+      // Sampling precondition (approved minimal change): a real run may open the
+      // REAL LevelUpScene, and a further level-up can open right after the first
+      // choice. Close it through the real card selection (existing clearLevelUp,
+      // the same real '1' keypress flow) and then wait until GameScene is really
+      // live again (no overlay, not paused) BEFORE taking the snapshot, so mode
+      // and geometry come from one active state. No heal / enemy clear / direct
+      // scene close, and none of the original assertions below are relaxed.
+      const isLive = () => {
+        const g: any = (window as any).__game;
+        const gs: any = g.scene.getScene('GameScene');
+        if (!gs || !g.scene.isActive('GameScene')) return false;
+        const active = g.scene.getScenes(true).map((s: any) => s.sys.settings.key);
+        return !active.includes('LevelUpScene') && !gs.paused;
+      };
+      let live = false;
+      for (let attempt = 0; attempt < 5 && !live; attempt++) {
+        await clearLevelUp(page); // no-op unless a real LevelUpScene is observed
+        live = await page
+          .waitForFunction(isLive, undefined, { timeout: 4000 })
+          .then(() => true)
+          .catch(() => false); // the explicit assertion below reports the failure
       }
+      expect(live, 'the run is live again after any real level-up choice').toBe(true);
       const st = await state(page);
       expect(st!.mode, 'AI running at this viewport').toBe('AI');
       expect(st!.owner).toBe('ai');

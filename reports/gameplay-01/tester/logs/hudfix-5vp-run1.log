@@ -1,0 +1,9 @@
+
+Running 5 tests using 1 worker
+
+[1/5] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1920x1080
+[2/5] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1366x768
+[3/5] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1280x720
+[4/5] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1024x768
+[5/5] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 800x600
+  5 passed (50.9s)
