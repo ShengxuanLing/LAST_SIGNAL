@@ -21,14 +21,15 @@ import { chooseNearestActor, type ActorCombatPort, type ActorTargetView } from '
 import { buildEchoObservation, type EchoObservation } from './echoView';
 import { SIGNAL_TUNING } from '../signal/signalTuning';
 import { ExternalLinkState, type ExternalActionReceipt } from '../ai-native/externalLink';
-import { EchoController, type EchoMode, type EchoView } from '../ai-native/echo';
+import { EchoController, ECHO_LIMITS, type EchoMode, type EchoLocalProposal, type EchoView } from '../ai-native/echo';
+import { EchoAuditRing } from '../ai-native/echoAudit';
 import type { PlayerIntent } from '../ai-native/control';
 import {
   createSimulationState, ECHO_ACTOR_ID, enqueueCommand, enqueueEchoHit, enqueuePlayerHit, isWalkableFromState,
   enqueueTargetHp as enqueueCoreTargetHp, enqueueTargetMove as enqueueCoreTargetMove, ensureWalkableFromState, processCommands,
   registerDrone, registerTarget,
   spawnEnemyProjectile as spawnCoreEnemyProjectile, stepSimulationTicks, SIM_TUNING,
-  type SimulationIntent, type SimulationState, type SimEchoState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
+  type SimulationIntent, type SimulationState, type SimCommand, type SimEchoState, type SimEvent, type SimLootKind, type SimProjectile, type SimTarget
 } from './sim/core';
 import { CombatVfx, BOLT_HEIGHT, type BoltView, type TelegraphView } from '../art/survey/CombatVfx';
 import { CSS, DEPTH, FONT, INK } from '../art/survey/tokens';
@@ -95,6 +96,7 @@ export class World {
     // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
     // memory or pending intent. Echo HP comes verbatim from the checkpoint.
     this.echoController.reset();
+    this.resetEchoCooperationRuntime();
     this.echoShotsFired = 0;
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
@@ -156,10 +158,30 @@ export class World {
   readonly externalLink = new ExternalLinkState();
   /** P3-a: pure echo intent policy (no Phaser; shared with the Node parity driver). */
   readonly echoController = new EchoController();
+  /** Bounded human-local/owner-external audit ring; never read by the policy. */
+  readonly echoAudit = new EchoAuditRing();
   /** Real committed echo shots (observability only; no hidden state). */
   echoShotsFired = 0;
   /** One Owner-confirmed companion intent, committed by the next core tick. */
   private pendingCompanionIntent: SimulationIntent | null = null;
+  /** Saved low-risk ECHO cooperation consent (default false). */
+  private echoCooperationOptIn = false;
+  /** Bumped on every committed room change; bounds local proposals/memory. */
+  private echoRoomGeneration = 0;
+  /** A human-local/owner-external signal command awaiting its real core result. */
+  private pendingLocalSignal: { kind: 'scan' | 'jam' | 'toggle-relay'; target: { x: number; y: number } | null; tick: number; provenance: 'human-local' | 'owner-external'; proposalId?: string } | null = null;
+  /** The single in-flight human-local action; blocks a second confirm until a real receipt/cancel. */
+  private pendingLocalAction: {
+    proposalId: string;
+    acceptedTick: number;
+    kind: 'scan' | 'jam' | 'toggle-relay';
+    target: { x: number; y: number } | null;
+    roomGeneration: number;
+    originRoomId: number;
+    command: SimCommand | null;
+  } | null = null;
+  /** Exact command just queued by enqueueSignalCommand (for lifecycle cancel). */
+  private lastEnqueuedSignalCommand: SimCommand | null = null;
   private echoSprite: Phaser.GameObjects.Container | null = null;
   private echoLine: Phaser.GameObjects.Graphics | null = null;
   private signalSprite: Phaser.GameObjects.Container | null = null;
@@ -304,6 +326,225 @@ export class World {
     });
   }
 
+  /**
+   * The echo policy view: the same legal observation plus a bounded `canWalk`
+   * probe (restricted to the echo's perception/explored/LOS) and the saved
+   * low-risk switch. It is NOT the serialized observation DTO.
+   */
+  echoPolicyView(): EchoView | null {
+    const view = this.echoView();
+    const echo = this._sim.echo;
+    if (!view || !echo) return null;
+    const canWalk = (x: number, y: number): boolean => {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+      if (Math.hypot(x - echo.x, y - echo.y) >= ECHO_LIMITS.perceptionTiles) return false;
+      if (!this.isExploredCell(x, y)) return false;
+      if (!this.isWalkable(x, y, 0.5)) return false;
+      return gridLineOfSight({ x, y }, {
+        center: { x: echo.x, y: echo.y },
+        radiusTiles: ECHO_LIMITS.perceptionTiles,
+        isExplored: (sx, sy) => this.isExploredCell(sx, sy),
+        isOpaque: (sx, sy) => this.isOpaqueCell(sx, sy),
+        stepTiles: WORLD_PERCEPTION.losStepTiles
+      });
+    };
+    return {
+      ...view,
+      canWalk,
+      autonomyEnabled: this.echoCooperationOptIn,
+      roomGeneration: this.echoRoomGeneration
+    };
+  }
+
+  get echoCooperation(): boolean { return this.echoCooperationOptIn; }
+
+  /** Human low-risk switch. OFF clears autonomous movement, never the manual mode.
+   *  AI/external ownership is read-only for this human preference. */
+  setEchoCooperationOptIn(enabled: boolean): boolean {
+    if (this.player.control.owner !== 'human') return false;
+    this.echoCooperationOptIn = !!enabled;
+    this.echoController.setAutonomy(this.echoCooperationOptIn);
+    return true;
+  }
+
+  get echoLocalProposal(): EchoLocalProposal | null {
+    return this.pendingLocalAction ? null : this.echoController.localProposal;
+  }
+
+  /** The single in-flight human-local action (same id shown as WAITING in UI). */
+  get echoPendingLocal(): { proposalId: string; kind: 'scan' | 'jam' | 'toggle-relay'; target: { x: number; y: number } | null; acceptedTick: number; roomGeneration: number } | null {
+    const pending = this.pendingLocalAction;
+    if (!pending) return null;
+    return {
+      proposalId: pending.proposalId, kind: pending.kind,
+      target: pending.target ? { ...pending.target } : null,
+      acceptedTick: pending.acceptedTick, roomGeneration: pending.roomGeneration
+    };
+  }
+
+  /** Generate the current local proposal (non-executing). */
+  proposeLocalEcho(): EchoLocalProposal | null {
+    const view = this.echoPolicyView();
+    return view ? this.echoController.propose(view) : null;
+  }
+
+  /**
+   * Minimal human-local confirmation boundary. The UI must call this instead of
+   * `enqueueCompanionAction`. It validates the real echo/owner/id/expiry/room/
+   * target legality, takes originRoomId at confirmation, enqueues for the next
+   * tick, and is the only setter of provenance 'human-local'.
+   */
+  confirmLocalEchoProposal(id: string): boolean {
+    const echo = this._sim.echo;
+    const tick = this._sim.tick;
+    // Exactly one in-flight human confirmation. A second confirm (UI or direct
+    // boundary call) must not enqueue, overwrite the pending record or touch the
+    // existing core command. An unsettled signal command from either path also
+    // blocks a new local confirmation so receipts stay attributable.
+    if (this.pendingLocalAction || this.pendingLocalSignal) {
+      this.echoAudit.record({
+        tick, provenance: 'human-local', action: 'local-confirm', target: null,
+        result: 'rejected', code: 'E_ALREADY_PENDING', proposalId: id
+      });
+      return false;
+    }
+    if (!echo || echo.data.hp <= 0) {
+      this.echoAudit.record({ tick, provenance: 'human-local', action: 'local-confirm', target: null, result: 'rejected', code: 'E_ECHO_UNAVAILABLE', proposalId: id });
+      return false;
+    }
+    const ownerHuman = this.player.control.owner === 'human';
+    const validation = this.echoController.validateLocalProposal(id, tick, this.echoRoomGeneration, ownerHuman);
+    if (!validation.ok) {
+      this.echoAudit.record({ tick, provenance: 'human-local', action: 'local-confirm', target: null, result: 'rejected', code: validation.code, proposalId: id });
+      return false;
+    }
+    const proposal = this.echoController.localProposal;
+    if (!proposal) return false;
+    if (!this.localProposalTargetLegal(proposal)) {
+      this.echoAudit.record({ tick, provenance: 'human-local', action: proposal.kind, target: proposal.target, result: 'rejected', code: 'E_TARGET_NOT_LEGAL', proposalId: id });
+      this.echoController.rejectLocalProposal(id, tick);
+      return false;
+    }
+    // originRoomId is captured at confirmation, never cached in the proposal.
+    const originRoomId = this.roomIdValue;
+    this.lastEnqueuedSignalCommand = null;
+    const ok = this.enqueueCompanionActionInternal(proposal.kind, proposal.target ?? undefined, 'human-local', originRoomId, proposal.id);
+    if (ok) {
+      this.pendingLocalAction = {
+        proposalId: proposal.id, acceptedTick: tick, kind: proposal.kind, target: proposal.target,
+        roomGeneration: this.echoRoomGeneration, originRoomId, command: this.lastEnqueuedSignalCommand
+      };
+      this.lastEnqueuedSignalCommand = null;
+      this.echoController.markLocalPending(proposal);
+      this.echoController.consumeLocalProposal(id);
+    } else {
+      this.echoAudit.record({ tick, provenance: 'human-local', action: proposal.kind, target: proposal.target, result: 'rejected', code: 'E_NOT_APPLICABLE', proposalId: id });
+    }
+    return ok;
+  }
+
+  rejectLocalEchoProposal(id: string): boolean {
+    const proposal = this.echoController.localProposal;
+    if (!proposal || proposal.id !== id) return false;
+    const tick = this._sim.tick;
+    this.echoController.rejectLocalProposal(id, tick);
+    this.echoAudit.record({ tick, provenance: 'human-local', action: proposal.kind, target: proposal.target, result: 'rejected', code: 'E_USER_REJECTED', proposalId: id });
+    return true;
+  }
+
+  private localProposalTargetLegal(proposal: EchoLocalProposal): boolean {
+    const view = this.echoView();
+    const echo = this._sim.echo;
+    if (!view || !echo || !view.relay) return false;
+    const distance = Math.hypot(view.relay.x - echo.x, view.relay.y - echo.y);
+    const energy = view.energy?.current ?? 0;
+    const scanTicks = view.cooldowns?.scanTicks ?? 0;
+    const jamTicks = view.cooldowns?.jamTicks ?? 0;
+    if (proposal.kind === 'scan') {
+      return distance < SIGNAL_TUNING.SCAN_RADIUS && energy >= SIGNAL_TUNING.SCAN_COST && scanTicks <= 0;
+    }
+    if (proposal.kind === 'jam') {
+      return distance < SIGNAL_TUNING.JAM_RANGE && energy >= SIGNAL_TUNING.JAM_COST && jamTicks <= 0;
+    }
+    if (proposal.kind === 'toggle-relay') return distance < SIGNAL_TUNING.JAM_RANGE;
+    return false;
+  }
+
+  /** Committed room change: invalidate memory/proposals and bump generation. */
+  private advanceEchoRoomGeneration(): void {
+    // Cancel the exact queued local command BEFORE dropping the guard, so a new
+    // local action cannot be enqueued while the old command remains in core.
+    this.cancelPendingLocalAction('E_ROOM_CHANGED');
+    this.echoRoomGeneration += 1;
+    this.echoController.setRoomGeneration(this.echoRoomGeneration);
+    this.echoController.clearForRoomTransition();
+    this.pendingCompanionIntent = null;
+    this.pendingLocalSignal = null;
+  }
+
+  /**
+   * Explicit local lifecycle cancel: remove THIS queued command (never another
+   * path's command), record a local cancellation with the proposal id, then
+   * clear the guard. Used by room change, echo disable and an explicit revoke.
+   */
+  cancelPendingLocalAction(reason: 'E_ROOM_CHANGED' | 'E_ECHO_DISABLED' | 'E_LOCAL_REVOKED' | 'E_ECHO_DEAD'): boolean {
+    const pending = this.pendingLocalAction;
+    if (!pending) return false;
+    if (pending.command) {
+      const index = this._sim.pendingCommands.indexOf(pending.command);
+      if (index >= 0) this._sim.pendingCommands.splice(index, 1);
+    }
+    this.echoAudit.record({
+      tick: this._sim.tick, provenance: 'human-local', action: pending.kind,
+      target: pending.target, result: 'cancelled', code: reason, proposalId: pending.proposalId
+    });
+    this.pendingLocalAction = null;
+    this.echoController.clearLocalPending();
+    if (this.pendingLocalSignal?.proposalId === pending.proposalId) this.pendingLocalSignal = null;
+    this.bumpSimVersion();
+    return true;
+  }
+
+  /** Record the real result of a pending local/owner signal command. */
+  private settlePendingLocalSignal(kind: 'scan' | 'jam' | 'toggle-relay', ok: boolean, code?: string): void {
+    const local = this.pendingLocalAction;
+    if (local && local.kind === kind) {
+      this.echoAudit.record({
+        tick: this._sim.tick, provenance: 'human-local', action: local.kind,
+        target: local.target, result: ok ? 'applied' : 'rejected',
+        proposalId: local.proposalId, ...(code ? { code } : {})
+      });
+      this.pendingLocalAction = null;
+      this.echoController.clearLocalPending();
+      // Do not consume a newer owner-external pending row if it overwrote the
+      // local row after enqueue; only clear the matching local receipt.
+      if (this.pendingLocalSignal?.proposalId === local.proposalId) this.pendingLocalSignal = null;
+      return;
+    }
+    const pending = this.pendingLocalSignal;
+    if (!pending || pending.kind !== kind) return;
+    this.echoAudit.record({
+      tick: this._sim.tick, provenance: pending.provenance, action: pending.kind,
+      target: pending.target, result: ok ? 'applied' : 'rejected',
+      ...(pending.proposalId ? { proposalId: pending.proposalId } : {}),
+      ...(code ? { code } : {})
+    });
+    this.pendingLocalSignal = null;
+  }
+
+  /** Per-run echo/autonomy runtime reset; the saved human switch is re-applied. */
+  private resetEchoCooperationRuntime(): void {
+    this.echoRoomGeneration = 0;
+    this.echoController.reset();
+    this.echoController.setRoomGeneration(0);
+    this.echoController.setAutonomy(this.echoCooperationOptIn);
+    this.echoAudit.reset();
+    this.pendingLocalSignal = null;
+    this.pendingLocalAction = null;
+    this.lastEnqueuedSignalCommand = null;
+    this.pendingCompanionIntent = null;
+  }
+
   /** Bounded, real Signal state (no hidden fields). Mirrors headless
    *  worldHeadless.signalView() so Rendered and Headless report byte-parity
    *  echoSignal. Returns null when no relay device exists (legacy v1 run). */
@@ -336,6 +577,7 @@ export class World {
   ): boolean {
     if (!this._sim.signal) return false;
     enqueueCommand(this._sim, command);
+    this.lastEnqueuedSignalCommand = command;
     this.bumpSimVersion();
     return true;
   }
@@ -534,6 +776,14 @@ export class World {
    *  are gated by range/LOS/cooldown inside the core.
    */
   enqueueCompanionAction(kind: string, target?: { x: number; y: number }): boolean {
+    return this.enqueueCompanionActionInternal(kind, target, 'owner-external');
+  }
+
+  /** Shared executor. `provenance` may only be set by an authorized boundary. */
+  private enqueueCompanionActionInternal(
+    kind: string, target: { x: number; y: number } | undefined,
+    provenance: 'human-local' | 'owner-external', originRoomId?: number, proposalId?: string
+  ): boolean {
     const echo = this._sim.echo;
     if (!echo || echo.data.hp <= 0) return false;
     switch (kind) {
@@ -546,6 +796,7 @@ export class World {
           move: { x: dx / len, y: dy / len }, dash: false, fire: false, aim: null, interact: false
         };
         this.bumpSimVersion();
+        this.echoAudit.record({ tick: this._sim.tick, provenance, action: 'move', target: target ?? null, result: 'enqueued' });
         return true;
       }
       case 'aim':
@@ -569,18 +820,36 @@ export class World {
         this.bumpSimVersion();
         return true;
       case 'scan':
-        return this.enqueueSignalCommand({ type: 'signal-scan', actor: 'echo' });
       case 'jam':
-        return this.enqueueSignalCommand({ type: 'signal-jam', actor: 'echo' });
-      case 'toggle-relay':
-        // Trusted internal binding captured synchronously at Owner-confirm
-        // execution time. The core rejects it if the player/device room moved
-        // before commit, so a stale old-room decision cannot flip the gate.
-        return this.enqueueSignalCommand({
-          type: 'toggle-relay',
-          enabled: !(this._sim.signal?.manualEnabled ?? false),
-          originRoomId: this.roomIdValue
-        });
+      case 'toggle-relay': {
+        const signalKind = kind as 'scan' | 'jam' | 'toggle-relay';
+        let ok = false;
+        if (signalKind === 'toggle-relay') {
+          // originRoomId is captured at confirmation (not cached in a proposal).
+          ok = this.enqueueSignalCommand({
+            type: 'toggle-relay',
+            enabled: !(this._sim.signal?.manualEnabled ?? false),
+            originRoomId: originRoomId ?? this.roomIdValue
+          });
+        } else {
+          ok = this.enqueueSignalCommand({
+            type: signalKind === 'scan' ? 'signal-scan' : 'signal-jam',
+            actor: 'echo'
+          });
+        }
+        if (ok) {
+          this.pendingLocalSignal = {
+            kind: signalKind, target: target ?? null, tick: this._sim.tick, provenance,
+            ...(proposalId ? { proposalId } : {})
+          };
+          this.echoAudit.record({
+            tick: this._sim.tick, provenance, action: signalKind,
+            target: target ?? null, result: 'enqueued',
+            ...(proposalId ? { proposalId } : {})
+          });
+        }
+        return ok;
+      }
       default:
         return false;
     }
@@ -599,7 +868,9 @@ export class World {
 
   disableEcho(): void {
     if (!this._sim.echo) return;
+    this.cancelPendingLocalAction('E_ECHO_DISABLED');
     this.echoController.clearIntent();
+    this.pendingLocalSignal = null;
     enqueueCommand(this._sim, { type: 'remove-echo' });
     this.bumpSimVersion();
   }
@@ -665,6 +936,9 @@ export class World {
     this.map = map;
     this.callbacks = callbacks;
     this.signalCollaborationOptIn = !!save.permanent?.signalCollaborationOptIn;
+    this.echoCooperationOptIn = !!save.permanent?.echoCooperationOptIn;
+    this.echoController.setAutonomy(this.echoCooperationOptIn);
+    this.echoController.setRoomGeneration(this.echoRoomGeneration);
     this.rng = map.deck === undefined ? new RNG(map.seed * 7919 + 1) : dungeonRng(map.seed);
     this.roomDepth.build(map);
     this._computeBounds();
@@ -982,6 +1256,7 @@ export class World {
   }
 
   private onEnterRoom(room: RoomInfo): void {
+    this.advanceEchoRoomGeneration();
     const r = this.map.rooms[room.id];
     this.activeWave = 0;
     this.waves = [];
@@ -1298,8 +1573,7 @@ export class World {
         // protagonist on that SAME tick, and the old room's armed assist +
         // pending companion intent + echo memory are dropped (never carried into
         // the new encounter).
-        this.echoController.clearForRoomTransition();
-        this.pendingCompanionIntent = null;
+        this.advanceEchoRoomGeneration();
         this.enqueueTeleport(landing.x, landing.y, true, true);
       }
       audio.wave();
@@ -1622,8 +1896,9 @@ export class World {
       // same core tick commits its move/fire. No separate state mutation.
       // An explicit echo intent is used ONLY by the parity/diagnostic driver;
       // normal rendered play always takes the EchoController decision.
+      const policyView = this.echoPolicyView();
       const echoIntent = this.pendingCompanionIntent ?? echoIntentOverride
-        ?? (this.echoView() ? this.echoController.decide(this.echoView()!) : undefined);
+        ?? (policyView ? this.echoController.decide(policyView) : undefined);
       this.pendingCompanionIntent = null;
       // C3-b fix: an external action's intent must be delivered for EXACTLY
       // its remaining integer core ticks. If one frame contains more ticks than
@@ -1648,6 +1923,7 @@ export class World {
         }
       }
       this.applySimEvents(events);
+      this.reapDrainedLocalActionAfterTick();
       this.bumpSimVersion();
     }
     this.syncCoreEntities(delta / 1000);
@@ -1656,6 +1932,25 @@ export class World {
   }
 
   resetSimulationAccumulator(): void { this.simAccumulatorMs = 0; }
+
+  /** A dead echo that dropped its queued local command without a receipt must
+   *  not leave the single-pending guard stuck. Only an actually-local row is
+   *  cleared; a raw-restored/external command is never guessed as human-local. */
+  private reapDrainedLocalActionAfterTick(): void {
+    const pending = this.pendingLocalAction;
+    if (!pending?.command || !this.echoController.pendingLocalProposal ||
+        this._sim.pendingCommands.includes(pending.command)) return;
+    const echo = this._sim.echo;
+    if (echo && echo.data.hp > 0) return;
+    this.echoAudit.record({
+      tick: this._sim.tick, provenance: 'human-local', action: pending.kind,
+      target: pending.target, result: 'cancelled', code: 'E_ECHO_DEAD', proposalId: pending.proposalId
+    });
+    this.pendingLocalAction = null;
+    this.echoController.clearLocalPending();
+    if (this.pendingLocalSignal?.proposalId === pending.proposalId) this.pendingLocalSignal = null;
+    this.bumpSimVersion();
+  }
 
   /** Legacy melee/attack adapter: queue a player hit; core commits it next tick. */
   enqueuePlayerHit(damage: number, fromX: number, fromY: number): void {
@@ -1754,6 +2049,7 @@ export class World {
             kind: 'scan', ok: event.ok !== false,
             ...(event.code ? { code: event.code } : {}), tick: this._sim.tick
           };
+          this.settlePendingLocalSignal('scan', event.ok !== false, event.code);
           this.callbacks.onSignalChanged?.();
           break;
         case 'signal-jammed':
@@ -1761,9 +2057,11 @@ export class World {
             kind: 'jam', ok: event.ok !== false,
             ...(event.code ? { code: event.code } : {}), tick: this._sim.tick
           };
+          this.settlePendingLocalSignal('jam', event.ok !== false, event.code);
           this.callbacks.onSignalChanged?.();
           break;
         case 'signal-relay-changed':
+          this.settlePendingLocalSignal('toggle-relay', true, undefined);
           this.callbacks.onSignalChanged?.();
           break;
         case 'player-death':
@@ -2273,6 +2571,7 @@ export class World {
     // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
     // memory or pending intent. Echo HP comes verbatim from the checkpoint.
     this.echoController.reset();
+    this.resetEchoCooperationRuntime();
     this.echoShotsFired = 0;
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
@@ -2288,6 +2587,7 @@ export class World {
     // P3-a fix: a restore may NEVER inherit an old assist confirmation, mode,
     // memory or pending intent. Echo HP comes verbatim from the checkpoint.
     this.echoController.reset();
+    this.resetEchoCooperationRuntime();
     this.echoShotsFired = 0;
     for (const view of this.coreProjectileViews.values()) if (view.spr.scene) view.spr.destroy();
     this.coreProjectileViews.clear();
@@ -2300,6 +2600,7 @@ export class World {
     delete this._sim.echo;
     this.pendingCompanionIntent = null;
     this.echoController.reset();
+    this.resetEchoCooperationRuntime();
     this.echoShotsFired = 0;
     if (this.echoSprite) { this.echoSprite.destroy(); this.echoSprite = null; }
     if (this.echoLine) { this.echoLine.destroy(); this.echoLine = null; }

@@ -1,0 +1,859 @@
+{
+  "stage": "GAMEPLAY-01 P2 \u2014 ECHO local cooperation (v3 restore guard)",
+  "date": "2026-11-17",
+  "status": "CANDIDATE \u2014 independent v3 review pending; not human acceptance; original CLI timeout restored; raw-restore guard fixed",
+  "branch": "feat/gameplay-01-ai-cooperation",
+  "head": "2c4584c",
+  "head_note": "Actual HEAD when frozen. P2 source is uncommitted on top of this tester-test HEAD; the Lead's earlier dcd1955 base advanced to 2c4584c while the v3 fix was developed.",
+  "p1_base": {
+    "commit": "400a73e",
+    "ci_commit": "c7e03c5",
+    "manifest": "reports/gameplay-01/developer/p1/final/manifest.json",
+    "note": "P1 evidence/hashes are historical at its commit; P1 Tester accept tree is independent. P2 does not substitute for P1 no-assist room-clear."
+  },
+  "working_tree_src": [
+    "M src/ai-native/echo.ts",
+    " M src/ai-native/worldHeadless.ts",
+    " M src/scenes/PauseScene.ts",
+    " M src/systems/SaveSystem.ts",
+    " M src/types/index.ts",
+    " M src/world/World.ts",
+    "?? src/ai-native/echoAudit.ts",
+    "?? src/ai-native/echoCoop.test.ts",
+    "?? src/ai-native/worldHeadlessEchoCoop.test.ts",
+    "?? src/systems/SaveSystem.echoCoop.test.ts"
+  ],
+  "source_whitelist": [
+    {
+      "path": "src/ai-native/echo.ts",
+      "status": "modified",
+      "purpose": "pure ECHO policy: local proposal, single local pending, raw-restore busy marker, safe move, reset",
+      "sha256": "5408830f9774486ac0182eed43172704a85b557258293484002dab78a634d9a6",
+      "bytes": 20726
+    },
+    {
+      "path": "src/ai-native/echoAudit.ts",
+      "status": "new",
+      "purpose": "bounded human-local/owner-external audit with proposalId/cancelled; never perception input",
+      "sha256": "53fd69c8954c73bf6e01e6daa85a37b931f67889c455801776b381f9e964204c",
+      "bytes": 1605
+    },
+    {
+      "path": "src/ai-native/worldHeadless.ts",
+      "status": "modified",
+      "purpose": "same EchoController/pending; raw-restore queue guard; exact cancel; real-tick settle; dead-echo local drain",
+      "sha256": "d5b2c5107d5e956e7f40abf7bac7927ae7d7a060f35b310c1978b36b98e0cbda",
+      "bytes": 50128
+    },
+    {
+      "path": "src/scenes/PauseScene.ts",
+      "status": "modified",
+      "purpose": "ECHO LOCAL COOPERATION: switch, human confirm/reject, WAITING, last receipt, compact layout",
+      "sha256": "ed323491252df843618470dabcb2d1a1af90c92384cc1821e2c88df7475a9f72",
+      "bytes": 59616
+    },
+    {
+      "path": "src/systems/SaveSystem.ts",
+      "status": "modified",
+      "purpose": "optional echoCooperationOptIn default false; old save stays false",
+      "sha256": "38437c9dc3c7c7ac2b8fa6ecb2fb089b6d50e2d74ddb9ac328917f35c5e4b26b",
+      "bytes": 10909
+    },
+    {
+      "path": "src/types/index.ts",
+      "status": "modified",
+      "purpose": "PermanentData.echoCooperationOptIn?: boolean",
+      "sha256": "3e24ac8b163babae8122248d2561760b73578d6542f88c63a63c7c937542c593",
+      "bytes": 7001
+    },
+    {
+      "path": "src/world/World.ts",
+      "status": "modified",
+      "purpose": "single local pending, lifecycle cancel, dead-echo local guard drain, human-only switch/reset",
+      "sha256": "37cf6ffb81db8482374270ba3856524f34bf1045caf94b7025d19986d4a9a3e5",
+      "bytes": 116403
+    },
+    {
+      "path": "src/ai-native/echoCoop.test.ts",
+      "status": "new",
+      "purpose": "19 pure P2 policy/boundary/single-pending/restore-marker/lifecycle rules",
+      "sha256": "e05b488a0d2df92e542d8c66ce75bf08df9956e28e5fb1fb62b62a6d4b67cabd",
+      "bytes": 11223
+    },
+    {
+      "path": "src/ai-native/worldHeadlessEchoCoop.test.ts",
+      "status": "new",
+      "purpose": "17 headless same-policy/real-core/single-queue/toggle/cancel/raw-restore/room/death rules",
+      "sha256": "4e0d0d185d7542f2283b2c164fd0a24647b3198c407c344753633b59d43f0d72",
+      "bytes": 16076
+    },
+    {
+      "path": "src/systems/SaveSystem.echoCoop.test.ts",
+      "status": "new",
+      "purpose": "3 old-save/default/malformed/persistence rules",
+      "sha256": "443c9ecfe51b6d1760d7e9f8aa1f90edbfe7ba459ce4cb774ae489cc4f7768a1",
+      "bytes": 2415
+    }
+  ],
+  "docs": [
+    {
+      "path": "docs/gameplay/P2_IMPLEMENTATION.md",
+      "sha256": "0e94153cee4f18f0bb27f743ef87a0b9e72877ce12961ddfd9765ab6573d66e7",
+      "bytes": 25563
+    },
+    {
+      "path": "docs/gameplay/ECHO_COOP_BEHAVIOR.md",
+      "sha256": "26a4f01b9e114dc2e2cf077635475aa04d89f7b6f2d32353622fd84c258d2e9a",
+      "bytes": 23277
+    },
+    {
+      "path": "docs/gameplay/P2_DESIGN_RESPONSE.md",
+      "sha256": "3089ff67264dfb0bf72f9c03b6d41356fb4885f6801df579612f827ce959ea19",
+      "bytes": 8211
+    },
+    {
+      "path": "docs/gameplay/GAMEPLAY_01_BASELINE.md",
+      "sha256": "86bd7a2e7f630f7f88d3a619a7b745fd3bcc7b9755db205a0c4266110e984a54",
+      "bytes": 36269
+    }
+  ],
+  "p3_design": {
+    "path": "docs/gameplay/AI_FEEDBACK.md",
+    "sha256": "0ab3efaf4a70a17852f71c1e543a3ad0d04b7ed3a4d8ef1ac793134befd4f6a6",
+    "bytes": 15138,
+    "status": "P3 DESIGN ONLY \u2014 no P3 source"
+  },
+  "blocker_fix": {
+    "review": "reports/gameplay-01/reviewer/P2_V2_REVIEW.md \u00a72",
+    "issue": "HeadlessWorld.fromSimulationState kept the core pending signal queue but dropped the local guard; a new proposal/confirm then queued twice (restore/parity path).",
+    "fix": "Raw-restore conservative busy marker from the exact queued echo scan/jam or toggle; exact command retained (not deleted), echoPendingLocal reports restored:true with no proposalId/acceptedTick, propose null, confirm E_ALREADY_PENDING; marker clears on real receipt or when the command leaves the queue; player/other-actor commands untouched; external Owner toggle preserved but blocks local; room/clear-intent keep the marker; only reset clears; dead echo clears only actually-local rows.",
+    "red": "reports/gameplay-01/developer/p2/final-v3/restore-red.log",
+    "fixed": "reports/gameplay-01/developer/p2/final-v3/restore-guard-reviewer.log",
+    "tests": "src/ai-native/worldHeadlessEchoCoop.test.ts \u2014 17 headless restore/queue tests"
+  },
+  "evidence": [
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-ai-owner-readonly-1280x720.png",
+      "sha256": "d4b4f676383c80cdc663d4692afab610c67c86128156d1139324bb2bed617932",
+      "bytes": 241422
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-local-800.json",
+      "sha256": "d3005c5f4636cec224eedd5c23e4934a79db411f837a400339afb9a2481d4663",
+      "bytes": 515
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-local-800x600.png",
+      "sha256": "748fb659c5bbc20b443b7c9cf64828475c6bfcda9be55b5c7432f3f25791ef8b",
+      "bytes": 130205
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-local-after-scan-1280x720.png",
+      "sha256": "b6345f888a2fe2aef5b0f087b45a5e10560b99bae8b1e8247cca8edbe9aa38fa",
+      "bytes": 355762
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-local-audit-1280x720.png",
+      "sha256": "51c1307b53ae820208a9e2550c86932606b33bfacd88aea96bae628e3aa80a8e",
+      "bytes": 245859
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-local-proposal-1280x720.png",
+      "sha256": "08b2d2df43a71f858d154afce80e7c09c452d5e6b6fa3e4ee24993515b78373d",
+      "bytes": 237793
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-timing-after-resume-1280x720.png",
+      "sha256": "61b37488d7e2f296c5c377a7935cf9206c9ac268b5c189f3e7826290f4ac8bdc",
+      "bytes": 475847
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-timing-confirmed-paused-1280x720.png",
+      "sha256": "fdcfb6f6959bd5bfdd728eba74e229ae5a2bb0457cd9b049321e9f88c426865f",
+      "bytes": 248178
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-timing.json",
+      "sha256": "88600d568a40ee7055cd0c2cb84d063b91962a0eb4b212e0a5c34b783f9cff5e",
+      "bytes": 31461
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02-timing.log",
+      "sha256": "e5865e03021044f9abf53a93203cc7033bd8259d1754b2a5ab200fb05968f54a",
+      "bytes": 650
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02.json",
+      "sha256": "7f03a0c919fda37746e0cad3480ef748e4f78c2351a61b3b1fab98437b58fbc3",
+      "bytes": 7166
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02/demo02.log",
+      "sha256": "b7051af7be58b25a8417e67d8bc3bf30db1ff1856529c71ee5aa2062ae06fa34",
+      "bytes": 1848
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/KNOWN_BAD.md",
+      "sha256": "dae75f107f7c283faab6cbf5d21dd8c5c08261400bde3c0b51c35e24fc6bbf35",
+      "bytes": 1662
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/demo02-timing-after-resume-1280x720.png",
+      "sha256": "98d1ca0916187def3686547083ac132190a28d9e866bf94446da9e466228d2e3",
+      "bytes": 475274
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/demo02-timing-confirmed-paused-1280x720.png",
+      "sha256": "b683ba4961f1b1f5e70174adda006c7aebef37d3fbc9f149999369ada5496823",
+      "bytes": 239755
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/demo02-timing.json",
+      "sha256": "2d09fbfbfaeeafd9cbbf6d89c2d65972a222eb9f3897bdaac39d04316f995899",
+      "bytes": 28942
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/demo02-timing.log",
+      "sha256": "7177c7e31262a55588bc35d645c23c35f41ac572b9d4b501de30d37062be8900",
+      "bytes": 721
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/disable-pending-cancelled-1280x720.png",
+      "sha256": "bafbefae1fd868957845b40a8fb25fa6583f5d57e4fb5a59f80d10c836942c85",
+      "bytes": 232307
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/repeat-confirm.json",
+      "sha256": "843db5827db95f82aee371dddee4168d3b574145331945332ba48e11b7c575f2",
+      "bytes": 54552
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/repeat-confirm.log",
+      "sha256": "e7d6911e141aedab6acad2bc3b21946d7bc5f038a6b66f1fad93c1fc6f321f7d",
+      "bytes": 2662
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/repeat-confirm.mjs",
+      "sha256": "52fde8c08ffc55aa902efe84cc9ec7d5750cfcb331b5c99daeea7d28179a20a5",
+      "bytes": 17274
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/scan-after-1280x720.png",
+      "sha256": "c833a4ecd812362b55a735c4225cb5082c0b59edd32a173a700bc2864040ed89",
+      "bytes": 475293
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/scan-waiting-1280x720.png",
+      "sha256": "72b1718e22ea81e4b4c2e73407365cd305232288498c33ee9e3d3164c4179d56",
+      "bytes": 249815
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/toggle-after-1280x720.png",
+      "sha256": "e146c1709386ff0b2496fa41b77f1c8682f7d94974658d4e20d69cb69378d169",
+      "bytes": 478734
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/toggle-ai-owner-pending-1280x720.png",
+      "sha256": "965f9ec1ee321d53d319ce3b8a2808aaf56885109c48c46d957771140ee3b48d",
+      "bytes": 256820
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/toggle-switch-off-pending-1280x720.png",
+      "sha256": "81d73ae1009b3d43e054a5ad6331cb24330be806f2b48ccf45fc261bd319ef23",
+      "bytes": 254671
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/toggle-waiting-1280x720.png",
+      "sha256": "97ae4e2eb183a8a8f72bef4c28a6bcd2515d87b317a8f8278c30e25a1bd1824f",
+      "bytes": 246530
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v3/README.md",
+      "sha256": "2a55ebe7a0f1df20827cc71de71980c9ca328839d989d7e2bc461c94ba1e6eac",
+      "bytes": 3811
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v3/fresh-parity-export.log",
+      "sha256": "1326874de75515823784e0329d8b0cac2abcd4f4f712596e2c28b074a0f70786",
+      "bytes": 195
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v3/fresh-parity-gate.log",
+      "sha256": "ad6b5b1105837afcdc9d1b65d0feedd081a62e39071b4d9e1ebd72775029097f",
+      "bytes": 1061
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v3/fresh-parity-vite.log",
+      "sha256": "b782a0bd8241f41cf111b32007fcf2d564c2adf69087f38ba832f376f35cdfaf",
+      "bytes": 766
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v3/restore-guard-reviewer.log",
+      "sha256": "9e05736960bcb4d12bcf6922088628eb21687b6d1cbd8646a4465c5a4a1bd8a2",
+      "bytes": 427
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v3/restore-red.log",
+      "sha256": "f54c09a1dce379b139a8b4fd449b99dd17127d709a002a43e4c2c34265bac26b",
+      "bytes": 433
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/build-1.log",
+      "sha256": "6e517155cbd93652cd81add444ffa984f186c46ccd9395ff2bbe7b9d39177ffd",
+      "bytes": 4353
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/build-2.log",
+      "sha256": "2e3f0a48d4ee7ef79c5eee2b8df27bc500197255eff84380149e315f7c7d104f",
+      "bytes": 4353
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/build-final-v3.log",
+      "sha256": "8c1082f0b6ff40e2923404a446c5d746176acb0b6c7d072c796e92155b044182",
+      "bytes": 4352
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/build-final-v4.log",
+      "sha256": "e04f9333eff895ca1388e8d3e93cd38cd07c8da29c38bfa4d95fe8758ecb7921",
+      "bytes": 4353
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/build-final.log",
+      "sha256": "54fa4dd072003ceae29296ec3edc32e862d67dceb75e1c46b8f9542f99547cb2",
+      "bytes": 4353
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/build-final2.log",
+      "sha256": "82978c7ca95af0d82ee4deace9ca60f98271c129990af66458ba95f5b9d04f1c",
+      "bytes": 4353
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/demo02-800.run.log",
+      "sha256": "be793be51e152a54f4c8c51785e64cb69279f688e299fc0f81a41c2888384f0f",
+      "bytes": 516
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/demo02-800.run2.log",
+      "sha256": "1641a33fae5c090454af269c7efb5df447c8e32b40ef35388da6309f1f3899d5",
+      "bytes": 516
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/demo02-timing.run.log",
+      "sha256": "eb5c7576e4be8f229f58f502ba1b7c161299b5053cebc77470642dac55740611",
+      "bytes": 1321
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/demo02.run.log",
+      "sha256": "25c89adbd3870ceab4eea2d9b29e10c5ce9944a950445bc1f5ee627001c356d1",
+      "bytes": 1827
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/demo02.run2.log",
+      "sha256": "c86f544ac4f11a94c360b7755ca1fd25df7c8de30554b9cf1ea0f4fcbc054a5a",
+      "bytes": 1848
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/demo02.run3.log",
+      "sha256": "b7051af7be58b25a8417e67d8bc3bf30db1ff1856529c71ee5aa2062ae06fa34",
+      "bytes": 1848
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/dev-5599-finalv2.log",
+      "sha256": "9b7ae6a06ac4460a0c0a5cc0b2f60f3aea633d3cac1304d1ffec13aab827ea37",
+      "bytes": 705
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/dev-5599-timing.log",
+      "sha256": "d70f58e3f0d70dd9767dd766cd1757bd260ad56dcddc32a23d72bc0a03a04bc6",
+      "bytes": 705
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/dev-5599.log",
+      "sha256": "67ea1b728e1046e48deda2a3ea30bc3050b5a8867eb8ab26e5aeca91854bd13c",
+      "bytes": 1163
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/final-v2-repeat.run.log",
+      "sha256": "d34805690c8c41a68323c619940520d26cb3b82d32f0827b262df9ea949ac7d0",
+      "bytes": 2478
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/final-v2-repeat.run2.log",
+      "sha256": "02b97c9282675b57202cbcaaabf144e330d65b409405ced2255aae334ac586d3",
+      "bytes": 2227
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/final-v2-repeat.run3.log",
+      "sha256": "2134e9161aaea147d7e4d9456e09c85396094c89c90b72304e5f226e7a7ef262",
+      "bytes": 2257
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/final-v2-repeat.run4.log",
+      "sha256": "e4c58e08e15384b96cc8d544759582a4831e443d650ec19e729499a6ffe87338",
+      "bytes": 2720
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/final-v2-timing.run.log",
+      "sha256": "20e29b57644cd6ec32a2dff8f39ba3196534a0cf069ceed4bdc849116bd4a128",
+      "bytes": 1393
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/final-v2-timing.run2.log",
+      "sha256": "e9ea87c93e91c2112ccaf2c450a70ea8ebca6299a77925e044c27f3b90e8ff97",
+      "bytes": 1386
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/mcp-surface-final-v3.log",
+      "sha256": "8e0a4e50d895b465bd3fc64427d55897f633caea6ccaee2beb0479041ac2ce69",
+      "bytes": 1709
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/mcp-surface-final-v4.log",
+      "sha256": "89eadd4a8e8beaa14800f4facdaa8fc45b8bd5a3f5a29a50a7d464ecfc48cd8e",
+      "bytes": 1709
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/mcp-surface-final.log",
+      "sha256": "c59287de02867e338465b10ac081e7f9bae7e82ff78c3c4ab659f97fc6bc5afe",
+      "bytes": 1709
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/npm-test-1.log",
+      "sha256": "9d8b75216e706343db9e6a23b86a8d82bb5a912d052d1e9ea026eaf6194ffbae",
+      "bytes": 31313
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/npm-test-2.log",
+      "sha256": "232a8f2d90b09ef567caba324c89da7fa0c2e45627e281e7814c1ea7fd2adcec",
+      "bytes": 29739
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/npm-test-final.log",
+      "sha256": "e18667de21bbaac6325a3bfb8384be1ffe91add709b5ec670483f5aec2428f12",
+      "bytes": 30049
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/parity-debug.log",
+      "sha256": "95780c4034c3870a24a0c3ff212002cfaa027e2e31ee25ea877e0b4de9800ca0",
+      "bytes": 3385
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/parity-debug2.log",
+      "sha256": "422dcb138ad49231abeaf380a2915486ac31d7a8f33353f7dc64533eaf19866c",
+      "bytes": 2077
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/parity-debug3.log",
+      "sha256": "4a3388f14e0b9c6e79812d57e6ca32de545fcfd5c951c4bc63a891de7ed2879d",
+      "bytes": 2077
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/parity-debug4.log",
+      "sha256": "f83aa00babcf3bd1bc92e8bbf25a78ee5ad64d43d2ce104f87c1cbc73059e225",
+      "bytes": 2077
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/parity-final.log",
+      "sha256": "9a03f971a8333904c72ac3071a790a8cc10fb4f67f440f9286b9d49e8a95256b",
+      "bytes": 4093
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/parity-final2.log",
+      "sha256": "57491db96748e15f2fd8883f872b26a40b43673e02798038f1cddf1cccefc2db",
+      "bytes": 3391
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/runtime-retry.log",
+      "sha256": "e91215d5f665d20d0e68dc82926cc745c3e6c232e5e5e0f27bf29f8c17236ac7",
+      "bytes": 2697
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-cli-quit.log",
+      "sha256": "d06af1f8273950f25cb8e1192d65e9671c3f04b31a61de389bd3b85dde324477",
+      "bytes": 711
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-npm-test-v2.log",
+      "sha256": "0ab2b3578c46b1269758c624df56fbbc4f1491e7158e2796603d2aca305b7957",
+      "bytes": 30582
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-npm-test-v3.log",
+      "sha256": "53c5964728d9d38f8f2f7448242a37c70aef8a7cf1f48b8ec4717c1463961d5e",
+      "bytes": 31186
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-npm-test.log",
+      "sha256": "2a87660d9cb4509ad69affd346d011c6e96d5c8709304e1d2d1ea473f1d45972",
+      "bytes": 32188
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-targeted-v2.log",
+      "sha256": "19ef603454e1ef061d578e75dfe5c001dd8025397e8f053d370e464913a9d03d",
+      "bytes": 1062
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-targeted-v3.log",
+      "sha256": "2b531f5d76f33d89320d06f7a55c55cd5cb3938303791c9fd8630e4f8fdf9bbd",
+      "bytes": 1905
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-targeted.log",
+      "sha256": "0196fcfc5cb31cd6ab656f5a45ca06f6ee36136159c9ef902733b90ec48505ea",
+      "bytes": 1214
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-typecheck-v2.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-typecheck-v3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/strict-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-1.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-10.log",
+      "sha256": "7c6eab231c907fed5c06083820fff3b3218f3f05c240c79ade0254fa466627c8",
+      "bytes": 168
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-11.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-12.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-13.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-14.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-2.log",
+      "sha256": "0707bae8f9c092dad97535f6859ad534b10c277302a31886e7e2a86660545cf4",
+      "bytes": 342
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-4.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-5.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-6.log",
+      "sha256": "d00710bae4ddd8468752539a9461206151e1708e512f291e8954c8a00300c86b",
+      "bytes": 1182
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-7.log",
+      "sha256": "878851e9e3d88b943a1a81412bc0cc69786b11dbf1255a16ed0a207e0ec1399e",
+      "bytes": 347
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-8.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-9.log",
+      "sha256": "99b26e671b4d7dd6d3b597c164b43d5e0337cc620cc1f1fcdd2f630065626a7d",
+      "bytes": 342
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-pending-1.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-pending-3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-pending-4.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-pending-5.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-pending-6.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-pending-7.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-v3-1.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-v3-2.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-v3-3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-v3-4.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-v3-5.log",
+      "sha256": "f1cb8a2b6fcfff75ed92905f5dc3f7496b77128aeae929c86b1e8323b7eef6d2",
+      "bytes": 686
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/typecheck-v3-6.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-coop-save.log",
+      "sha256": "7b6c27297ee54a795cd6e6eb7a46b4c7ab1f9f8debdbbbd0868ef8a1fad79cf3",
+      "bytes": 597
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-echo-1.log",
+      "sha256": "69e84553c3456ad63ac0aaed7f5651d0581f3d468e861e419971d0a8be535b94",
+      "bytes": 4810
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-echo-2.log",
+      "sha256": "89c82bf199994a59f3e4eb85ebb2172b4ac9a1a5dcc978cf4fc2315204bd242c",
+      "bytes": 2160
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-echo-3.log",
+      "sha256": "fc7cf61309f9afb1cf2ebe5f9ad71412b80cc9f49c7d041903c7703d8155e3fc",
+      "bytes": 1732
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-echo-4.log",
+      "sha256": "87c146861dfd9a7246628d51fae14c843891f6891d8e7ac953d5b5ab9a92500c",
+      "bytes": 1729
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-pending-controller.log",
+      "sha256": "dcef2739ea2d656f18c9507c4cb348b64feae8a6fda97831ee4a1ffa249f3adb",
+      "bytes": 482
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-pending-headless.log",
+      "sha256": "426ea27dad1c33d868796b2b76fbdd325a004f7772263d1dddc09bb1a3c4050b",
+      "bytes": 2187
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-pending-targeted.log",
+      "sha256": "85f98f030e046bf19e457c861ffa5c253060c58c48fb37032df63924717200d5",
+      "bytes": 1910
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-v3-controller.log",
+      "sha256": "f7dd4d25175aa70eed84859e28a6076f0f3b4a37cbf0828a820991da1c531014",
+      "bytes": 2076
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-v3-controller2.log",
+      "sha256": "5238bddac4dbb156c66c1e1467784ed2da29a067b04599238666a1d604317a7f",
+      "bytes": 482
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-v3-headless.log",
+      "sha256": "4197cd9e311090451e27d7be9bf9fe85f12a2f866b23ab83a646073510e5c133",
+      "bytes": 10369
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/logs/unit-v3-headless2.log",
+      "sha256": "35f3a1766179874a5aa3cc11e634d7ca0c8dea4f68530d47ebb205044aaf5060",
+      "bytes": 2521
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02-local-coop.mjs",
+      "sha256": "138d4bf01a7165e1dcf0ef2f020e020c44501cb789ad9125e002b1d76d1d5389",
+      "bytes": 9739
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02-local-800.mjs",
+      "sha256": "217afba3df9772b5f15c86cd61d0c938d8f24da8ab1f53704022dcc3b5662f23",
+      "bytes": 4563
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/demo02-timing.mjs",
+      "sha256": "1a2c87d1659f0eb8ff1f5c36b96d096e66d4971ca900163c32836652c4bd5f16",
+      "bytes": 11600
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/repeat-confirm.mjs",
+      "sha256": "52fde8c08ffc55aa902efe84cc9ec7d5750cfcb331b5c99daeea7d28179a20a5",
+      "bytes": 17274
+    },
+    {
+      "path": "reports/gameplay-01/developer/p2/final-v2/KNOWN_BAD.md",
+      "sha256": "dae75f107f7c283faab6cbf5d21dd8c5c08261400bde3c0b51c35e24fc6bbf35",
+      "bytes": 1662
+    }
+  ],
+  "verification": [
+    {
+      "gate": "npx tsc --noEmit (strict tree)",
+      "result": "PASS (0)",
+      "log": "reports/gameplay-01/developer/p2/logs/strict-typecheck-v3.log"
+    },
+    {
+      "gate": "P2 targeted source rules",
+      "result": "PASS 39/39 (19 echo policy + 17 headless + 3 save)",
+      "log": "reports/gameplay-01/developer/p2/logs/strict-targeted-v3.log"
+    },
+    {
+      "gate": "npm test (full pure, original 15s/20s)",
+      "result": "PASS 794/794 (68 files; 39 new P2 source tests)",
+      "log": "reports/gameplay-01/developer/p2/logs/strict-npm-test-v3.log"
+    },
+    {
+      "gate": "npm run build",
+      "result": "PASS",
+      "log": "reports/gameplay-01/developer/p2/logs/build-final-v4.log"
+    },
+    {
+      "gate": "npm run test:mcp-surface",
+      "result": "PASS 1/1",
+      "log": "reports/gameplay-01/developer/p2/logs/mcp-surface-final-v4.log"
+    },
+    {
+      "gate": "Reviewer restore script (pre-fix RED, preserved)",
+      "result": "FAIL/RED: queue 1, guard lost, second confirm queue 2",
+      "log": "reports/gameplay-01/developer/p2/final-v3/restore-red.log"
+    },
+    {
+      "gate": "Reviewer restore script (post-fix)",
+      "result": "PASS: no proposal, second confirm false, queue stays 1",
+      "log": "reports/gameplay-01/developer/p2/final-v3/restore-guard-reviewer.log"
+    },
+    {
+      "gate": "Fresh Rendered\u2192Headless parity, independent tree",
+      "result": "PASS 3/3 after real Playwright export 1/1; main old signal parity hash unchanged",
+      "log": "reports/gameplay-01/developer/p2/final-v3/fresh-parity-gate.log"
+    },
+    {
+      "gate": "v2 Rendered repeat-confirm/timing browser proof (kept)",
+      "result": "PASS (fixture/agent-driven; not human acceptance)",
+      "log": "reports/gameplay-01/developer/p2/final-v2/repeat-confirm.json"
+    }
+  ],
+  "fresh_parity": {
+    "result": "PASS 3/3 after real Playwright export 1/1",
+    "tree": "D:/tmp/gp01-p2v3-parity (independent reports/; node_modules junction)",
+    "export_log": "reports/gameplay-01/developer/p2/final-v3/fresh-parity-export.log",
+    "gate_log": "reports/gameplay-01/developer/p2/final-v3/fresh-parity-gate.log",
+    "main_old_signal_hash_before_after": "1727d4e9b5f627fe447a6fde77d5fcf7d408cbf890167b4171d6e112040c0b40",
+    "note": "The old main reports/ai-native-02/signal/parity was not consumed; the fresh tree had its own reports. Old stale AI-NATIVE-02 c2/c3c files are not part of this gate and were not restored/deleted."
+  },
+  "previous_runs": [
+    {
+      "log": "reports/gameplay-01/developer/p2/logs/npm-test-final.log",
+      "result": "780/780 with relaxed CLI timeout (15s\u219230s, 20s\u219235s)",
+      "status": "obsolete-config \u2014 not a gate; timeout reverted, not in whitelist"
+    },
+    {
+      "log": "reports/gameplay-01/developer/p2/logs/strict-npm-test.log",
+      "result": "779/780 pre-fix strict run; CLI quit timed out under load",
+      "status": "pre-fix/stale"
+    },
+    {
+      "log": "reports/gameplay-01/developer/p2/logs/strict-npm-test-v2.log",
+      "result": "786/786 v2 strict run",
+      "status": "v2 historical; v3 is 794/794"
+    },
+    {
+      "log": "reports/gameplay-01/developer/p2/logs/parity-final.log",
+      "result": "old stale AI-NATIVE-02 fixture mismatch",
+      "status": "not consumed; fresh independent parity is PASS 3/3"
+    }
+  ],
+  "new_test_count": {
+    "echoCoop": 19,
+    "worldHeadlessEchoCoop": 17,
+    "saveCoop": 3,
+    "total": 39
+  },
+  "real_model": {
+    "connection": "Magpie group/elisa reachable per Lead probe (endpoint http://127.0.0.1:3425/v1, openai-chat, no Authorization header, no key exported)",
+    "lead_probe_evidence": [
+      "reports/gameplay-01/model/magpie-connection-probe.json",
+      "reports/gameplay-01/model/CONNECTION_SCOPE.txt"
+    ],
+    "reviewer_player_smoke": "ENGINEERING PASS on fixed snapshot b6a98e5: real model -> legal observe -> legal action -> official MCP -> real core Player combat; 4 requests / 8.8s; room cleared; not human acceptance",
+    "reviewer_evidence": [
+      "reports/gameplay-01/reviewer/REAL_MODEL_CONNECTIVITY_AND_SMOKE.md",
+      "reports/gameplay-01/reviewer/real-model/console-5.log",
+      "reports/gameplay-01/reviewer/real-model/trace-2026-11-17T20-55-14-035Z.json"
+    ],
+    "p2_echo_chain": "NOT YET VERIFIED \u2014 legal ECHO observation -> model suggestion -> human Owner confirm/reject/disconnect is post-freeze reviewer/E2E",
+    "p0_historical": "Real-LLM BLOCKED at P0 time retained; not rewritten",
+    "rule": "P2 local proposals are deterministic/offline; never label them as real model output; no core model calls; no Bridge secret or Owner key to the model"
+  },
+  "not_claimed": [
+    "human acceptance (browser clicks are a fixture; no human played)",
+    "real-model ECHO game chain (Magpie connection and a bounded Player smoke are verified; ECHO chain is not)",
+    "full ECHO Rendered\u2194Headless route parity (P1 route/portal remains Rendered orchestration)",
+    "reviewer 5-viewport/fail-closed and external-owner e2e matrices (their fresh retest is next)",
+    "P3 causal receipts/HUD and P4 cooperative level/route work",
+    "production Player tool confirm/dev fields; no such fields were added",
+    "the pre-fix 800x600 layout check as a pending-waiting check"
+  ],
+  "known_notes": [
+    "The raw-restore guard is the v3 fix. RED evidence: final-v3/restore-red.log; fixed: final-v3/restore-guard-reviewer.log; 17 headless tests. The v2 final-v2 browser evidence is kept unchanged.",
+    "Real save: RunCheckpoint.coreState has no pendingCommands and restoreCheckpoint clears them/resets echo runtime. The checkpoint is pre-confirm; a refresh between a paused confirm and the next core tick loses the queued action. UI says Queued, never Done; no receipt is resurrected.",
+    "Lifecycle actual calls: E_ROOM_CHANGED/E_ECHO_DISABLED in World; E_LOCAL_REVOKED only in the explicit Headless test (no UI control); E_ECHO_DEAD in the dead-echo local drain; a new run goes through core reset, so the unused E_NEW_RUN enum was removed. Do not claim every enum was UI-tested.",
+    "Restored unknown rows have no proposalId/acceptedTick, are never human-local, and are not deleted. Player/other-actor commands are preserved. An external Owner toggle is preserved while local confirm is blocked.",
+    "Fresh parity PASS 3/3 in an independent tree; old main signal parity hash unchanged; old stale c2/c3c reports were not consumed and are preserved for the Lead.",
+    "Strict full at original 15s/20s: 794/794 PASS. The old relaxed 780 and pre-fix strict 779 are historical; no timeout/assertion relaxation is in the tree or whitelist.",
+    "P3 feedback design is docs/gameplay/AI_FEEDBACK.md (design only; no P3 source change)."
+  ],
+  "evidence_note": "Evidence labels: fixture / agent (real model) / human. All P2 browser/headless evidence is fixture/agent-driven, not human; no model actor. Real model connection and Player smoke are Lead/Reviewer evidence."
+}

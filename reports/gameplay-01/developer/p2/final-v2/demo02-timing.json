@@ -1,0 +1,1577 @@
+{
+  "ok": true,
+  "label": "fixture/agent-driven; NOT human; no model actor",
+  "proposalCost": 10,
+  "pausedBefore": {
+    "simTick": 96,
+    "paused": true,
+    "page": "local-coop",
+    "hp": 94,
+    "maxHp": 100,
+    "energy": 100,
+    "playerEnergy": 100,
+    "evidence": 0,
+    "audit": null,
+    "lastFeedbackTick": null,
+    "proposal": {
+      "id": "local_96_1",
+      "kind": "scan",
+      "cost": {
+        "energy": 10,
+        "resource": "echo-energy"
+      },
+      "observedTick": 96,
+      "expiresAtTick": 216,
+      "roomGeneration": 1
+    },
+    "link": false,
+    "status": "OFF",
+    "owner": "human"
+  },
+  "pausedBefore2": {
+    "simTick": 96,
+    "paused": true,
+    "page": "local-coop",
+    "hp": 94,
+    "maxHp": 100,
+    "energy": 100,
+    "playerEnergy": 100,
+    "evidence": 0,
+    "audit": null,
+    "lastFeedbackTick": null,
+    "proposal": {
+      "id": "local_96_1",
+      "kind": "scan",
+      "cost": {
+        "energy": 10,
+        "resource": "echo-energy"
+      },
+      "observedTick": 96,
+      "expiresAtTick": 216,
+      "roomGeneration": 1
+    },
+    "link": false,
+    "status": "OFF",
+    "owner": "human"
+  },
+  "confirmed": {
+    "simTick": 96,
+    "paused": true,
+    "page": "local-coop",
+    "hp": 94,
+    "maxHp": 100,
+    "energy": 100,
+    "playerEnergy": 100,
+    "evidence": 0,
+    "audit": {
+      "tick": 96,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "enqueued",
+      "proposalId": "local_96_1"
+    },
+    "lastFeedbackTick": null,
+    "proposal": null,
+    "link": false,
+    "status": "OFF",
+    "owner": "human"
+  },
+  "confirmed2": {
+    "simTick": 96,
+    "paused": true,
+    "page": "local-coop",
+    "hp": 94,
+    "maxHp": 100,
+    "energy": 100,
+    "playerEnergy": 100,
+    "evidence": 0,
+    "audit": {
+      "tick": 96,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "enqueued",
+      "proposalId": "local_96_1"
+    },
+    "lastFeedbackTick": null,
+    "proposal": null,
+    "link": false,
+    "status": "OFF",
+    "owner": "human"
+  },
+  "after": {
+    "simTick": 225,
+    "paused": false,
+    "page": "pause",
+    "hp": 88,
+    "maxHp": 100,
+    "energy": 100,
+    "playerEnergy": 100,
+    "evidence": 1,
+    "audit": {
+      "tick": 97,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "applied",
+      "proposalId": "local_96_1"
+    },
+    "lastFeedbackTick": 97,
+    "proposal": null,
+    "link": false,
+    "status": "OFF",
+    "owner": "human"
+  },
+  "summary": {
+    "pausedTicks": [
+      96
+    ],
+    "pausedHps": [
+      94
+    ],
+    "pausedEnergies": [
+      100
+    ],
+    "pausedStable": true,
+    "confirmStable": true,
+    "confirm2Stable": true,
+    "confirmEnqueued": true,
+    "noAppliedWhilePaused": true,
+    "firstApplied": {
+      "t": 12620,
+      "tick": 98,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97
+    },
+    "preApply": {
+      "t": 12572,
+      "tick": 96,
+      "energy": 100,
+      "evidence": 0
+    },
+    "energyDropAtCommit": 10,
+    "regenAfterCommit": 8,
+    "firstHpDrop": {
+      "t": 14060,
+      "tick": 183,
+      "hp": 88
+    },
+    "damageAfterResume": true,
+    "damageWhilePaused": false,
+    "firstAppliedTick": 98,
+    "resumeTickMin": 98,
+    "lastSample": {
+      "t": 14423,
+      "tick": 203,
+      "hp": 88,
+      "energy": 98,
+      "evidence": 1
+    }
+  },
+  "samples": [
+    {
+      "t": 11494,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11496,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11513,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11528,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11545,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11561,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11580,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11593,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11608,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11627,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11644,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11657,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11674,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11693,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11710,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11726,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11745,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11759,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11776,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11791,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11824,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11840,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11859,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11864,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11880,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11896,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11914,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11928,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11945,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11961,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11976,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 11992,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12008,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12024,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12041,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12056,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12074,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12090,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12107,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12125,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12140,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12159,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12174,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12190,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12207,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12224,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12240,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12248,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12264,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12281,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12296,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12312,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12329,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12345,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12360,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12376,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12392,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12408,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12424,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12440,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12473,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12489,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12508,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12522,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12540,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12555,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12572,
+      "tick": 96,
+      "hp": 94,
+      "energy": 100,
+      "evidence": 0,
+      "audit": "enqueued",
+      "feedbackTick": null,
+      "paused": true
+    },
+    {
+      "t": 12620,
+      "tick": 98,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12639,
+      "tick": 99,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12658,
+      "tick": 100,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12671,
+      "tick": 100,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12713,
+      "tick": 102,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12729,
+      "tick": 103,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12747,
+      "tick": 104,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12766,
+      "tick": 106,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12785,
+      "tick": 107,
+      "hp": 94,
+      "energy": 90,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12803,
+      "tick": 108,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12838,
+      "tick": 110,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12855,
+      "tick": 111,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12874,
+      "tick": 112,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12892,
+      "tick": 113,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12910,
+      "tick": 114,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12938,
+      "tick": 115,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12953,
+      "tick": 117,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12972,
+      "tick": 118,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 12991,
+      "tick": 119,
+      "hp": 94,
+      "energy": 91,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13029,
+      "tick": 121,
+      "hp": 94,
+      "energy": 92,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13052,
+      "tick": 122,
+      "hp": 94,
+      "energy": 92,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13067,
+      "tick": 123,
+      "hp": 94,
+      "energy": 92,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13105,
+      "tick": 126,
+      "hp": 94,
+      "energy": 92,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13123,
+      "tick": 127,
+      "hp": 94,
+      "energy": 92,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13141,
+      "tick": 128,
+      "hp": 94,
+      "energy": 92,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13174,
+      "tick": 130,
+      "hp": 94,
+      "energy": 92,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13200,
+      "tick": 131,
+      "hp": 94,
+      "energy": 92,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13219,
+      "tick": 132,
+      "hp": 94,
+      "energy": 93,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13239,
+      "tick": 134,
+      "hp": 94,
+      "energy": 93,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13285,
+      "tick": 136,
+      "hp": 94,
+      "energy": 93,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13301,
+      "tick": 137,
+      "hp": 94,
+      "energy": 93,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13321,
+      "tick": 138,
+      "hp": 94,
+      "energy": 93,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13341,
+      "tick": 140,
+      "hp": 94,
+      "energy": 93,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13362,
+      "tick": 141,
+      "hp": 94,
+      "energy": 93,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13382,
+      "tick": 142,
+      "hp": 94,
+      "energy": 93,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13417,
+      "tick": 144,
+      "hp": 94,
+      "energy": 94,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13434,
+      "tick": 146,
+      "hp": 94,
+      "energy": 94,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13473,
+      "tick": 148,
+      "hp": 94,
+      "energy": 94,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13513,
+      "tick": 150,
+      "hp": 94,
+      "energy": 94,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13555,
+      "tick": 152,
+      "hp": 94,
+      "energy": 94,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13574,
+      "tick": 154,
+      "hp": 94,
+      "energy": 94,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13613,
+      "tick": 156,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13634,
+      "tick": 157,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13655,
+      "tick": 158,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13676,
+      "tick": 159,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13716,
+      "tick": 162,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13736,
+      "tick": 163,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13754,
+      "tick": 164,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13773,
+      "tick": 165,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13793,
+      "tick": 167,
+      "hp": 94,
+      "energy": 95,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13830,
+      "tick": 169,
+      "hp": 94,
+      "energy": 96,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13849,
+      "tick": 170,
+      "hp": 94,
+      "energy": 96,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13866,
+      "tick": 171,
+      "hp": 94,
+      "energy": 96,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13892,
+      "tick": 173,
+      "hp": 94,
+      "energy": 96,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13909,
+      "tick": 174,
+      "hp": 94,
+      "energy": 96,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13928,
+      "tick": 175,
+      "hp": 94,
+      "energy": 96,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13968,
+      "tick": 177,
+      "hp": 94,
+      "energy": 96,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 13989,
+      "tick": 178,
+      "hp": 94,
+      "energy": 96,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14024,
+      "tick": 181,
+      "hp": 94,
+      "energy": 97,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14060,
+      "tick": 183,
+      "hp": 88,
+      "energy": 97,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14105,
+      "tick": 185,
+      "hp": 88,
+      "energy": 97,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14127,
+      "tick": 186,
+      "hp": 88,
+      "energy": 97,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14150,
+      "tick": 188,
+      "hp": 88,
+      "energy": 97,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14170,
+      "tick": 189,
+      "hp": 88,
+      "energy": 97,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14192,
+      "tick": 190,
+      "hp": 88,
+      "energy": 97,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14213,
+      "tick": 191,
+      "hp": 88,
+      "energy": 97,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14235,
+      "tick": 193,
+      "hp": 88,
+      "energy": 98,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14256,
+      "tick": 194,
+      "hp": 88,
+      "energy": 98,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14304,
+      "tick": 196,
+      "hp": 88,
+      "energy": 98,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14359,
+      "tick": 199,
+      "hp": 88,
+      "energy": 98,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14380,
+      "tick": 201,
+      "hp": 88,
+      "energy": 98,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    },
+    {
+      "t": 14423,
+      "tick": 203,
+      "hp": 88,
+      "energy": 98,
+      "evidence": 1,
+      "audit": "applied",
+      "feedbackTick": 97,
+      "paused": false
+    }
+  ],
+  "errors": []
+}

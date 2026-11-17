@@ -1,0 +1,2521 @@
+{
+  "ok": true,
+  "label": "fixture/agent-driven; NOT human; no model actor",
+  "scan": {
+    "before": {
+      "tick": 113,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 94,
+      "echo": true,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 0,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": null,
+      "queue": 0,
+      "queueTypes": [],
+      "audit": null,
+      "confirmEnabled": true,
+      "switchEnabled": true,
+      "proposalText": "LOCAL · SCAN · target 8.0,45.0\nSEEN perceived_relay · evidence relay:relay_main · @tick 113\nEXPIRES tick 233 · room gen 1\nEXPECT reveal relay facts\nUNCERTAIN only if still perceived and permitted\nCOST 10 ECHO ENERGY · HUMAN CONFIRM REQUIRED",
+      "noticeText": "",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "confirmed": {
+      "tick": 113,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 94,
+      "echo": true,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 0,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_113_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 113,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "signal-scan"
+      ],
+      "audit": {
+        "tick": 113,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "enqueued",
+        "proposalId": "local_113_1"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": true,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_113_1\nLOCAL · SCAN · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 113 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "CONFIRMED · ENQUEUED FOR THE NEXT CORE TICK\nLAST HUMAN-LOCAL · SCAN · ENQUEUED @tick 113 · local_113_1",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "confirmed2": {
+      "tick": 113,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 94,
+      "echo": true,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 0,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_113_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 113,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "signal-scan"
+      ],
+      "audit": {
+        "tick": 113,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "enqueued",
+        "proposalId": "local_113_1"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": true,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_113_1\nLOCAL · SCAN · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 113 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "CONFIRMED · ENQUEUED FOR THE NEXT CORE TICK\nLAST HUMAN-LOCAL · SCAN · ENQUEUED @tick 113 · local_113_1",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "direct": {
+      "same": false,
+      "wrong": false,
+      "pending": {
+        "proposalId": "local_113_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 113,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "signal-scan"
+      ],
+      "audit": {
+        "tick": 113,
+        "provenance": "human-local",
+        "action": "local-confirm",
+        "target": null,
+        "result": "rejected",
+        "code": "E_ALREADY_PENDING",
+        "proposalId": "local_does_not_exist"
+      }
+    },
+    "afterUi": {
+      "tick": 113,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 94,
+      "echo": true,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 0,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_113_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 113,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "signal-scan"
+      ],
+      "audit": {
+        "tick": 113,
+        "provenance": "human-local",
+        "action": "local-confirm",
+        "target": null,
+        "result": "rejected",
+        "code": "E_ALREADY_PENDING",
+        "proposalId": "local_does_not_exist"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": true,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_113_1\nLOCAL · SCAN · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 113 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "CONFIRMED · ENQUEUED FOR THE NEXT CORE TICK\nLAST HUMAN-LOCAL · LOCAL-CONFIRM · REJECTED · E_ALREADY_PENDING @tick 113 · local_does_not_exist",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "after": {
+      "tick": 198,
+      "paused": false,
+      "page": "pause",
+      "hp": 88,
+      "echo": true,
+      "energy": 97,
+      "playerEnergy": 100,
+      "evidence": 1,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": null,
+      "queue": 0,
+      "queueTypes": [],
+      "audit": {
+        "tick": 114,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "applied",
+        "proposalId": "local_113_1"
+      },
+      "confirmEnabled": null,
+      "switchEnabled": null,
+      "proposalText": "",
+      "noticeText": "",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "firstApplied": {
+      "t": 10983,
+      "tick": 114,
+      "energy": 90,
+      "evidence": 1,
+      "manual": true,
+      "audit": "applied"
+    },
+    "pre": {
+      "t": 10958,
+      "tick": 113,
+      "energy": 100,
+      "evidence": 0,
+      "manual": true,
+      "audit": "rejected"
+    }
+  },
+  "toggle": {
+    "before": {
+      "tick": 216,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 88,
+      "echo": true,
+      "energy": 98,
+      "playerEnergy": 100,
+      "evidence": 1,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": null,
+      "queue": 0,
+      "queueTypes": [],
+      "audit": {
+        "tick": 114,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "applied",
+        "proposalId": "local_113_1"
+      },
+      "confirmEnabled": true,
+      "switchEnabled": true,
+      "proposalText": "LOCAL · TOGGLE-RELAY · target 8.0,45.0\nSEEN perceived_relay · evidence relay:relay_main · @tick 216\nEXPIRES tick 336 · room gen 1\nEXPECT change relay output / route\nUNCERTAIN only if still perceived and permitted\nCOST 0 NONE · HUMAN CONFIRM REQUIRED",
+      "noticeText": "LAST HUMAN-LOCAL · SCAN · APPLIED @tick 114 · local_113_1",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "confirmed": {
+      "tick": 216,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 88,
+      "echo": true,
+      "energy": 98,
+      "playerEnergy": 100,
+      "evidence": 1,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_216_2",
+        "kind": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 216,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "toggle-relay"
+      ],
+      "audit": {
+        "tick": 216,
+        "provenance": "human-local",
+        "action": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "enqueued",
+        "proposalId": "local_216_2"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": true,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_216_2\nLOCAL · TOGGLE-RELAY · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 216 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "CONFIRMED · ENQUEUED FOR THE NEXT CORE TICK\nLAST HUMAN-LOCAL · TOGGLE-RELAY · ENQUEUED @tick 216 · local_216_2",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "confirmed2": {
+      "tick": 216,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 88,
+      "echo": true,
+      "energy": 98,
+      "playerEnergy": 100,
+      "evidence": 1,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_216_2",
+        "kind": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 216,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "toggle-relay"
+      ],
+      "audit": {
+        "tick": 216,
+        "provenance": "human-local",
+        "action": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "enqueued",
+        "proposalId": "local_216_2"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": true,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_216_2\nLOCAL · TOGGLE-RELAY · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 216 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "CONFIRMED · ENQUEUED FOR THE NEXT CORE TICK\nLAST HUMAN-LOCAL · TOGGLE-RELAY · ENQUEUED @tick 216 · local_216_2",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "direct": {
+      "same": false,
+      "wrong": false,
+      "pending": {
+        "proposalId": "local_216_2",
+        "kind": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 216,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "toggle-relay"
+      ],
+      "audit": {
+        "tick": 216,
+        "provenance": "human-local",
+        "action": "local-confirm",
+        "target": null,
+        "result": "rejected",
+        "code": "E_ALREADY_PENDING",
+        "proposalId": "local_does_not_exist"
+      }
+    },
+    "switchOn": {
+      "tick": 216,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 88,
+      "echo": true,
+      "energy": 98,
+      "playerEnergy": 100,
+      "evidence": 1,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_216_2",
+        "kind": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 216,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "toggle-relay"
+      ],
+      "audit": {
+        "tick": 216,
+        "provenance": "human-local",
+        "action": "local-confirm",
+        "target": null,
+        "result": "rejected",
+        "code": "E_ALREADY_PENDING",
+        "proposalId": "local_does_not_exist"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": true,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_216_2\nLOCAL · TOGGLE-RELAY · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 216 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "LOW-RISK COOPERATION ENABLED (HUMAN)\nLAST HUMAN-LOCAL · LOCAL-CONFIRM · REJECTED · E_ALREADY_PENDING @tick 216 · local_does_not_exist",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "switchOff": {
+      "tick": 216,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 88,
+      "echo": true,
+      "energy": 98,
+      "playerEnergy": 100,
+      "evidence": 1,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_216_2",
+        "kind": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 216,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "toggle-relay"
+      ],
+      "audit": {
+        "tick": 216,
+        "provenance": "human-local",
+        "action": "local-confirm",
+        "target": null,
+        "result": "rejected",
+        "code": "E_ALREADY_PENDING",
+        "proposalId": "local_does_not_exist"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": true,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_216_2\nLOCAL · TOGGLE-RELAY · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 216 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "LOW-RISK COOPERATION DISABLED · MANUAL MODE PRESERVED\nLAST HUMAN-LOCAL · LOCAL-CONFIRM · REJECTED · E_ALREADY_PENDING @tick 216 · local_does_not_exist",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "aiPending": {
+      "tick": 216,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 88,
+      "echo": true,
+      "energy": 98,
+      "playerEnergy": 100,
+      "evidence": 1,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_216_2",
+        "kind": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 216,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "toggle-relay"
+      ],
+      "audit": {
+        "tick": 216,
+        "provenance": "human-local",
+        "action": "local-confirm",
+        "target": null,
+        "result": "rejected",
+        "code": "E_ALREADY_PENDING",
+        "proposalId": "local_does_not_exist"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": false,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_216_2\nLOCAL · TOGGLE-RELAY · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 216 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "LOW-RISK COOPERATION DISABLED · MANUAL MODE PRESERVED\nLAST HUMAN-LOCAL · LOCAL-CONFIRM · REJECTED · E_ALREADY_PENDING @tick 216 · local_does_not_exist",
+      "owner": "ai",
+      "link": false,
+      "status": "OFF"
+    },
+    "directAi": {
+      "same": false,
+      "wrong": false,
+      "pending": {
+        "proposalId": "local_216_2",
+        "kind": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 216,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "toggle-relay"
+      ],
+      "audit": {
+        "tick": 216,
+        "provenance": "human-local",
+        "action": "local-confirm",
+        "target": null,
+        "result": "rejected",
+        "code": "E_ALREADY_PENDING",
+        "proposalId": "local_does_not_exist"
+      }
+    },
+    "after": {
+      "tick": 289,
+      "paused": false,
+      "page": "pause",
+      "hp": 82,
+      "echo": true,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 1,
+      "manualEnabled": false,
+      "relay": "INACTIVE",
+      "pending": null,
+      "queue": 0,
+      "queueTypes": [],
+      "audit": {
+        "tick": 217,
+        "provenance": "human-local",
+        "action": "toggle-relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "applied",
+        "proposalId": "local_216_2"
+      },
+      "confirmEnabled": null,
+      "switchEnabled": null,
+      "proposalText": "",
+      "noticeText": "",
+      "owner": "ai",
+      "link": false,
+      "status": "OFF"
+    },
+    "firstApplied": {
+      "t": 21323,
+      "tick": 217,
+      "energy": 98,
+      "evidence": 1,
+      "manual": false,
+      "audit": "applied"
+    }
+  },
+  "disable": {
+    "pre": {
+      "tick": 88,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 100,
+      "echo": true,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 0,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": null,
+      "queue": 0,
+      "queueTypes": [],
+      "audit": null,
+      "confirmEnabled": true,
+      "switchEnabled": true,
+      "proposalText": "LOCAL · SCAN · target 8.0,45.0\nSEEN perceived_relay · evidence relay:relay_main · @tick 88\nEXPIRES tick 208 · room gen 1\nEXPECT reveal relay facts\nUNCERTAIN only if still perceived and permitted\nCOST 10 ECHO ENERGY · HUMAN CONFIRM REQUIRED",
+      "noticeText": "",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "pending": {
+      "tick": 88,
+      "paused": true,
+      "page": "local-coop",
+      "hp": 100,
+      "echo": true,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 0,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": {
+        "proposalId": "local_88_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 88,
+        "roomGeneration": 1
+      },
+      "queue": 1,
+      "queueTypes": [
+        "signal-scan"
+      ],
+      "audit": {
+        "tick": 88,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "enqueued",
+        "proposalId": "local_88_1"
+      },
+      "confirmEnabled": false,
+      "switchEnabled": true,
+      "proposalText": "WAITING FOR NEXT CORE TICK · local_88_1\nLOCAL · SCAN · target 8.0,45.0\nCONFIRMED BY HUMAN · ACCEPTED TICK 88 · ROOM GEN 1\nCONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT",
+      "noticeText": "CONFIRMED · ENQUEUED FOR THE NEXT CORE TICK\nLAST HUMAN-LOCAL · SCAN · ENQUEUED @tick 88 · local_88_1",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "after": {
+      "tick": 88,
+      "paused": true,
+      "page": "echo",
+      "hp": 100,
+      "echo": true,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 0,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": null,
+      "queue": 1,
+      "queueTypes": [
+        "remove-echo"
+      ],
+      "audit": {
+        "tick": 88,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "cancelled",
+        "code": "E_ECHO_DISABLED",
+        "proposalId": "local_88_1"
+      },
+      "confirmEnabled": null,
+      "switchEnabled": null,
+      "proposalText": "",
+      "noticeText": "",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    },
+    "afterResume": {
+      "tick": 131,
+      "paused": false,
+      "page": "pause",
+      "hp": null,
+      "echo": false,
+      "energy": 100,
+      "playerEnergy": 100,
+      "evidence": 0,
+      "manualEnabled": true,
+      "relay": "ACTIVE",
+      "pending": null,
+      "queue": 0,
+      "queueTypes": [],
+      "audit": {
+        "tick": 88,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "cancelled",
+        "code": "E_ECHO_DISABLED",
+        "proposalId": "local_88_1"
+      },
+      "confirmEnabled": null,
+      "switchEnabled": null,
+      "proposalText": "",
+      "noticeText": "",
+      "owner": "human",
+      "link": false,
+      "status": "OFF"
+    }
+  },
+  "checks": {
+    "pausedStable": true,
+    "scanPending": true,
+    "scanSingle": true,
+    "scanAppliedOnce": true,
+    "togglePending": true,
+    "switchPreserved": true,
+    "aiPreserved": true,
+    "toggleAppliedOnce": true,
+    "disableCancelled": true,
+    "errors": []
+  },
+  "samples": {
+    "scan": [
+      {
+        "t": 9894,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 9898,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 9914,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 9930,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 9946,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 9962,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 9978,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 9994,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10010,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10028,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10044,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10061,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10076,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10093,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10110,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10127,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10142,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10159,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10177,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10192,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10210,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10226,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10234,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10250,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10266,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10282,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10297,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10314,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10330,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10346,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10362,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10380,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10398,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10415,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10428,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10444,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10460,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10477,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10493,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10527,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10544,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10560,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10577,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10586,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10609,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10617,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10634,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10649,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10666,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10682,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10698,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10715,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10730,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10746,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10762,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10778,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10794,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10810,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10825,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10842,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10859,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10876,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10892,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10909,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10925,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10941,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10958,
+        "tick": 113,
+        "energy": 100,
+        "evidence": 0,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 10983,
+        "tick": 114,
+        "energy": 90,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11022,
+        "tick": 116,
+        "energy": 90,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11040,
+        "tick": 117,
+        "energy": 90,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11058,
+        "tick": 118,
+        "energy": 90,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11091,
+        "tick": 120,
+        "energy": 90,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11109,
+        "tick": 121,
+        "energy": 90,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11128,
+        "tick": 122,
+        "energy": 90,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11167,
+        "tick": 124,
+        "energy": 90,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11188,
+        "tick": 125,
+        "energy": 91,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11204,
+        "tick": 126,
+        "energy": 91,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11223,
+        "tick": 127,
+        "energy": 91,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11260,
+        "tick": 129,
+        "energy": 91,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11298,
+        "tick": 131,
+        "energy": 91,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11334,
+        "tick": 133,
+        "energy": 91,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11353,
+        "tick": 134,
+        "energy": 91,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11371,
+        "tick": 136,
+        "energy": 91,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11390,
+        "tick": 137,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11409,
+        "tick": 138,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11425,
+        "tick": 139,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11465,
+        "tick": 141,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11485,
+        "tick": 142,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11504,
+        "tick": 143,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11524,
+        "tick": 145,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11540,
+        "tick": 146,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11556,
+        "tick": 147,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11571,
+        "tick": 148,
+        "energy": 92,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11602,
+        "tick": 150,
+        "energy": 93,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11634,
+        "tick": 152,
+        "energy": 93,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11651,
+        "tick": 153,
+        "energy": 93,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11667,
+        "tick": 154,
+        "energy": 93,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11684,
+        "tick": 155,
+        "energy": 93,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11700,
+        "tick": 156,
+        "energy": 93,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11721,
+        "tick": 157,
+        "energy": 93,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11753,
+        "tick": 159,
+        "energy": 93,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11802,
+        "tick": 162,
+        "energy": 94,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11827,
+        "tick": 164,
+        "energy": 94,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11854,
+        "tick": 165,
+        "energy": 94,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11887,
+        "tick": 167,
+        "energy": 94,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11903,
+        "tick": 168,
+        "energy": 94,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11919,
+        "tick": 169,
+        "energy": 94,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11936,
+        "tick": 170,
+        "energy": 94,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11959,
+        "tick": 171,
+        "energy": 94,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 11994,
+        "tick": 173,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12012,
+        "tick": 174,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12029,
+        "tick": 175,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12063,
+        "tick": 177,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12095,
+        "tick": 179,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12111,
+        "tick": 180,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12127,
+        "tick": 181,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12143,
+        "tick": 182,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12161,
+        "tick": 183,
+        "energy": 95,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12204,
+        "tick": 185,
+        "energy": 96,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12225,
+        "tick": 187,
+        "energy": 96,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12266,
+        "tick": 189,
+        "energy": 96,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12304,
+        "tick": 191,
+        "energy": 96,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12325,
+        "tick": 192,
+        "energy": 96,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12348,
+        "tick": 193,
+        "energy": 96,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12368,
+        "tick": 195,
+        "energy": 96,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      },
+      {
+        "t": 12384,
+        "tick": 196,
+        "energy": 96,
+        "evidence": 1,
+        "manual": true,
+        "audit": "applied"
+      }
+    ],
+    "toggle": [
+      {
+        "t": 20211,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20215,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20232,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20247,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20263,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20279,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20296,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20312,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20328,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20347,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20362,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20380,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20395,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20411,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20428,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20445,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20461,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20479,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20494,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20511,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20528,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20547,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20551,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20567,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20583,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20599,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20615,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20631,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20647,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20664,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20679,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20695,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20711,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20728,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20749,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20764,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20777,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20797,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20814,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20828,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20862,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20878,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20897,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20911,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20928,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20934,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20961,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20966,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20983,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 20999,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21015,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21032,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21047,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21064,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21079,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21095,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21111,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21127,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21144,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21166,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21180,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21194,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21210,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21227,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21244,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21260,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21277,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21294,
+        "tick": 216,
+        "energy": 98,
+        "evidence": 1,
+        "manual": true,
+        "audit": "rejected"
+      },
+      {
+        "t": 21323,
+        "tick": 217,
+        "energy": 98,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21375,
+        "tick": 219,
+        "energy": 98,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21400,
+        "tick": 220,
+        "energy": 98,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21421,
+        "tick": 221,
+        "energy": 99,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21444,
+        "tick": 222,
+        "energy": 99,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21487,
+        "tick": 224,
+        "energy": 99,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21543,
+        "tick": 227,
+        "energy": 99,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21591,
+        "tick": 230,
+        "energy": 99,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21614,
+        "tick": 231,
+        "energy": 99,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21661,
+        "tick": 234,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21702,
+        "tick": 237,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21748,
+        "tick": 240,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21796,
+        "tick": 243,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21839,
+        "tick": 245,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21861,
+        "tick": 247,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21910,
+        "tick": 249,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 21958,
+        "tick": 252,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22006,
+        "tick": 255,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22056,
+        "tick": 258,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22102,
+        "tick": 261,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22122,
+        "tick": 262,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22147,
+        "tick": 263,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22196,
+        "tick": 266,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22245,
+        "tick": 269,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22298,
+        "tick": 272,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22377,
+        "tick": 275,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22437,
+        "tick": 278,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22498,
+        "tick": 282,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      },
+      {
+        "t": 22550,
+        "tick": 285,
+        "energy": 100,
+        "evidence": 1,
+        "manual": false,
+        "audit": "applied"
+      }
+    ]
+  },
+  "errors": []
+}

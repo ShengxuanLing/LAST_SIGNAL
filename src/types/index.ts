@@ -153,6 +153,8 @@ export interface SaveData {
     /** Explicit opt-in to Signal Relay collaboration. Ordinary NEW RUNS stay
      *  legacy (no device, no gating) until the human enables it in-game. */
     signalCollaborationOptIn: boolean;
+    /** Human low-risk ECHO cooperation consent (P2). Missing/old save = false. */
+    echoCooperationOptIn?: boolean;
   };
   settings: {
     masterVolume: number; sfxVolume: number; mouseDpi: number;

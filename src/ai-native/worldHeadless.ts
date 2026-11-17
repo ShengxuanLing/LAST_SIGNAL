@@ -28,13 +28,15 @@ import {
   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
   createSimulationState, enqueueCommand, registerDrone, stepSimulationTicks, tileAtFromState,
   isWalkableFromState,
-  type SimEvent, type SimulationIntent, type SimulationState
+  type SimCommand, type SimEvent, type SimulationIntent, type SimulationState
 } from '../world/sim/core';
 import type { EnemyKind, MapData, PlayerData, Room } from '../types';
 import { buildWorldObservation } from './worldObservation';
 import { buildExternalObservation } from './externalObservation';
 import { gridLineOfSight, WORLD_PERCEPTION } from './worldPerception';
 import { buildEchoObservation, type EchoObservation } from '../world/echoView';
+import { EchoController, ECHO_LIMITS, type EchoLocalProposalKind, type EchoView } from './echo';
+import { EchoAuditRing } from './echoAudit';
 import { SIGNAL_TUNING } from '../signal/signalTuning';
 import {
   WORLD_LIMITS, WORLD_PROTOCOL_VERSION, WORLD_SCHEMA_V1,
@@ -51,6 +53,18 @@ export const HEADLESS_MAX_ACTION_LOG = 4_096;
 // In-process owner frame cap (NOT a transport limit): a full 20k-event frame
 // is ~5 MiB and is restored via a ref/file, never inline over MCP.
 export const HEADLESS_MAX_FRAME_BYTES = 16 * 1024 * 1024;
+
+/** Conservative raw-restore classifier: only echo signal commands and relay
+ *  toggles can collide with a new local proposal. Other actors/commands are left
+ *  untouched and are not labeled human-local. */
+function findRestoredSignal(commands: readonly SimCommand[]): { kind: EchoLocalProposalKind; command: SimCommand } | null {
+  for (const command of commands) {
+    if (command.type === 'signal-scan' && command.actor === 'echo') return { kind: 'scan', command };
+    if (command.type === 'signal-jam' && command.actor === 'echo') return { kind: 'jam', command };
+    if (command.type === 'toggle-relay') return { kind: 'toggle-relay', command };
+  }
+  return null;
+}
 
 /**
  * Immutable-history helper: the owner frame must never share nested objects
@@ -220,6 +234,8 @@ function findPlacement(sim: SimulationState, room: Room): { player: { x: number;
 
 export interface HeadlessWorldOptions {
   seed: number;
+  /** P2 low-risk ECHO cooperation switch (default false, saved human preference). */
+  echoAutonomy?: boolean;
 }
 
 export class HeadlessWorld {
@@ -236,6 +252,24 @@ export class HeadlessWorld {
   private totalEventCount = 0;
   private epoch: number;
   private mapIdentity: HeadlessMapIdentity;
+  /** Same pure policy the rendered World uses; drives the tick when no override. */
+  readonly echoController = new EchoController();
+  /** Bounded local audit; ties human-local receipts to the proposal id. */
+  readonly echoAudit = new EchoAuditRing();
+  private echoRoomGeneration = 0;
+  /** Exact raw-restored command that produced the conservative busy marker. */
+  private restoredSignalCommand: SimCommand | null = null;
+  /** One in-flight human-local signal action; a second confirm must fail closed. */
+  private pendingLocalAction: {
+    proposalId: string;
+    acceptedTick: number;
+    kind: 'scan' | 'jam' | 'toggle-relay';
+    target: { x: number; y: number } | null;
+    roomGeneration: number;
+    originRoomId: number;
+    command: SimCommand | null;
+  } | null = null;
+  private lastEnqueuedSignalCommand: SimCommand | null = null;
 
   constructor(options: HeadlessWorldOptions) {
     const seed = options.seed >>> 0;
@@ -260,6 +294,8 @@ export class HeadlessWorld {
     });
 
     this.sim = sim;
+    this.echoController.setAutonomy(!!options.echoAutonomy);
+    this.echoController.setRoomGeneration(this.echoRoomGeneration);
     this.epoch = 1;
     if (startRoom) this.entered.add(startRoom.id);
     this.entered.add(combatRoom.id);
@@ -362,6 +398,125 @@ export class HeadlessWorld {
         : undefined
     });
   }
+  /** Same pure policy view as the rendered World: observation + bounded canWalk. */
+  echoPolicyView(): EchoView | null {
+    const view = this.echoView();
+    const echo = this.sim.echo;
+    if (!view || !echo) return null;
+    const canWalk = (x: number, y: number): boolean => {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+      if (Math.hypot(x - echo.x, y - echo.y) >= ECHO_LIMITS.perceptionTiles) return false;
+      const id = this.roomIdAt(x, y);
+      if (id === null || !this.entered.has(id)) return false;
+      if (!isWalkableFromState(this.sim, x, y, 0.5)) return false;
+      return gridLineOfSight({ x, y }, {
+        center: { x: echo.x, y: echo.y },
+        radiusTiles: ECHO_LIMITS.perceptionTiles,
+        isExplored: (sx, sy) => {
+          const rid = this.roomIdAt(sx, sy);
+          return rid !== null && this.entered.has(rid);
+        },
+        isOpaque: (sx, sy) => tileAtFromState(this.sim, Math.floor(sx), Math.floor(sy)).type === 'wall',
+        stepTiles: WORLD_PERCEPTION.losStepTiles
+      });
+    };
+    return { ...view, canWalk, autonomyEnabled: this.echoController.autonomyEnabled, roomGeneration: this.echoRoomGeneration };
+  }
+
+  proposeLocalEcho(): ReturnType<EchoController['propose']> {
+    const view = this.echoPolicyView();
+    return view ? this.echoController.propose(view) : null;
+  }
+
+  /** Same local-confirm validation + core command as the rendered boundary. */
+  confirmLocalEchoProposal(id: string, ownerHuman = true): boolean {
+    // One in-flight human-local action only; a second direct/UI confirm fails
+    // closed without touching the queued command or the pending record.
+    if (this.pendingLocalAction || this.echoController.restoredPendingKind) {
+      this.echoAudit.record({
+        tick: this.sim.tick, provenance: 'human-local', action: 'local-confirm', target: null,
+        result: 'rejected', code: 'E_ALREADY_PENDING', proposalId: id
+      });
+      return false;
+    }
+    const echo = this.sim.echo;
+    if (!echo || echo.data.hp <= 0) return false;
+    const validation = this.echoController.validateLocalProposal(id, this.sim.tick, this.echoRoomGeneration, ownerHuman);
+    if (!validation.ok) return false;
+    const proposal = this.echoController.localProposal;
+    const view = this.echoView();
+    if (!proposal || !view || !view.relay) return false;
+    const distance = Math.hypot(view.relay.x - echo.x, view.relay.y - echo.y);
+    const energy = view.energy?.current ?? 0;
+    const scanTicks = view.cooldowns?.scanTicks ?? 0;
+    if (proposal.kind === 'scan' && !(distance < SIGNAL_TUNING.SCAN_RADIUS && energy >= SIGNAL_TUNING.SCAN_COST && scanTicks <= 0)) return false;
+    if (proposal.kind === 'toggle-relay' && !(distance < SIGNAL_TUNING.JAM_RANGE)) return false;
+    const roomId = this.roomIdAt(this.sim.player.x, this.sim.player.y) ?? undefined;
+    this.lastEnqueuedSignalCommand = null;
+    if (proposal.kind === 'scan') this.enqueueSignalCommand({ type: 'signal-scan', actor: 'echo' });
+    else if (proposal.kind === 'toggle-relay') this.enqueueSignalCommand({
+      type: 'toggle-relay', enabled: !(this.sim.signal?.manualEnabled ?? false),
+      ...(roomId !== undefined ? { originRoomId: roomId } : {})
+    });
+    else return false;
+    this.pendingLocalAction = {
+      proposalId: proposal.id, acceptedTick: this.sim.tick, kind: proposal.kind,
+      target: proposal.target, roomGeneration: this.echoRoomGeneration,
+      originRoomId: roomId ?? 0, command: this.lastEnqueuedSignalCommand
+    };
+    this.lastEnqueuedSignalCommand = null;
+    this.echoAudit.record({
+      tick: this.sim.tick, provenance: 'human-local', action: proposal.kind,
+      target: proposal.target, result: 'enqueued', proposalId: proposal.id
+    });
+    this.echoController.markLocalPending(proposal);
+    this.echoController.consumeLocalProposal(id);
+    return true;
+  }
+
+  /** The single in-flight local action, or a raw-restored queued signal.
+   *  A restored row has no proposalId and must not be presented as a local receipt. */
+  get echoPendingLocal(): { proposalId: string | null; kind: 'scan' | 'jam' | 'toggle-relay'; target: { x: number; y: number } | null; acceptedTick: number | null; roomGeneration: number; restored: boolean } | null {
+    const pending = this.pendingLocalAction;
+    if (pending) {
+      return {
+        proposalId: pending.proposalId, kind: pending.kind,
+        target: pending.target ? { ...pending.target } : null,
+        acceptedTick: pending.acceptedTick, roomGeneration: pending.roomGeneration,
+        restored: false
+      };
+    }
+    const restored = this.echoController.restoredPendingKind;
+    if (restored) {
+      return { proposalId: null, kind: restored, target: null, acceptedTick: null, roomGeneration: this.echoRoomGeneration, restored: true };
+    }
+    return null;
+  }
+
+  /** Explicit local cancel: remove the exact queued command, record it, then clear. */
+  cancelPendingLocalEcho(reason: 'E_ROOM_CHANGED' | 'E_ECHO_DISABLED' | 'E_LOCAL_REVOKED' | 'E_ECHO_DEAD'): boolean {
+    const pending = this.pendingLocalAction;
+    if (!pending) return false;
+    if (pending.command) {
+      const index = this.sim.pendingCommands.indexOf(pending.command);
+      if (index >= 0) this.sim.pendingCommands.splice(index, 1);
+    }
+    this.echoAudit.record({
+      tick: this.sim.tick, provenance: 'human-local', action: pending.kind,
+      target: pending.target, result: 'cancelled', code: reason, proposalId: pending.proposalId
+    });
+    this.pendingLocalAction = null;
+    this.echoController.clearLocalPending();
+    return true;
+  }
+
+  rejectLocalEchoProposal(id: string): boolean {
+    const proposal = this.echoController.localProposal;
+    if (!proposal || proposal.id !== id) return false;
+    this.echoController.rejectLocalProposal(id, this.sim.tick);
+    return true;
+  }
+
   /**
    * P3-b B: spawn ONE real Relay device through the SAME core command the
    * rendered World uses. Committed by the next legal tick.
@@ -377,11 +532,17 @@ export class HeadlessWorld {
   /** Owner/dev-only legal Signal command; core commits it on the next tick. */
   enqueueSignalCommand(command: {
     type: 'signal-scan' | 'signal-jam' | 'toggle-relay' | 'signal-power';
-    actor?: 'player' | 'echo'; enabled?: boolean; powered?: boolean;
+    actor?: 'player' | 'echo'; enabled?: boolean; powered?: boolean; originRoomId?: number;
   }): { ok: true } {
-    if (command.type === 'toggle-relay') enqueueCommand(this.sim, { type: 'toggle-relay', enabled: command.enabled === true });
-    else if (command.type === 'signal-power') enqueueCommand(this.sim, { type: 'signal-power', powered: command.powered === true });
-    else enqueueCommand(this.sim, { type: command.type, actor: command.actor ?? 'player' });
+    let queued: SimCommand;
+    if (command.type === 'toggle-relay') queued = {
+      type: 'toggle-relay', enabled: command.enabled === true,
+      ...(command.originRoomId !== undefined ? { originRoomId: command.originRoomId } : {})
+    };
+    else if (command.type === 'signal-power') queued = { type: 'signal-power', powered: command.powered === true };
+    else queued = { type: command.type, actor: command.actor ?? 'player' };
+    enqueueCommand(this.sim, queued);
+    this.lastEnqueuedSignalCommand = queued;
     return { ok: true };
   }
 
@@ -483,8 +644,15 @@ export class HeadlessWorld {
       const ticks = Math.max(0, Math.min(Math.floor(step.ticks), tickCap - used));
       if (ticks <= 0) break;
       used += ticks;
-      const events = stepSimulationTicks(this.sim, ticks, step.intent ?? neutralIntent(), step.echoIntent);
+      const policyView = this.echoPolicyView();
+      const echoIntent = step.echoIntent ?? (policyView ? this.echoController.decide(policyView) : undefined);
+      const events = stepSimulationTicks(this.sim, ticks, step.intent ?? neutralIntent(), echoIntent);
       for (const event of events) this.accountForEvent(event);
+      for (const event of events) {
+        if (event.type === 'signal-scanned') this.settlePendingLocalSignal('scan', event.ok !== false, event.code);
+        else if (event.type === 'signal-jammed') this.settlePendingLocalSignal('jam', event.ok !== false, event.code);
+        else if (event.type === 'signal-relay-changed') this.settlePendingLocalSignal('toggle-relay', true, undefined);
+      }
       collected.push(...events);
       this.totalEventCount += events.length;
       this.events.push(...events);
@@ -492,10 +660,41 @@ export class HeadlessWorld {
         this.events = this.events.slice(-HEADLESS_MAX_EVENTS);
       }
       const id = this.roomIdAt(this.sim.player.x, this.sim.player.y);
-      if (id !== null) this.entered.add(id);
+      if (id !== null && !this.entered.has(id)) {
+        // Cancel the exact queued local command before dropping the guard.
+        this.cancelPendingLocalEcho('E_ROOM_CHANGED');
+        this.entered.add(id);
+        this.echoRoomGeneration += 1;
+        this.echoController.setRoomGeneration(this.echoRoomGeneration);
+        this.echoController.clearForRoomTransition();
+      } else if (id !== null) this.entered.add(id);
+      // A raw-restored command with no matching event must not deadlock the
+      // guard; clear only after the core queue no longer contains it. A dead
+      // echo can only clear an actually-local pending row (never a restored one).
+      this.reapDrainedGuards();
       if (used >= tickCap) break;
     }
     return collected;
+  }
+
+  private reapDrainedGuards(): void {
+    const restored = this.restoredSignalCommand;
+    if (restored && this.echoController.restoredPendingKind && !this.sim.pendingCommands.includes(restored)) {
+      this.echoController.clearRestoredPending();
+      this.restoredSignalCommand = null;
+    }
+    const local = this.pendingLocalAction;
+    if (local?.command && this.echoController.pendingLocalProposal && !this.sim.pendingCommands.includes(local.command)) {
+      const echo = this.sim.echo;
+      if (!echo || echo.data.hp <= 0) {
+        this.echoAudit.record({
+          tick: this.sim.tick, provenance: 'human-local', action: local.kind,
+          target: local.target, result: 'cancelled', code: 'E_ECHO_DEAD', proposalId: local.proposalId
+        });
+        this.pendingLocalAction = null;
+        this.echoController.clearLocalPending();
+      }
+    }
   }
 
   private accountForEvent(event: SimEvent): void {
@@ -504,6 +703,25 @@ export class HeadlessWorld {
     if (event.type === 'echo-fired') this.echoShots += 1;
     if (event.type === 'player-hurt') this.damageTaken += event.damage ?? 0;
     if (event.type === 'player-death' || this.sim.player.data.hp <= 0) this.status = 'dead';
+  }
+
+  private settlePendingLocalSignal(kind: 'scan' | 'jam' | 'toggle-relay', ok: boolean, code?: string): void {
+    if (this.echoController.restoredPendingKind === kind) {
+      // Unknown restored command: clear the busy marker on its real receipt but
+      // never fabricate a human-local audit row/proposal id for it.
+      this.echoController.clearRestoredPending();
+      this.restoredSignalCommand = null;
+      return;
+    }
+    const pending = this.pendingLocalAction;
+    if (!pending || pending.kind !== kind) return;
+    this.echoAudit.record({
+      tick: this.sim.tick, provenance: 'human-local', action: pending.kind,
+      target: pending.target, result: ok ? 'applied' : 'rejected',
+      proposalId: pending.proposalId, ...(code ? { code } : {})
+    });
+    this.pendingLocalAction = null;
+    this.echoController.clearLocalPending();
   }
 
   refreshStatus(): HeadlessStatus {
@@ -547,6 +765,23 @@ export class HeadlessWorld {
     (world as any).damageTaken = 0;
     (world as any).totalEventCount = 0;
     (world as any).epoch = 1;
+    // Object.create bypasses class-field init; the P2 policy controller must
+    // exist on every restored HeadlessWorld (including old P1 parity states).
+    (world as any).echoController = new EchoController();
+    (world as any).echoAudit = new EchoAuditRing();
+    (world as any).echoRoomGeneration = 0;
+    (world as any).pendingLocalAction = null;
+    (world as any).lastEnqueuedSignalCommand = null;
+    (world as any).restoredSignalCommand = null;
+    // A raw-sim restore keeps the core queue. If it already contains an echo
+    // scan/jam or a relay toggle, rebuild a conservative busy marker instead of
+    // dropping the command or pretending it is a human-local receipt. Other
+    // actors' commands are preserved and do not mark a local guard.
+    const restored = findRestoredSignal(sim.pendingCommands);
+    if (restored) {
+      (world as any).echoController.setRestoredPending(restored.kind);
+      (world as any).restoredSignalCommand = restored.command;
+    }
     const map = sim.map;
     const startRoom = map.rooms.find((r) => r.kind === 'start');
     (world as any).mapIdentity = {

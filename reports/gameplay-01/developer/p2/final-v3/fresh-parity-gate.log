@@ -1,0 +1,16 @@
+
+> last-signal@0.1.0 test:parity
+> vitest run -c vitest.integration.config.ts src/ai-native/signalRenderedHeadlessParity.test.ts
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/gp01-p2v3-parity[39m
+
+ [32m✓[39m src/ai-native/signalRenderedHeadlessParity.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 942[2mms[22m[39m
+   [33m[2m✓[22m[39m Rendered→Headless Signal parity (real rendered export, hard gate)[2m > [22mreplays rendered signal inputs in HeadlessWorld with byte-identical canonical state + events [33m480[2mms[22m[39m
+   [33m[2m✓[22m[39m Rendered→Headless Signal parity (real rendered export, hard gate)[2m > [22mdivergent signal action order produces divergent canonical state (negative) [33m445[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 23:07:12
+[2m   Duration [22m 2.45s[2m (transform 347ms, setup 0ms, collect 927ms, tests 942ms, environment 0ms, prepare 225ms)[22m
+

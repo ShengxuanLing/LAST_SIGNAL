@@ -24,7 +24,8 @@ function emptySave(): SaveData {
       armorBonus: 0, xpBonus: 0, currencyBonus: 0,
       unlockedWeapons: ['pulse'], unlockedAbilities: [],
       cores: 0, runs: 0, bossesDefeated: 0, bestSeed: 0,
-      signalCollaborationOptIn: false
+      signalCollaborationOptIn: false,
+      echoCooperationOptIn: false
     },
     settings: { ...DEFAULT_SETTINGS },
     stats: { enemiesKilled: 0, itemsCollected: 0, damageDealt: 0, playTimeSeconds: 0 }
@@ -54,6 +55,7 @@ export function validate(data: any): data is SaveData {
   }
   if (!Array.isArray(p.unlockedWeapons) || !Array.isArray(p.unlockedAbilities)) return false;
   if (typeof p.signalCollaborationOptIn !== 'boolean') return false;
+  if (p.echoCooperationOptIn !== undefined && typeof p.echoCooperationOptIn !== 'boolean') return false;
 
   const s = data.settings;
   if (!s || typeof s !== 'object') return false;
@@ -128,6 +130,7 @@ export class SaveSystem {
     base.permanent.unlockedWeapons = Array.isArray(p.unlockedWeapons) ? p.unlockedWeapons : base.permanent.unlockedWeapons;
     base.permanent.unlockedAbilities = Array.isArray(p.unlockedAbilities) ? p.unlockedAbilities : base.permanent.unlockedAbilities;
     base.permanent.signalCollaborationOptIn = typeof p.signalCollaborationOptIn === 'boolean' ? p.signalCollaborationOptIn : false;
+    base.permanent.echoCooperationOptIn = typeof p.echoCooperationOptIn === 'boolean' ? p.echoCooperationOptIn : false;
     base.permanent.runs = typeof p.runs === 'number' ? p.runs : base.permanent.runs;
     base.permanent.bossesDefeated = typeof p.bossesDefeated === 'number' ? p.bossesDefeated : base.permanent.bossesDefeated;
     base.permanent.bestSeed = typeof p.bestSeed === 'number' ? p.bestSeed : base.permanent.bestSeed;

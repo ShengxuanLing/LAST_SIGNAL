@@ -515,3 +515,32 @@ GitHub Actions has not been verified; P1 does not inherit the historical 745.
   a real deterministic E2E red and is recorded as such.
 
 **P0 status: ENGINEERING BASELINE RECORDED / HUMAN ACCEPTANCE PENDING.**
+
+---
+
+## 16. Post-P0 model connection update (2026-11-17; does not rewrite §15)
+
+The P0 record in §15 stays historical: at P0 time no model/bridge configuration was
+present, so real-LLM was **BLOCKED**. This section records only the later connection
+fact and must not be read back into P0.
+
+- The user chose to reuse the existing Magpie local API. The Lead's safe projection
+  probe recorded endpoint `http://127.0.0.1:3425/v1`, `wireProtocol=openai-chat`,
+  route/model `group/elisa`; `GET /v1/models` returned HTTP 200 and a real
+  `POST /v1/chat/completions` returned a non-empty `OK` (6.9 s). No Authorization
+  header was used and no key was exported. Probe evidence:
+  `reports/gameplay-01/model/magpie-connection-probe.json`,
+  `reports/gameplay-01/model/CONNECTION_SCOPE.txt`.
+- This means the **connection** is usable. A reviewer also ran one bounded real-model
+  **Player combat** smoke on fixed snapshot `b6a98e5` (isolated runtime/build,
+  official observe/action MCP tools only, 4 real requests, room cleared with real
+  core events): `reports/gameplay-01/reviewer/REAL_MODEL_CONNECTIVITY_AND_SMOKE.md`.
+  That is ENGINEERING PASS, not human acceptance.
+- It does **not** mean the P2 game model chain is verified: legal ECHO observation
+  → model suggestion → human Owner confirm/reject/disconnect is still a post-freeze
+  reviewer/E2E step. P2's local proposal is deterministic and offline; it must never
+  be presented as a real-model result.
+- The production Bridge/Owner authorization path is unchanged. No Bridge secret or
+  Owner key is sent to the model, and a new Bridge connection still requires human
+  authorization. The Magpie API endpoint and the World Bridge URL are different
+  things and must not be conflated.
