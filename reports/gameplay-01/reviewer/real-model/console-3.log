@@ -1,0 +1,8 @@
+[tools] world_headless_create_session, world_list_sessions, world_observe, world_action, world_headless_step, world_close, world_signal_status, world_headless_dev_signal_device, world_headless_dev_signal_command, world_headless_dev_signal_batch, world_headless_dev_inspect, world_headless_dev_snapshot, world_headless_dev_state, world_headless_dev_events_summary, world_headless_dev_events, world_headless_dev_restore, world_headless_dev_replay, world_headless_dev_replay_file, world_headless_dev_frame_export, world_headless_dev_restore_file, world_headless_dev_load_room, world_headless_dev_spawn_enemies, world_headless_dev_export_failure, world_headless_dev_batch, world_headless_dev_compare, world_headless_dev_perf
+[session] ses_cdf359302e84fceafd274a7a epoch=1
+[fixture] spawn_enemies ["drone","drone"] -> {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_cdf359302e84fceafd274a7a","epoch":2,"spawned":2}
+[req 1] model=group/elisa 1625ms content="{\"type\":\"fire\",\"target\":{\"x\":20.5,\"y\":41.5}}"
+[req 1] action={"type":"fire","target":{"x":20.5,"y":41.5},"ticks":20,"actionId":"aid_56a1cbae0820f3357ec1c55d"} -> {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_cdf359302e84fceafd274a7a","epoch":2,"requestId":"req_dfc377769dc329d33b07be4b","acceptedTick":0,"applyByTick":60,"replayed":false,"a
+[req 1] after: player(20.5,42.5) hp=100/100 enemies=0 hp=[] tick=20
+[outcome] no_enemy_left requests=1 wallMs=2343
+[trace] D:\Project\LAST_SIGNAL\reports\gameplay-01\reviewer\real-model\trace-2026-11-17T20-52-12-059Z.json

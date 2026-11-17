@@ -1,0 +1,21 @@
+[tools] world_headless_create_session, world_list_sessions, world_observe, world_action, world_headless_step, world_close, world_signal_status, world_headless_dev_signal_device, world_headless_dev_signal_command, world_headless_dev_signal_batch, world_headless_dev_inspect, world_headless_dev_snapshot, world_headless_dev_state, world_headless_dev_events_summary, world_headless_dev_events, world_headless_dev_restore, world_headless_dev_replay, world_headless_dev_replay_file, world_headless_dev_frame_export, world_headless_dev_restore_file, world_headless_dev_load_room, world_headless_dev_spawn_enemies, world_headless_dev_export_failure, world_headless_dev_batch, world_headless_dev_compare, world_headless_dev_perf
+[session] ses_78115f3c868508efc4790679 epoch=1
+[fixture] spawn_enemies ["drone","drone"] -> {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_78115f3c868508efc4790679","epoch":2,"spawned":2}
+[req 1] model=group/elisa 2076ms content="{\"type\":\"fire\",\"target\":{\"x\":23.5,\"y\":42.5}}"
+[req 1] action={"type":"fire","target":{"x":23.5,"y":42.5},"ticks":25,"actionId":"aid_010c8b68225799e2191c9e27"} -> {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_78115f3c868508efc4790679","epoch":2,"requestId":"req_4efeca7c889cc267b5ae3092","acceptedTick":0,"applyByTick":60,"replayed":false,"a
+[req 1] events {"projectile-spawned":4,"drone-step":40,"player-moved":13,"player-fired":1,"enemy-hit":1,"enemy-died":1,"loot-dropped":1,"xp-gained":1,"currency-gained":1,"loot-collected":1}
+[req 1] after: player(20.5,42.5) hp=100/100 enemies=2 hp=[27,27] tick=25
+[req 2] model=group/elisa 2012ms content="{\"type\":\"fire\",\"target\":{\"x\":20.50724524442646,\"y\":41.532506654936995}}"
+[req 2] action={"type":"fire","target":{"x":20.50724524442646,"y":41.532506654936995},"ticks":25,"actionId":"aid_c047cc4beeb45e5f163fff79"} -> {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_78115f3c868508efc4790679","epoch":2,"requestId":"req_d85a61f249a2c9a4c9d0ddd1","acceptedTick":25,"applyByTick":85,"replayed":false,"
+[req 2] events {"drone-step":39,"player-moved":19,"player-fired":2,"projectile-spawned":2,"enemy-hit":2}
+[req 2] after: player(20.497191825150146,42.874989485391275) hp=93/100 enemies=2 hp=[27,3] tick=50
+[req 3] model=group/elisa 1545ms content="{\"type\":\"fire\",\"target\":{\"x\":20.50724524442646,\"y\":41.532506654936995}}"
+[req 3] action={"type":"fire","target":{"x":20.50724524442646,"y":41.532506654936995},"ticks":25,"actionId":"aid_019dee7745087e59f0fe7832"} -> {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_78115f3c868508efc4790679","epoch":2,"requestId":"req_8ebd364198d951685605d75b","acceptedTick":50,"applyByTick":110,"replayed":false,
+[req 3] events {"drone-step":30,"player-moved":23,"player-fired":2,"projectile-spawned":2,"enemy-hit":1,"enemy-died":1,"loot-dropped":1,"xp-gained":1,"currency-gained":1,"loot-collected":1,"projectile-wall":1}
+[req 3] after: player(20.497191825150146,42.874989485391275) hp=93/100 enemies=1 hp=[27] tick=75
+[req 4] model=group/elisa 1719ms content="{\"type\":\"fire\",\"target\":{\"x\":19.52485922277609,\"y\":41.524859222776094}}"
+[req 4] action={"type":"fire","target":{"x":19.52485922277609,"y":41.524859222776094},"ticks":25,"actionId":"aid_41f60adae47e098ffc73976d"} -> {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_78115f3c868508efc4790679","epoch":2,"requestId":"req_1487c6784bc8faf72544cc4f","acceptedTick":75,"applyByTick":135,"replayed":false,
+[req 4] events {"player-moved":29,"drone-step":21,"projectile-wall":1,"player-fired":3,"projectile-spawned":3,"enemy-hit":2,"enemy-died":1,"loot-dropped":1,"xp-gained":1,"currency-gained":1,"loot-collected":1}
+[req 4] after: player(20.497191825150146,42.874989485391275) hp=93/100 enemies=0 hp=[] tick=100
+[outcome] no_perceived_enemy_left requests=4 wallMs=8837
+[trace] D:\Project\LAST_SIGNAL\reports\gameplay-01\reviewer\real-model\trace-2026-11-17T20-55-14-035Z.json

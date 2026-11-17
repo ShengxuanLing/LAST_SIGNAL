@@ -1,0 +1,5 @@
+[tools] world_headless_create_session, world_list_sessions, world_observe, world_action, world_headless_step, world_close, world_signal_status
+[session] ses_c42c362293658add97a96193 epoch=1
+[req 1] model=group/elisa 4179ms content="{\"type\":\"fire\",\"target\":{\"x\":23.5,\"y\":42.5}}"
+[req 1] action={"type":"fire","target":{"x":23.5,"y":42.5},"ticks":30,"actionId":"aid_673569167dd134655c00b6b9"} -> {"schema":"last_signal.mcp.tool-result.v1","ok":true,"session":"ses_c42c362293658add97a96193","epoch":1,"requestId":"req_4579aebc5ea8a57392c3e412","acceptedTick":0,"applyByTick":60,"replayed":false,"a
+[req 1] after: player(20.5,42.5) hp=100/100 enemies=0 hp=[] tick=30

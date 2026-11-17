@@ -1,0 +1,490 @@
+{
+  "startedAt": "2026-11-17T20:50:31.862Z",
+  "snapshot": "D:/tmp/gp01-rm-b6a98e5",
+  "model": "group/elisa",
+  "endpoint": "http://127.0.0.1:3425/v1",
+  "limits": {
+    "MAX_REQUESTS": 6,
+    "MAX_TOKENS": 512,
+    "WALL_MS": 240000,
+    "TICKS_PER_STEP": 30
+  },
+  "steps": [
+    {
+      "request": 1,
+      "obsSummary": {
+        "tick": 0,
+        "epoch": 1,
+        "roomId": 3,
+        "player": {
+          "x": 20.5,
+          "y": 42.5,
+          "hp": 100,
+          "maxHp": 100
+        },
+        "aimYaw": null,
+        "weapon": null,
+        "enemies": [],
+        "enemyCount": 0,
+        "objective": null
+      },
+      "model": {
+        "httpStatus": 200,
+        "latencyMs": 4179,
+        "id": "chatcmpl-92b717adfae4acdd9955226d79f704bb",
+        "returnedModel": "group/elisa",
+        "finishReason": "stop",
+        "content": "{\"type\":\"fire\",\"target\":{\"x\":23.5,\"y\":42.5}}",
+        "usage": {
+          "prompt": 340,
+          "completion": 19,
+          "reasoning": 0
+        },
+        "rawLength": 455,
+        "rawSnippet": null
+      },
+      "parsed": {
+        "ok": true,
+        "action": {
+          "type": "fire",
+          "target": {
+            "x": 23.5,
+            "y": 42.5
+          },
+          "ticks": 30
+        }
+      },
+      "executed": {
+        "action": {
+          "type": "fire",
+          "target": {
+            "x": 23.5,
+            "y": 42.5
+          },
+          "ticks": 30,
+          "actionId": "aid_673569167dd134655c00b6b9"
+        },
+        "result": {
+          "schema": "last_signal.mcp.tool-result.v1",
+          "ok": true,
+          "session": "ses_c42c362293658add97a96193",
+          "epoch": 1,
+          "requestId": "req_4579aebc5ea8a57392c3e412",
+          "acceptedTick": 0,
+          "applyByTick": 60,
+          "replayed": false,
+          "actions": [
+            {
+              "actionId": "aid_673569167dd134655c00b6b9",
+              "status": "queued",
+              "applyByTick": 60
+            }
+          ]
+        }
+      },
+      "after": {
+        "tick": 30,
+        "epoch": 1,
+        "roomId": 3,
+        "player": {
+          "x": 20.5,
+          "y": 42.5,
+          "hp": 100,
+          "maxHp": 100
+        },
+        "aimYaw": null,
+        "weapon": null,
+        "enemies": [],
+        "enemyCount": 0,
+        "objective": null
+      },
+      "stepResult": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_c42c362293658add97a96193",
+        "epoch": 1,
+        "requestId": "req_e3ae028d674ef473b18d2ca4",
+        "fromTick": 0,
+        "toTick": 30,
+        "ticks": 30,
+        "blockTicks": 30,
+        "status": "cleared",
+        "executing": null,
+        "applied": [
+          {
+            "actionId": "aid_673569167dd134655c00b6b9",
+            "requestId": "req_4579aebc5ea8a57392c3e412",
+            "startedTick": 0,
+            "appliedTick": 30,
+            "executedTicks": 30
+          }
+        ],
+        "rejected": [],
+        "observation": {
+          "schema": "last_signal.world.v1",
+          "protocolVersion": 1,
+          "epoch": 1,
+          "tick": 30,
+          "roomId": 3,
+          "player": {
+            "x": 20.5,
+            "y": 42.5,
+            "hp": 100,
+            "maxHp": 100,
+            "aimYaw": 0,
+            "weaponKey": "pulse",
+            "ammo": -1,
+            "magazine": -1
+          },
+          "drones": [],
+          "projectiles": [
+            {
+              "id": 3,
+              "side": "player",
+              "kind": "pulse",
+              "x": 22.25,
+              "y": 42.5,
+              "vx": 11.25,
+              "vy": 0,
+              "damage": 12,
+              "lifetime": 0.5888888888888885
+            }
+          ],
+          "availableActions": [
+            "move",
+            "stop",
+            "aim",
+            "fire",
+            "interact"
+          ]
+        },
+        "eventCount": 66,
+        "eventTotal": 66,
+        "eventsRetained": 66,
+        "eventsTruncated": false,
+        "events": [
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-fired"
+          },
+          {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 1,
+              "side": "player",
+              "kind": "pulse"
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "enemy-hit",
+            "enemyId": 1,
+            "damage": 12,
+            "crit": false
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-fired"
+          },
+          {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 2,
+              "side": "player",
+              "kind": "pulse"
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-fired"
+          },
+          {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 3,
+              "side": "player",
+              "kind": "pulse"
+            }
+          },
+          {
+            "type": "enemy-hit",
+            "enemyId": 1,
+            "damage": 18,
+            "crit": true
+          },
+          {
+            "type": "enemy-died",
+            "enemyId": 1,
+            "x": 23.8828125,
+            "y": 42.5
+          },
+          {
+            "type": "loot-dropped",
+            "id": 1,
+            "kind": "currency",
+            "key": "currency",
+            "amount": 4
+          },
+          {
+            "type": "xp-gained",
+            "amount": 8,
+            "xp": 8,
+            "level": 1
+          },
+          {
+            "type": "currency-gained",
+            "amount": 4,
+            "currency": 4
+          },
+          {
+            "type": "loot-collected",
+            "id": 1,
+            "kind": "currency",
+            "key": "currency",
+            "amount": 4
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            }
+          }
+        ],
+        "nextCursor": 66,
+        "stateFingerprint": "fnv1a32:683e01f4",
+        "eventsFingerprint": "fnv1a32:bc7f7c62",
+        "replayed": false
+      }
+    }
+  ],
+  "outcome": "no_enemy_left",
+  "errors": [],
+  "toolSurface": [
+    "world_headless_create_session",
+    "world_list_sessions",
+    "world_observe",
+    "world_action",
+    "world_headless_step",
+    "world_close",
+    "world_signal_status"
+  ],
+  "requestsUsed": 1,
+  "wallMs": 5176,
+  "final": {
+    "tick": 30,
+    "epoch": 1,
+    "roomId": 3,
+    "player": {
+      "x": 20.5,
+      "y": 42.5,
+      "hp": 100,
+      "maxHp": 100
+    },
+    "aimYaw": null,
+    "weapon": null,
+    "enemies": [],
+    "enemyCount": 0,
+    "objective": null
+  },
+  "finishedAt": "2026-11-17T20:50:40.086Z"
+}

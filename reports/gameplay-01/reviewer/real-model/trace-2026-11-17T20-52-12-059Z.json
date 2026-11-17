@@ -1,0 +1,1335 @@
+{
+  "startedAt": "2026-11-17T20:52:12.063Z",
+  "snapshot": "D:/tmp/gp01-rm-b6a98e5",
+  "model": "group/elisa",
+  "endpoint": "http://127.0.0.1:3425/v1",
+  "limits": {
+    "MAX_REQUESTS": 8,
+    "MAX_TOKENS": 512,
+    "WALL_MS": 420000,
+    "TICKS_PER_STEP": 20
+  },
+  "steps": [
+    {
+      "request": 1,
+      "obsSummary": {
+        "tick": 0,
+        "epoch": 2,
+        "roomId": 3,
+        "player": {
+          "x": 20.5,
+          "y": 42.5,
+          "hp": 100,
+          "maxHp": 100
+        },
+        "aimYaw": null,
+        "weapon": null,
+        "enemies": [],
+        "enemyCount": 0,
+        "objective": null
+      },
+      "model": {
+        "httpStatus": 200,
+        "latencyMs": 1625,
+        "id": "chatcmpl-e0ad0c5e9b22b48dae7edb227c4f63a9",
+        "returnedModel": "group/elisa",
+        "finishReason": "stop",
+        "content": "{\"type\":\"fire\",\"target\":{\"x\":20.5,\"y\":41.5}}",
+        "usage": {
+          "prompt": 402,
+          "completion": 19,
+          "reasoning": 0
+        },
+        "rawLength": 457,
+        "rawSnippet": null
+      },
+      "parsed": {
+        "ok": true,
+        "action": {
+          "type": "fire",
+          "target": {
+            "x": 20.5,
+            "y": 41.5
+          },
+          "ticks": 20
+        }
+      },
+      "executed": {
+        "action": {
+          "type": "fire",
+          "target": {
+            "x": 20.5,
+            "y": 41.5
+          },
+          "ticks": 20,
+          "actionId": "aid_56a1cbae0820f3357ec1c55d"
+        },
+        "result": {
+          "schema": "last_signal.mcp.tool-result.v1",
+          "ok": true,
+          "session": "ses_cdf359302e84fceafd274a7a",
+          "epoch": 2,
+          "requestId": "req_dfc377769dc329d33b07be4b",
+          "acceptedTick": 0,
+          "applyByTick": 60,
+          "replayed": false,
+          "actions": [
+            {
+              "actionId": "aid_56a1cbae0820f3357ec1c55d",
+              "status": "queued",
+              "applyByTick": 60
+            }
+          ]
+        }
+      },
+      "after": {
+        "tick": 20,
+        "epoch": 2,
+        "roomId": 3,
+        "player": {
+          "x": 20.5,
+          "y": 42.5,
+          "hp": 100,
+          "maxHp": 100
+        },
+        "aimYaw": null,
+        "weapon": null,
+        "enemies": [],
+        "enemyCount": 0,
+        "objective": null
+      },
+      "stepResult": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_cdf359302e84fceafd274a7a",
+        "epoch": 2,
+        "requestId": "req_d266dde3afed5a817f947bca",
+        "fromTick": 0,
+        "toTick": 20,
+        "ticks": 20,
+        "blockTicks": 20,
+        "status": "running",
+        "executing": null,
+        "applied": [
+          {
+            "actionId": "aid_56a1cbae0820f3357ec1c55d",
+            "requestId": "req_dfc377769dc329d33b07be4b",
+            "startedTick": 0,
+            "appliedTick": 20,
+            "executedTicks": 20
+          }
+        ],
+        "rejected": [],
+        "observation": {
+          "schema": "last_signal.world.v1",
+          "protocolVersion": 1,
+          "epoch": 2,
+          "tick": 20,
+          "roomId": 3,
+          "player": {
+            "x": 20.5,
+            "y": 42.5,
+            "hp": 100,
+            "maxHp": 100,
+            "aimYaw": -1.5707963267948966,
+            "weaponKey": "pulse",
+            "ammo": -1,
+            "magazine": -1
+          },
+          "drones": [
+            {
+              "id": 1,
+              "kind": "drone",
+              "x": 23.4765625,
+              "y": 42.5,
+              "hp": 27,
+              "state": "attack"
+            },
+            {
+              "id": 2,
+              "kind": "drone",
+              "x": 19.52485922277609,
+              "y": 41.524859222776094,
+              "hp": 27,
+              "state": "attack"
+            }
+          ],
+          "projectiles": [
+            {
+              "id": 3,
+              "side": "enemy",
+              "kind": "plasma",
+              "x": 23.434895833333332,
+              "y": 42.5,
+              "vx": -2.5,
+              "vy": 3.061616997868383e-16,
+              "damage": 7,
+              "lifetime": 2.4833333333333334
+            },
+            {
+              "id": 4,
+              "side": "enemy",
+              "kind": "plasma",
+              "x": 19.55432200532553,
+              "y": 41.55432200532553,
+              "vx": 1.767766952966372,
+              "vy": 1.7677669529663655,
+              "damage": 7,
+              "lifetime": 2.4833333333333334
+            }
+          ],
+          "availableActions": [
+            "move",
+            "stop",
+            "aim",
+            "fire",
+            "interact"
+          ]
+        },
+        "eventCount": 88,
+        "eventTotal": 88,
+        "eventsRetained": 88,
+        "eventsTruncated": false,
+        "events": [
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.3666666666666667,
+              "wanderTimer": 1.1333333333333335,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.3666666666666667,
+              "wanderTimer": 999.9000000000001,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 3,
+            "step": {
+              "position": {
+                "x": 20.507420755354577,
+                "y": 41.50906981210004
+              },
+              "state": "detect",
+              "stateTimer": 0.3666666666666667,
+              "wanderTimer": 999.9000000000001,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.33333333333333337,
+              "wanderTimer": 1.116666666666667,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.33333333333333337,
+              "wanderTimer": 999.8833333333334,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 3,
+            "step": {
+              "position": {
+                "x": 20.507420755354577,
+                "y": 41.50906981210004
+              },
+              "state": "detect",
+              "stateTimer": 0.33333333333333337,
+              "wanderTimer": 999.8833333333334,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.30000000000000004,
+              "wanderTimer": 1.1000000000000003,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.30000000000000004,
+              "wanderTimer": 999.8666666666668,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 3,
+            "step": {
+              "position": {
+                "x": 20.507420755354577,
+                "y": 41.50906981210004
+              },
+              "state": "detect",
+              "stateTimer": 0.30000000000000004,
+              "wanderTimer": 999.8666666666668,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.2666666666666667,
+              "wanderTimer": 1.0833333333333337,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.2666666666666667,
+              "wanderTimer": 999.8500000000001,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 3,
+            "step": {
+              "position": {
+                "x": 20.507420755354577,
+                "y": 41.50906981210004
+              },
+              "state": "detect",
+              "stateTimer": 0.2666666666666667,
+              "wanderTimer": 999.8500000000001,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.2333333333333334,
+              "wanderTimer": 1.066666666666667,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.2333333333333334,
+              "wanderTimer": 999.8333333333335,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 3,
+            "step": {
+              "position": {
+                "x": 20.507420755354577,
+                "y": 41.50906981210004
+              },
+              "state": "detect",
+              "stateTimer": 0.2333333333333334,
+              "wanderTimer": 999.8333333333335,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.20000000000000007,
+              "wanderTimer": 1.0500000000000005,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.20000000000000007,
+              "wanderTimer": 999.8166666666668,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 3,
+            "step": {
+              "position": {
+                "x": 20.507420755354577,
+                "y": 41.50906981210004
+              },
+              "state": "detect",
+              "stateTimer": 0.20000000000000007,
+              "wanderTimer": 999.8166666666668,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "player-fired",
+            "spec": {
+              "damage": 12,
+              "speed": 11.25,
+              "critBase": 0.1,
+              "critDamage": 1.5,
+              "critChance": 0.1,
+              "pierce": 0,
+              "lifetime": 0.7222222222222222,
+              "kind": "pulse",
+              "magazine": -1,
+              "shots": 1,
+              "spread": 0.02
+            }
+          },
+          {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 2,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 20.5,
+                "y": 42.25
+              },
+              "vel": {
+                "x": 6.888638245203862e-16,
+                "y": -11.25
+              },
+              "damage": 18,
+              "lifetime": 0.7222222222222222,
+              "radius": 0.2,
+              "crit": true,
+              "pierce": 0,
+              "hitIds": []
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.16666666666666674,
+              "wanderTimer": 1.0333333333333339,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.16666666666666674,
+              "wanderTimer": 999.8000000000002,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 3,
+            "step": {
+              "position": {
+                "x": 20.507420755354577,
+                "y": 41.50906981210004
+              },
+              "state": "detect",
+              "stateTimer": 0.16666666666666674,
+              "wanderTimer": 999.8000000000002,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "enemy-hit",
+            "enemyId": 3,
+            "damage": 18,
+            "crit": true,
+            "hit": {
+              "blocked": false,
+              "hp": -3,
+              "position": {
+                "x": 20.507420755354577,
+                "y": 41.50906981210004
+              },
+              "hitFlash": 0.15,
+              "knockbackApplied": false
+            }
+          },
+          {
+            "type": "enemy-died",
+            "enemyId": 3,
+            "x": 20.507420755354577,
+            "y": 41.50906981210004
+          },
+          {
+            "type": "loot-dropped",
+            "loot": {
+              "id": 1,
+              "x": 20.507420755354577,
+              "y": 41.50906981210004,
+              "kind": "currency",
+              "key": "currency",
+              "amount": 4,
+              "bob": 0
+            }
+          },
+          {
+            "type": "loot-dropped",
+            "loot": {
+              "id": 2,
+              "x": 20.507420755354577,
+              "y": 41.50906981210004,
+              "kind": "health",
+              "key": "health",
+              "amount": 30,
+              "bob": 0
+            }
+          },
+          {
+            "type": "xp-gained",
+            "amount": 8,
+            "xp": 8,
+            "level": 1
+          },
+          {
+            "type": "currency-gained",
+            "amount": 4,
+            "currency": 4
+          },
+          {
+            "type": "loot-collected",
+            "id": 1,
+            "kind": "currency",
+            "key": "currency",
+            "amount": 4,
+            "x": 20.502997785992946,
+            "y": 42.09969080028466
+          },
+          {
+            "type": "player-healed",
+            "amount": 30,
+            "hp": 100
+          },
+          {
+            "type": "loot-collected",
+            "id": 2,
+            "kind": "health",
+            "key": "health",
+            "amount": 30,
+            "x": 20.502997785992946,
+            "y": 42.09969080028466
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.13333333333333341,
+              "wanderTimer": 1.0166666666666673,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.13333333333333341,
+              "wanderTimer": 999.7833333333335,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.10000000000000009,
+              "wanderTimer": 1.0000000000000007,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.10000000000000009,
+              "wanderTimer": 999.7666666666669,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.06666666666666676,
+              "wanderTimer": 0.983333333333334,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.06666666666666676,
+              "wanderTimer": 999.7500000000002,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 0.03333333333333344,
+              "wanderTimer": 0.9666666666666672,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 0.03333333333333344,
+              "wanderTimer": 999.7333333333336,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "detect",
+              "stateTimer": 1.0408340855860843e-16,
+              "wanderTimer": 0.9500000000000005,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "detect",
+              "stateTimer": 1.0408340855860843e-16,
+              "wanderTimer": 999.7166666666669,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.5,
+                "y": 42.5
+              },
+              "state": "chase",
+              "stateTimer": -0.03333333333333323,
+              "wanderTimer": 0.9333333333333338,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.50828640759203,
+                "y": 41.50828640759203
+              },
+              "state": "chase",
+              "stateTimer": -0.03333333333333323,
+              "wanderTimer": 999.7000000000003,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": null,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.4765625,
+                "y": 42.5
+              },
+              "state": "attack",
+              "stateTimer": -0.04999999999999989,
+              "wanderTimer": 0.9166666666666671,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": 3.141592653589793,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.52485922277609,
+                "y": 41.524859222776094
+              },
+              "state": "attack",
+              "stateTimer": -0.04999999999999989,
+              "wanderTimer": 999.6833333333336,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 0,
+              "faceAngle": 0.7853981633974465,
+              "attack": null,
+              "suppressed": false
+            }
+          },
+          {
+            "type": "player-moved",
+            "position": {
+              "x": 20.5,
+              "y": 42.5
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0
+            },
+            "dashTimer": 0,
+            "dashStarted": false
+          },
+          {
+            "type": "drone-step",
+            "droneId": 1,
+            "step": {
+              "position": {
+                "x": 23.4765625,
+                "y": 42.5
+              },
+              "state": "attack",
+              "stateTimer": 0.4,
+              "wanderTimer": 0.9000000000000004,
+              "patrolIndex": 1,
+              "targetId": 0,
+              "attackTimer": 1.4,
+              "faceAngle": 3.141592653589793,
+              "attack": {
+                "kind": "ranged",
+                "damage": 7,
+                "angle": 3.141592653589793,
+                "velocity": {
+                  "x": -2.5,
+                  "y": 3.061616997868383e-16
+                }
+              },
+              "suppressed": false
+            }
+          },
+          {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 3,
+              "ownerId": 1,
+              "side": "enemy",
+              "source": "enemy",
+              "kind": "plasma",
+              "pos": {
+                "x": 23.4765625,
+                "y": 42.5
+              },
+              "vel": {
+                "x": -2.5,
+                "y": 3.061616997868383e-16
+              },
+              "damage": 7,
+              "lifetime": 2.5,
+              "radius": 0.2,
+              "crit": false,
+              "pierce": 0,
+              "hitIds": []
+            }
+          },
+          {
+            "type": "drone-step",
+            "droneId": 2,
+            "step": {
+              "position": {
+                "x": 19.52485922277609,
+                "y": 41.524859222776094
+              },
+              "state": "attack",
+              "stateTimer": 0.4,
+              "wanderTimer": 999.666666666667,
+              "patrolIndex": 0,
+              "targetId": 0,
+              "attackTimer": 1.4,
+              "faceAngle": 0.7853981633974465,
+              "attack": {
+                "kind": "ranged",
+                "damage": 7,
+                "angle": 0.7853981633974465,
+                "velocity": {
+                  "x": 1.767766952966372,
+                  "y": 1.7677669529663655
+                }
+              },
+              "suppressed": false
+            }
+          },
+          {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 4,
+              "ownerId": 2,
+              "side": "enemy",
+              "source": "enemy",
+              "kind": "plasma",
+              "pos": {
+                "x": 19.52485922277609,
+                "y": 41.524859222776094
+              },
+              "vel": {
+                "x": 1.767766952966372,
+                "y": 1.7677669529663655
+              },
+              "damage": 7,
+              "lifetime": 2.5,
+              "radius": 0.2,
+              "crit": false,
+              "pierce": 0,
+              "hitIds": []
+            }
+          }
+        ],
+        "nextCursor": 88,
+        "stateFingerprint": "fnv1a32:1517b5f2",
+        "eventsFingerprint": "fnv1a32:fb4f7750",
+        "replayed": false
+      }
+    }
+  ],
+  "outcome": "no_enemy_left",
+  "errors": [],
+  "toolSurface": [
+    "world_headless_create_session",
+    "world_list_sessions",
+    "world_observe",
+    "world_action",
+    "world_headless_step",
+    "world_close",
+    "world_signal_status",
+    "world_headless_dev_signal_device",
+    "world_headless_dev_signal_command",
+    "world_headless_dev_signal_batch",
+    "world_headless_dev_inspect",
+    "world_headless_dev_snapshot",
+    "world_headless_dev_state",
+    "world_headless_dev_events_summary",
+    "world_headless_dev_events",
+    "world_headless_dev_restore",
+    "world_headless_dev_replay",
+    "world_headless_dev_replay_file",
+    "world_headless_dev_frame_export",
+    "world_headless_dev_restore_file",
+    "world_headless_dev_load_room",
+    "world_headless_dev_spawn_enemies",
+    "world_headless_dev_export_failure",
+    "world_headless_dev_batch",
+    "world_headless_dev_compare",
+    "world_headless_dev_perf"
+  ],
+  "fixture": {
+    "tool": "world_headless_dev_spawn_enemies",
+    "kinds": [
+      "drone",
+      "drone"
+    ],
+    "seed": 20261117,
+    "result": {
+      "schema": "last_signal.mcp.tool-result.v1",
+      "ok": true,
+      "session": "ses_cdf359302e84fceafd274a7a",
+      "epoch": 2,
+      "spawned": 2
+    }
+  },
+  "requestsUsed": 1,
+  "wallMs": 2343,
+  "final": {
+    "tick": 20,
+    "epoch": 2,
+    "roomId": 3,
+    "player": {
+      "x": 20.5,
+      "y": 42.5,
+      "hp": 100,
+      "maxHp": 100
+    },
+    "aimYaw": null,
+    "weapon": null,
+    "enemies": [],
+    "enemyCount": 0,
+    "objective": null
+  },
+  "finishedAt": "2026-11-17T20:52:16.947Z"
+}

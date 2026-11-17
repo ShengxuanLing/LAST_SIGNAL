@@ -1,0 +1,22 @@
+﻿{
+    "requestedModel":  "group/elisa",
+    "returnedModel":  "group/elisa",
+    "durationMs":  6922,
+    "responseId":  "chatcmpl-cht000dd353@dx1a1eb41f71e2885503",
+    "finishReason":  "stop",
+    "content":  "OK",
+    "usage":  {
+                  "completion_tokens":  144,
+                  "completion_tokens_details":  {
+                                                    "reasoning_tokens":  141
+                                                },
+                  "prompt_tokens":  25,
+                  "prompt_tokens_details":  {
+                                                "cache_write_tokens":  0,
+                                                "cached_tokens":  0
+                                            },
+                  "total_tokens":  169
+              },
+    "credentialsSupplied":  false,
+    "nonemptyReply":  true
+}
