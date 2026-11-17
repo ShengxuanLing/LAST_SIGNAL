@@ -1,0 +1,42 @@
+# cwd=D:/tmp/gp01-echo
+# snapshot=87a0fac run#2 spec=_review/echo-real-model.echo.spec.ts devRoot=5488
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › _review\echo-real-model.echo.spec.ts:123:1 › real Magpie ECHO chain: observe -> suggest -> Owner fixture confirm/reject -> disconnect fallback
+[chromium] › _review\echo-real-model.echo.spec.ts:123:1 › real Magpie ECHO chain: observe -> suggest -> Owner fixture confirm/reject -> disconnect fallback
+[T1] echo landed {"seq":0,"page":"pause","paused":false,"tick":89,"hp":100,"echo":{"hp":94,"x":8.625,"y":45},"echoEnergy":100,"playerEnergy":100,"relay":"ACTIVE","evidence":0,"link":null,"comStatus":"OFF","pendingIntent":false,"pendingCount":null}
+
+[T1] companion connected {"seq":0,"page":"llm","paused":true,"tick":93,"hp":100,"echo":{"hp":94,"x":8.625,"y":45},"echoEnergy":100,"playerEnergy":100,"relay":"ACTIVE","evidence":0,"link":null,"comStatus":"CONNECTED","pendingIntent":false,"pendingCount":null}
+
+[T2] official observation {"schema":"last_signal.mcp.companion-result.v1","ok":true,"observation":{"schema":"last_signal.companion.v1","epoch":1,"tick":93,"echo":{"x":8.625,"y":45,"hp":94,"maxHp":100,"aimYaw":0},"player":{"x":8,"y":45},"drones":[{"id":1,"x":11.7890625,"y":45,"hp":24},{"id":2,"x":5.409524754244414,"y":46.726983497170366,"hp":24}],"targets":[],"relay":{"id":"relay_main","x":8,"y":45,"state":"ACTIVE"},"objectiveBlocked":false,"energy":{"current":100,"max":100},"cooldowns":{"scanTicks":0,"jamTicks":0},"memory":[{"tick":93,"kind":"drone","id":1,"x":11.7890625,"y":45},{"tick":93,"kind":"drone","id":2,"x":5.4
+
+[T2] model response {"requestIndex":1,"httpStatus":200,"id":"chatcmpl-0fe7a5cdff8e5c2ad98aa3ef4292f58f","returnedModel":"group/elisa","finishReason":"stop","latencyMs":2167,"usage":{"completion_tokens":26,"completion_tokens_details":{"reasoning_tokens":0},"prompt_tokens":409,"prompt_tokens_details":{"cache_write_tokens":0,"cached_tokens":0},"total_tokens":435},"visibleContent":"{\"kind\":\"scan\",\"reason\":\"perceived_hostile\",\"target\":{\"x\":11.7890625,\"y\":45}}","promptCharacters":699}
+
+[T2] decision {"decision":{"kind":"scan","reason":"perceived_hostile","target":{"x":11.7890625,"y":45}},"validDecision":true}
+
+[T2] suggest {"schema":"last_signal.mcp.companion-result.v1","ok":true,"suggestion":{"schema":"last_signal.companion.v1","session":"ses_9b71f80b671626102bf963da","epoch":1,"suggestionId":"sug_011631c4d9f6ed757c73051b","actorId":1,"kind":"scan","reason":"perceived_hostile","target":{"x":11.7890625,"y":45},"confidence":null,"createdAtTick":93,"expiresAtTick":213,"roomId":0,"generation":1,"status":"proposed","rep
+
+[T3] confirmed while paused {"paused":true,"pendingIntent":false,"echoEnergy":100,"playerEnergy":100}
+
+[T3] queue after second confirm 1
+
+[T3] after resume {"tick":236,"echoEnergy":100,"playerEnergy":100,"relay":"ACTIVE","evidence":1,"pendingIntent":false,"scanEv":{"type":"signal-scanned","actorId":1,"found":true,"ok":true,"energy":90,"cooldownTicks":120,"evidence":[{"id":"relay_main","kind":"relay","x":8,"y":45,"observedAtTick":93,"expiresAtTick":573,"observerActorId":"echo"}]}}
+
+[T4] model attempt 2 {"requestIndex":2,"httpStatus":200,"id":"chatcmpl-a1f4cb81d5021172634766f7d6f84c7f","returnedModel":"group/elisa","finishReason":"stop","latencyMs":1608,"usage":{"completion_tokens":24,"completion_tokens_details":{"reasoning_tokens":0},"prompt_tokens":788,"prompt_tokens_details":{"cache_write_tokens":0,"cached_tokens":0},"total_tokens":812},"visibleContent":"{\"kind\":\"toggle-relay\",\"reason\":\"perceived_relay\",\"target\":{\"x\":8,\"y\":45}}","promptCharacters":1589}
+
+[T4] suggest2 {"schema":"last_signal.mcp.companion-result.v1","ok":true,"suggestion":{"schema":"last_signal.companion.v1","session":"ses_9b71f80b671626102bf963da","epoch":1,"suggestionId":"sug_b763262dc652d7ea04007f77","actorId":1,"kind":"toggle-relay","reason":"perceived_relay","target":{"x":8,"y":45},"confidenc
+
+[T4] rejected {"pendingIntent":false,"echoEnergyBefore":100,"echoEnergyAfter":100,"evidenceBefore":1,"evidenceAfter":1,"tickBefore":265,"tickAfter":265}
+
+[T4] resurrect attempt {"stillPending":false,"count":0}
+
+[T5] disconnected {"comStatus":"FALLBACK:NO_MODEL","link":null,"echo":{"hp":88,"x":8.25,"y":45},"honestUi":true,"ui":["LLM COMPANION","ONLY A HUMAN HERE CAN CONFIRM · THE AGENT HAS NO CONFIRM TOOL","CONNECTION","STATE  FALLBACK:NO_MODEL","MODEL  OFFLINE","ENABLE / RE-AUTHORIZE (HUMAN)","PENDING PROPOSAL","No pending proposal."]}
+
+[T5] offline local proposal {"id":"local_265_1","kind":"scan"}
+
+[T5] offline local confirm queued 1
+
+[BUDGET] {"requests":2,"wallMs":29322}
+
+  1 passed (31.4s)

@@ -1,0 +1,13 @@
+# evidence-hygiene checks 2026-11-17T23:35:02+01:00
+== 1 trace ledger ==
+trace-87a0fac-final.json requests 2 ['chatcmpl-c975c036e99b5539b3b95fde335f8d64', 'chatcmpl-3f2fe8497040fac524136a386e7b294a'] {'requests': 2, 'wallMs': 27596}
+trace-87a0fac-scan.json requests 2 ['chatcmpl-0fe7a5cdff8e5c2ad98aa3ef4292f58f', 'chatcmpl-a1f4cb81d5021172634766f7d6f84c7f'] {'requests': 2, 'wallMs': 29345}
+== 2 harness present ==
+22223 reports/gameplay-01/reviewer/real-model-echo/harness.echo.spec.ts
+449 reports/gameplay-01/reviewer/real-model-echo/pw.echo.config.ts
+== 3 secret scan ==
+(none above = no credential literals)
+== 4 screenshots ==
+10
+== 5 no new model calls this turn ==
+trace budgetUsed unchanged (2/2)

@@ -1,6 +1,6 @@
 # GAMEPLAY-01 P2 v3 阶段提交（候选）
 
-状态：源码冻结候选；v3 独立复测与完整测试仍在进行，不能标记 P2 最终 PASS，更不是整个 GAMEPLAY-01 PASS。真人验收 HUMAN ACCEPTANCE PENDING。
+状态：`87a0fac` 独立快照的 P2 v3 安全阶段复核通过；Tester 完整回归仍在进行，不能标记完整工程验收通过，更不是整个 GAMEPLAY-01 PASS。真人验收 HUMAN ACCEPTANCE PENDING。
 
 ## 内容
 
@@ -17,11 +17,12 @@ ECHO 使用同一个纯 EchoController：保留手动 FOLLOW/HOLD/MOVE-TO，增�
 - Developer 原阈值下一次纯单测 794/794：原 P1 755 + P2 新 39（policy 19、headless 17、save 3）。另外 surface 1 与真实新导出 parity 3 分组运行，通过。
 - CLI quit 仍是原 15s/整体 20s；放宽阈值的旧 780 结果是 obsolete-config，不可替代 v3 门禁。
 - v1 暂停重复确认失败和 v2 raw-sim 恢复 queue1→2 失败均保留。v2 独立复测已证明 Rendered 重复确认闭环，但发现恢复缺陷，不能用于 v3 恢复保证。
-- Developer v3 先保存恢复失败反例，再验证原队列保留、二次确认被拒、只执行一次；Reviewer 正在独立复核，尚未给最终结论。
+- Developer v3 先保存恢复失败反例，再验证原队列保留、二次确认被拒、只执行一次；Reviewer 已在 `87a0fac` 独立快照复核通过：98 条针对性单测、2 条浏览器测试及恢复/混合队列探针。范围见 [P2_V3_REVIEW.md](reviewer/P2_V3_REVIEW.md)，不代替完整回归。
 - Tester v3 固定目录为 `D:/tmp/ls-p2-v3-accept`：基底 `2c4584c` + manifest 10 个 P2 文件及其测试快照，自有 npm ci、无共享链接。之后共享目录的 P3 改动不能作为该快照的证据。
 - 已有浏览器精确时序证明暂停 tick/HP/energy 不变；Scan 首次提交扣 ECHO 能量 10，玩家能量不变。较晚采样的 100→97 含回能，不是成本 3。
 - 正式 Headless 驱动同一个 Controller，但 P1 route/portal 仍为 Rendered-only；旧 parity 与 P2 signal parity 不证明完整协作关卡等价，P4 需补关键规则。
-- Magpie Player 最小游戏链路已单独提交 `dcd1955`；ECHO 的真实模型提案/Owner 接受、拒绝、断线尚未验证。本地确定性建议和自动点击只是 fixture，不是模型或本人试玩。
+- Magpie Player 最小游戏链路已单独提交 `dcd1955`；ECHO 在 `87a0fac` 独立快照上完成两次真实模型实验，分别提出 toggle-relay 与 scan，走官方观察/建议、Owner fixture 确认或拒绝、真实 tick 与断线降级。成功 trace 可独立核实 4 次模型请求；早期 6 次仅有执行者记录，原始日志被覆盖，不可独立复核。执行者记录总数为 10，上限 12 的完整遵守情况缺少原始证据。失败说明和成功请求账本见 [REAL_MODEL_ECHO_REPORT.md](reviewer/REAL_MODEL_ECHO_REPORT.md)，不声称失败记录完整。本地确定性建议不属于模型证据；自动 Owner 点击属于 fixture，不是本人试玩。
+- Tester v3 新 E2E 已执行 6/6、skip 0，未过滤的完整 typecheck 通过；纯单测、surface、build、全量 Playwright 与新导出 parity 的最终结果仍待回报，不能拼接历史通过数。
 
 源码及证据哈希见 [manifest](developer/p2/final/manifest.json)；规则及调用链见 [P2_IMPLEMENTATION.md](../../docs/gameplay/P2_IMPLEMENTATION.md)。历史问题见 [P2_FINAL_REVIEW](reviewer/P2_FINAL_REVIEW.md) 与 [P2_V2_REVIEW](reviewer/P2_V2_REVIEW.md)，新版本说明见 [final-v3 README](developer/p2/final-v3/README.md)。后续独立结论和完整结果另行提交，不混用版本。
 

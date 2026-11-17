@@ -1,0 +1,475 @@
+{
+  "snapshot": "87a0fac",
+  "startedAt": "2026-11-17T22:29:57.201Z",
+  "steps": [
+    {
+      "step": "echo-landed",
+      "state": {
+        "seq": 0,
+        "page": "pause",
+        "paused": false,
+        "tick": 94,
+        "hp": 100,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "ACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "OFF",
+        "pendingIntent": false,
+        "pendingCount": null
+      }
+    },
+    {
+      "step": "companion-connected",
+      "fixture": "owner form filled by fixture (autoOwner, not human)",
+      "state": {
+        "seq": 0,
+        "page": "llm",
+        "paused": true,
+        "tick": 98,
+        "hp": 94,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "ACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "CONNECTED",
+        "pendingIntent": false,
+        "pendingCount": null
+      }
+    },
+    {
+      "step": "echo_observe",
+      "observation": {
+        "schema": "last_signal.mcp.companion-result.v1",
+        "ok": true,
+        "observation": {
+          "schema": "last_signal.companion.v1",
+          "epoch": 1,
+          "tick": 98,
+          "echo": {
+            "x": 8.625,
+            "y": 45,
+            "hp": 94,
+            "maxHp": 100,
+            "aimYaw": 0
+          },
+          "player": {
+            "x": 8.312018860376655,
+            "y": 44.79198742641548
+          },
+          "drones": [
+            {
+              "id": 1,
+              "x": 11.625,
+              "y": 45,
+              "hp": 24
+            },
+            {
+              "id": 2,
+              "x": 5.409524754244414,
+              "y": 46.726983497170366,
+              "hp": 24
+            }
+          ],
+          "targets": [],
+          "relay": {
+            "id": "relay_main",
+            "x": 8,
+            "y": 45,
+            "state": "ACTIVE"
+          },
+          "objectiveBlocked": false,
+          "energy": {
+            "current": 100,
+            "max": 100
+          },
+          "cooldowns": {
+            "scanTicks": 0,
+            "jamTicks": 0
+          },
+          "memory": [
+            {
+              "tick": 98,
+              "kind": "drone",
+              "id": 1,
+              "x": 11.625,
+              "y": 45
+            },
+            {
+              "tick": 98,
+              "kind": "drone",
+              "id": 2,
+              "x": 5.409524754244414,
+              "y": 46.726983497170366
+            },
+            {
+              "tick": 98,
+              "kind": "relay",
+              "id": "relay_main",
+              "x": 8,
+              "y": 45
+            }
+          ]
+        }
+      }
+    },
+    {
+      "step": "model-decision",
+      "decision": {
+        "kind": "toggle-relay",
+        "reason": "perceived_relay",
+        "target": {
+          "x": 8,
+          "y": 45
+        }
+      },
+      "validDecision": true
+    },
+    {
+      "step": "echo_suggest (agent)",
+      "suggestionId": "sug_f21a5c4feaf6be9859a1f4d5",
+      "requestId": "req_5410cf8aa8f4109e00972132",
+      "result": {
+        "schema": "last_signal.mcp.companion-result.v1",
+        "ok": true,
+        "suggestion": {
+          "schema": "last_signal.companion.v1",
+          "session": "ses_fcdaab36e58847c10db23cd8",
+          "epoch": 1,
+          "suggestionId": "sug_f21a5c4feaf6be9859a1f4d5",
+          "actorId": 1,
+          "kind": "toggle-relay",
+          "reason": "perceived_relay",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "confidence": null,
+          "createdAtTick": 98,
+          "expiresAtTick": 218,
+          "roomId": 0,
+          "generation": 1,
+          "status": "proposed",
+          "replayed": false
+        },
+        "replayed": false,
+        "requestId": "req_5410cf8aa8f4109e00972132"
+      },
+      "modelChosenKind": "toggle-relay"
+    },
+    {
+      "step": "owner-confirm-paused",
+      "fixture": "autoOwner click (not human)",
+      "before": {
+        "seq": 0,
+        "page": "llm",
+        "paused": true,
+        "tick": 98,
+        "hp": 94,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "ACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "CONNECTED",
+        "pendingIntent": false,
+        "pendingCount": null
+      },
+      "after": {
+        "seq": 0,
+        "page": "llm",
+        "paused": true,
+        "tick": 98,
+        "hp": 94,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "ACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "CONNECTED",
+        "pendingIntent": false,
+        "pendingCount": null
+      }
+    },
+    {
+      "step": "double-confirm",
+      "queueAfterSecond": 1
+    },
+    {
+      "step": "after-resume-receipt",
+      "after": {
+        "seq": 1,
+        "page": "pause",
+        "paused": false,
+        "tick": 241,
+        "hp": 94,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "INACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "CONNECTED",
+        "pendingIntent": false,
+        "pendingCount": null
+      },
+      "events": [
+        {
+          "type": "signal-relay-changed",
+          "relay": "INACTIVE",
+          "manualEnabled": false,
+          "powered": true
+        }
+      ]
+    },
+    {
+      "step": "toggle-events",
+      "relayEv": [
+        {
+          "type": "signal-relay-changed",
+          "relay": "INACTIVE",
+          "manualEnabled": false,
+          "powered": true
+        }
+      ]
+    },
+    {
+      "step": "model-decision-2",
+      "decision": {
+        "kind": "toggle-relay",
+        "reason": "objective_blocked",
+        "target": {
+          "x": 8,
+          "y": 45
+        }
+      },
+      "valid2": true
+    },
+    {
+      "step": "echo_suggest-2",
+      "suggestionId": "sug_a41433d752642490c2dc0ddf",
+      "result": {
+        "schema": "last_signal.mcp.companion-result.v1",
+        "ok": true,
+        "suggestion": {
+          "schema": "last_signal.companion.v1",
+          "session": "ses_fcdaab36e58847c10db23cd8",
+          "epoch": 1,
+          "suggestionId": "sug_a41433d752642490c2dc0ddf",
+          "actorId": 1,
+          "kind": "toggle-relay",
+          "reason": "objective_blocked",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "confidence": null,
+          "createdAtTick": 253,
+          "expiresAtTick": 373,
+          "roomId": 0,
+          "generation": 1,
+          "status": "proposed",
+          "replayed": false
+        },
+        "replayed": false,
+        "requestId": "req_b5d62a5ad0f70018a7ba7fef"
+      }
+    },
+    {
+      "step": "owner-reject",
+      "fixture": "autoOwner click (not human)",
+      "before": {
+        "seq": 1,
+        "page": "llm",
+        "paused": true,
+        "tick": 267,
+        "hp": 94,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "INACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "CONNECTED",
+        "pendingIntent": false,
+        "pendingCount": null
+      },
+      "after": {
+        "seq": 1,
+        "page": "llm",
+        "paused": true,
+        "tick": 267,
+        "hp": 94,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "INACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "CONNECTED",
+        "pendingIntent": false,
+        "pendingCount": null
+      },
+      "rejectedId": "sug_a41433d752642490c2dc0ddf"
+    },
+    {
+      "step": "resurrect-rejected",
+      "result": {
+        "stillPending": false,
+        "count": 0
+      }
+    },
+    {
+      "step": "disconnected",
+      "state": {
+        "seq": 1,
+        "page": "llm",
+        "paused": true,
+        "tick": 267,
+        "hp": 94,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "INACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "FALLBACK:NO_MODEL",
+        "pendingIntent": false,
+        "pendingCount": null
+      }
+    },
+    {
+      "step": "offline-local-proposal",
+      "proposal": {
+        "id": "local_267_1",
+        "kind": "scan"
+      },
+      "note": "deterministic local proposal, NOT the model"
+    },
+    {
+      "step": "offline-local-confirm",
+      "fixture": "autoOwner click (not human), deterministic local path",
+      "before": {
+        "seq": 1,
+        "page": "local-coop",
+        "paused": true,
+        "tick": 267,
+        "hp": 94,
+        "echo": {
+          "hp": 94,
+          "x": 8.625,
+          "y": 45
+        },
+        "echoEnergy": 100,
+        "playerEnergy": 100,
+        "relay": "INACTIVE",
+        "evidence": 0,
+        "link": null,
+        "comStatus": "FALLBACK:NO_MODEL",
+        "pendingIntent": false,
+        "pendingCount": null
+      },
+      "queued": 1,
+      "proposal": {
+        "id": "local_267_1",
+        "kind": "scan"
+      }
+    }
+  ],
+  "requests": [
+    {
+      "requestIndex": 1,
+      "httpStatus": 200,
+      "id": "chatcmpl-c975c036e99b5539b3b95fde335f8d64",
+      "returnedModel": "group/elisa",
+      "finishReason": "stop",
+      "latencyMs": 1381,
+      "usage": {
+        "completion_tokens": 24,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 417,
+        "prompt_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "total_tokens": 441
+      },
+      "visibleContent": "{\"kind\":\"toggle-relay\",\"reason\":\"perceived_relay\",\"target\":{\"x\":8,\"y\":45}}",
+      "promptCharacters": 722
+    },
+    {
+      "requestIndex": 2,
+      "httpStatus": 200,
+      "id": "chatcmpl-3f2fe8497040fac524136a386e7b294a",
+      "returnedModel": "group/elisa",
+      "finishReason": "stop",
+      "latencyMs": 1960,
+      "usage": {
+        "completion_tokens": 23,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens": 770,
+        "prompt_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "total_tokens": 793
+      },
+      "visibleContent": "{\"kind\":\"toggle-relay\",\"reason\":\"objective_blocked\",\"target\":{\"x\":8,\"y\":45}}",
+      "promptCharacters": 1553
+    }
+  ],
+  "budget": {
+    "requests": 2,
+    "maxRequests": 12,
+    "maxTokens": 1024,
+    "startedAt": 1794954596845,
+    "wallLimitMs": 300000
+  },
+  "finishedAt": "2026-11-17T22:30:24.393Z",
+  "budgetUsed": {
+    "requests": 2,
+    "wallMs": 27596
+  }
+}
