@@ -7,7 +7,7 @@ import './slice.css';
 // original seven-scene game is never booted from /station-zero.html.
 export const game = new Phaser.Game({
   type: Phaser.CANVAS,
-  backgroundColor: '#05070c',
+  backgroundColor: '#07090b',
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

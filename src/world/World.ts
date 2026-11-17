@@ -1676,9 +1676,11 @@ export class World {
     }
     if (!this.echoSprite) {
       const g = this.scene.add.graphics();
-      g.fillStyle(0x33e0ff, 1); g.fillCircle(0, 0, 10);
-      g.lineStyle(2, 0xffffff, 0.9); g.strokeCircle(0, 0, 10);
-      g.fillStyle(0xeafaff, 1); g.fillTriangle(11, 0, 2, -5, 2, 5);
+      // UI-ART-01: ECHO reads as the signal viewpoint (cold blue, bone rim).
+      g.fillStyle(INK.hostileBody, 1); g.fillCircle(0, 0, 10);
+      g.fillStyle(INK.signal, 1); g.fillCircle(0, 0, 7);
+      g.lineStyle(1.5, INK.known, 0.9); g.strokeCircle(0, 0, 10);
+      g.fillStyle(INK.known, 1); g.fillTriangle(13, 0, 4, -5, 4, 5);
       this.echoSprite = this.scene.add.container(0, 0, [g]).setDepth(75);
     }
     const screen = this.worldToScreen(echo.x, echo.y);
@@ -1696,7 +1698,7 @@ export class World {
     }
     if (target) {
       const t = this.worldToScreen(target.x, target.y);
-      this.echoLine.lineStyle(1, 0x33e0ff, this.echoController.assistConfirmed ? 0.6 : 0.25);
+      this.echoLine.lineStyle(1, INK.signal, this.echoController.assistConfirmed ? 0.6 : 0.25);
       this.echoLine.lineBetween(screen.x, screen.y, t.x, t.y);
     }
   }

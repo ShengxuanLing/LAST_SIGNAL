@@ -4,6 +4,9 @@ import { UPGRADES, UPGRADE_LIST, applyUpgrade } from '../config/upgrades';
 import { PlayerData } from '../types';
 import { GameScene } from './GameScene';
 import { audio } from '../systems/AudioSystem';
+import { FONT } from '../art/survey/tokens';
+import { UIC, UIN } from '../ui/palette';
+import { dashed, diamond, sheetChrome, ticks } from '../ui/sheet';
 
 export class LevelUpScene extends Phaser.Scene {
   constructor() { super('LevelUpScene'); }
@@ -35,25 +38,74 @@ export class LevelUpScene extends Phaser.Scene {
     const weights = pool.map((d) => d.weight);
     this.choices = this.pickWeighted(pool, weights, 3).map((d) => d.key);
 
-    // header
-    this.add.text(GAME.WINDOW_W / 2, 120, `LEVEL ${lvl}`, {
-      fontFamily: 'monospace', fontSize: '22px', color: '#33e0ff', fontStyle: 'bold'
-    }).setOrigin(0.5, 0.5);
-    this.add.text(GAME.WINDOW_W / 2, 150, 'CHOOSE AN UPGRADE', {
-      fontFamily: 'monospace', fontSize: '16px', color: '#ffb060'
-    }).setOrigin(0.5, 0.5);
+    // UI-ART-01: a field-upgrade sheet over the frozen run. The scrim is a
+    // plain, non-interactive rectangle so the card hit areas stay the only
+    // controls; all chrome is Graphics (no bounds, never hit-tested).
+    this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, UIN.void, 0.8).setOrigin(0, 0);
+    sheetChrome(this.add.graphics());
+    const cx = GAME.WINDOW_W / 2;
+    const head = this.add.graphics();
+    this.add.text(cx, 92, 'EX-17 · FIELD UPGRADE AVAILABLE', {
+      fontFamily: FONT.mono, fontSize: '11px', color: UIC.dim
+    }).setOrigin(0.5, 0.5).setLetterSpacing(4);
+    const title = this.add.text(cx, 120, `LEVEL ${lvl}`, {
+      fontFamily: FONT.mono, fontSize: '28px', color: UIC.text, fontStyle: 'bold'
+    }).setOrigin(0.5, 0.5).setLetterSpacing(8);
+    for (const sx of [-1, 1]) {
+      const gap = title.width / 2 + 20;
+      head.lineStyle(1, UIN.ink, 0.32);
+      head.lineBetween(cx + sx * gap, 120.5, cx + sx * (gap + 60), 120.5);
+      head.lineBetween(cx + sx * (gap + 60), 115.5, cx + sx * (gap + 60), 125.5);
+      head.fillStyle(UIN.accent, 0.9);
+      head.fillRect(cx + sx * (gap - 6) - 2, 118.5, 4, 4);
+    }
+    this.add.text(cx, 150, 'CHOOSE AN UPGRADE', {
+      fontFamily: FONT.mono, fontSize: '13px', color: UIC.muted
+    }).setOrigin(0.5, 0.5).setLetterSpacing(4);
 
     const startX = GAME.WINDOW_W / 2 - (this.choices.length * 260) / 2 + 130;
     this.choices.forEach((key, i) => {
       const def = UPGRADES[key];
       const x = startX + i * 260;
-      const panel = this.add.rectangle(x, 320, 230, 300, 0x0d1822, 0.9)
-        .setStrokeStyle(2, 0x33e0ff, 0.8).setInteractive();
+      const x0 = x - 115, x1 = x + 115, y0 = 170, y1 = 470;
+      const panel = this.add.rectangle(x, 320, 230, 300, UIN.panel, 0.96)
+        .setStrokeStyle(1, UIN.ink, 0.22).setInteractive();
       this.buttons.push(panel);
+      const card = this.add.graphics();
+      const paintCard = (hot: boolean): void => {
+        card.clear();
+        // header band, divider rules, effect well
+        card.fillStyle(hot ? UIN.massLift : UIN.mass, 1); card.fillRect(x0 + 1, y0 + 1, 228, 56);
+        card.lineStyle(1, UIN.ink, 0.16); card.lineBetween(x0 + 1, y0 + 57.5, x1 - 1, y0 + 57.5);
+        dashed(card, x0 + 18, 312.5, x1 - 18, 312.5, 2, 4, 0.22);
+        card.fillStyle(UIN.accentDeep, hot ? 0.9 : 0.55); card.fillRect(x0 + 12, 408, 206, 50);
+        card.lineStyle(1, UIN.accent, hot ? 0.6 : 0.25); card.strokeRect(x0 + 12.5, 408.5, 205, 49);
+        // key cap
+        card.lineStyle(1, hot ? UIN.accent : UIN.ink, hot ? 1 : 0.5); card.strokeRect(x0 + 14.5, y0 + 15.5, 26, 26);
+        // rank pips: filled = owned, outlined accent = this choice, faint = remaining
+        const owned = prog?.level ?? 0;
+        const n = def.maxLevel, pw = 14, pg = 6;
+        const px0 = x - ((n * pw + (n - 1) * pg) / 2) + pw / 2;
+        for (let k = 0; k < n; k++) {
+          const px = px0 + k * (pw + pg);
+          if (k < owned) diamond(card, px, 284, 5, UIN.ink, 0.9, true);
+          else if (k === owned) diamond(card, px, 284, 5, UIN.accent, 1, true);
+          else diamond(card, px, 284, 5, UIN.ink, 0.3, false);
+        }
+        if (hot) {
+          panel.setStrokeStyle(1.5, UIN.accent, 1);
+          ticks(card, x0 - 6, y0 - 6, x1 + 6, y1 + 6, 10, 1, UIN.accent);
+        } else {
+          panel.setStrokeStyle(1, UIN.ink, 0.22);
+          ticks(card, x0, y0, x1, y1, 8, 0.55);
+        }
+      };
+      const prog = this.player.upgrades.find((u) => u.key === def.key);
+      paintCard(false);
 
-      const glow = this.add.rectangle(x, 320, 230, 300, 0x33e0ff, 0).setOrigin(0.5, 0.5).setInteractive();
-      glow.on('pointerover', () => panel.setFillStyle(0x16303a, 1));
-      glow.on('pointerout', () => panel.setFillStyle(0x0d1822, 0.9));
+      const glow = this.add.rectangle(x, 320, 230, 300, UIN.accent, 0).setOrigin(0.5, 0.5).setInteractive();
+      glow.on('pointerover', () => paintCard(true));
+      glow.on('pointerout', () => paintCard(false));
       glow.on('pointerdown', () => this.choose(key));
       const shortcut = `keydown-${['ONE', 'TWO', 'THREE'][i]}`;
       const onKey = (event: KeyboardEvent) => {
@@ -62,15 +114,16 @@ export class LevelUpScene extends Phaser.Scene {
       this.input.keyboard?.on(shortcut, onKey);
       this.events.once('shutdown', () => this.input.keyboard?.off(shortcut, onKey));
 
-      // icon
-      this.add.text(x, 200, `[${i + 1}]`, {
-        fontFamily: 'monospace', fontSize: '26px', color: '#ffd233'
+      // key cap number + rank caption
+      this.add.text(x0 + 27.5, y0 + 29, `${i + 1}`, {
+        fontFamily: FONT.mono, fontSize: '16px', color: UIC.accent, fontStyle: 'bold'
       }).setOrigin(0.5);
-      this.add.text(x, 250, def.name, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff', fontStyle: 'bold' }).setOrigin(0.5, 0.5);
-      const prog = this.player.upgrades.find((u) => u.key === def.key);
-      this.add.text(x, 280, `Lv ${prog?.level ?? 0}/${def.maxLevel}`, { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' }).setOrigin(0.5, 0.5);
+      this.add.text(x1 - 14, y0 + 29, `RANK ${prog?.level ?? 0}/${def.maxLevel}`, {
+        fontFamily: FONT.mono, fontSize: '11px', color: UIC.dim
+      }).setOrigin(1, 0.5).setLetterSpacing(2);
+      this.add.text(x, 254, def.name, { fontFamily: FONT.mono, fontSize: '18px', color: UIC.text, fontStyle: 'bold' }).setOrigin(0.5, 0.5);
       this.wrapText(this.add.text(x, 330, def.description, {
-        fontFamily: 'monospace', fontSize: '14px', color: '#cfe8ef',
+        fontFamily: FONT.mono, fontSize: '14px', color: UIC.textMid,
         lineHeight: 16, align: 'center'
       } as any).setOrigin(0.5, 0), x, 330, 200);
       // effect preview
@@ -79,12 +132,12 @@ export class LevelUpScene extends Phaser.Scene {
       applyUpgrade(def, cloned, (prog?.level ?? 0) + 1);
       const after = this.snapshot(cloned);
       const diff = this.formatDiff(before, after);
-      this.add.text(x, 450, diff, { fontFamily: 'monospace', fontSize: '12px', color: '#7ff0ff' }).setOrigin(0.5, 0.5);
+      this.add.text(x, 433, diff, { fontFamily: FONT.mono, fontSize: '13px', color: UIC.accent, fontStyle: 'bold', align: 'center' }).setOrigin(0.5, 0.5);
     });
 
-    this.add.text(GAME.WINDOW_W / 2, GAME.WINDOW_H - 24, 'CLICK A CARD OR PRESS ITS NUMBER', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8'
-    }).setOrigin(0.5, 0.5);
+    this.add.text(GAME.WINDOW_W / 2, GAME.WINDOW_H - 34, 'CLICK A CARD OR PRESS ITS NUMBER', {
+      fontFamily: FONT.mono, fontSize: '12px', color: UIC.faint
+    }).setOrigin(0.5, 0.5).setLetterSpacing(2);
   }
 
   private snapshot(state: PlayerData = this.player): Record<string, number> {

@@ -46,18 +46,45 @@ export class GraphicsFactory {
       g.fillRect(54, 3, 6, 2);
     });
 
+    // UI-ART-01: menu / debrief backdrop in Direction A "SURVEY INK" — a graphite
+    // sheet with a faint isometric survey lattice and dashed scan contours.
+    // Deterministic (no Math.random) so screenshots are stable.
     gen('bg', 1280, 720, (c) => {
       const g = c.getContext('2d')!;
-      const grd = g.createRadialGradient(640, 360, 60, 640, 360, 900);
-      grd.addColorStop(0, '#0b1420');
-      grd.addColorStop(1, '#04060b');
-      g.fillStyle = grd;
-      g.fillRect(0, 0, 1280, 720);
-      g.fillStyle = 'rgba(51,224,255,0.04)';
-      for (let i = 0; i < 60; i++) {
-        const x = Math.random() * 1280, y = Math.random() * 720, r = Math.random() * 2 + 0.5;
-        g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+      const W = 1280, H = 720, cx = 640, cy = 380;
+      const base = g.createRadialGradient(cx, cy - 40, 40, cx, cy, 860);
+      base.addColorStop(0, '#171c21');
+      base.addColorStop(0.5, '#0e1114');
+      base.addColorStop(1, '#07090b');
+      g.fillStyle = base;
+      g.fillRect(0, 0, W, H);
+      // Isometric 64x32 lattice (the world grid), bone ink at very low alpha.
+      g.strokeStyle = 'rgba(232,226,208,0.045)';
+      g.lineWidth = 1;
+      for (let k = -H * 2; k < W + H * 2; k += 64) {
+        g.beginPath(); g.moveTo(k, 0); g.lineTo(k + H * 2, H); g.stroke();
+        g.beginPath(); g.moveTo(k, 0); g.lineTo(k - H * 2, H); g.stroke();
       }
+      // Dashed iso scan contours (Scan = a survey act, 03 §9).
+      g.setLineDash([3, 7]);
+      for (const [r, a] of [[220, 0.07], [360, 0.055], [520, 0.04], [700, 0.03]] as const) {
+        g.strokeStyle = `rgba(232,226,208,${a})`;
+        g.beginPath(); g.ellipse(cx, cy + 40, r, r / 2, 0, 0, Math.PI * 2); g.stroke();
+      }
+      g.setLineDash([]);
+      // Deterministic grain.
+      let seed = 0x5eed1e;
+      const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      for (let i = 0; i < 2200; i++) {
+        g.fillStyle = `rgba(232,226,208,${0.012 + rnd() * 0.02})`;
+        g.fillRect(Math.floor(rnd() * W), Math.floor(rnd() * H), 1, 1);
+      }
+      // Edge falloff keeps the lattice out of the corners ("unobserved").
+      const fade = g.createRadialGradient(cx, cy, 260, cx, cy, 820);
+      fade.addColorStop(0, 'rgba(7,9,11,0)');
+      fade.addColorStop(1, 'rgba(7,9,11,0.92)');
+      g.fillStyle = fade;
+      g.fillRect(0, 0, W, H);
     });
 
     gen('player', 48, 48, (c) => {

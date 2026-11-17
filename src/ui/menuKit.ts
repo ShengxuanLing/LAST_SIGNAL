@@ -14,6 +14,8 @@ import Phaser from 'phaser';
 import { GAME } from '../config/game';
 import { FONT } from '../art/survey/tokens';
 import { audio } from '../systems/AudioSystem';
+import { UIC, UIN } from './palette';
+import { ticks } from './sheet';
 
 export interface UITokens {
   PAD: number;
@@ -55,20 +57,30 @@ export function resolveUITokens(): UITokens {
 
 export type Tone = 'primary' | 'neutral' | 'danger' | 'muted';
 
+// UI-ART-01: Survey Ink button tones. Fill = the tone; outline = its accent.
+// primary = interactable protocol (cyan), danger = caution (amber, never the
+// hostile vermilion), neutral / muted = graphite mass.
 export const TONE: Record<Tone, number> = {
-  primary: 0x33e0ff,
-  neutral: 0x274a55,
-  danger: 0x5a2a3a,
-  muted: 0x22333a,
+  primary: UIN.accentDeep,
+  neutral: UIN.mass,
+  danger: UIN.warnDeep,
+  muted: UIN.panel,
+};
+
+const TONE_LINE: Record<Tone, { color: number; alpha: number; label: string }> = {
+  primary: { color: UIN.accent, alpha: 0.7, label: UIC.text },
+  neutral: { color: UIN.ink, alpha: 0.3, label: UIC.text },
+  danger: { color: UIN.warn, alpha: 0.55, label: UIC.warn },
+  muted: { color: UIN.ink, alpha: 0.18, label: UIC.muted },
 };
 
 const INK = {
-  label: '#eafaff',
-  labelDim: '#5a7480',
-  body: '#cfe8ef',
-  head: '#ff8a3c',
-  muted: '#8fb8c8',
-  focus: 0xffffff,
+  label: UIC.text,
+  labelDim: '#5d594f',
+  body: UIC.textMid,
+  head: UIC.dim,
+  muted: UIC.muted,
+  focus: UIN.accent,
 } as const;
 
 /** Anything the menu can move keyboard focus through and activate. */
@@ -81,6 +93,8 @@ export interface Focusable {
 export interface ButtonHandle extends Focusable {
   rect: Phaser.GameObjects.Rectangle;
   label: Phaser.GameObjects.Text;
+  /** Non-interactive focus / hover chrome (Graphics: no bounds, no input). */
+  deco: Phaser.GameObjects.Graphics;
   focused: boolean;
   setLabel(text: string): void;
   setDisabled(disabled: boolean): void;
@@ -107,19 +121,22 @@ export function createButton(scene: Phaser.Scene, opts: ButtonOpts, tokens: UITo
   const w = opts.w ?? tokens.BTN_W;
   const h = opts.h ?? tokens.BTN_H;
   let tone: Tone = opts.tone ?? 'neutral';
-  const rect = scene.add.rectangle(x, opts.y, w, h, TONE[tone], 0.35)
-    .setOrigin(0.5).setStrokeStyle(2, TONE.primary, 0.7);
+  const rect = scene.add.rectangle(x, opts.y, w, h, TONE[tone], 0.92)
+    .setOrigin(0.5).setStrokeStyle(1, TONE_LINE[tone].color, TONE_LINE[tone].alpha);
   const label = scene.add.text(x, opts.y, opts.label, {
     fontFamily: FONT.mono,
     fontSize: `${opts.fontSize ?? tokens.BTN_FONT}px`,
-    color: INK.label,
+    color: TONE_LINE[tone].label,
     fontStyle: 'bold',
     align: 'center',
     wordWrap: { width: w - 28, useAdvancedWrap: false }
-  }).setOrigin(0.5).setLetterSpacing(1);
+  }).setOrigin(0.5).setLetterSpacing(2);
+  // Focus / hover chrome lives in a Graphics (no bounds, never hit-tested).
+  const deco = scene.add.graphics();
+  let hovered = false;
 
   const handle: ButtonHandle = {
-    rect, label,
+    rect, label, deco,
     enabled: true,
     focused: false,
     setLabel: (text: string) => { label.setText(text); },
@@ -142,23 +159,45 @@ export function createButton(scene: Phaser.Scene, opts: ButtonOpts, tokens: UITo
   };
 
   function paint(): void {
+    deco.clear();
+    const line = TONE_LINE[tone];
+    // Local to the deco object, so a scrolled region (which moves both) stays aligned.
+    const bx = rect.x - deco.x, by = rect.y - deco.y;
+    const x0 = bx - w / 2, x1 = bx + w / 2, y0 = by - h / 2, y1 = by + h / 2;
     if (!handle.enabled) {
-      rect.setFillStyle(TONE[tone], 0.12).setStrokeStyle(2, 0x3d535d, 0.4);
+      rect.setFillStyle(UIN.panel, 0.55).setStrokeStyle(1, UIN.ink, 0.1);
       label.setColor(INK.labelDim);
       return;
     }
     if (handle.focused) {
-      rect.setFillStyle(TONE[tone], 0.55).setStrokeStyle(3, INK.focus, 0.95);
-      label.setColor('#ffffff');
+      rect.setFillStyle(tone === 'danger' ? UIN.warnDeep : UIN.accentDeep, 1).setStrokeStyle(1.5, tone === 'danger' ? UIN.warn : INK.focus, 1);
+      label.setColor(tone === 'danger' ? UIC.warn : UIC.white);
+      // Outer corner ticks + a caret: focus is shape-coded, not colour-only.
+      ticks(deco, x0 - 5, y0 - 5, x1 + 5, y1 + 5, 7, 0.9, tone === 'danger' ? UIN.warn : UIN.accent);
+      if (w >= 120) {
+        const cx = x0 + 9;
+        deco.fillStyle(tone === 'danger' ? UIN.warn : UIN.accent, 1);
+        deco.beginPath(); deco.moveTo(cx, by - 5); deco.lineTo(cx + 6, by); deco.lineTo(cx, by + 5); deco.closePath(); deco.fillPath();
+      }
       return;
     }
-    rect.setFillStyle(TONE[tone], 0.35).setStrokeStyle(2, TONE.primary, 0.7);
-    label.setColor(INK.label);
+    if (hovered) {
+      rect.setFillStyle(tone === 'danger' ? UIN.warnDeep : UIN.massLift, 1).setStrokeStyle(1, line.color, Math.min(1, line.alpha + 0.3));
+      label.setColor(tone === 'danger' ? UIC.warn : UIC.white);
+      return;
+    }
+    rect.setFillStyle(TONE[tone], 0.92).setStrokeStyle(1, line.color, line.alpha);
+    label.setColor(line.label);
+    // Primary actions carry a small cyan protocol pip at the left edge.
+    if (tone === 'primary') {
+      deco.fillStyle(UIN.accent, 0.9);
+      deco.fillRect(x0 + 1, y0 + 1, 3, h - 2);
+    }
   }
 
   rect.setInteractive({ useHandCursor: true });
-  rect.on('pointerover', () => { if (handle.enabled) { rect.setFillStyle(TONE[tone], 0.6); label.setColor('#ffffff'); } });
-  rect.on('pointerout', () => paint());
+  rect.on('pointerover', () => { hovered = true; if (handle.enabled) paint(); });
+  rect.on('pointerout', () => { hovered = false; paint(); });
   rect.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
     event?.stopPropagation?.();
     handle.activate();
@@ -216,21 +255,48 @@ export class MenuPage {
     return t;
   }
 
-  title(value: string, y: number): Phaser.GameObjects.Text {
-    return this.text(GAME.WINDOW_W / 2, y, value, {
-      fontSize: this.tokens.TITLE_FONT, color: '#33e0ff', bold: true, letterSpacing: 6
-    });
+  /** Non-interactive drawing layer owned by this page (destroyed with it). */
+  graphics(): Phaser.GameObjects.Graphics {
+    const g = this.scene.add.graphics();
+    this.objects.push(g);
+    return g;
   }
 
-  head(value: string, y: number, color = INK.head): Phaser.GameObjects.Text {
-    return this.text(GAME.WINDOW_W / 2, y, value, {
-      fontSize: this.tokens.HEAD_FONT, color, bold: true, letterSpacing: 2
+  title(value: string, y: number): Phaser.GameObjects.Text {
+    const t = this.text(GAME.WINDOW_W / 2, y, value, {
+      fontSize: this.tokens.TITLE_FONT, color: UIC.text, bold: true, letterSpacing: 8
     });
+    // Dimension marks flanking the title (never under it, so a subtitle placed
+    // close below is never struck through).
+    const g = this.graphics();
+    const cx = GAME.WINDOW_W / 2, yy = Math.round(y) + 0.5, gap = t.width / 2 + 22;
+    for (const sx of [-1, 1]) {
+      g.lineStyle(1, UIN.ink, 0.32);
+      g.lineBetween(cx + sx * gap, yy, cx + sx * (gap + 56), yy);
+      g.lineBetween(cx + sx * (gap + 56), yy - 5, cx + sx * (gap + 56), yy + 5);
+      g.fillStyle(UIN.accent, 0.85);
+      g.fillRect(cx + sx * (gap - 6) - 2, yy - 2.5, 4, 4);
+    }
+    return t;
+  }
+
+  head(value: string, y: number, color: string = INK.head): Phaser.GameObjects.Text {
+    const t = this.text(GAME.WINDOW_W / 2, y, value, {
+      fontSize: this.tokens.HEAD_FONT, color, bold: true, letterSpacing: 4
+    });
+    // Section label set between two hairlines ("— AUDIO —").
+    const g = this.graphics();
+    const gap = t.width / 2 + 12;
+    const yy = Math.round(y) + 0.5;
+    g.lineStyle(1, UIN.ink, 0.2);
+    g.lineBetween(GAME.WINDOW_W / 2 - gap - 110, yy, GAME.WINDOW_W / 2 - gap, yy);
+    g.lineBetween(GAME.WINDOW_W / 2 + gap, yy, GAME.WINDOW_W / 2 + gap + 110, yy);
+    return t;
   }
 
   button(opts: ButtonOpts): ButtonHandle {
     const handle = createButton(this.scene, opts, this.tokens);
-    this.objects.push(handle.rect, handle.label);
+    this.objects.push(handle.rect, handle.label, handle.deco);
     this.buttons.push(handle);
     this.items.push(handle);
     return handle;

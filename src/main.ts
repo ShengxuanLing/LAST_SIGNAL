@@ -10,7 +10,7 @@ import { PauseScene } from './scenes/PauseScene';
 
 export const game = new Phaser.Game({
   type: Phaser.CANVAS,
-  backgroundColor: '#05070c',
+  backgroundColor: '#07090b',
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
