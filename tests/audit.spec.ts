@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { clickLabel, resumeGame } from './uiNav';
 
 // Fixed-seed playability regression.
 //
@@ -394,48 +395,69 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   // 9b) SETTINGS: two independent volume rows both change and persist.
   await page.keyboard.press('Escape');
   await page.waitForTimeout(450);
-  await page.mouse.click(640, 420); // SETTINGS
+  await clickLabel(page, 'PauseScene', 'SETTINGS');
   await page.waitForTimeout(350);
   const settingsBefore = await page.evaluate(() => {
     const g: any = (window as any).__game;
     const ps: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'PauseScene');
-    const c: any = ps.children.list.find((x: any) => x.type === 'Container');
-    const txt = c ? c.list.filter((x: any) => x.type === 'Text').map((x: any) => x.text) : [];
-    return { master: txt.find((t: string) => t.startsWith('MASTER')), sfx: txt.find((t: string) => t.startsWith('SFX')), arrows: txt.filter((t: string) => t === '◀' || t === '▶').length };
+    const walk = (l: any[]): any[] => l.flatMap((c: any) => (c.type === 'Container' && c.list ? walk(c.list) : [c]));
+    const texts = walk(ps.children.list).filter((x: any) => x.type === 'Text');
+    const txt = texts.map((x: any) => x.text);
+    const arrows = texts.filter((x: any) => x.text === '◀' || x.text === '▶').map((x: any) => {
+      const b = x.getBounds();
+      return { t: x.text, x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    });
+    // UI-REWORK-01 splits the row into a label and its own value text.
+    const pcts = txt.filter((t: string) => /^\d+%$/.test(t));
+    return { master: pcts[0], sfx: pcts[1], labels: txt.filter((t: string) => t === 'MASTER' || t === 'SFX'), arrows };
   });
-  expect(settingsBefore.arrows, 'two rows of volume arrows (4 total)').toBe(4);
-  expect(settingsBefore.master, 'master volume label shown').toBeTruthy();
-  expect(settingsBefore.sfx, 'sfx volume label shown').toBeTruthy();
-  await page.mouse.click(480, 300); // master -
-  await page.mouse.click(480, 340); // sfx -
+  expect(settingsBefore.arrows.length, 'two rows of volume arrows (4 total)').toBe(4);
+  expect(settingsBefore.master, 'master volume value shown').toBeTruthy();
+  expect(settingsBefore.sfx, 'sfx volume value shown').toBeTruthy();
+  expect(settingsBefore.labels, 'both volume rows are labelled').toEqual(['MASTER', 'SFX']);
+  // Real ◀ controls of both rows (row order: master ◀ ▶, sfx ◀ ▶).
+  await page.mouse.click(settingsBefore.arrows[0].x, settingsBefore.arrows[0].y); // master -
+  await page.mouse.click(settingsBefore.arrows[2].x, settingsBefore.arrows[2].y); // sfx -
   await page.waitForTimeout(300);
   const settingsAfter = await page.evaluate(() => {
     const g: any = (window as any).__game;
     const ps: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'PauseScene');
-    const c: any = ps.children.list.find((x: any) => x.type === 'Container');
-    const txt = c ? c.list.filter((x: any) => x.type === 'Text').map((x: any) => x.text) : [];
+    const walk = (l: any[]): any[] => l.flatMap((c: any) => (c.type === 'Container' && c.list ? walk(c.list) : [c]));
+    const txt = walk(ps.children.list).filter((x: any) => x.type === 'Text').map((x: any) => x.text);
     const saved = JSON.parse(localStorage.getItem('last_signal_save_v1') || '{}');
+    const pcts = txt.filter((t: string) => /^\d+%$/.test(t));
     return {
-      master: txt.find((t: string) => t.startsWith('MASTER')),
-      sfx: txt.find((t: string) => t.startsWith('SFX')),
+      master: pcts[0],
+      sfx: pcts[1],
       settings: saved.settings || null
     };
   });
   expect(settingsAfter.master, 'master volume changed').not.toBe(settingsBefore.master);
   expect(settingsAfter.sfx, 'sfx volume changed').not.toBe(settingsBefore.sfx);
   expect(settingsAfter.settings?.screenShake, 'strict validate() still accepts persisted save').toBe(true);
-  await page.mouse.click(640, 370); // screen shake toggle
-  await page.mouse.click(640, 405); // reset audio
+  await clickLabel(page, 'PauseScene', 'SCREEN SHAKE'); // screen shake toggle
+  await clickLabel(page, 'PauseScene', 'RESET AUDIO'); // reset audio
+  await page.waitForTimeout(300);
   const restoredSettings = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('last_signal_save_v1') || '{}').settings);
   expect(restoredSettings).toMatchObject({ screenShake: false, masterVolume: 0.7, sfxVolume: 0.8 });
+  // UI-REWORK-01 contract: ESC walks exactly one level back, so ESC from
+  // settings returns to the pause root and the next ESC resumes the run.
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
+  const backAtRoot = await page.evaluate(() => {
+    const g: any = (window as any).__game;
+    const ps: any = g.scene.getScene('PauseScene');
+    return { active: g.scene.isActive('PauseScene'), page: ps?.page ?? null };
+  });
+  expect(backAtRoot.active, 'ESC from settings keeps the Pause overlay one level up').toBe(true);
+  expect(backAtRoot.page, 'ESC from settings returns to the pause root').toBe('pause');
+  await resumeGame(page);
   const settingsClosed = await page.evaluate(() => ({
     pauseActive: (window as any).__game.scene.isActive('PauseScene'),
     paused: (Object.values((window as any).__game.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any).paused
   }));
-  expect(settingsClosed.pauseActive, 'PauseScene closed by ESC from settings').toBe(false);
+  expect(settingsClosed.pauseActive, 'PauseScene closed after leaving settings').toBe(false);
   expect(settingsClosed.paused, 'game resumed after settings').toBe(false);
 
   // 10) F teleports to the next room: grid == nearest walkable landing tile and sprite follows.
@@ -447,11 +469,56 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
     const w = gs.world, t = w.map.rooms[w.portal.targetRoom];
     const expected = w.findWalkableInRoom(t);
     w.player.reset(w.portal.wx, w.portal.wy); // walk onto the portal
-    return { expected, beforeRoom: w.currentRoom()?.id, expectedWalkable: w.isWalkable(expected.x, expected.y, 0.5) };
+    return {
+      expected, beforeRoom: w.currentRoom()?.id,
+      expectedWalkable: w.isWalkable(expected.x, expected.y, 0.5),
+      onPortal: { x: w.portal.wx, y: w.portal.wy }
+    };
   });
   expect(teleport.expectedWalkable, 'target landing tile is walkable').toBe(true);
+  // The reset is a core command: wait until the player really stands on the
+  // portal tile before pressing F (no catch: a sync failure must be reported
+  // here, not masked behind a later geometry assertion).
+  await page.waitForFunction((onPortal: { x: number; y: number }) => {
+    const g: any = (window as any).__game;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+    const w = gs?.world;
+    return !!w && Math.abs(w.player.wx - onPortal.x) < 0.01 && Math.abs(w.player.wy - onPortal.y) < 0.01;
+  }, teleport.onPortal, { timeout: 8000 });
+  // Deterministic landing geometry: an actor standing on the landing tile would
+  // be separated from the protagonist by the core's actor-separation step
+  // (a constant 0.375-tile push), which is a different mechanic. Clear hostile
+  // actors through the existing core test seam so the teleport geometry itself
+  // is what is asserted (measured: separation produced exactly
+  // hypot(0.2400691, 0.2880830) = 0.375 tiles).
+  await page.evaluate(() => {
+    const w = (window as any).__game.scene.getScene('GameScene').world;
+    w.clearEnemiesForTest();
+    w.resetProjectilesForTest();
+  });
   await page.keyboard.press('KeyF');
-  await page.waitForTimeout(500);
+  // Wait for the real commit: the player must be in the target room, on the
+  // predicted landing tile. No fixed sleep and no catch — if the teleport does
+  // not commit this fails with the exact expectation.
+  await page.waitForFunction(({ expected, beforeRoom }: { expected: { x: number; y: number }; beforeRoom: number }) => {
+    const g: any = (window as any).__game;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+    const w = gs?.world;
+    if (!w) return false;
+    if (w.currentRoom()?.id === beforeRoom) return false;
+    return Math.abs(w.player.wx - expected.x) < 0.01 && Math.abs(w.player.wy - expected.y) < 0.01;
+  }, { expected: teleport.expected, beforeRoom: teleport.beforeRoom }, { timeout: 10000 });
+  // The camera lerps to the new centre; wait for the documented bound itself.
+  await page.waitForFunction(() => {
+    const g: any = (window as any).__game;
+    const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+    const w = gs?.world;
+    if (!w) return false;
+    const cam = gs.cameras.main;
+    const s = w.worldToScreen(w.player.wx, w.player.wy);
+    const c = cam.getWorldPoint(640, 360);
+    return Math.hypot(c.x - s.x, c.y - s.y) < 120;
+  }, undefined, { timeout: 6000 });
   st = await worldState(page);
   expect(Math.abs(st.grid.x - teleport.expected.x), 'teleported grid x == target landing tile').toBeLessThan(0.01);
   expect(Math.abs(st.grid.y - teleport.expected.y), 'teleported grid y == target landing tile').toBeLessThan(0.01);
@@ -476,7 +543,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   // 12) QUIT TO MENU shuts the run down; a second NEW RUN starts fresh & playable.
   await page.keyboard.press('Escape');
   await page.waitForTimeout(450);
-  await page.mouse.click(640, 480); // QUIT TO MENU
+  await clickLabel(page, 'PauseScene', 'QUIT TO MENU');
   await page.waitForTimeout(600);
   const afterQuit = await page.evaluate(() => ({
     active: (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key),

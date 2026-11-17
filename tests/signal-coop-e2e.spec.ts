@@ -22,6 +22,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
 import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
+import { openLlm, resumeGame, waitForButton } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
@@ -173,8 +174,7 @@ test('Signal cooperation chain: default no relay → opt-in → device → Compa
     // Close settings panel (BACK button), then close Pause.
     await clickText(page, 'BACK');
     await page.waitForTimeout(200);
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
 
     // 3) REAL room enter with the opt-in already ON: the World spawns its ONE
     //    Relay device for this run. Nothing is injected by the test.
@@ -244,7 +244,7 @@ test('Signal cooperation chain: default no relay → opt-in → device → Compa
     await page.waitForFunction(() => !!((window as any).__game.scene.getScene('GameScene').world.echoActor));
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
-    await clickText(page, 'LLM COMPANION >');
+    await openLlm(page);
     await page.waitForTimeout(300);
     await clickText(page, 'ENABLE / RE-AUTHORIZE');
     await fillOwnerForm(page, bridge.url, TOKEN, TEST_OWNER_KEY);
@@ -282,6 +282,7 @@ test('Signal cooperation chain: default no relay → opt-in → device → Compa
     // real core Signal command, which the NEXT core tick commits. While the Pause
     // scene is active the world tick is frozen, so the queued command stays
     // observable here and no state was written early.
+    await waitForButton(page, 'CONFIRM FIRST PROPOSAL');
     await clickText(page, 'CONFIRM FIRST PROPOSAL');
     await page.waitForFunction(() => {
       const gs: any = (window as any).__game.scene.getScene('GameScene');
@@ -296,8 +297,7 @@ test('Signal cooperation chain: default no relay → opt-in → device → Compa
     expect(queuedRelay[0].enabled, 'relay toggles from manual OFF to ON').toBe(true);
     step('6 Owner CONFIRM queued exactly one toggle-relay core command (no early state write)');
     await shot(page, 'confirm-queued-toggle');
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
     await page.waitForFunction(() => {
       const gs: any = (window as any).__game.scene.getScene('GameScene');
       const s = gs.world.sim.signal;
@@ -315,7 +315,7 @@ test('Signal cooperation chain: default no relay → opt-in → device → Compa
     const reqId = 'req_' + randomBytes(12).toString('hex');
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
-    await clickText(page, 'LLM COMPANION >');
+    await openLlm(page);
     await page.waitForTimeout(300);
     const proposed = (await sdk.client.callTool({
       name: 'echo_suggest',
@@ -327,6 +327,7 @@ test('Signal cooperation chain: default no relay → opt-in → device → Compa
     expect(proposed.ok, `fixture suggest scan: ${JSON.stringify(proposed)}`).toBe(true);
 
     // 7) Real Owner UI CONFIRM → normal frame commits → echo energy deducted.
+    await waitForButton(page, 'CONFIRM FIRST PROPOSAL');
     await clickText(page, 'CONFIRM FIRST PROPOSAL');
     await page.waitForFunction(() => {
       const gs: any = (window as any).__game.scene.getScene('GameScene');
@@ -336,8 +337,7 @@ test('Signal cooperation chain: default no relay → opt-in → device → Compa
     const echoBefore = await echoEnergy(page);
     // Resume: the next normal core tick commits the confirmed scan on the
     // ECHO's own finite energy account (the HUMAN player account is untouched).
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
     await page.waitForFunction((eb: number) => {
       const gs: any = (window as any).__game.scene.getScene('GameScene');
       const account = gs.world.sim.signal?.actors?.echo;

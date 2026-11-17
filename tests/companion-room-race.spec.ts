@@ -27,6 +27,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
 import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
+import { openLlm, resumeGame } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
@@ -84,7 +85,7 @@ async function setup(page: Page, bridgeUrl: string): Promise<{ client: Client; t
   await bootRun(page);
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
-  await clickText(page, 'LLM COMPANION >');
+  await openLlm(page);
   await page.waitForTimeout(300);
   await clickText(page, 'ENABLE / RE-AUTHORIZE');
   await page.waitForSelector('[data-testid="external-link-form"]', { timeout: 15000 });
@@ -96,8 +97,7 @@ async function setup(page: Page, bridgeUrl: string): Promise<{ client: Client; t
     () => (window as any).__game.scene.getScene('GameScene').companionStatus === 'CONNECTED',
     undefined, { timeout: 20000 }
   );
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+  await resumeGame(page);
   await page.evaluate(() => {
     const w = (window as any).__game.scene.getScene('GameScene').world;
     if (!w.sim.echo) w.enableEcho();

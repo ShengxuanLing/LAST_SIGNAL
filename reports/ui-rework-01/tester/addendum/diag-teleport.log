@@ -1,0 +1,51 @@
+
+Running 6 tests using 1 worker
+
+[1/6] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+TELEPORT_DIAG {"expected":{"x":25,"y":46},"actual":{"x":25,"y":46},"diff":{"x":0,"y":0},"recomputed":{"x":115,"y":44},"recomputedWalkable01":true,"roomId":3,"roomKind":"combat","portal":{"wx":31,"wy":44,"target":5},"input":{"up":false,"down":false,"left":false,"right":false},"intent":{"move":{"x":0,"y":0},"dash":false},"pending":["move-target"],"echo":false,"tick":529,"paused":false}
+
+[2/6] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+TELEPORT_DIAG {"expected":{"x":25,"y":46},"actual":{"x":24.759930850125826,"y":46.28808297984902},"diff":{"x":-0.2400691498741736,"y":0.28808297984902254},"recomputed":{"x":115,"y":44},"recomputedWalkable01":true,"roomId":3,"roomKind":"combat","portal":{"wx":31,"wy":44,"target":5},"input":{"up":false,"down":false,"left":false,"right":false},"intent":{"move":{"x":0,"y":0},"dash":false},"pending":["move-target"],"echo":false,"tick":536,"paused":false}
+
+  1) [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport 
+
+    Error: teleported grid x == target landing tile
+
+    expect(received).toBeLessThan(expected)
+
+    Expected: < 0.01
+    Received:   0.2400691498741736
+
+      512 |   console.log('TELEPORT_DIAG ' + JSON.stringify(diag));
+      513 |   st = await worldState(page);
+    > 514 |   expect(Math.abs(st.grid.x - teleport.expected.x), 'teleported grid x == target landing tile').toBeLessThan(0.01);
+          |                                                                                                 ^
+      515 |   expect(Math.abs(st.grid.y - teleport.expected.y), 'teleported grid y == target landing tile').toBeLessThan(0.01);
+      516 |   expect(st.spriteErr, 'teleported sprite == worldToScreen(grid)').toBeLessThan(1);
+      517 |   expect(st.room?.id, 'entered a different room').not.toBe(teleport.beforeRoom);
+        at D:\Project\LAST_SIGNAL\tests\audit.spec.ts:514:97
+
+    Error Context: test-results\audit-fixed-seed-playabili-9b589--upgrade---pause---teleport-chromium-repeat1\error-context.md
+
+
+[3/6] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+TELEPORT_DIAG {"expected":{"x":25,"y":46},"actual":{"x":25,"y":46},"diff":{"x":0,"y":0},"recomputed":{"x":115,"y":44},"recomputedWalkable01":true,"roomId":3,"roomKind":"combat","portal":{"wx":31,"wy":44,"target":5},"input":{"up":false,"down":false,"left":false,"right":false},"intent":{"move":{"x":0,"y":0},"dash":false},"pending":["move-target"],"echo":false,"tick":545,"paused":false}
+
+[4/6] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+TELEPORT_DIAG {"expected":{"x":25,"y":46},"actual":{"x":25,"y":46},"diff":{"x":0,"y":0},"recomputed":{"x":115,"y":44},"recomputedWalkable01":true,"roomId":3,"roomKind":"combat","portal":{"wx":31,"wy":44,"target":5},"input":{"up":false,"down":false,"left":false,"right":false},"intent":{"move":{"x":0,"y":0},"dash":false},"pending":["move-target"],"echo":false,"tick":537,"paused":false}
+
+[5/6] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+TELEPORT_DIAG {"expected":{"x":25,"y":46},"actual":{"x":25,"y":46},"diff":{"x":0,"y":0},"recomputed":{"x":115,"y":44},"recomputedWalkable01":true,"roomId":3,"roomKind":"combat","portal":{"wx":31,"wy":44,"target":5},"input":{"up":false,"down":false,"left":false,"right":false},"intent":{"move":{"x":0,"y":0},"dash":false},"pending":["move-target"],"echo":false,"tick":539,"paused":false}
+
+[6/6] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+TELEPORT_DIAG {"expected":{"x":25,"y":46},"actual":{"x":25,"y":46},"diff":{"x":0,"y":0},"recomputed":{"x":115,"y":44},"recomputedWalkable01":true,"roomId":3,"roomKind":"combat","portal":{"wx":31,"wy":44,"target":5},"input":{"up":false,"down":false,"left":false,"right":false},"intent":{"move":{"x":0,"y":0},"dash":false},"pending":["move-target"],"echo":false,"tick":532,"paused":false}
+
+  1 failed
+    [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport 
+  5 passed (1.8m)

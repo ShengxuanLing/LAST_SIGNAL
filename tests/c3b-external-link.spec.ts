@@ -13,6 +13,7 @@ import { startWorldBridge, type RunningWorldBridge } from '../src/ai-native/worl
 import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
 import { WorldGateway } from '../src/ai-native/worldGateway';
 import { WorldClient } from '../src/ai-native/worldClient';
+import { openAiHub, labelCenter, resumeGame } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
@@ -38,8 +39,7 @@ async function setupLinkedRun(page: Page, bridge: RunningWorldBridge): Promise<W
   expect(newRun, 'NEW RUN button').not.toBeNull();
   await page.mouse.click(newRun!.x, newRun!.y);
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'));
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
+  await openAiHub(page);
   const pos = await page.evaluate(() => {
     const ps = (window as any).__game.scene.getScene('PauseScene');
     const t = ps.children.list.find((c: any) => c.type === 'Text' && (c.text || '').startsWith('AUTHORIZE EXTERNAL AGENT'));
@@ -50,8 +50,7 @@ async function setupLinkedRun(page: Page, bridge: RunningWorldBridge): Promise<W
   await expect.poll(async () => page.evaluate(() =>
     (window as any).__game.scene.getScene('GameScene').world.player.control.owner
   ), { timeout: 15000 }).toBe('external');
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+  await resumeGame(page);
   const client = new WorldClient({ bridgeUrl: bridge.url, token: TOKEN });
   expect((await client.handshake()).ok).toBe(true);
   await expect.poll(async () => (await client.observe()).ok, { timeout: 15000 }).toBe(true);
@@ -115,9 +114,8 @@ test('human authorization links the rendered world to the bridge; actions commit
     await page.mouse.click(newRun!.x, newRun!.y);
     await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'));
 
-    // HUMAN authorization through the real Pause menu.
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
+    // HUMAN authorization through the real Pause menu (AI & COMPANION hub).
+    await openAiHub(page);
     // The pause menu is rendered in the Phaser canvas: locate the label object.
     const authorizePos = await page.evaluate(() => {
       const g: any = (window as any).__game;
@@ -134,8 +132,7 @@ test('human authorization links the rendered world to the bridge; actions commit
 
     // RESUME is also a human action: it grants the freshly authorized link
     // control of the running game (no automatic re-take ever happens).
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
 
     // The rendered world owns the session; the agent attaches to it.
     const client = new WorldClient({ bridgeUrl: bridge.url, token: TOKEN });
@@ -193,8 +190,7 @@ test('human authorization links the rendered world to the bridge; actions commit
     // A human takeover cancels the link and returns control.
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
     await page.keyboard.press('d');
     await page.waitForTimeout(200);
     const takenOver = await page.evaluate(() => {
@@ -234,8 +230,7 @@ test('takeover / overlay / agent disconnect yield the link; no automatic re-take
     await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'));
 
     const authorize = async (): Promise<void> => {
-      await page.keyboard.press('Escape');
-      await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
+      await openAiHub(page);
       // The page-level config is cleared whenever the link degrades (including
       // on pause). Re-inject AFTER the pause menu is open, exactly like the
       // in-game form entering credentials while paused.
@@ -252,8 +247,7 @@ test('takeover / overlay / agent disconnect yield the link; no automatic re-take
       await expect.poll(async () => page.evaluate(() =>
         (window as any).__game.scene.getScene('GameScene').world.player.control.owner
       ), { timeout: 15000 }).toBe('external');
-      await page.keyboard.press('Escape');
-      await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+      await resumeGame(page);
     };
 
     await authorize();
@@ -271,8 +265,7 @@ test('takeover / overlay / agent disconnect yield the link; no automatic re-take
     )).toBe('human');
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => (window as any).__game?.scene.isActive('PauseScene'));
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !(window as any).__game?.scene.isActive('PauseScene'));
+    await resumeGame(page);
     expect(await page.evaluate(() =>
       (window as any).__game.scene.getScene('GameScene').world.player.control.owner
     ), 'no automatic re-take').toBe('human');

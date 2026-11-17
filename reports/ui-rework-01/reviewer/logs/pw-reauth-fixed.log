@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ok 1 [chromium] › tests\ui-menu-layout.spec.ts:1364:3 › UI-REWORK-01 menu surfaces › functional: owner re-authorize swaps capability on the same instance and retires old suggestions (9.8s)
+
+  1 passed (10.9s)

@@ -36,6 +36,10 @@ export class GameScene extends Phaser.Scene {
 
   // HUD elements (AR-02: one per-frame Graphics + texts, Direction A field-manual style)
   private hud!: Phaser.GameObjects.Graphics;
+  /** UI-REWORK-01: every screen-space HUD object, so a menu can hide/restore
+   *  the whole readout without faking state or resizing the world. */
+  private hudObjects: Phaser.GameObjects.GameObject[] = [];
+  private hudVisible = true;
   private hpShown = -1;
   private previousHp = -1;
   private hpLossFlash = 0;
@@ -263,6 +267,10 @@ export class GameScene extends Phaser.Scene {
         fontFamily: 'monospace', fontSize: '16px', align: 'center',
         color: '#d7f3ff', backgroundColor: '#0b1521', padding: { x: 12, y: 7 }
       }).setOrigin(0.5).setScrollFactor(0).setDepth(501);
+    // UI-REWORK-01 B5: the deck announcement is part of the screen readout and
+    // must hide with the rest of the HUD when a menu is open.
+    this.hudObjects.push(announcement);
+    announcement.setVisible(this.hudVisible);
     this.tweens.add({ targets: announcement, alpha: 0, delay: 2300, duration: 400,
       onComplete: () => announcement.destroy() });
   }
@@ -389,6 +397,27 @@ export class GameScene extends Phaser.Scene {
     this.txtEcho = add.text(GAME.WINDOW_W - 20, L.echoY, 'ECHO OFF · PAUSE > ECHO COMPANION', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#33e0ff' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtSignal = add.text(GAME.WINDOW_W - 20, L.signalY, 'RELAY OFF · NO DEVICE', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
+
+    this.hudObjects = [
+      this.hud, this.txtVitals, this.txtHp, this.txtXp, this.txtCurrency, this.txtLevel, this.timer,
+      this.txtWeapon, this.txtRoom, this.txtObjective, this.txtEnemies, this.txtBossHp, this.bossBarFill,
+      this.txtMap, this.txtStats, this.txtControl, this.txtAiAction, this.txtAiTarget, this.txtAgentLink,
+      this.txtEcho, this.txtSignal, this.txtHelp
+    ];
+    this.hudVisible = true;
+  }
+
+  /** UI-REWORK-01: hide the whole HUD while a menu/overlay owns the screen, and
+   *  restore it on resume. Never clears text — only visibility. */
+  setHudVisible(visible: boolean): void {
+    if (!this.hud || this.hudVisible === visible) return;
+    this.hudVisible = visible;
+    for (const o of this.hudObjects) {
+      const target = o as unknown as { scene?: unknown; setVisible?: (v: boolean) => void };
+      if (!target.scene) continue;
+      target.setVisible?.(visible);
+    }
+    for (const b of this.banners) if (b.t.scene) b.t.setVisible(visible);
   }
 
   private lockHud(): void {
@@ -548,6 +577,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private refreshHud(dt: number): void {
+    if (!this.hud || !this.hudVisible) return;
     const g = this.hud;
     g.clear();
     const p = this.world.player;

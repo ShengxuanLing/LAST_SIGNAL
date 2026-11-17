@@ -34,6 +34,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { SAVE_KEY } from '../src/config/game';
+import { clickLabel, openAiHub, openEcho, resumeGame } from './uiNav';
 
 const PORT = Number(process.env.PORT ?? 5173);
 const SEED = 424242;
@@ -204,28 +205,42 @@ async function enableAiViaPause(page: Page): Promise<void> {
   await page.waitForTimeout(550);
   const paused = await state(page);
   expect(paused?.active, 'PauseScene open').toContain('PauseScene');
-  await clickLogical(page, 640, 540); // AI CONTROL button
+  // The dev entry now lives on the AI & COMPANION page of the Pause navigator.
+  await openAiHub(page);
+  await clickLabel(page, 'PauseScene', 'AI CONTROL');
   await page.waitForTimeout(550);
   const on = await state(page);
   expect(on?.aiEnabled, 'AI demo enabled from Pause menu').toBe(true);
-  await page.keyboard.press('Escape'); // PauseScene closes -> GameScene.onResume()
+  await resumeGame(page); // pause chain -> GameScene.onResume()
   await page.waitForTimeout(900);
 }
 
 // Test-harness fixture (not a controller action, not gameplay logic):
-// combat difficulty must not kill the run while control transitions are being
-// sampled. Death is still exercised through the real hurt() path later, after
-// invulnerability is explicitly cleared. This is recorded in the operation log.
-async function stabilizeEvidenceRun(page: Page): Promise<void> {
+// the control/overlay suites sample ownership and UI behaviour, not combat
+// survival, so the run is rescued from death by topping HP back up through the REAL
+// core command `World.enqueueHeal` (the same command the game uses for healing;
+// it commits on the next tick). Combat itself stays real: enemies live, fire,
+// damage the player between top-ups, and the controller keeps targeting them.
+//
+// Why not i-frames: `Player.invuln` is a getter-only view over the core state
+// (src/entities/Player.ts:64 -> World.playerInvuln), so `player.invuln = 1e9`
+// is a silent no-op. The old fixture claimed to refresh i-frames while doing
+// nothing; that false claim is removed here. Position, seed, control state and
+// the tick are untouched.
+//
+// `protect = false` keeps the run completely untouched for the echo-combat suite.
+async function stabilizeEvidenceRun(page: Page, protect = true): Promise<void> {
+  if (!protect) return;
   await page.evaluate(() => {
-    // World.tryInteract() -> Player.reset() legitimately resets i-frames on
-    // room transitions, so refresh them from the test harness. No HP or
-    // coordinates are changed; the HUD keeps its normal values. The death test
-    // clears i-frames and calls hurt() synchronously in one evaluate below.
     const apply = () => {
       const g: any = (window as any).__game;
-      const gs: any = g.scene.getScene('GameScene');
-      if (gs?.world?.player) gs.world.player.invuln = 1e9;
+      const gs: any = g?.scene?.getScene('GameScene');
+      const w = gs?.world;
+      if (!w?.player) return;
+      const p = w.player.data;
+      // Only rescue a run that is about to die, so ordinary knockback still
+      // changes HP (the movement assertions below use that as their guard).
+      if (p.hp > 0 && p.hp < p.maxHp * 0.35) w.enqueueHeal(p.maxHp - p.hp);
     };
     apply();
     (window as any).__lsKeepAlive = window.setInterval(apply, 100);
@@ -264,8 +279,9 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     await bootRun(page);
     await stabilizeEvidenceRun(page);
     record('evidence-fixture', {
-      reason: 'avoid unrelated combat death while sampling control transitions; death still tested via real hurt() after clearing i-frames',
-      onlyIFramesRefreshed: true, hpUnchanged: true, coordinatesUnchanged: true,
+      reason: 'avoid an unrelated death while sampling control transitions (live combat kept, HP topped up via a real core command); death still tested via the real hurt() path',
+      hpToppedUp: 'World.enqueueHeal (real core command, commits on the next tick)',
+      iframesWritten: false, hpToppedUpBelow35Pct: true, coordinatesUnchanged: true, tickUntouched: true,
       actor: 'test-harness (not the controller)'
     });
     let st = await state(page);
@@ -292,7 +308,8 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     await page.screenshot({ path: path.join(OUT, 'pause-ai-entry-1280x720.png') });
     record('pause-entry', { labels: pauseLabels });
 
-    await clickLogical(page, 640, 540);
+    await openAiHub(page);
+    await clickLabel(page, 'PauseScene', 'AI CONTROL');
     await page.waitForTimeout(550);
     // Passive in-page sampler: records real core positions every 50ms so a fast
     // travel burst is not lost to Node<->browser round-trip latency.
@@ -320,7 +337,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     expect(st!.authorityPaused, 'authority frozen while paused').toBe(true);
     record('ai-enabled-paused', { owner: st!.owner, paused: st!.paused, aiEnabled: st!.aiEnabled });
 
-    await page.keyboard.press('Escape');
+    await resumeGame(page); // AI page -> pause root -> resume (ESC walks one level)
     await page.waitForTimeout(320);
     st = await state(page);
     expect(st!.paused, 'game resumed').toBe(false);
@@ -386,7 +403,13 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       const stats = s!.aiPathStats;
       const motionValid = !!stats && stats.pathLength > 1.5 && stats.maxStep > 0.1 && stats.maxStep < 3.2;
       const interactionValid = (!!stats && stats.transitions > 0) || interactSamples > 0;
-      if (i >= MIN_SAMPLES - 1 && motionValid && interactionValid) {
+      // The bounded wait also gives the controller a chance to expose more than
+      // one distinct action (TRAVEL while crossing a room, STOP/AIM/FIRE when it
+      // engages); without it a single long traverse made the assertion a coin
+      // flip. The bar itself is unchanged: the assertion below still requires
+      // more than one real action.
+      const actionVariety = new Set(samples.map((x) => String(x.action)).filter((a) => a !== 'null')).size;
+      if (i >= MIN_SAMPLES - 1 && motionValid && interactionValid && actionVariety > 1) {
         boundedWaitExhausted = false;
         break;
       }
@@ -423,7 +446,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       expect(seenRooms.size, 'portal interaction changed rooms').toBeGreaterThan(1);
     }
     walkableOnly(samples);
-    expect(actions.size, 'AI reported real action changes').toBeGreaterThan(1);
+    expect(actions.size, `AI reported real action changes (${[...actions].join(',')} over ${samples.length} samples)`).toBeGreaterThan(1);
     expect(st!.aiActionCount, 'AI executed a countable sequence of actions').toBeGreaterThan(1);
     expect(st!.lastAiAction, 'HUD has a last AI action').toBeTruthy();
     expect(st!.txtAiAction, 'HUD shows the AI action').toContain(String(st!.lastAiAction));
@@ -480,10 +503,17 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     expect(paused!.authorityPaused, 'authority paused').toBe(true);
     expect(paused!.mode, 'HUD mode frozen as PAUSED').toBe('PAUSED');
     const runningLabels = await sceneTexts(page, 'PauseScene');
-    expect(runningLabels.some((t) => t.includes('AI CONTROL: ON · LOCAL DEMO')),
+    // UI-REWORK-01 keeps the same honest labels; the root renders the status
+    // row form ("AI CONTROL: ON · LOCAL DETERMINISTIC DEMO") and the AI hub
+    // button the short form ("AI CONTROL: ON · LOCAL DEMO").
+    expect(runningLabels.some((t) => /AI CONTROL: ON · LOCAL/.test(t)),
       'pause menu shows AI control ON while AI is running (not OFF)').toBe(true);
-    expect(runningLabels.some((t) => t.includes('CONTROL  AI · LOCAL DETERMINISTIC DEMO')),
+    expect(runningLabels.some((t) => /AI CONTROL: ON · LOCAL DETERMINISTIC DEMO/.test(t)),
+      'pause menu spells out the local deterministic demo').toBe(true);
+    expect(runningLabels.some((t) => /CONTROL  AI · LOCAL (DETERMINISTIC )?DEMO/.test(t)),
       'pause menu labels local deterministic demo').toBe(true);
+    expect(runningLabels.some((t) => /EXTERNAL AGENT  NOT CONNECTED/.test(t)),
+      'pause menu still states that no external agent is connected').toBe(true);
     const pausedActionCount = paused!.aiActionCount;
     await page.waitForTimeout(900);
     const frozen = await state(page);
@@ -494,7 +524,8 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
 
     // Manual disable from the pause menu: back to human, no self-reclaim.
     const takeoverBeforeDisable = paused!.takeoverCount;
-    await clickLogical(page, 640, 540); // AI CONTROL: ON -> OFF
+    await openAiHub(page);
+    await clickLabel(page, 'PauseScene', 'AI CONTROL'); // AI CONTROL: ON -> OFF
     await page.waitForTimeout(550);
     const disabled = await state(page);
     expect(disabled!.aiEnabled, 'AI disabled from pause menu').toBe(false);
@@ -504,9 +535,13 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     const offLabels = await sceneTexts(page, 'PauseScene');
     expect(offLabels.some((t) => t.includes('AI CONTROL: OFF')), 'pause menu shows OFF after disable').toBe(true);
     await page.screenshot({ path: path.join(OUT, 'pause-ai-off-1280x720.png') });
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
+    await resumeGame(page); // AI hub -> pause root -> resume
+    // Let the resume tick drain any intent that was already queued when the
+    // human disabled the controller (the core commits queued intents on the
+    // next tick; that is legal and not the AI driving again).
+    await page.waitForTimeout(1500);
     const stationaryStart = await state(page);
+    expect(stationaryStart!.owner, 'human owns control once the run settles').toBe('human');
     await page.waitForTimeout(2500);
     const stationary = await state(page);
     expect(stationary!.owner, 'human still owns control after disable').toBe('human');
@@ -515,8 +550,8 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     expect(stationary!.txtControl, 'HUD returns to HUMAN').toContain('HUMAN');
     if (stationaryStart!.hp === stationary!.hp) {
       // No enemy knockback involved: the disabled AI must not move the player.
-      expect(stationary!.grid.x, 'disabled AI does not move the player').toBeCloseTo(stationaryStart!.grid.x, 6);
-      expect(stationary!.grid.y, 'disabled AI does not move the player').toBeCloseTo(stationaryStart!.grid.y, 6);
+      expect(stationary!.grid.x, `disabled AI does not move the player (x ${stationary!.grid.x} vs ${stationaryStart!.grid.x})`).toBeCloseTo(stationaryStart!.grid.x, 6);
+      expect(stationary!.grid.y, `disabled AI does not move the player (y ${stationary!.grid.y} vs ${stationaryStart!.grid.y})`).toBeCloseTo(stationaryStart!.grid.y, 6);
     }
     record('manual-disable', { owner: stationary!.owner, takeoverCount: stationary!.takeoverCount, reason: disabled!.lastTakeoverReason });
 
@@ -604,11 +639,13 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
       const g: any = (window as any).__game;
       // Production builds minify class names: always resolve scenes by key.
     const gs: any = g.scene.getScene('GameScene');
-      gs.world.player.invuln = 0;
+      // `player.invuln = 0` would be a silent no-op (getter-only view over the
+      // core), so let any residual i-frames expire through REAL core ticks.
+      const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+      for (let i = 0; i < 180 && gs.world.player.invuln > 0; i++) gs.world.stepFrame(1000 / 60, neutral);
       gs.world.player.hurt(999999, gs.world.player.wx + 1, gs.world.player.wy);
       // Commit the queued hit deterministically (B4: legacy hurt is applied by
       // the core on the next tick, not synchronously by the adapter).
-      const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
       for (let i = 0; i < 10; i++) gs.world.stepFrame(1000 / 60, neutral);
     });
     await page.waitForTimeout(400);
@@ -676,7 +713,7 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     // Scene exit: QUIT TO MENU must shut the World down without errors.
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
-    await clickLogical(page, 640, 480); // QUIT TO MENU
+    await clickLabel(page, 'PauseScene', 'QUIT TO MENU');
     await page.waitForTimeout(1000);
     const menuActive = await page.evaluate(() =>
       (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key));
@@ -778,8 +815,9 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     await bootRun(page);
     await stabilizeEvidenceRun(page);
     record('evidence-fixture', {
-      reason: 'overlay ownership regression uses i-frames refresh + a second weapon fixture',
-      onlyIFramesRefreshed: true, injectedWeapon: 'scatter', actor: 'test-harness'
+      reason: 'overlay ownership regression clears hostile shots via the real core test seam + a second weapon fixture',
+      hpToppedUp: 'World.enqueueHeal (real core command, commits on the next tick)',
+      iframesWritten: false, hpToppedUpBelow35Pct: true, injectedWeapon: 'scatter', actor: 'test-harness'
     });
     // Add a second owned weapon via a core command (production-safe), so the
     // inventory EQUIP buttons are real player data. No dev fixture is used here.
@@ -913,18 +951,20 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
     // Pause-menu SETTINGS button is UI, NOT fire: AI ownership survives.
     await page.keyboard.press('Escape');
     await page.waitForTimeout(450);
-    await clickLogical(page, 640, 420);
+    await clickLabel(page, 'PauseScene', 'SETTINGS');
     await page.waitForTimeout(450);
     const settingsOpened = await page.evaluate(() => {
       const g: any = (window as any).__game;
       const ps: any = g.scene.getScene('PauseScene');
-      return (ps.children.list as any[]).some((c) => c.type === 'Container');
+      // UI-REWORK-01: settings is its own page of the Pause navigator (the old
+      // in-scene panel used a Container; the page model is the equivalent).
+      return ps.page === 'settings';
     });
     expect(settingsOpened, 'settings panel opened').toBe(true);
     st = await state(page);
     expect(st!.owner, 'pause menu UI click does not take control').toBe('ai');
     expect(st!.aiEnabled).toBe(true);
-    await page.keyboard.press('Escape');
+    await resumeGame(page); // settings -> pause root -> resume (ESC walks one level)
     await page.waitForTimeout(450);
     expect((await state(page))!.paused, 'pause overlay closed').toBe(false);
     record('pause-settings-ui-click', { owner: st!.owner, settingsOpened });
@@ -1289,7 +1329,7 @@ test.describe('P3-a echo companion', () => {
     });
 
     await bootRun(page);
-    await stabilizeEvidenceRun(page);
+    await stabilizeEvidenceRun(page, false); // live combat is the point of P3-a
     await clearLevelUp(page);
 
     const before = await probe();
@@ -1299,12 +1339,12 @@ test.describe('P3-a echo companion', () => {
     // Enable through the real Pause menu entry.
     await page.keyboard.press('Escape');
     await page.waitForTimeout(600);
-    await clickLogical(page, 140, 200); // ECHO COMPANION >
+    await openEcho(page); // AI & COMPANION > ECHO COMPANION
     await page.waitForTimeout(600);
     expect(await sceneTexts(page, 'PauseScene')).toContain('ECHO COMPANION');
-    await clickLogical(page, 640, 300); // ENABLE ECHO
+    await clickLabel(page, 'PauseScene', 'ENABLE ECHO');
     await page.waitForTimeout(600);
-    await clickLogical(page, 640, 592); // BACK -> resume
+    await resumeGame(page); // echo BACK -> AI hub, ESC chain -> resume
     await page.waitForTimeout(900);
     await clearLevelUp(page);
 
@@ -1330,11 +1370,11 @@ test.describe('P3-a echo companion', () => {
     // HOLD: the echo must stay put while the protagonist keeps moving.
     await page.keyboard.press('Escape');
     await page.waitForTimeout(600);
-    await clickLogical(page, 140, 200);
+    await openEcho(page);
     await page.waitForTimeout(600);
-    await clickLogical(page, 640, 412); // MODE: HOLD POSITION
+    await clickLabel(page, 'PauseScene', 'MODE: HOLD POSITION');
     await page.waitForTimeout(500);
-    await clickLogical(page, 640, 592); // BACK
+    await resumeGame(page); // BACK -> AI hub, ESC chain -> resume
     await page.waitForTimeout(700);
     const held = await probe();
     expect(held.mode).toBe('hold');
@@ -1366,11 +1406,11 @@ test.describe('P3-a echo companion', () => {
     // Confirm assist through the pause panel, then the echo fires for real.
     await page.keyboard.press('Escape');
     await page.waitForTimeout(600);
-    await clickLogical(page, 140, 200);
+    await openEcho(page);
     await page.waitForTimeout(600);
-    await clickLogical(page, 640, 524); // CONFIRM ASSIST FIRE
+    await clickLabel(page, 'PauseScene', 'CONFIRM ASSIST FIRE');
     await page.waitForTimeout(500);
-    await clickLogical(page, 640, 592); // BACK
+    await resumeGame(page); // BACK -> AI hub, ESC chain -> resume
     await page.waitForTimeout(700);
     const armed = await probe();
     expect(armed.assist, 'assist armed by the human').toBe(true);
@@ -1400,13 +1440,13 @@ test.describe('P3-a echo companion', () => {
     // drone hit the echo.
     await page.keyboard.press('Escape');
     await page.waitForTimeout(600);
-    await clickLogical(page, 140, 200);
+    await openEcho(page);
     await page.waitForTimeout(600);
     if ((await probe()).assist) {
-      await clickLogical(page, 640, 524); // revoke
+      await clickLabel(page, 'PauseScene', 'ASSIST ARMED'); // revoke
       await page.waitForTimeout(500);
     }
-    await clickLogical(page, 640, 592); // BACK
+    await resumeGame(page); // BACK -> AI hub, ESC chain -> resume
     await page.waitForTimeout(700);
     expect((await probe()).assist, 'assist revoked').toBe(false);
     await page.evaluate(() => {

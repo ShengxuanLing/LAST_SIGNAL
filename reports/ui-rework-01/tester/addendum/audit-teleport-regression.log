@@ -1,0 +1,9 @@
+
+Running 5 tests using 1 worker
+
+[1/5] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[2/5] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[3/5] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[4/5] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[5/5] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+  5 passed (1.4m)

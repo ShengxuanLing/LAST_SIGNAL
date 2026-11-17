@@ -1,0 +1,8 @@
+
+Running 3 tests using 1 worker
+
+  ok 1 [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport (16.0s)
+  ok 2 [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport (16.4s)
+  ok 3 [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport (16.3s)
+
+  3 passed (50.7s)
