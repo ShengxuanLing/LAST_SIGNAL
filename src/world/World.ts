@@ -1332,19 +1332,6 @@ export class World {
     }
   }
 
-  /** Sector-compat alias: fire a projectile at an angle with a damage spec.
-   *  Used by sector bosses; side is cosmetic here because core spawn commands
-   *  are side-agnostic for collision. */
-  spawnProjectile(ownerId: number, x: number, y: number, angle: number, spec: {
-    damage: number; speed: number; critChance?: number; critDamage?: number;
-    pierce?: number; lifetime?: number; kind?: string; shots?: number; spread?: number;
-  }, side: 'player' | 'enemy' = 'enemy'): void {
-    const speed = Number.isFinite(spec.speed) ? spec.speed : 160;
-    const damage = Number.isFinite(spec.damage) ? spec.damage : 1;
-    const vel = { x: Math.cos(angle) * speed / GAME.PIXEL_TO_TILE, y: Math.sin(angle) * speed / GAME.PIXEL_TO_TILE };
-    this.spawnEnemyProjectile(ownerId, x, y, damage, vel, spec.lifetime);
-  }
-
   /** Queues a validated room teleport; committed by the next core tick. */
   enqueueTeleport(x: number, y: number, healToFull = true, migrateEcho = false): void {
     enqueueCommand(this._sim, { type: 'teleport-player', x, y, healToFull, migrateEcho });
