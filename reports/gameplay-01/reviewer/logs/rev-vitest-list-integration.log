@@ -1,0 +1,4 @@
+src/ai-native/companionSurface.test.ts > official Companion MCP agent surface > registers only observe/suggest/status/memory; no confirm/owner interface
+src/ai-native/signalRenderedHeadlessParity.test.ts > Rendered→Headless Signal parity (real rendered export, hard gate) > FAILS when parity product files are missing
+src/ai-native/signalRenderedHeadlessParity.test.ts > Rendered→Headless Signal parity (real rendered export, hard gate) > replays rendered signal inputs in HeadlessWorld with byte-identical canonical state + events
+src/ai-native/signalRenderedHeadlessParity.test.ts > Rendered→Headless Signal parity (real rendered export, hard gate) > divergent signal action order produces divergent canonical state (negative)

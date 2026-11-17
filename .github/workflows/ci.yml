@@ -31,8 +31,20 @@ jobs:
       - name: 单元测试
         run: npm test
 
+      - name: MCP bundle + agent-surface permission gate
+        run: npm run test:mcp-surface
+
       - name: 生产构建
         run: npm run build
+
+      # Freshness: clear ONLY the three runner-generated parity files in the
+      # runner workspace before Playwright. Never a shared/local reports path.
+      - name: 清理 runner 内 parity 生成文件（仅 runner 工作区）
+        run: |
+          set -euo pipefail
+          parity_dir="${{ github.workspace }}/reports/ai-native-02/signal/parity"
+          mkdir -p "$parity_dir"
+          rm -f "$parity_dir/initial.json" "$parity_dir/sequence.json" "$parity_dir/rendered.json"
 
       # 双端口：audit / gameplay / boss-room / runtime-bugs 走 5173，
       # canvas.spec.ts 硬编码 http://localhost:5199/，因此两个 dev server 必须同时运行。
@@ -81,6 +93,10 @@ jobs:
           # PORT=5173 决定 playwright.config.ts 的 baseURL；
           # LS_SHOT_DIR 把截图/errors 产物写到 runner temp 下的 screens 目录。
           npx playwright test --reporter=line --workers=1
+
+      # Rendered→Headless parity gate runs only after the real Playwright export.
+      - name: Rendered→Headless parity gate（真实 Playwright 导出之后）
+        run: npm run test:parity
 
       - name: 停止两个 Vite dev server
         if: always()

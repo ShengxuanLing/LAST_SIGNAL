@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:mcp-surface": "npm run game:mcp:build && vitest run -c vitest.integration.config.ts src/ai-native/companionSurface.test.ts",
+    "test:parity": "vitest run -c vitest.integration.config.ts src/ai-native/signalRenderedHeadlessParity.test.ts",
     "test:watch": "vitest",
     "playwright": "playwright test",
     "game:headless": "vite-node src/ai-native/headlessCli.ts --run --dev",

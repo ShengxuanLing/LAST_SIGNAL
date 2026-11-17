@@ -1,0 +1,6 @@
+
+Running 1 test using 1 worker
+
+  ok 1 [chromium] › tests\signal-rendered-parity.spec.ts:36:1 › Rendered signal export for Headless parity (scan/jam/toggle/echo/real damage) (19.3s)
+
+  1 passed (20.8s)

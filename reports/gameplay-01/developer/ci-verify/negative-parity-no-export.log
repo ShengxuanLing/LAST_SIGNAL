@@ -1,0 +1,65 @@
+
+> last-signal@0.1.0 test:parity
+> vitest run -c vitest.integration.config.ts src/ai-native/signalRenderedHeadlessParity.test.ts
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/gp01-ci-clean[39m
+
+ [31m❯[39m src/ai-native/signalRenderedHeadlessParity.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[90m 29[2mms[22m[39m
+[31m   [31m×[31m Rendered→Headless Signal parity (real rendered export, hard gate)[2m > [22mFAILS when parity product files are missing[90m 23[2mms[22m[31m[39m
+[31m     → expected 3 to be +0 // Object.is equality[39m
+[31m   [31m×[31m Rendered→Headless Signal parity (real rendered export, hard gate)[2m > [22mreplays rendered signal inputs in HeadlessWorld with byte-identical canonical state + events[90m 2[2mms[22m[31m[39m
+[31m     → Parity product unreadable: ENOENT: no such file or directory, open 'D:\tmp\gp01-ci-clean\reports\ai-native-02\signal\parity\initial.json'[39m
+[31m   [31m×[31m Rendered→Headless Signal parity (real rendered export, hard gate)[2m > [22mdivergent signal action order produces divergent canonical state (negative)[90m 2[2mms[22m[31m[39m
+[31m     → Parity product unreadable: ENOENT: no such file or directory, open 'D:\tmp\gp01-ci-clean\reports\ai-native-02\signal\parity\sequence.json'[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 3 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/signalRenderedHeadlessParity.test.ts[2m > [22mRendered→Headless Signal parity (real rendered export, hard gate)[2m > [22mFAILS when parity product files are missing
+[31m[1mAssertionError[22m: expected 3 to be +0 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 3[39m
+
+[36m [2m❯[22m src/ai-native/signalRenderedHeadlessParity.test.ts:[2m42:21[22m[39m
+    [90m 40| [39m      [35mtry[39m { [34mreadJson[39m(p)[33m;[39m } [35mcatch[39m { missing [33m+=[39m [34m1[39m[33m;[39m }
+    [90m 41| [39m    }
+    [90m 42| [39m    [34mexpect[39m(missing)[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                    [31m^[39m
+    [90m 43| [39m  })[33m;[39m
+    [90m 44| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/signalRenderedHeadlessParity.test.ts[2m > [22mRendered→Headless Signal parity (real rendered export, hard gate)[2m > [22mreplays rendered signal inputs in HeadlessWorld with byte-identical canonical state + events
+[31m[1mError[22m: Parity product unreadable: ENOENT: no such file or directory, open 'D:\tmp\gp01-ci-clean\reports\ai-native-02\signal\parity\initial.json'[39m
+[36m [2m❯[22m src/ai-native/signalRenderedHeadlessParity.test.ts:[2m56:13[22m[39m
+    [90m 54| [39m      rendered [33m=[39m readJson[33m<[39many[33m>[39m(renderedPath)[33m;[39m
+    [90m 55| [39m    } [35mcatch[39m (error) {
+    [90m 56| [39m      [35mthrow[39m [35mnew[39m [33mError[39m([32m`Parity product unreadable: [39m[36m${[39m(error [35mas[39m [33mError[39m)[33m.[39mm…
+    [90m   | [39m            [31m^[39m
+    [90m 57| [39m    }
+    [90m 58| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/signalRenderedHeadlessParity.test.ts[2m > [22mRendered→Headless Signal parity (real rendered export, hard gate)[2m > [22mdivergent signal action order produces divergent canonical state (negative)
+[31m[1mError[22m: Parity product unreadable: ENOENT: no such file or directory, open 'D:\tmp\gp01-ci-clean\reports\ai-native-02\signal\parity\sequence.json'[39m
+[36m [2m❯[22m src/ai-native/signalRenderedHeadlessParity.test.ts:[2m147:13[22m[39m
+    [90m145| [39m      rendered [33m=[39m readJson[33m<[39many[33m>[39m(renderedPath)[33m;[39m
+    [90m146| [39m    } [35mcatch[39m (error) {
+    [90m147| [39m      [35mthrow[39m [35mnew[39m [33mError[39m([32m`Parity product unreadable: [39m[36m${[39m(error [35mas[39m [33mError[39m)[33m.[39mm…
+    [90m   | [39m            [31m^[39m
+    [90m148| [39m    }
+    [90m149| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[90m (3)[39m
+[2m   Start at [22m 20:00:54
+[2m   Duration [22m 2.12s[2m (transform 465ms, setup 0ms, collect 1.32s, tests 29ms, environment 0ms, prepare 286ms)[22m
+

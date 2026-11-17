@@ -1,0 +1,741 @@
+src/ai-native/agentLease.test.ts > C3-b fix — AgentLeaseRegistry > issues ONE live lease per session and refuses a second agent attach
+src/ai-native/agentLease.test.ts > C3-b fix — AgentLeaseRegistry > renew extends ONLY the lease; an old leaseId can never renew a new authorization
+src/ai-native/agentLease.test.ts > C3-b fix — AgentLeaseRegistry > a lease that is no longer renewed EXPIRES on the deadline (hard SIGKILL path)
+src/ai-native/agentLease.test.ts > C3-b fix — AgentLeaseRegistry > a released lease (soft EOF/SIGINT) never expires later
+src/ai-native/agentLease.test.ts > C3-b fix — bridge / MCP lease integration > attach returns a lease; agent-status reports attached:true only while live
+src/ai-native/agentLease.test.ts > C3-b fix — bridge / MCP lease integration > world_list_sessions never returns attached:true for a closed/dead session
+src/ai-native/agentLease.test.ts > C3-b fix — bridge / MCP lease integration > a browser heartbeat does NOT renew the Agent lease; expiry closes the session
+src/ai-native/agentLease.test.ts > C3-b fix — bridge / MCP lease integration > a late renew from an old lease cannot extend a newer lease
+src/ai-native/budget.test.ts > shared per-process session budget > 5 ordinary sessions + 5 coop worlds are allowed; the 11th of either kind is rejected
+src/ai-native/budget.test.ts > shared per-process session budget > closing either kind releases a slot so a new session can be created
+src/ai-native/budget.test.ts > shared per-process session budget > a coop close releases its slot too
+src/ai-native/budget.test.ts > shared per-process session budget > a rejected creation does not consume budget
+src/ai-native/budget.test.ts > shared per-process session budget > each manager keeps its own default budget when none is injected
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > an agent cannot self-authorize: attach with no human-authorized session is rejected
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > the token is mandatory, and a different origin is refused even for agent routes
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > after a HUMAN handshake the agent attaches to the same session/epoch
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > observation is perception-cropped protocol data and is unavailable before the first push
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > submit is queue-only and idempotent; a same-id different payload is rejected
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > a stale epoch is rejected and cannot enqueue leftovers
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > disconnect / yield cancels pending intents; the agent cannot re-attach to a closed session
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > the exact origin is enforced on renderer routes
+src/ai-native/c3bBridge.test.ts > C3-b bridge Owner session capability > TTL expiry drops an overdue intent
+src/ai-native/c3bControl.test.ts > C3-b control ownership > HUMAN, LOCAL DEMO and EXTERNAL are distinct, explicit states
+src/ai-native/c3bControl.test.ts > C3-b control ownership > human takeover cancels external control without an automatic re-take
+src/ai-native/c3bControl.test.ts > C3-b control ownership > resume restores external control only while the link is still connected
+src/ai-native/c3bControl.test.ts > C3-b control ownership > death / run end / scene exit / run start clear external ownership
+src/ai-native/c3bControl.test.ts > C3-b control ownership > the HUD last-action label comes from the real committed action
+src/ai-native/c3cExportFlag.test.ts > C3c export flag — exact truncation predicate > exactly at the retained cap is NOT truncated; one over is
+src/ai-native/c3cExportFlag.test.ts > C3c export flag — boundary and mid-execution > a short boundary export is replayable with no truncation
+src/ai-native/c3cExportFlag.test.ts > C3c export flag — boundary and mid-execution > a mid-execution export is NOT replayable even when not truncated
+src/ai-native/c3cExportFlag.test.ts > C3c export flag — boundary and mid-execution > a boundary export with TRUNCATED history is NOT replayable and says so
+src/ai-native/c3cExportFlag.test.ts > C3c export flag — boundary and mid-execution > a truncated snapshot still carries the exact truncation flag (history vs state)
+src/ai-native/c3cOwnerFile.test.ts > C3c owner file — A: ACL is current-user only > frame export and failure export are owner-only
+src/ai-native/c3cOwnerFile.test.ts > C3c owner file — B: junction/symlink escape is rejected > rejects a symlink/junction under frames that points outside
+src/ai-native/c3cOwnerFile.test.ts > C3c owner file — B: junction/symlink escape is rejected > a plain file inside frames is accepted, the frames root itself is not
+src/ai-native/c3cOwnerFile.test.ts > C3c owner file — C: budget is the full MCP result > counts text + structuredContent + envelope, including non-ASCII
+src/ai-native/c3cOwnerFile.test.ts > C3c owner file — C: budget is the full MCP result > a page near the byte budget is shrunk using the full-result accounting
+src/ai-native/c3cOwnerFile.test.ts > C3c owner file — D: oversized file rejected before read > rejects a >16MiB frame file with a resource error (no parse)
+src/ai-native/c3cOwnerFile.test.ts > C3c owner file — B: frames ROOT junction is also rejected > isSafeFramesRoot accepts a plain directory but rejects a junction root
+src/ai-native/canonicalStability.test.ts > C3c canonical — key order independence > a key-sorted rebuild of the same state has the same canonical string
+src/ai-native/canonicalStability.test.ts > C3c canonical — key order independence > player data constructed in a different key order still hashes identically
+src/ai-native/canonicalStability.test.ts > C3c canonical — precision and array order > preserves full numeric precision (a tiny change is NOT rounded away)
+src/ai-native/canonicalStability.test.ts > C3c canonical — precision and array order > does not reorder arrays (array order is part of the projection)
+src/ai-native/canonicalStability.test.ts > C3c canonical — transport → restore round trip > a boundary frame sorted on the wire restores to the same state/events for the same actions
+src/ai-native/canonicalStability.test.ts > C3c canonical — transport → restore round trip > a numeric tamper in the frame is detected (no rounded/ignored diff)
+src/ai-native/companionBridge.test.ts > Companion bridge Owner isolation > requires the issued Owner capability for every renderer mutation
+src/ai-native/companionFacet.test.ts > CompanionFacet observe > projects only the echo-centred, bounded perception view
+src/ai-native/companionFacet.test.ts > CompanionFacet observe > rejects a raw sim / hidden far actor that was never cropped
+src/ai-native/companionFacet.test.ts > CompanionFacet observe > records cropped non-drone targets in bounded memory
+src/ai-native/companionFacet.test.ts > CompanionFacet observe > rejects a stale epoch and a backwards tick
+src/ai-native/companionFacet.test.ts > CompanionFacet observe > keeps memory bounded to 16 entries and expires it by TTL
+src/ai-native/companionFacet.test.ts > CompanionFacet suggest > reasons must be visible in the CURRENT observation (no invented causes)
+src/ai-native/companionFacet.test.ts > CompanionFacet suggest > a suggestion target must be inside the echo perception and well formed
+src/ai-native/companionFacet.test.ts > CompanionFacet suggest > is idempotent per suggestionId and never re-executes an evicted id
+src/ai-native/companionFacet.test.ts > CompanionFacet suggest > rejects on a full unconfirmed queue instead of FIFO-evicting a live one
+src/ai-native/companionFacet.test.ts > CompanionFacet suggest > honours the session-wide dedup hard bound
+src/ai-native/companionFacet.test.ts > CompanionFacet suggest > no observation means no suggestion
+src/ai-native/companionFacet.test.ts > CompanionFacet honesty / exclusion > AI or External protagonist control is read-only and cancels pending suggestions
+src/ai-native/companionFacet.test.ts > CompanionFacet honesty / exclusion > disconnect is an explicit fallback, cancels unconfirmed work and never auto-reconnects
+src/ai-native/companionFacet.test.ts > CompanionFacet honesty / exclusion > a stale epoch invalidates unconfirmed suggestions
+src/ai-native/companionFacet.test.ts > CompanionFacet honesty / exclusion > exposes no confirmation, owner, player-step or dev capability
+src/ai-native/companionFacet.test.ts > CompanionOwnerLedger capability > a token, Origin header, JSON or plain object can NEVER become the owner capability
+src/ai-native/companionFacet.test.ts > CompanionOwnerLedger capability > owner decisions need the capability, matching session/epoch, human mode and a live link
+src/ai-native/companionFacet.test.ts > CompanionOwnerLedger capability > expired suggestions cannot be confirmed (TTL is a real contract)
+src/ai-native/companionFacet.test.ts > CompanionOwnerLedger capability > EVERY external suggestion kind, including move, stays proposed until a decision
+src/ai-native/companionFacet.test.ts > CompanionOwnerLedger capability > snapshot carries necessary state and hard bounds, never hidden state or auth
+src/ai-native/companionFacet.test.ts > CompanionOwnerLedger capability > old epoch and disconnect fallback are visible in the snapshot and block decisions
+src/ai-native/companionFacet.test.ts > Owner decision strictness / out-of-range actions > rejects non-enum decisions, ticks before creation, old epochs and expired proposals
+src/ai-native/companionFacet.test.ts > Owner decision strictness / out-of-range actions > jam is out-of-range for a perceived target beyond 6 tiles; scan stays <12
+src/ai-native/companionGateway.test.ts > CompanionGateway > only observes the echo-cropped observation pushed by the browser
+src/ai-native/companionGateway.test.ts > CompanionGateway > suggest is idempotent, bounded (8 live / 512 dedup), TTL/epoch aware
+src/ai-native/companionGateway.test.ts > CompanionGateway > every external suggestion stays proposed until the browser-only decision
+src/ai-native/companionGateway.test.ts > CompanionGateway > markApplied requires explicit generation/room evidence for a stale record
+src/ai-native/companionGateway.test.ts > CompanionGateway > stale epoch, expired TTL and AI/External owner mode are refused
+src/ai-native/companionGateway.test.ts > CompanionGateway > status exposes truthful receipts and pendingCount only counts undecided
+src/ai-native/companionGateway.test.ts > CompanionGateway > lease expiry/disconnect cancels pending work and shows NO_MODEL fallback
+src/ai-native/companionInsights.test.ts > memory keeps the real actor kind > a cropped target is remembered as a target, never as a relay
+src/ai-native/companionInsights.test.ts > memory keeps the real actor kind > is honest about the echo player data it derives from (no cross-contamination)
+src/ai-native/companionInsights.test.ts > availableActions reflects the CURRENT energy and cooldown > scan unavailable while the real scan cooldown is running
+src/ai-native/companionInsights.test.ts > availableActions reflects the CURRENT energy and cooldown > scan unavailable without enough energy, even with no cooldown
+src/ai-native/companionInsights.test.ts > availableActions reflects the CURRENT energy and cooldown > scan available again once cooldown and energy are both fine
+src/ai-native/companionInsights.test.ts > availableActions reflects the CURRENT energy and cooldown > jam honours its own cooldown and energy cost
+src/ai-native/companionInsights.test.ts > availableActions reflects the CURRENT energy and cooldown > the perceived RELAY is a legal scan/jam subject (the real exit chain)
+src/ai-native/companionInsights.test.ts > availableActions reflects the CURRENT energy and cooldown > a relay on cooldown is reported as cooldown, not as "unavailable garbage"
+src/ai-native/companionInsights.test.ts > availableActions reflects the CURRENT energy and cooldown > an observation without energy/cooldowns keeps the old distance-only answer
+src/ai-native/companionRoomBoundary.test.ts > POST /world-link/companion-room is browser-only > Agent shape (no Origin) is refused by the outer Origin gate with 403
+src/ai-native/companionRoomBoundary.test.ts > POST /world-link/companion-room is browser-only > a browser-shaped request (allowed Origin + token) reaches the handler
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > cancels unconfirmed proposals and reports an explicit cancelled receipt
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > a held OLD suggestion object can no longer be decided (E_STALE_GENERATION)
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > a CONFIRMED-but-unapplied decision goes stale, and only the ORIGINAL generation can report applied
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > SAME-ROOM repeat with a confirmed-but-unapplied decision is still a no-op (no generation bump)
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > an OUT-OF-ORDER (late) report for a left room neither rolls back nor cancels the new proposal
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > keeps an ALREADY APPLIED suggestion as applied history
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > a duplicate suggest (same or new requestId) never resurrects the old id
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > requires a NEW room observation before any new proposal
+src/ai-native/companionRoomGeneration.test.ts > room generation retires the previous room proposals > is idempotent for the same room: pause/resume and repeats cancel nothing
+src/ai-native/control.test.ts > PlayerIntent / human adapter > neutral intent is a full stop with no side effects
+src/ai-native/control.test.ts > PlayerIntent / human adapter > maps keyboard/pointer state into the same DTO the controller returns
+src/ai-native/control.test.ts > movement budget (real anisotropic screen -> grid path) > screen-right and screen-diagonal cost different grid speeds
+src/ai-native/control.test.ts > movement budget (real anisotropic screen -> grid path) > steering toward a grid point maps back to that exact unit grid direction
+src/ai-native/control.test.ts > movement budget (real anisotropic screen -> grid path) > returns zero velocity for a stop intent
+src/ai-native/control.test.ts > deterministic target selection > picks the nearest hostile and includes the boss
+src/ai-native/control.test.ts > deterministic target selection > breaks distance ties by lower id (stable ordering)
+src/ai-native/control.test.ts > deterministic target selection > ignores dead actors
+src/ai-native/control.test.ts > LocalDeterministicController > walks toward a distant hostile through the real intent budget
+src/ai-native/control.test.ts > LocalDeterministicController > stops and fires when a hostile is inside engage range
+src/ai-native/control.test.ts > LocalDeterministicController > travels to the portal and interacts when close
+src/ai-native/control.test.ts > LocalDeterministicController > reports STOP with no hostile and no portal, HOLD when not ready
+src/ai-native/control.test.ts > LocalDeterministicController > reports BLOCKED instead of phasing through walls
+src/ai-native/control.test.ts > LocalDeterministicController > is deterministic for an identical view sequence and resets cleanly
+src/ai-native/control.test.ts > ControlAuthority ownership / pause / takeover > defaults to human and never claims an external agent
+src/ai-native/control.test.ts > ControlAuthority ownership / pause / takeover > enables AI, pauses, and resumes with ownership restored
+src/ai-native/control.test.ts > ControlAuthority ownership / pause / takeover > human takeover disables the local demo and is recorded
+src/ai-native/control.test.ts > ControlAuthority ownership / pause / takeover > pause/resume with AI disabled stays human (no silent AI grab)
+src/ai-native/control.test.ts > ControlAuthority ownership / pause / takeover > death and run end hand control back to the human
+src/ai-native/control.test.ts > ControlAuthority ownership / pause / takeover > onRunStart and onSceneExit reset AI state
+src/ai-native/control.test.ts > ControlAuthority ownership / pause / takeover > counts executed AI actions only when the action or target changes
+src/ai-native/coop.test.ts > coop actors are independent on one authoritative world > has distinct actor ids, positions, memory and goals
+src/ai-native/coop.test.ts > coop actors are independent on one authoritative world > same tick / same world: an ECHO jam opens the door the human can see and use
+src/ai-native/coop.test.ts > per-actor incomplete information and REAL field-trimmed share > human sees A, ECHO sees B, and neither sees the other private evidence before a share
+src/ai-native/coop.test.ts > per-actor incomplete information and REAL field-trimmed share > shares only the selected fields; unselected relationId/stateLabel/position never leak
+src/ai-native/coop.test.ts > per-actor incomplete information and REAL field-trimmed share > sharing the relationId field does project the relation; empty/unknown fields are rejected
+src/ai-native/coop.test.ts > per-actor incomplete information and REAL field-trimmed share > ECHO shares its own evidence to the human with real trimming (no hidden state)
+src/ai-native/coop.test.ts > COMPANION status is actor-scoped (no human private fields) > never exposes human position/goal/evidence/memory
+src/ai-native/coop.test.ts > hypotheses never auto-canonical and are immutable > deep-freezes the plan so external mutation cannot change the confirmed action
+src/ai-native/coop.test.ts > hypotheses never auto-canonical and are immutable > stays proposed until confirm; P0 observation keeps hypotheses empty; offline policy reproducible
+src/ai-native/coop.test.ts > permission boundaries and zero-side-effect refusal > unconfirmed/rejected execution and ECHO management have zero side effects
+src/ai-native/coop.test.ts > permission boundaries and zero-side-effect refusal > pause / takeover stop ECHO while the human keeps control; budget/cancel/link enforced
+src/ai-native/coop.test.ts > shared-rule ECHO movement/scan and resources > ECHO moves only itself using the shared collision geometry
+src/ai-native/coop.test.ts > shared-rule ECHO movement/scan and resources > ECHO scan uses the same energy/cooldown rule as the human
+src/ai-native/coop.test.ts > isolated signed snapshot > round-trips, is repeatable, is atomic and bumps epoch monotonically
+src/ai-native/coop.test.ts > isolated signed snapshot > rejects tampered content, unknown schema/version, missing state and cross-instance frames atomically
+src/ai-native/coop.test.ts > isolated signed snapshot > restore removes a confirmation made after the snapshot so old plans cannot execute
+src/ai-native/coop.test.ts > instance identity and full-payload snapshot authorization > two same-seed instances each scan/issue, then their frames are mutually rejected with no state change
+src/ai-native/coop.test.ts > instance identity and full-payload snapshot authorization > forged snapshotId/instanceId/sessionId and a recomputed public hash are rejected
+src/ai-native/coop.test.ts > instance identity and full-payload snapshot authorization > dual-actor state (positions/evidence/shared/memory/hypotheses) is fully restored without alias
+src/ai-native/coop.test.ts > instance identity and full-payload snapshot authorization > eviction is explicit and repeated valid restore works
+src/ai-native/coop.test.ts > CoopManager hard limit and cleanup > caps at 10 sessions and frees on close
+src/ai-native/echo.test.ts > P3-a echo controller > follow keeps a standoff and holds when close
+src/ai-native/echo.test.ts > P3-a echo controller > hold never moves; move-to walks to the target then stops
+src/ai-native/echo.test.ts > P3-a echo controller > never fires without an explicit assist confirm, and a mode switch revokes it
+src/ai-native/echo.test.ts > P3-a echo controller > aims at the nearest perceived drone and only at perceived ones
+src/ai-native/echo.test.ts > P3-a echo controller > bounds memory to 16 entries and expires it by TTL
+src/ai-native/echo.test.ts > P3-a echo controller > a dead echo produces a neutral intent and no suggestion
+src/ai-native/echo.test.ts > P3-a echo controller > clearIntent stops assist immediately (disconnect / takeover)
+src/ai-native/echo.test.ts > EchoController reset (restore/restart/death boundary) > clears assist, mode, memory, suggestion and intent in one step
+src/ai-native/echoView.test.ts > buildEchoObservation > includes perceived non-drone targets and Boss public state
+src/ai-native/echoView.test.ts > buildEchoObservation > drops dead, hidden, unexplored and out-of-radius actors
+src/ai-native/echoView.test.ts > buildEchoObservation > a wall blocks a target behind it
+src/ai-native/externalLink.test.ts > C3-b external link state > a session exists only after explicit human authorization
+src/ai-native/externalLink.test.ts > C3-b external link state > queued intents are not "applied" until the core tick commits them
+src/ai-native/externalLink.test.ts > C3-b external link state > the same action id is never applied twice
+src/ai-native/externalLink.test.ts > C3-b external link state > takeover cancels pending intents and bumps the epoch
+src/ai-native/externalLink.test.ts > C3-b external link state > death / pause / scene exit / disconnect all cancel pending intents
+src/ai-native/externalLink.test.ts > C3-b external link state > disconnect degrades the link and clears the human authorization
+src/ai-native/externalLink.test.ts > C3-b external link state > stale epochs cannot enqueue (the link state is per-epoch)
+src/ai-native/externalLink.test.ts > C3-b external link state > the pending queue is bounded
+src/ai-native/externalLink.test.ts > C3-b external link state > the receipt cache is bounded
+src/ai-native/externalLink.test.ts > C3-b external link state > expired intents are dropped and reported as expired
+src/ai-native/externalLink.test.ts > C3-b external link state > external actions convert to legal intents only
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > ticks=1 and ticks=120 consume different numbers of REAL core ticks
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > one frame with 15 core ticks consumes 15; fifteen frames with 1 tick consume 15
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > a frame never over-delivers: surplus core ticks are neutral, not counted
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > REAL core displacement differs for ticks=1 vs ticks=120
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > a blocked legal move still gets an applied receipt but CANNOT fake displacement
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > fire over 120 ticks respects the REAL cooldown and REAL ammo, never one shot per tick
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > aim / interact / stop are single legal commits by definition
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > batch order is FIFO; a stop/cancel never resumes automatically
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > an execution deadline that cannot fit the duration is explicitly expired
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > a duplicate request/action id is NEVER executed twice
+src/ai-native/externalLinkDuration.test.ts > C3-b fix — real core tick durations > an epoch change cancels an in-flight execution and blocks late ACKs
+src/ai-native/externalLinkLifecycle.test.ts > C3-b fix — async lifecycle / generation tokens > degrade DURING the pushObservation await never heartbeats / ACKs or throws
+src/ai-native/externalLinkLifecycle.test.ts > C3-b fix — async lifecycle / generation tokens > a late beforeFrame continuation cannot start an action in the new epoch
+src/ai-native/externalLinkLifecycle.test.ts > C3-b fix — async lifecycle / generation tokens > a late ACK continuation cannot heartbeat, push or re-attach after degrade
+src/ai-native/externalLinkLifecycle.test.ts > C3-b fix — async lifecycle / generation tokens > repeated EOF / heartbeat loss degrades once per reason and never auto re-attaches
+src/ai-native/externalLinkLifecycle.test.ts > C3-b fix — async lifecycle / generation tokens > beforeFrame / afterFrame do not overlap a commit/read
+src/ai-native/externalLinkLifecycle.test.ts > C3-b fix — async lifecycle / generation tokens > a duplicate actionId is enqueued once and produces one completion
+src/ai-native/externalObservation.test.ts > C3-b fix — observation projectile cropping > keeps a legal near projectile and drops far / wall-behind / other-room ones
+src/ai-native/externalObservation.test.ts > C3-b fix — observation projectile cropping > an enemy projectile behind a wall is NOT inferable from the payload
+src/ai-native/externalObservation.test.ts > C3-b fix — observation projectile cropping > drones/targets stay cropped by the player perception whitelist
+src/ai-native/externalObservation.test.ts > C3-b fix — observation projectile cropping > the produced payload passes the strict C3-a schema and carries no hidden state
+src/ai-native/externalObservation.test.ts > C3-b fix — observation projectile cropping > strict schema NEGATIVE tests: extra hidden fields and missing schema are rejected
+src/ai-native/externalObservation.test.ts > C3-b fix — observation projectile cropping > a hidden projectile cannot be recovered through an unfiltered field
+src/ai-native/harness.test.ts > tool matrix / mode isolation > player exposes only the player tools; dev adds the dev tools
+src/ai-native/harness.test.ts > tool matrix / mode isolation > player harness refuses dev capabilities and seed elevation
+src/ai-native/harness.test.ts > tool matrix / mode isolation > dev create requires a seed and produces a test session
+src/ai-native/harness.test.ts > tool matrix / mode isolation > unknown session handles are rejected without throwing
+src/ai-native/harness.test.ts > closed dev fixtures > named lab fixture applies, bumps epoch and is audited
+src/ai-native/harness.test.ts > closed dev fixtures > door/energy fixtures are reflected in inspection
+src/ai-native/harness.test.ts > closed dev fixtures > a fixture bumps the epoch so old-epoch actions are rejected
+src/ai-native/harness.test.ts > closed dev fixtures > corridor fixture exposes Guard/signal/collision readings
+src/ai-native/harness.test.ts > closed dev fixtures > rejects illegal fixtures (bad position / guard without corridor / unknown shape)
+src/ai-native/harness.test.ts > snapshot registry > save -> step -> restore reverts the tick; foreign/cross-session handles are rejected
+src/ai-native/harness.test.ts > snapshot registry > bounds the snapshot registry with FIFO eviction (P1 64-frame boundary)
+src/ai-native/harness.test.ts > snapshot registry > snapshot provenance marks dev-tampered runs
+src/ai-native/harness.test.ts > step idempotency + replay > an identical request retry returns the original StepResult with no tick advance
+src/ai-native/harness.test.ts > step idempotency + replay > a repeated actionId is replayed without re-execution/charge
+src/ai-native/harness.test.ts > step idempotency + replay > replay re-executes deterministically and a different step list diverges
+src/ai-native/harness.test.ts > MCP request idempotency (original tool args) > same requestId + same step args returns the original receipt without advancing
+src/ai-native/harness.test.ts > MCP request idempotency (original tool args) > same requestId + different step args conflicts
+src/ai-native/harness.test.ts > MCP request idempotency (original tool args) > same execute_action requestId + same action (no actionId) replays; different action conflicts
+src/ai-native/harness.test.ts > MCP request idempotency (original tool args) > caches a failed first receipt and returns it on retry
+src/ai-native/harness.test.ts > MCP request idempotency (original tool args) > isolates the same requestId per session
+src/ai-native/harness.test.ts > MCP request idempotency (original tool args) > a fixture epoch change rejects old-epoch requests and does not replay the old cache
+src/ai-native/harness.test.ts > MCP request idempotency (original tool args) > step and execute_action use separate request namespaces
+src/ai-native/harness.test.ts > required epoch contract > rejects a missing epoch on step / execute_action / executeAdvanced without state change
+src/ai-native/harness.test.ts > required epoch contract > rejects a NaN or old epoch and accepts the current epoch
+src/ai-native/harness.test.ts > required epoch contract > restore bumps the epoch; old/missing requests are rejected and the new epoch executes
+src/ai-native/harness.test.ts > scenario / batch / compare > same seed reproduces state and gameplay events; a different seed changes only state
+src/ai-native/harness.test.ts > scenario / batch / compare > run_batch isolates seeds, cleans sessions up, and rejects invalid inputs
+src/ai-native/harness.test.ts > scenario / batch / compare > a tiny budget stops the run without throwing
+src/ai-native/harness.test.ts > scenario / batch / compare > load_scenario only accepts the registered template
+src/ai-native/harness.test.ts > advanced action cancellation / timeout > cancels an in-flight advanced action by its observable actionId
+src/ai-native/harness.test.ts > advanced action cancellation / timeout > times out a bounded advanced action
+src/ai-native/harness.test.ts > malformed input never throws > bad ticks/actions/fixtures return schema errors
+src/ai-native/ownerAuth.test.ts > Owner capability authorization regression chains > C1 self-handshake: no human pairing key => 403
+src/ai-native/ownerAuth.test.ts > Owner capability authorization regression chains > C2 self-authorize: token + public Origin without the key cannot register
+src/ai-native/ownerAuth.test.ts > Owner capability authorization regression chains > C3 reauthorize overwrite: agent cannot replace the human capability
+src/ai-native/ownerAuth.test.ts > Owner capability authorization regression chains > C4 reauthorize same-key: same human atomically swaps the capability
+src/ai-native/ownerAuth.test.ts > Owner capability authorization regression chains > C5 fake observation without an Owner capability is rejected
+src/ai-native/ownerAuth.test.ts > Owner capability authorization regression chains > C6 mode flip without an Owner capability is rejected
+src/ai-native/ownerAuth.test.ts > Owner capability authorization regression chains > C7 duplicate/replayed decisions cannot double-execute
+src/ai-native/ownerAuth.test.ts > Owner capability authorization regression chains > C8 explicit disconnect is a capability-governed NO_MODEL fallback
+src/ai-native/p4.test.ts > P4 Player observation provenance > an R2 scan records the corridor observer position/room, actual actionId/actor/epoch
+src/ai-native/p4.test.ts > P4 Player observation provenance > restore keeps the recorded provenance (no resampling, no identity fabrication)
+src/ai-native/p4.test.ts > P4 Player observation provenance > still attributes R1 scan evidence to its own action
+src/ai-native/p4.test.ts > P4 evidence provenance is backward compatible > SliceModel records scan provenance and restores it verbatim
+src/ai-native/p4.test.ts > P4 evidence provenance is backward compatible > legacy evidence without provenance still serializes and validates
+src/ai-native/protocol.test.ts > P0 contract constants and version compatibility > exports all seven v1 schema strings plus version/kernel/limits/error codes
+src/ai-native/protocol.test.ts > P0 contract constants and version compatibility > isCompatibleVersion accepts only protocolVersion 1 + exact schema
+src/ai-native/protocol.test.ts > P0 contract constants and version compatibility > exports no Runtime / Gateway execution function (P0 is schema only)
+src/ai-native/protocol.test.ts > P0 contract constants and version compatibility > has pure, immutable constant tables
+src/ai-native/protocol.test.ts > legal v1 DTOs > ActionRequestV1 (all 9 wire action types) validates
+src/ai-native/protocol.test.ts > legal v1 DTOs > SessionDescriptorV1 / CreateSessionRequestV1 / StepRequestV1 validate
+src/ai-native/protocol.test.ts > legal v1 DTOs > ObservationV1 / EventV1 / ErrorV1 / StepResultV1 / ActionResultV1 validate
+src/ai-native/protocol.test.ts > legal v1 DTOs > SnapshotV1 / ReplayV1 / DebugInspectionV1 / EnvelopeV1 / RequestV1 validate
+src/ai-native/protocol.test.ts > legal v1 DTOs > summary detail is also a valid ObservationV1 (strict subset of standard)
+src/ai-native/protocol.test.ts > legal v1 DTOs > validators do not mutate their input (no state pollution)
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects unknown top-level and nested fields with E_SCHEMA
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects payload.type !== outer type and deadlineTick < targetTick
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects NaN, Infinity, -Infinity and undefined
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects Set / Map / Date / function / symbol / bigint / class instances
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects non-integer / out-of-range ticks, durations and coordinates
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects malformed opaque IDs and wrong types
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects unsupported protocolVersion / schema with E_VERSION_UNSUPPORTED
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects prototype-pollution keys and accessor properties
+src/ai-native/protocol.test.ts > strict unknown-input rejection (§13.2) > rejects an unknown action type with E_SCHEMA
+src/ai-native/protocol.test.ts > unsupported aim/fire/decoy cannot masquerade as implemented > declares them unsupported and returns E_NOT_APPLICABLE from the support gate
+src/ai-native/protocol.test.ts > unsupported aim/fire/decoy cannot masquerade as implemented > a wire-valid aim/fire ActionRequest is NOT evidence of game implementation
+src/ai-native/protocol.test.ts > unsupported aim/fire/decoy cannot masquerade as implemented > an ActionResult cannot claim completion for an unsupported action kind
+src/ai-native/protocol.test.ts > permission and Dev isolation > production CreateSessionRequest with seed / fixtureRef / DEVELOPER is rejected
+src/ai-native/protocol.test.ts > permission and Dev isolation > production SessionDescriptor cannot contain DEVELOPER; priorities are fixed
+src/ai-native/protocol.test.ts > permission and Dev isolation > COMPANION has no world-write actions and only shared observation scope
+src/ai-native/protocol.test.ts > permission and Dev isolation > PLAYER world writes require an explicit grant; unsupported types stay E_NOT_APPLICABLE
+src/ai-native/protocol.test.ts > permission and Dev isolation > detail:"debug" is E_PERMISSION for PLAYER/COMPANION; debug is a separate DTO
+src/ai-native/protocol.test.ts > permission and Dev isolation > ActionRequest cannot carry role/permission/asActor/impersonate/debug/seed/fixture
+src/ai-native/protocol.test.ts > permission and Dev isolation > hidden fields are rejected in public Observation / Error / Event payloads
+src/ai-native/protocol.test.ts > permission and Dev isolation > knowledge / hypotheses are always empty in P0 (never auto-promoted)
+src/ai-native/protocol.test.ts > permission and Dev isolation > production snapshots/replays are valid PRIVATE frames (structure != authorization)
+src/ai-native/protocol.test.ts > permission and Dev isolation > PLAYER / COMPANION can never receive raw SnapshotV1 / ReplayV1
+src/ai-native/protocol.test.ts > permission and Dev isolation > structural validation passing does not grant an audience
+src/ai-native/protocol.test.ts > permission and Dev isolation > observedState only accepts the documented key whitelist
+src/ai-native/protocol.test.ts > tick boundaries and validation stage order > targetTick must equal currentTick + 1
+src/ai-native/protocol.test.ts > tick boundaries and validation stage order > StepRequest actions must all target fromTick + 1
+src/ai-native/protocol.test.ts > tick boundaries and validation stage order > firstErrorByStage returns only the earliest cause
+src/ai-native/protocol.test.ts > tick boundaries and validation stage order > action ordering uses (targetTick, priority, actorId, actionId), not transport fields
+src/ai-native/protocol.test.ts > tick boundaries and validation stage order > event total order is (tick, phase, ordinal, actorId ?? "", eventId)
+src/ai-native/protocol.test.ts > tick boundaries and validation stage order > event payload key whitelist depends on event type (§8)
+src/ai-native/protocol.test.ts > canonicalJson and payloadFingerprint > sorts object keys by code point, preserves array order
+src/ai-native/protocol.test.ts > canonicalJson and payloadFingerprint > normalizes -0 and rejects non-plain JSON values
+src/ai-native/protocol.test.ts > canonicalJson and payloadFingerprint > payloadFingerprint is fnv1a32 over canonical UTF-8 bytes (known vectors)
+src/ai-native/protocol.test.ts > canonicalJson and payloadFingerprint > validatePayloadSize enforces MAX_PAYLOAD_BYTES
+src/ai-native/protocol.test.ts > redactError (§4.4) > keeps only whitelisted fields and replaces unsafe messageKey
+src/ai-native/protocol.test.ts > redactError (§4.4) > keeps a safe messageKey and fixed safe error text
+src/ai-native/protocol.test.ts > redactError (§4.4) > throws on an invalid ErrorV1 shape
+src/ai-native/protocol.test.ts > idempotency check (pure, no global cache) > same key + same hash => replayed, different hash => E_ID_PAYLOAD_MISMATCH
+src/ai-native/protocol.test.ts > idempotency check (pure, no global cache) > cross-epoch / cross-session caches are isolated
+src/ai-native/protocol.test.ts > idempotency check (pure, no global cache) > fingerprint of a canonical action payload is stable across key order
+src/ai-native/protocol.test.ts > R9 observation evidence restore > same snapshot restored twice yields identical evidence and TTL (no re-scan)
+src/ai-native/protocol.test.ts > R9 observation evidence restore > rejects expired evidence, wrong sceneEpoch, and bad shape
+src/ai-native/protocol.test.ts > R9 observation evidence restore > old saves with no evidence simply clear (empty array), without inventing any
+src/ai-native/protocol.test.ts > R9 observation evidence restore > observation evidence with observedAtTick >= expiresAtTick is rejected
+src/ai-native/protocol.test.ts > Snapshot / Replay compatibility (death is a new run) > rejects wrong version / kernelVersion / schema
+src/ai-native/protocol.test.ts > Snapshot / Replay compatibility (death is a new run) > rejects cross-session / cross-kind replay
+src/ai-native/protocol.test.ts > Snapshot / Replay compatibility (death is a new run) > a finished(died) snapshot is not restorable as a live run
+src/ai-native/protocol.test.ts > Snapshot / Replay compatibility (death is a new run) > rejects a snapshot whose state shape deviates from PersistedSliceState
+src/ai-native/protocol.test.ts > Snapshot / Replay compatibility (death is a new run) > rejects a bad hash shape, and non-null rngState
+src/ai-native/protocol.test.ts > resource limits, pagination and terminal idempotency > enforces MAX_EVENTS_PER_PAGE and explicit droppedEvents accounting
+src/ai-native/protocol.test.ts > resource limits, pagination and terminal idempotency > rejects oversized StepRequest ticks / actions
+src/ai-native/protocol.test.ts > resource limits, pagination and terminal idempotency > terminal cancellation / timeout is idempotent with zero resource writes
+src/ai-native/protocol.test.ts > resource limits, pagination and terminal idempotency > CreateSessionRequest resourceLimits can only tighten
+src/ai-native/protocol.test.ts > envelope and request discrimination > kind couples to the payload shape
+src/ai-native/protocol.test.ts > envelope and request discrimination > REJECTS a response envelope carrying a private SnapshotV1
+src/ai-native/protocol.test.ts > envelope and request discrimination > REJECTS a response envelope carrying a private ReplayV1
+src/ai-native/protocol.test.ts > envelope and request discrimination > REJECTS a notification envelope even with a valid EventV1 payload
+src/ai-native/protocol.test.ts > envelope and request discrimination > Dev/test independent private frames remain valid outside public envelopes
+src/ai-native/protocol.test.ts > envelope and request discrimination > rejects wrong envelope schema / unknown kind / bad transportSeq
+src/ai-native/protocol.test.ts > envelope and request discrimination > exposes the fixed-name type guards required by protocol §3
+src/ai-native/protocol.test.ts > v1 vocabulary and ObservationEvidenceV1 version field > no player/echo legacy aliases are exported
+src/ai-native/protocol.test.ts > v1 vocabulary and ObservationEvidenceV1 version field > ObservationEvidenceV1 requires protocolVersion: 1 and exact schema
+src/ai-native/runtime.test.ts > determinism and instance isolation > same seed + same ordered actions => identical canonical state and events
+src/ai-native/runtime.test.ts > determinism and instance isolation > action input order does not change the deterministic result
+src/ai-native/runtime.test.ts > determinism and instance isolation > different instances and seeds are isolated
+src/ai-native/runtime.test.ts > fixed tick, pause and bounded execution > pause freezes the tick and rejects step until resume
+src/ai-native/runtime.test.ts > fixed tick, pause and bounded execution > rejects out-of-range ticks, unknown fields/actions/actors and unsupported actions
+src/ai-native/runtime.test.ts > fixed tick, pause and bounded execution > createGame rejects invalid options
+src/ai-native/runtime.test.ts > B1 — browser frame batch and Node per-tick transition commit are identical > exact repro: passed=true pos(12.64,5.07) south 15 ticks
+src/ai-native/runtime.test.ts > B1 — browser frame batch and Node per-tick transition commit are identical > SliceScene delegates transition decisions to the per-tick commit hook, not frame-end sampling
+src/ai-native/runtime.test.ts > shared movement and door progression > move uses the shared fixed-speed/axis-collision entry and cannot pass a sealed door
+src/ai-native/runtime.test.ts > shared movement and door progression > passing the door then reaching the exit enters the corridor
+src/ai-native/runtime.test.ts > shared movement and door progression > Jam expires and the door safely returns to SEALED
+src/ai-native/runtime.test.ts > corridor bridge and guard > relay/bridge transition legally and never soft-locks after a collapse
+src/ai-native/runtime.test.ts > corridor bridge and guard > guard perceives a nearby player and deals damage through the existing FSM
+src/ai-native/runtime.test.ts > corridor bridge and guard > jam silences guard perception; shoot_guard is a limited corridor-only capability
+src/ai-native/runtime.test.ts > B2 — public observation is a P0 ObservationV1 whitelist projection > lab and corridor observations pass P0 validation and hide no FSM state
+src/ai-native/runtime.test.ts > B2 — public observation is a P0 ObservationV1 whitelist projection > availableActions is derived from model state, not a fixed legal list
+src/ai-native/runtime.test.ts > B2 — public observation is a P0 ObservationV1 whitelist projection > completed is true only for RUN_COMPLETED, never for RUN_FAILED
+src/ai-native/runtime.test.ts > B3 + R9 evidence, snapshot/restore and replay > Scan creates evidence; restore preserves it verbatim without scan and without extending TTL
+src/ai-native/runtime.test.ts > B3 + R9 evidence, snapshot/restore and replay > evidence expires by TTL and an old save requires a rescan
+src/ai-native/runtime.test.ts > B3 + R9 evidence, snapshot/restore and replay > entering the corridor discards R1 evidence
+src/ai-native/runtime.test.ts > B3 + R9 evidence, snapshot/restore and replay > live-guard snapshot replay is deterministic and matches restore+steps
+src/ai-native/runtime.test.ts > B4 — restore is issued-frame-bound, atomic and geometry-checked > rejects a same-session legal-ground position change, even with recomputed public hashes
+src/ai-native/runtime.test.ts > B4 — restore is issued-frame-bound, atomic and geometry-checked > rejects an arbitrary teleport / fake passed flag
+src/ai-native/runtime.test.ts > B4 — restore is issued-frame-bound, atomic and geometry-checked > rejects cross-seed and same-seed foreign frames (not issued by this instance)
+src/ai-native/runtime.test.ts > B4 — restore is issued-frame-bound, atomic and geometry-checked > content validation rejects wall positions, range, forged events and bad actionLog
+src/ai-native/runtime.test.ts > B4 — restore is issued-frame-bound, atomic and geometry-checked > closed schema rejects unknown top-level fields
+src/ai-native/runtime.test.ts > B4 — restore is issued-frame-bound, atomic and geometry-checked > source mismatches are reported by validateRestoreFrame
+src/ai-native/runtime.test.ts > B4 — restore is issued-frame-bound, atomic and geometry-checked > multiple restores of one issued frame work; eviction is explicit and bounded
+src/ai-native/runtime.test.ts > B4 — restore is issued-frame-bound, atomic and geometry-checked > rejects a corridor+passed frame whose DOOR_PASSED event was stripped
+src/ai-native/runtime.test.ts > B5 — canonical hash is authoritative-state only > source snapshot -> restore -> 0-step replay reproduces the same canonical hash
+src/ai-native/runtime.test.ts > B5 — canonical hash is authoritative-state only > CLI 0-step replay hash equals the source snapshot hash
+src/ai-native/runtime.test.ts > B6 — CLI Dev channel identity (no audience upgrade) > snapshot/replay/restore require the explicit --dev channel
+src/ai-native/runtime.test.ts > B6 — CLI Dev channel identity (no audience upgrade) > observe never leaks seed/RNG/full model even on the Dev channel
+src/ai-native/runtime.test.ts > B6 — CLI Dev channel identity (no audience upgrade) > CLI docs state seed/RNG only in the Dev channel
+src/ai-native/runtime.test.ts > B7 — CLI strict schema and resource limits > step/replay reject non-array actions/steps instead of silently using []
+src/ai-native/runtime.test.ts > B7 — CLI strict schema and resource limits > enforces instance count, id length and JSON line size
+src/ai-native/runtime.test.ts > B7 — CLI strict schema and resource limits > restore requires hashes and only accepts this instance issued frame
+src/ai-native/runtime.test.ts > B7 — CLI strict schema and resource limits > quit exits and cleans up without waiting for stdin EOF
+src/ai-native/runtime.test.ts > purity and real Node CLI process > runtime/sharedCore/fullState sources contain no renderer or Node crypto imports
+src/ai-native/runtime.test.ts > purity and real Node CLI process > full CLI cycle: create/step/observe/snapshot/replay/pause/resume/close/quit
+src/ai-native/sessions.test.ts > trusted entry / capability split > PLAYER handle has actions/observe/cancel/start/close but no pause/resume/reset/dev
+src/ai-native/sessions.test.ts > trusted entry / capability split > trusted OWNER handle owns pause/resume/reset and cannot be obtained from the Player handle
+src/ai-native/sessions.test.ts > trusted entry / capability split > TEST handle adds only the dev/test facet
+src/ai-native/sessions.test.ts > B1 — StepRequest uses the P0 closed schema > rejects non-array / null / undefined actions without throwing
+src/ai-native/sessions.test.ts > B1 — StepRequest uses the P0 closed schema > rejects unknown request fields (role/dev/audience/kind/seed/fixture)
+src/ai-native/sessions.test.ts > B1 — StepRequest uses the P0 closed schema > rejects NaN/Infinity/negative/fractional/undefined ticks and bad types
+src/ai-native/sessions.test.ts > B2 — StepRequest and action binding > rejects a foreign request sessionId without executing
+src/ai-native/sessions.test.ts > B2 — StepRequest and action binding > rejects an action with a foreign sessionId
+src/ai-native/sessions.test.ts > B2 — StepRequest and action binding > rejects a stale action epoch
+src/ai-native/sessions.test.ts > B2 — StepRequest and action binding > rejects action targetTick that is not exactly fromTick+1
+src/ai-native/sessions.test.ts > B2 — StepRequest and action binding > rejects a fromTick that is not the authoritative tick
+src/ai-native/sessions.test.ts > B2 — StepRequest and action binding > rejects an action from a foreign actor
+src/ai-native/sessions.test.ts > B3 — same-batch duplicate actionId > executes once, charges once, and maps [OK, replayed]
+src/ai-native/sessions.test.ts > B3 — same-batch duplicate actionId > same id + different payload in one batch rejects the duplicate, executes once
+src/ai-native/sessions.test.ts > B3 — same-batch duplicate actionId > caches a failed action receipt and replays it for duplicates/retries
+src/ai-native/sessions.test.ts > B4 — request and action idempotency > same requestId + identical request returns the original StepResult with no tick advance or charge
+src/ai-native/sessions.test.ts > B4 — request and action idempotency > same requestId with a different payload is rejected and does not advance
+src/ai-native/sessions.test.ts > B4 — request and action idempotency > a new requestId with a repeated actionId advances the explicit ticks but does not re-execute/re-charge
+src/ai-native/sessions.test.ts > B4 — request and action idempotency > a same requestId retry of a step with a failed action returns the identical failed StepResult
+src/ai-native/sessions.test.ts > B5 — hard budgets and option validation > hard caps are 10 sessions / 2 concurrent steps
+src/ai-native/sessions.test.ts > B5 — hard budgets and option validation > rejects NaN/Infinity/negative/fractional/unknown options
+src/ai-native/sessions.test.ts > B5 — hard budgets and option validation > enforces the 10-session cap at creation
+src/ai-native/sessions.test.ts > B6 — owner lifecycle split > owner pause/resume/reset works while the Player cannot call them
+src/ai-native/sessions.test.ts > B6 — owner lifecycle split > Player start/close remain available (own run), owner close is available too
+src/ai-native/sessions.test.ts > E1 — advanced action cannot pollute a new run > reset during waitUntil leaves the new run at tick 0
+src/ai-native/sessions.test.ts > E1 — advanced action cannot pollute a new run > close during waitUntil freezes the session and cancels the action
+src/ai-native/sessions.test.ts > E1 — advanced action cannot pollute a new run > restore during waitUntil cancels the in-flight action and pins the restored epoch
+src/ai-native/sessions.test.ts > D2 — cancelAction cancels bounded advanced actions > cancels via the returned handle actionId and freezes ticks
+src/ai-native/sessions.test.ts > D2 — cancelAction cancels bounded advanced actions > cancels synchronously before the loop starts via a caller-supplied actionId
+src/ai-native/sessions.test.ts > D2 — cancelAction cancels bounded advanced actions > an unmatched actionId is not faked as success
+src/ai-native/sessions.test.ts > session id decoupling and isolation > duplicate seedProvider values still produce distinct sessions (no Map overwrite)
+src/ai-native/sessions.test.ts > session id decoupling and isolation > two managers stay isolated even with the same seedProvider
+src/ai-native/sessions.test.ts > debug observation > is rejected with E_PERMISSION (sanitized, no leak)
+src/ai-native/sessions.test.ts > result-validation transaction > rolls back tick/energy/events/epoch, caches the sanitized failure, and retries identically
+src/ai-native/sessions.test.ts > result-validation transaction > a throwing hasher cannot escape and leaves no commit
+src/ai-native/sessions.test.ts > result-validation transaction > a failed step does not evict previously issued snapshots or change epoch
+src/ai-native/sessions.test.ts > result-validation transaction > postStateHash matches canonicalState of an issued snapshot (no per-step issuance drift)
+src/ai-native/sessions.test.ts > production PLAYER full door/bridge route > reaches the east shore and completes using only legal lower-level actions
+src/ai-native/sessions.test.ts > companion > is independently bound and returns E_NOT_APPLICABLE
+src/ai-native/sessions.test.ts > observation and events > summary validates as P0 and leaks no hidden field
+src/ai-native/sessions.test.ts > observation and events > events paginate with a truncation notice
+src/ai-native/sessions.test.ts > idle / close cleanup > an idle session is reclaimed and removed
+src/ai-native/sessions.test.ts > idle / close cleanup > manager.dispose() closes everything
+src/ai-native/task0.test.ts > Task0 — STOP preemption > preempts the active action, records executed ticks and applies a real neutral stop
+src/ai-native/task0.test.ts > Task0 — STOP preemption > preempting with no active action is a no-op (no fake receipt)
+src/ai-native/task0.test.ts > Task0 — STOP preemption > human takeover still cancels immediately (stop is not required)
+src/ai-native/task0.test.ts > Task0 — bounded lease history > 1000 issue/invalidate cycles stay within the hard caps
+src/ai-native/task0.test.ts > Task0 — bounded lease history > an invalidated old lease cannot renew (never a new session)
+src/ai-native/task0.test.ts > Task0 — bounded lease history > 1000 gateway+lease lifecycle cycles stay bounded (same state machine the bridge uses)
+src/ai-native/task0.test.ts > Task0 — bounded lease history > real HTTP bridge routes stay bounded across many sessions
+src/ai-native/task0.test.ts > Task0 — credential cleanup > the token is not left in globalThis after a successful authorization
+src/ai-native/task0.test.ts > Task0 — credential cleanup > degrade() and dispose() drop credentials
+src/ai-native/worldBridgeServer.test.ts > C3-a loopback bridge auth / origin / lifecycle > rejects missing/wrong credentials and wrong origins without wildcard CORS
+src/ai-native/worldBridgeServer.test.ts > C3-a loopback bridge auth / origin / lifecycle > requires explicit authorized=true and rejects duplicate handshake
+src/ai-native/worldBridgeServer.test.ts > C3-a loopback bridge auth / origin / lifecycle > queues, fetches and ACKs through the bridge without claiming applied early
+src/ai-native/worldBridgeServer.test.ts > C3-a loopback bridge auth / origin / lifecycle > yield cancels pending + invalidates old epoch; close releases
+src/ai-native/worldBridgeServer.test.ts > C3-a loopback bridge auth / origin / lifecycle > heartbeat loss degrades to LOST and does not auto-reconnect
+src/ai-native/worldBridgeServer.test.ts > C3-a loopback bridge auth / origin / lifecycle > server close releases the authorized session (normal close)
+src/ai-native/worldBridgeServer.test.ts > C3-a bridge F3: per-operation origin binding > rejects observe/ACK/yield from an origin other than the handshake origin
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway authorization/session > requires explicit authorization and enforces the session budget
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway authorization/session > accepts only the exact origin/epoch observation and never stores a token
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway authorization/session > heartbeat loss marks LOST and invalidates control; close releases
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway queue/idempotency/TTL > queues without applying, then ACK marks applied
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway queue/idempotency/TTL > same request/payload replays without a second queue; different payload rejects
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway queue/idempotency/TTL > duplicate actionId with different payload is rejected, stale epoch is rejected
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway queue/idempotency/TTL > TTL expires queued actions when observation tick passes applyByTick, ACK is expired
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway queue/idempotency/TTL > yield cancels pending, bumps epoch, and old actions are invalid
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway queue/idempotency/TTL > enforces pending/cache limits and ACK TTL
+src/ai-native/worldGateway.test.ts > C3-a WorldGateway queue/idempotency/TTL > wall-time TTL expires queued actions even without a newer observation
+src/ai-native/worldGateway.test.ts > C3-a gateway hard gates (F1/F2/F3) from independent tester findings > F1: observations are monotonic; stale tick is rejected and never rolls back the baseline
+src/ai-native/worldGateway.test.ts > C3-a gateway hard gates (F1/F2/F3) from independent tester findings > F2: a request/action id evicted from the cache cannot be retried into the queue
+src/ai-native/worldGateway.test.ts > C3-a gateway hard gates (F1/F2/F3) from independent tester findings > F3: ACK appliedTick must be within [acceptedTick, applyByTick] (no future/fake ACK)
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > hard quota bounds cache+evicted records and rejects new work atomically
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > quota rejection happens before enqueue and leaves no partial batch
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > tiny cache eviction stays bounded; retry after eviction is rejected
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > same request replay is idempotent; different payload is rejected without new records
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > same-tick observation: identical payload is idempotent, conflicting payload is rejected
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > cross-epoch old requests stay rejected; re-authorize allows a tick reset
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > LOST retains dedup records and rejects old requests after re-authorize
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > pending budget recovers after ACK without exceeding the dedup quota
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > default quota bounds a long session at WORLD_LIMITS.MAX_DEDUP_RECORDS
+src/ai-native/worldGateway.test.ts > C3-a bounded session quota and same-tick observation conflict > re-adding a pending action receipt moves it back without double counting
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > uses the REAL generated map, a REAL combat room, a REAL drone and the REAL pulse weapon
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > observation is perception-cropped: no seed / RNG / full map / hidden goal
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > real combat: fire -> projectile -> hit -> enemy-died -> cleared; real damage taken
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > real death: the core emits player-death and the session reports dead
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > collision is the real core: sustained movement never enters a wall cell
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > two worlds with the same seed + same intents produce identical canonical state/events
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > an owner snapshot carries state, commands, RNG, ledger and map identity
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > restore bumps the epoch and replay reproduces the real canonical state/events
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > restore rejects a malformed frame without mutating the session
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > Dev room loading spawns REAL enemies from real enemy config
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > a real kill drops loot and the REAL stepLoot path collects it into resources
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > a Dev failure export never contains credentials or a Phaser object
+src/ai-native/worldHeadless.test.ts > C3-c headless same-core runtime > WorldActionV1 converts only to legal core intents
+src/ai-native/worldHeadlessEcho.test.ts > HeadlessWorld echo > spawns the echo at the next committed tick and only moves with an echoIntent
+src/ai-native/worldHeadlessEcho.test.ts > HeadlessWorld echo > echoView is centred on the echo and never on the player
+src/ai-native/worldHeadlessEcho.test.ts > HeadlessWorld echo > canonical state includes the echo only after it exists
+src/ai-native/worldHeadlessEcho.test.ts > HeadlessWorld echo observation (shared projection) > includes non-drone core targets and Boss public state, not hidden ones
+src/ai-native/worldHeadlessHarness.test.ts > C3-c harness — deterministic combat regression > runs a REAL encounter and is reproducible for a fixed seed
+src/ai-native/worldHeadlessHarness.test.ts > C3-c harness — deterministic combat regression > batch regression aggregates real per-seed outcomes
+src/ai-native/worldHeadlessHarness.test.ts > C3-c harness — deterministic combat regression > baseline comparison is explicitly NOT an AI agent / NOT Signal Combat
+src/ai-native/worldHeadlessHarness.test.ts > C3-c harness — REAL perf > runs 1000 ticks x 10 sessions of real combat (no empty scene)
+src/ai-native/worldHeadlessHarness.test.ts > C3-c / P3-b harness — Signal > without a device Signal is explicitly unsupported (never faked)
+src/ai-native/worldHeadlessHarness.test.ts > C3-c / P3-b harness — Signal > with a real device it is supported and the batch drives REAL core state
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — core events are immutable value DTOs > a projectile-spawned event never changes when the projectile moves/hits
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — core events are immutable value DTOs > a loot-dropped event never changes when the loot bobs/is collected
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — snapshot/restore/fromFrame isolation > mutating the live world does not change a saved frame (events/state/commands/ledger)
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — snapshot/restore/fromFrame isolation > mutating the input frame after restore does not change the live world
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — snapshot/restore/fromFrame isolation > fromFrame is isolated from the input frame
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — replay baseline offset > replays a MID-RUN boundary frame over the same interval (sameState/sameEvents)
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — replay baseline offset > tampering the baseline history is detected at the exact index
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — replay baseline offset > a different continuation is detected in the NEW segment, not at 0
+src/ai-native/worldHeadlessHistoryReplay.test.ts > C3c history — replay baseline offset > a tick0/start frame still replays all steps exactly
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Player surface > creates a session without a seed; a seed is rejected for Player
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Player surface > observation is perception-cropped and never carries hidden state
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Player surface > real fire damage + encounter end through legal core ticks
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Player surface > step request is idempotent; a different payload is rejected
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Player surface > a stale epoch is rejected
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Player surface > Player cannot use any Dev tool
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Player surface > close releases the session; old epoch / closed session is not observable
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Dev surface > Dev can create with an explicit seed and inspect RNG/ledger/map identity
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Dev surface > Dev load_room / spawn_enemies use REAL enemies and bump the epoch
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Dev surface > Dev snapshot/restore bumps the epoch and rejects the old one
+src/ai-native/worldHeadlessMcp.test.ts > C3-c headless MCP manager — Dev surface > Dev batch/compare/perf produce REAL results; Signal stays unsupported
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player output allowlist > create / observe / list / close expose only public data
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player output allowlist > action returns only a public receipt (no seed/map/RNG)
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player output allowlist > step exposes NO canonicalState/canonicalEvents (Player)
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player output allowlist > an idempotent step replay does not leak owner data
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player output allowlist > Dev keeps canonical + snapshot + inspect detail
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player output allowlist > Player error paths never carry owner data
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player output allowlist > Player export/failure path never returns an owner file path
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player step boundaries > after the encounter ends, a NEW Player step is rejected (replay still works)
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player step boundaries > an old epoch is rejected; a same-id different payload is rejected
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — cross-step execution (shared duration rule) > step10 keeps the action executing (10/110) and does NOT ACK applied
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — cross-step execution (shared duration rule) > step10 + step110 equals one step120 canonically and in events
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — cross-step execution (shared duration rule) > a queued stop preempts the ACTIVE action mid-flight
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — bounded request ledger > an evicted response cannot re-advance an old requestId
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — bounded request ledger > the dedup set has a hard cap: new requests are rejected atomically when full
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — bounded request ledger > step and action share one requestId namespace
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — public events are perception-cropped > a Player step never returns drone-step / room-generated / hidden positions
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player intent audit > accepts exactly the legal intent shape (and normalizes over-speed)
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player intent audit > rejects unknown keys, HP writes, seed, and nested extras
+src/ai-native/worldHeadlessPlayerCrop.test.ts > C3c fix — Player intent audit > a manager step rejects a bad intent without leaking owner data
+src/ai-native/worldHeadlessSignal.test.ts > world_signal_status > unsupported without a device, supported with a real core device
+src/ai-native/worldHeadlessSignal.test.ts > world_signal_status > Dev signal commands and batch really consume energy / suppress emission
+src/ai-native/worldHeadlessSignal.test.ts > Headless Signal E2E cooperation chain (Task C item 5) > scan → evidence → energy cost → jam → suppression → expiry → toggle → ACTIVE → exit open
+src/ai-native/worldHeadlessSignal.test.ts > Headless Signal E2E cooperation chain (Task C item 5) > jam preserves manual/power state through expiry
+src/ai-native/worldHeadlessSignal.test.ts > Headless Signal E2E cooperation chain (Task C item 5) > evidence expires by absolute TTL
+src/ai-native/worldHeadlessSignal.test.ts > Rendered↔Headless signal canonical parity > same seed + same ordered signal actions produce identical canonical state + events
+src/ai-native/worldHeadlessSignal.test.ts > Rendered↔Headless signal canonical parity > different signal action order diverges canonical state
+src/ai-native/worldHeadlessSnapshotBoundary.test.ts > C3c snapshot — action boundary only > refuses a mid-execution snapshot without cancelling, ACKing or advancing
+src/ai-native/worldHeadlessSnapshotBoundary.test.ts > C3c snapshot — action boundary only > refuses a snapshot while an action is queued but not started
+src/ai-native/worldHeadlessSnapshotBoundary.test.ts > C3c snapshot — action boundary only > a completed boundary snapshot is restorable and restore bumps the epoch
+src/ai-native/worldHeadlessSnapshotBoundary.test.ts > C3c snapshot — action boundary only > restore rejects a frame without the boundary marker and a mid-execution session
+src/ai-native/worldHeadlessSnapshotBoundary.test.ts > C3c snapshot — action boundary only > post-restore subsequent actions match the same sequence without restore
+src/ai-native/worldHeadlessSnapshotBoundary.test.ts > C3c snapshot — action boundary only > exportFailure marks a mid-execution bundle as NOT replayable
+src/ai-native/worldHeadlessSnapshotBoundary.test.ts > C3c snapshot — action boundary only > inspect exposes manager execution state for diagnostics
+src/ai-native/worldHeadlessStepChannel.test.ts > C3c step channel — Player has no direct intent > rejects a direct intent with E_PERMISSION and does not advance/charge
+src/ai-native/worldHeadlessStepChannel.test.ts > C3c step channel — Player has no direct intent > a step with no queued action is neutral: no movement and no fire
+src/ai-native/worldHeadlessStepChannel.test.ts > C3c step channel — Player has no direct intent > act(move) + step produces real movement through the legal channel
+src/ai-native/worldHeadlessStepChannel.test.ts > C3c step channel — Player has no direct intent > Dev keeps a strict intent for fixture/replay
+src/ai-native/worldHeadlessStepChannel.test.ts > C3c step channel — Player has no direct intent > Dev still rejects a malformed intent (unknown/HP/over-speed), but over-speed is clamped
+src/ai-native/worldObservation.test.ts > WorldObservationV1 perception projection > keeps own public state and only perceived living actors
+src/ai-native/worldObservation.test.ts > WorldObservationV1 perception projection > current room alone is not sufficient: a wall-blocked same-room actor is excluded
+src/ai-native/worldObservation.test.ts > WorldObservationV1 perception projection > hides a far / unperceived boss and exposes no phase
+src/ai-native/worldObservation.test.ts > WorldObservationV1 perception projection > exposes a perceived portal position only, never its destination room
+src/ai-native/worldObservation.test.ts > WorldObservationV1 perception projection > declares the visibility basis and contains no seed / map / internal fields
+src/ai-native/worldObservation.test.ts > WorldObservationV1 perception projection > controller target selection only sees the perceived actor list
+src/ai-native/worldPerception.test.ts > gridLineOfSight (bounded, camera-free) > accepts a close, explored, unobstructed target
+src/ai-native/worldPerception.test.ts > gridLineOfSight (bounded, camera-free) > rejects targets beyond the perception radius
+src/ai-native/worldPerception.test.ts > gridLineOfSight (bounded, camera-free) > rejects targets behind a wall
+src/ai-native/worldPerception.test.ts > gridLineOfSight (bounded, camera-free) > rejects targets in unentered (unexplored) rooms
+src/ai-native/worldPerception.test.ts > gridLineOfSight (bounded, camera-free) > rejects non-finite coordinates and a non-finite center
+src/ai-native/worldPerception.test.ts > createLocalProbe (no full-map oracle) > answers only short-range, finite, explored positions
+src/ai-native/worldPerception.test.ts > createLocalProbe (no full-map oracle) > uniformly rejects far floor, far wall and non-finite probes without terrain lookups
+src/ai-native/worldPerception.test.ts > createLocalProbe (no full-map oracle) > keeps the probe radius strictly smaller than the perception radius
+src/ai-native/worldProtocol.test.ts > C3-a WorldActionV1 strict schema > accepts the five first-slice actions and rejects actor/seed/role overrides
+src/ai-native/worldProtocol.test.ts > C3-a WorldActionV1 strict schema > batch is strict, bounded, and actionIds are unique
+src/ai-native/worldProtocol.test.ts > C3-a WorldActionV1 strict schema > fingerprints are deterministic and payload-sensitive
+src/ai-native/worldProtocol.test.ts > C3-a WorldObservationV1 whitelist > accepts the player-visible first-slice observation
+src/ai-native/worldProtocol.test.ts > C3-a WorldObservationV1 whitelist > rejects seed/map/rng/targetRoom/phase and other hidden fields
+src/ai-native/worldProtocol.test.ts > C3-a WorldObservationV1 whitelist > bounds arrays and validates numeric fields
+src/ai-native/worldProtocol.test.ts > C3-a WorldActionV2 strict schema (signal actions) > v2 accepts scan/jam with explicit actor player/echo
+src/ai-native/worldProtocol.test.ts > C3-a WorldActionV2 strict schema (signal actions) > v2 rejects scan/jam without actor (v1-style scan must stay rejected)
+src/ai-native/worldProtocol.test.ts > C3-a WorldActionV2 strict schema (signal actions) > v1 still rejects scan/jam without actor (schema boundary unchanged)
+src/config/supplies.test.ts > supply offer config > prices are fixed config values and not caller-parameterised
+src/config/supplies.test.ts > supply offer config > only stable offer keys are legal
+src/config/supplies.test.ts > supply offer config > loan weapon is deterministic from seed + room and inside the pool
+src/config/supplies.test.ts > supply offer config > terminal rooms cover shop/elite and the first rewarded room after start
+src/config/supplies.test.ts > supply offer config > purchase blockers reflect real eligibility and balance
+src/config/supplies.test.ts > supply offer config > applySupply repairs (capped), calibrates the equipped weapon, and adds the loan
+src/config/supplies.test.ts > supply offer config > does not import DOM/Phaser (pure config)
+src/core/runtime.test.ts > run and permanent saves > migrates the previous profile without turning old ranks into currency
+src/core/runtime.test.ts > run and permanent saves > keeps the profile if the run is corrupt and rejects invalid writes
+src/core/runtime.test.ts > run and permanent saves > clears completed runs, awards one core only on victory and rejects stale writes
+src/core/runtime.test.ts > run and permanent saves > discardCheckpoint removes the run only when the id matches
+src/core/runtime.test.ts > run and permanent saves > keeps a still-valid run through _upgrade when the save structure is invalid
+src/core/runtime.test.ts > run and permanent saves > writeCheckpoint(undefined) replaces a previously saved run
+src/core/runtime.test.ts > run and permanent saves > writeCheckpoint(expectedId) rejects stale writes and writes with no existing run
+src/core/runtime.test.ts > iso projection > round-trips a grid point through screen space
+src/core/runtime.test.ts > iso projection > uses the 64x32 isometric grid
+src/core/runtime.test.ts > applyUpgrade > actually mutates PlayerData for every one of the 12 definitions
+src/core/runtime.test.ts > applyUpgrade > power raises damage, vitality raises maxHp and heals the delta
+src/core/runtime.test.ts > validate > accepts a complete save
+src/core/runtime.test.ts > validate > rejects malformed permanent numbers and non-array unlocks
+src/core/runtime.test.ts > validate > rejects missing settings / stats instead of silently passing
+src/core/runtime.test.ts > multi-level XP queue > processes every pending level-up without dropping an upgrade
+src/signal/signalCore.test.ts > shared tuning (one set of numbers) > slice SLICE values ARE the shared Signal values
+src/signal/signalCore.test.ts > independent finite energy accounts > player and echo each start at 100 and never share a pool
+src/signal/signalCore.test.ts > independent finite energy accounts > regens 1 per 12 real ticks, caps at 100 and does NOT regen while paused
+src/signal/signalCore.test.ts > independent finite energy accounts > cooldown decay is tick-based and paused ticks change nothing
+src/signal/signalCore.test.ts > scan / jam gate and charge > scan costs 10, CD 120, reveal 480 and an empty scan still charges
+src/signal/signalCore.test.ts > scan / jam gate and charge > jam costs 25, CD 480, duration 360 and guard-jam keeps the relay countdown
+src/signal/signalCore.test.ts > scan discovery / evidence TTL > uses 12-tile radius + LOS, records actor provenance and expires at tick+480
+src/signal/signalCore.test.ts > relay state / JAM suppression > JAM suppresses emission; it is NOT a toggle and does NOT restore power
+src/signal/signalCore.test.ts > relay state / JAM suppression > relayState / buildRelayReading / nextBridge keep slice semantics
+src/signal/signalCore.test.ts > validSignalResources (checkpoint-safe) > accepts normal runtime spend/cooldowns and rejects over-range or free skills
+src/signal/signalCore.test.ts > single-gate scan/jam charge and strict Signal DTO > charges exactly once, never negative, and checks scenario permission first
+src/signal/signalCore.test.ts > single-gate scan/jam charge and strict Signal DTO > rejects nested free / hiddenTarget extras in checkpoint Signal state
+src/systems/runCheckpoint.test.ts > cloneCheckpoint > accepts a valid frame and returns a valid independent copy
+src/systems/runCheckpoint.test.ts > cloneCheckpoint > does not mutate when the live frame changes after capture
+src/systems/runCheckpoint.test.ts > checkpoint echo actor > round-trips a valid echo frame without sharing the live object
+src/systems/runCheckpoint.test.ts > checkpoint echo actor > accepts normal runtime damage, angles, positions and weapon/hit timers
+src/systems/runCheckpoint.test.ts > checkpoint echo actor > old saves without an echo stay valid (solo compatibility)
+src/systems/runCheckpoint.test.ts > checkpoint echo actor > rejects malformed echo payloads
+src/systems/runCheckpoint.test.ts > Task0b — strict echo DTO allowlist and physical timer bounds > rejects extra hiddenTarget / nested free / oversized timers
+src/slice/corridorGuard.test.ts > R2 guard perception > keeps local vision with the uplink off and takes only position evidence from the relay
+src/slice/corridorGuard.test.ts > R2 guard perception > cancels an uncommitted shot, investigates a fixed point, and observes anew at expiry
+src/slice/corridorGuard.test.ts > R2 guard perception > keeps Jam on the selected receiver when the relay changes and keeps the lab save boundary
+src/slice/evidence.test.ts > R9 evidence compatible extension > keeps the published key/schema/version unchanged
+src/slice/evidence.test.ts > R9 evidence compatible extension > saves and loads a valid optional evidence array
+src/slice/evidence.test.ts > R9 evidence compatible extension > rejects malformed evidence, preserves the raw value and locks writes
+src/slice/evidence.test.ts > R9 evidence compatible extension > accepts an old save without evidence and clears active reveal on restore
+src/slice/evidence.test.ts > R9 evidence compatible extension > round-trips real Scan evidence without re-scanning or extending TTL
+src/slice/evidence.test.ts > R9 evidence compatible extension > B3: expired evidence is safely discarded with a rescan hint, never a free Scan
+src/slice/evidence.test.ts > R9 evidence compatible extension > B3: future evidence is rejected by storage and locks writes
+src/slice/evidence.test.ts > R9 evidence compatible extension > B3: unknown target/stateLabel enums are rejected
+src/slice/evidence.test.ts > R9 evidence compatible extension > B3: entering the corridor clears R1 evidence, and expired evidence is not serialized
+src/slice/evidence.test.ts > R9 evidence compatible extension > B3-1: a legal corridor scan saves and reloads with correct R2 evidence/TTL (no rescan)
+src/slice/evidence.test.ts > R9 evidence compatible extension > B3-1: corridor evidence with wrong room or TTL mismatch is rejected (not silently accepted)
+src/slice/vs00.room.test.ts > VS-00 fixed room geometry > door occupancy uses the same AABB footprint as movement (door corners count)
+src/slice/vs00.room.test.ts > VS-00 fixed room geometry > LOS is clipped by static walls and the allow cell exempts the embedded source
+src/slice/vs00.room.test.ts > VS-00 fixed room geometry > blocks LOS through a cell corner when a side cell is a static wall
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > starts SEALED with full energy and an impassable door
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > Scan only reveals: it costs 10, does not open the door, and is not a Jam precondition
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > charges every Scan pulse (re-scan is not free)
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > Scan exposes the receiver, source and link once LOS/radius allow
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > uses strict d < radius for Scan reveal: exactly 12 is an empty pulse, not an error
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > a legal Jam costs 25, opens the door, and keeps the read-only source
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > re-Jam while active is E_RETRYABLE, free, and does not refresh
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > uses strict d < radius for Jam and Interact (exactly 6 is out of range)
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > reports E_ENERGY_INSUFFICIENT with zero cost, then recovers by natural regen
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > on Jam expiry re-solves from current conditions: SAFE_PENDING_CLOSE then SEALED
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > never closes on an occupant: SAFE_PENDING_CLOSE holds until they leave
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > re-occupying resets the safe-clear delay
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > pause freezes tick, energy, cooldowns and Jam remaining; resume does not catch up
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > is deterministic for the same fixed-step input sequence
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > an empty scan is legal and still costs one pulse
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > solves from current source + manual intent (no hardcoded SEALED)
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > keeps SAFE_PENDING_CLOSE while only a door-corner AABB overlap remains
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > passed is historical: walking back west keeps passed true
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > near the door, plain F on a SEALED door is E_LINK_UNAVAILABLE with zero cost
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > restoring a pending safe-close keeps its remaining delay instead of sealing immediately
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > does not grant instant regen after a spend at full energy (full remainder stays 0)
+src/slice/vs00.rules.test.ts > VS-00 door / energy / scan rules > restore does not hard-reset a persisted manual intent to closed
+src/slice/vs00.rules.test.ts > VS-00 storage adapter > reports missing, writes only its own key, and leaves existing main/economy data untouched
+src/slice/vs00.rules.test.ts > VS-00 storage adapter > rejects a bad/unknown schema and preserves the raw value
+src/slice/vs00.rules.test.ts > VS-00 storage adapter > rejects saved positions whose player footprint overlaps a wall, preserving raw
+src/slice/vs00.rules.test.ts > VS-00 storage adapter > clearSlice removes only its own key (after a real save)
+src/slice/vs00.rules.test.ts > VS-00 storage adapter > reports unavailable and save failure when localStorage throws
+src/slice/vs00.rules.test.ts > VS-00 storage adapter > schema constants stay namespaced to this prototype
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > solves manual intent, supply and Jam in priority order
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > publishes the same post-commit reading to both subscribers and ignores repeated state writes
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > isolates a faulty or reentrant subscriber from the committed downstream state
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > validates both shores and opens only the template bridge footprint
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > cancels construction when power drops and preserves the full construction time on retry
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > preserves warning footing, cancels on timely recovery and handles empty collapse
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > resolves the deadline against the occupied edge before processing movement
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > sends an occupied edge back to the last west shore once
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > sends an occupied edge back to the last east shore once
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > rebuilds after repeated collapses and permits fatal recovery without reviving the run
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > shares fixed time, scan cost and Jam rules; pause and reset freeze or clear transient state
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > blocks unsafe checkpoints and restores a cleared shore with exact Jam remaining
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > does not charge an underfunded Jam and reproduces an identical timed input sequence
+src/slice/vs01.corridor.test.ts > VS-01 relay and bridge > rejects a corridor save on the bridge or in a conflicting state without replacing it
+src/world/actorTarget.test.ts > chooseNearestActor > picks the nearer living actor, including a non-player actor
+src/world/actorTarget.test.ts > chooseNearestActor > keeps the player on a distance tie and when no echo exists
+src/world/actorTarget.test.ts > chooseNearestActor > skips dead candidates and re-selects the player after echo death
+src/world/actorTarget.test.ts > chooseNearestActor > returns null when every candidate is dead
+src/world/dungeon.test.ts > sector dungeon > generates reachable maps with the right exit and at least one combat room
+src/world/dungeon.test.ts > sector dungeon > varies layouts and waves with the seed and only draws from the local sector pool
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > runs integer ticks only, with no wall clock or sub-tick partial state
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > moves through the real room with collision and explicit seed/tick RNG
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > fires pulse, sweeps hits, damages and kills a real stationary drone
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > is reproducible from a serializable snapshot (same seed + intents + ticks)
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > H1/H6: canonical state is authoritative and events are not rounded
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > H2: core RNG is a continuous stream seeded from the map seed
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B4: two lethal queued hits produce one death; blocked hits are not hurt facts
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B7: registerTarget deep-copies and target moves are committed by the tick
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B11: core loot is visible, unpicked loot does not settle, pickup commits currency
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B12: paused/zero-dt does not commit any state (command queue only)
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B13: paused/zero-dt economic rewards do not commit; normal tick commits once with events and stable RNG
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B14: committed barrier — hasUncommittedCommands true while pending, false after tick
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B15: sub-tick delta accumulates over multiple frames before committing
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B16: set-player-data (fixture/Owner restore) is one atomic command
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > H2: kill loot rolls and the next shot share the controlled C1 RNG order
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B17: purchase commits atomically and deducts the fixed config price
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B18: pending reward + purchase is order-independent and both commit
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B19: heal + xp + purchase composite keeps every committed change
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B20: insufficient balance rejects atomically, then duplicate id stays rejected
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B21: duplicate transaction id deducts at most once
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B22: unsafe room (not cleared / other rooms pending) rejects purchase
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B22b: live core enemies reject purchase until threats are cleared
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B23: unknown offer key rejects without mutation
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B24: equipment change before calibration is honored at commit time
+src/world/sim/core.test.ts > C2 fixed-tick authoritative core > B25: loot magnet uses pixel->tile units; far 20/40/85 tiles never auto-collect
+src/world/sim/echo.test.ts > P3-a echo actor core > with no echo the canonical state has no echo key and 3-arg stepping is unchanged
+src/world/sim/echo.test.ts > P3-a echo actor core > echo has an independent identity and base-only stats (no upgrades, pulse only)
+src/world/sim/echo.test.ts > P3-a echo actor core > moves independently from the player and emits echo-moved
+src/world/sim/echo.test.ts > P3-a echo actor core > fires with its own cooldown/ammo and hits a drone (projectile source=echo)
+src/world/sim/echo.test.ts > P3-a echo actor core > enemy legally selects the closer echo and damages it, not the player
+src/world/sim/echo.test.ts > P3-a echo actor core > echo death is independent: it stops acting and the player is still alive
+src/world/sim/echo.test.ts > P3-a echo actor core > spawn-echo / remove-echo commit at the tick boundary and keep canonical shape
+src/world/sim/echo.test.ts > P3-a echo actor core > echo speed/damage cannot be upgraded through player upgrade commands
+src/world/sim/echo.test.ts > P3-a echo actor core > GAME pixel/tile contract is used by the echo projectile too
+src/world/sim/echo.test.ts > P3-a echo damage commands > legacy melee damage is committed by the core tick, never by the adapter
+src/world/sim/echo.test.ts > P3-a echo damage commands > a dead echo ignores further queued hits and never emits twice
+src/world/sim/echoRoomTransition.test.ts > ordinary portal transition moves the ECHO on the same tick > migrateEcho=true lands the echo next to the protagonist, inside walkable ground
+src/world/sim/echoRoomTransition.test.ts > ordinary portal transition moves the ECHO on the same tick > NEGATIVE CONTROL: without the flag the echo is deliberately left in place
+src/world/sim/echoRoomTransition.test.ts > ordinary portal transition moves the ECHO on the same tick > is deterministic: identical state + identical command => identical canonical state
+src/world/sim/parity.test.ts > C2 permanent old-vs-new rule parity > damage, armor and weapon specs match the legacy inline formulas
+src/world/sim/parity.test.ts > C2 permanent old-vs-new rule parity > projectile creation matches legacy, including one rng.float per shot and state order
+src/world/sim/parity.test.ts > C2 permanent old-vs-new rule parity > projectile advance / swept hit / enemy & player hits match legacy formulas
+src/world/sim/parity.test.ts > C2 permanent old-vs-new rule parity > movement and drone FSM transitions match legacy behavior
+src/world/sim/purchaseLedger.test.ts > purchase ledger determinism and bounded replay protection > hard-caps the ledger: new tx rejected at cap, size unchanged, oldest still rejected
+src/world/sim/purchaseLedger.test.ts > purchase ledger determinism and bounded replay protection > a repeated id with a different offer/room stays a stable duplicate without mutation
+src/world/sim/purchaseLedger.test.ts > purchase ledger determinism and bounded replay protection > ledger is part of canonical state (same ledger => same future; different ledger => different canonical)
+src/world/sim/purchaseLedger.test.ts > purchase ledger determinism and bounded replay protection > success survives restore: retrying the same id after a cloned restore does not re-deduct
+src/world/sim/purchaseLedger.test.ts > purchase ledger determinism and bounded replay protection > rejection survives restore: retrying a failed id after restore never deducts
+src/world/sim/purchaseLedger.test.ts > purchase ledger determinism and bounded replay protection > checkpoint validation accepts old (no ledger) and valid ledgers, rejects tampered/oversized
+src/world/sim/rewiring.test.ts > C2 pure core contract > core.ts and rules.ts have no Phaser / DOM / wall clock / unseeded randomness
+src/world/sim/rewiring.test.ts > C2 single-authority adapters > Player delegates all mutable state to World.sim and only samples intents
+src/world/sim/rewiring.test.ts > C2 single-authority adapters > Enemy drone state is attached to the core, other kinds keep legacy FSM
+src/world/sim/rewiring.test.ts > C2 single-authority adapters > Boss target is read-only for the adapter; target radius keeps the old +1
+src/world/sim/rewiring.test.ts > C2 single-authority adapters > B6/B7/H9/H10: rewards, target commands, gated helpers and hit flash are in the core/World
+src/world/sim/rewiring.test.ts > C2 single-authority adapters > World owns SimulationState, fixed accumulator, typed events and legacy-only update
+src/world/sim/rewiring.test.ts > C2 single-authority adapters > GameScene samples one intent and resets accumulator on pause-like overlays
+src/world/sim/rewiring.test.ts > C2 purchase transaction and commit barrier > core owns an atomic purchase-supply command validated at commit time
+src/world/sim/rewiring.test.ts > C2 purchase transaction and commit barrier > World exposes a real spawn barrier and refuses uncommitted checkpoint capture
+src/world/sim/rewiring.test.ts > C2 purchase transaction and commit barrier > generic full-state write is fixture/Owner-guarded; UI buys via purchase-supply
+src/world/sim/rewiring.test.ts > C2 purchase transaction and commit barrier > purchase ledger is hard-capped, canonical and checkpointed (no FIFO eviction)
+src/world/sim/rules.test.ts > C1 pure module contract > has no Phaser / DOM / wall-clock / Math.random dependency
+src/world/sim/rules.test.ts > C1 pure module contract > uses IsoMath tile constants for the anisotropic budget (F-09)
+src/world/sim/rules.test.ts > C1 movement / collision / aim on a real generated room > axisSlide refuses a wall cell from the real map but accepts a floor step
+src/world/sim/rules.test.ts > C1 movement / collision / aim on a real generated room > stepPlayerMovement uses the shared velocity and dash rules
+src/world/sim/rules.test.ts > C1 movement / collision / aim on a real generated room > aimYawFromGrid is the single aim entry
+src/world/sim/rules.test.ts > C1 real pulse weapon / projectile / hit / death > buildWeaponSpec uses real WEAPONS.pulse and covers other weapons without regression
+src/world/sim/rules.test.ts > C1 real pulse weapon / projectile / hit / death > createProjectileData uses the real RNG and produces a real pulse bullet
+src/world/sim/rules.test.ts > C1 real pulse weapon / projectile / hit / death > advanceProjectile + swept hit + resolveEnemyHit kills a real drone
+src/world/sim/rules.test.ts > C1 drone FSM (real ENEMY_STATS.drone) > idle -> patrol, patrol advances toward a real waypoint, blocked by walls
+src/world/sim/rules.test.ts > C1 drone FSM (real ENEMY_STATS.drone) > detects, chases and emits a real ranged attack descriptor
+src/world/sim/rules.test.ts > C1 drone FSM (real ENEMY_STATS.drone) > stun double-decrements and exits to chase
+src/world/sim/signalCombat.test.ts > Signal device lifecycle > absent signal leaves canonical state byte-identical
+src/world/sim/signalCombat.test.ts > Signal device lifecycle > spawn-signal-device commits ONLY at tick boundary
+src/world/sim/signalCombat.test.ts > Signal device lifecycle > signal exits closed unless ACTIVE
+src/world/sim/signalCombat.test.ts > Player vs Echo independent energy accounts > player scan costs player energy only
+src/world/sim/signalCombat.test.ts > Player vs Echo independent energy accounts > echo scan costs echo energy only
+src/world/sim/signalCombat.test.ts > Player vs Echo independent energy accounts > insufficient energy blocks scan/jam
+src/world/sim/signalCombat.test.ts > scan/jam and TTL > scan records evidence with TTL expiry
+src/world/sim/signalCombat.test.ts > scan/jam and TTL > jam suppresses emission (relay JAMMED, not ACTIVE)
+src/world/sim/signalCombat.test.ts > scan/jam and TTL > jam expires and relay returns to pre-JAM state (INACTIVE)
+src/world/sim/signalCombat.test.ts > scan/jam and TTL > jam expires and relay returns to ACTIVE after manual enable
+src/world/sim/signalCombat.test.ts > scan/jam and TTL > toggle-relay does not override JAM
+src/world/sim/signalCombat.test.ts > v1 vs v2 protocol compatibility > v1 scan/jam without actor is rejected
+src/world/sim/signalCombat.test.ts > v1 vs v2 protocol compatibility > v2 scan/jam with actor field works
+src/world/sim/signalCombat.test.ts > old epoch and duplicate request protection > old epoch action rejected
+src/world/sim/signalCombat.test.ts > old epoch and duplicate request protection > duplicate requestId rejected
+src/world/sim/signalCombat.test.ts > dedup capacity bounds > dedup records bounded at MAX_DEDUP_RECORDS
+src/world/sim/signalCombat.test.ts > Signal input conflict resolution (Task C item 1) > Q/E keys are NOT signal keys — signal uses independent unoccupied keys
+src/world/sim/signalCombat.test.ts > Signal input conflict resolution (Task C item 1) > Signal press requires humanTakeover before core commit
+src/world/sim/signalCombat.test.ts > Signal default opt-in (Task C item 2) > signalCollaborationOptIn defaults to false — no Relay on normal NEW RUN
+src/world/sim/signalCombat.test.ts > Signal default opt-in (Task C item 2) > signalView shows separate player/echo cooldowns
+src/world/sim/signalCombat.test.ts > Signal default opt-in (Task C item 2) > HUD signalView reports player and echo cooldowns separately
+src/world/sim/signalCombat.test.ts > Signal E2E cooperation chain (Task C item 5) > scan → evidence → energy cost → jam → suppression → expiry → toggle → ACTIVE → exit open
+src/world/sim/signalCombat.test.ts > Signal E2E cooperation chain (Task C item 5) > jam suppresses emission but preserves manual/power state
+src/world/sim/signalCombat.test.ts > Signal E2E cooperation chain (Task C item 5) > evidence expires by absolute TTL, not wall clock
+src/world/sim/signalCombat.test.ts > External agent signal permission (Task C item 3) > external signal command with actor=echo is rejected (no Companion bypass)
+src/world/sim/signalCombat.test.ts > External agent signal permission (Task C item 3) > external signal command with actor=player is legal
+src/world/sim/signalCombat.test.ts > External agent signal permission (Task C item 3) > echo E_PERMISSION rejects with no progress, no cost, no queue consumption
+src/world/sim/signalCombat.test.ts > External agent signal permission (Task C item 3) > v2 player scan/jam has real effect via core commit
+src/world/sim/signalCombat.test.ts > External agent signal permission (Task C item 3) > toggle-relay origin binding vs human global control > a Companion-bound toggle queued before the real portal command runs once in the old room
+src/world/sim/signalCombat.test.ts > External agent signal permission (Task C item 3) > toggle-relay origin binding vs human global control > a stale Companion-bound toggle after teleport is rejected: ACTIVE/exitOpen unchanged
+src/world/sim/signalCombat.test.ts > External agent signal permission (Task C item 3) > toggle-relay origin binding vs human global control > human R in the new room still controls the old-room device (c233 global behaviour)
+src/world/sim/signalCombat.test.ts > External agent signal permission (Task C item 3) > toggle-relay origin binding vs human global control > scan/jam after teleport are refused without charging energy
+src/world/sim/signalState.test.ts > optional core Signal device > absent signal leaves the canonical projection byte-identical
+src/world/sim/signalState.test.ts > optional core Signal device > spawn/scan/jam/toggle commit ONLY at the tick boundary
+src/world/sim/signalState.test.ts > optional core Signal device > jam suppresses emission (never ACTIVE), toggle preserves power, expiry recomputes
+src/world/sim/signalState.test.ts > optional core Signal device > paused ticks never regen and evidence expires by absolute TTL
+src/world/sim/targetRemoval.test.ts > normal death leaves no target residue (the fixture did) > a dead target is removed from state.targets by the next core tick
+src/world/sim/targetRemoval.test.ts > normal death leaves no target residue (the fixture did) > a LIVE target is NOT removed — so renderer-only clearing leaves a phantom threat
