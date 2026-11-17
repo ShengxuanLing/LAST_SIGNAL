@@ -1,0 +1,3 @@
+800x600 COMPACT: detailLeft=3686.499948158862 main/detail overlap=false objective/help overlap=false
+detail={"x":3686.499948158862,"y":232.50000607222313,"w":432.5,"h":106.25,"text":"LINK · FIRE ENABLED\nKEYS · T SCAN · Y JAM · R TOGGLE\nCOST · SCAN 10 ENERGY · JAM 25 ENERGY\nRANGE · SCAN 12 TILES · JAM 6 TILES\nPLAYER 100 · ECHO 100"}
+RESULT: PASS (fixture; not human acceptance)

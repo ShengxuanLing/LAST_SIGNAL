@@ -8,12 +8,15 @@ import { deckLabel } from '../config/dungeon';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
+import { P1_DEMO_SEED } from '../config/p1Scenario';
 
 interface MenuConfig {
   view?: 'checkpoint' | 'permanent' | 'replace';
   notice?: string;
   seed?: number;
   sectorRun?: boolean;
+  /** GAMEPLAY-01 P1 authored Demo-01. */
+  demo?: 'p1';
 }
 
 export class MainMenuScene extends Phaser.Scene {
@@ -72,7 +75,7 @@ export class MainMenuScene extends Phaser.Scene {
       this.line(cx, 287, 'STARTING OVER REPLACES THE CURRENT RUN CHECKPOINT.', '#ff8a3c');
       this.line(cx, 323, 'Permanent cores, talents and weapon unlocks are kept.');
       this._button(cx, 400, 'REPLACE AND START', 360, () => this.scene.start('GameScene', {
-        seed: config.seed, sectorRun: config.sectorRun
+        seed: config.seed, sectorRun: config.sectorRun, demo: config.demo
       }), 0x5a2a3a);
       this._button(cx, 460, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
       return;
@@ -101,6 +104,12 @@ export class MainMenuScene extends Phaser.Scene {
     this._button(cx, menuY + 240, 'SECTOR RUN', 360, () => {
       if (saveSystem.load().run) this.scene.restart({ view: 'replace', sectorRun: true });
       else this.scene.start('GameScene', { sectorRun: true });
+    }, 0x33e0ff);
+    // GAMEPLAY-01 P1: a normal player entry for the authored Signal demo. It is
+    // a real World run (same scenes/core), not a dev query or a test spawn.
+    this._button(cx, menuY + 300, 'DEMO 01 · LINKED SENTRY', 420, () => {
+      if (saveSystem.load().run) this.scene.restart({ view: 'replace', demo: 'p1', seed: P1_DEMO_SEED });
+      else this.scene.start('GameScene', { demo: 'p1', seed: P1_DEMO_SEED });
     }, 0x33e0ff);
     const avatarX = 1000;
     const avatar = resolveAvatar(save.settings.avatar, this.textures);

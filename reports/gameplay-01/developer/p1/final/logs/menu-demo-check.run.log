@@ -1,0 +1,5 @@
+800x600 MENU: demo={"text":"DEMO 01 · LINKED SENTRY","x":480.5,"y":629.5,"w":319,"h":21} within=true noOverlapWithSectorOrHelp=true
+SAVE AFTER NEW RUN/QUIT: run=true id=3505762537-2498043162-17590608-1466209083
+REPLACE VIEW: notice=true
+REPLACE START DEMO: scen=true relay=ACTIVE
+RESULT: PASS (fixture; not human acceptance)

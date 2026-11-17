@@ -1,0 +1,12 @@
+
+Running 5 tests using 1 worker
+
+[1/5] reports\gameplay-01\tester\playtest\playtest.spec.ts:265:3 › GAMEPLAY-01 P0 baseline playtest (Agent-driven real input) › 1) human-like combat: real WASD + fire, damage/hp/tick recorded
+[2/5] reports\gameplay-01\tester\playtest\playtest.spec.ts:333:3 › GAMEPLAY-01 P0 baseline playtest (Agent-driven real input) › 2) local deterministic AI combat (NOT an LLM): AI on/off via the real pause UI
+[3/5] reports\gameplay-01\tester\playtest\playtest.spec.ts:375:3 › GAMEPLAY-01 P0 baseline playtest (Agent-driven real input) › 3) ECHO cooperation (Owner confirm exercised by an automated click = autoOwner fixture)
+[4/5] reports\gameplay-01\tester\playtest\playtest.spec.ts:442:3 › GAMEPLAY-01 P0 baseline playtest (Agent-driven real input) › 4) Signal operations: opt-in via Settings, then real T/Y/R input and energy/relay state
+[5/5] reports\gameplay-01\tester\playtest\playtest.spec.ts:501:3 › GAMEPLAY-01 P0 baseline playtest (Agent-driven real input) › 5) level progression: real kills -> LevelUp overlay -> real choice -> level/xp commit
+reports\gameplay-01\tester\playtest\playtest.spec.ts:501:3 › GAMEPLAY-01 P0 baseline playtest (Agent-driven real input) › 5) level progression: real kills -> LevelUp overlay -> real choice -> level/xp commit
+P0_METRICS D:\Project\LAST_SIGNAL\reports\gameplay-01\tester\evidence\playtest-p0.json
+
+  5 passed (1.2m)

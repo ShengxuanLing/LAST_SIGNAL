@@ -26,8 +26,8 @@ import type { GridPoint } from './rules';
 import { canonicalJson, payloadFingerprint } from '../../ai-native/protocol';
 import {
   createSignalDevice, commitSignalScan, commitSignalJam, commitToggleRelay,
-  commitSignalPower, tickSignalDevice, type SimSignalDevice, type SignalActorKind,
-  type SignalLegality
+  commitSignalPower, tickSignalDevice, signalOutput, type SimSignalDevice,
+  type SignalActorKind, type SignalLegality
 } from './signalState';
 import {
   advanceProjectile, aimYawFromGrid, buildWeaponSpec, createEnemyProjectileData,
@@ -78,6 +78,9 @@ export interface SimDroneState {
   data: EnemyData;
   attackTimer: number;
   wanderTimer: number;
+  /** Authored-scene link: this drone's ATTACK is gated by that relay's output.
+   *  Undefined for every normal run (legacy behaviour unchanged). */
+  relayDeviceId?: string;
 }
 
 export interface SimTarget {
@@ -123,7 +126,9 @@ export type SimCommand =
   | { type: 'spawn-echo'; x: number; y: number }
   | { type: 'remove-echo' }
   | { type: 'echo-hit'; damage: number; fromX: number; fromY: number }
-  | { type: 'spawn-signal-device'; deviceId: string; roomId: number; x: number; y: number }
+  | { type: 'spawn-signal-device'; deviceId: string; roomId: number; x: number; y: number;
+      initial?: { manualEnabled?: boolean; powered?: boolean } }
+  | { type: 'link-drones-to-signal'; deviceId: string; droneIds: number[] }
   | { type: 'signal-scan'; actor: SignalActorKind }
   | { type: 'signal-jam'; actor: SignalActorKind }
   | {
@@ -214,8 +219,9 @@ export type SimEvent =
   | { type: 'room-generated'; roomId: number; portalTarget: number | null }
   | { type: 'projectile-wall'; x: number; y: number }
   | { type: 'signal-device-spawned'; deviceId: string; roomId: number; x: number; y: number }
-  | { type: 'signal-scanned'; actorId: number; found: boolean; energy: number; cooldownTicks: number; evidence: unknown[] }
-  | { type: 'signal-jammed'; actorId: number; energy: number; cooldownTicks: number; relay: string; jamExpiresAtTick: number }
+  | { type: 'signal-linked'; deviceId: string; linkedIds: number[]; skippedIds: number[] }
+  | { type: 'signal-scanned'; actorId: number; found: boolean; energy: number; cooldownTicks: number; evidence: unknown[]; ok?: boolean; code?: string }
+  | { type: 'signal-jammed'; actorId: number; energy: number; cooldownTicks: number; relay: string; jamExpiresAtTick: number; ok?: boolean; code?: string }
   | { type: 'signal-relay-changed'; relay: string; manualEnabled: boolean; powered: boolean }
   | { type: 'signal-evidence-expired'; deviceId: string }
   | { type: 'signal-energy'; actorId: number; energy: number; scanCooldownTicks: number; jamCooldownTicks: number };
@@ -514,12 +520,32 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
       case 'spawn-signal-device': {
         state.signal = createSignalDevice({
           deviceId: command.deviceId, roomId: command.roomId,
-          x: command.x, y: command.y, tick: state.tick
+          x: command.x, y: command.y, tick: state.tick,
+          ...(command.initial ? { initial: command.initial } : {})
         });
         events.push({
           type: 'signal-device-spawned', deviceId: command.deviceId,
           roomId: command.roomId, x: command.x, y: command.y
         });
+        break;
+      }
+      case 'link-drones-to-signal': {
+        // Authored-scene link only. Validate the REAL device/id/room: a wrong
+        // id, a dead target, or a cross-room target must not create a link and
+        // must be reported (never silently skipped). The attack gate itself is
+        // still evaluated every tick from the relay's current output.
+        const device = state.signal;
+        const linkedIds: number[] = [];
+        const skippedIds: number[] = [];
+        for (const id of command.droneIds) {
+          const drone = state.drones.find((d) => d.id === id && d.hp > 0);
+          const valid = !!device && device.deviceId === command.deviceId &&
+            !!drone && drone.data.spawnRoom === device.roomId;
+          if (!valid || !drone) { skippedIds.push(id); continue; }
+          drone.relayDeviceId = command.deviceId;
+          linkedIds.push(id);
+        }
+        events.push({ type: 'signal-linked', deviceId: command.deviceId, linkedIds, skippedIds });
         break;
       }
       case 'signal-scan': {
@@ -532,6 +558,8 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
         events.push({
           type: 'signal-scanned', actorId: actor === 'echo' ? ECHO_ACTOR_ID : 0,
           found: result.found === true,
+          ok: result.ok,
+          ...(result.code ? { code: result.code } : {}),
           energy: result.energy ?? (actorRes ? actorRes.energy.energy : 0),
           cooldownTicks: result.cooldownTicks ?? (actorRes ? actorRes.cooldowns.scanCooldownTicks : 0),
           evidence: result.ok ? cloneEventValue(device.evidence.filter((e) => e.observerActorId === actor)) : []
@@ -548,6 +576,8 @@ export function processCommands(state: SimulationState, events: SimEvent[], rngC
         const actorRes = validActor ? device.actors[actor] : null;
         events.push({
           type: 'signal-jammed', actorId: actor === 'echo' ? ECHO_ACTOR_ID : 0,
+          ok: result.ok,
+          ...(result.code ? { code: result.code } : {}),
           energy: result.energy ?? (actorRes ? actorRes.energy.energy : 0),
           cooldownTicks: result.cooldownTicks ?? (actorRes ? actorRes.cooldowns.jamCooldownTicks : 0),
           relay: device.relay, jamExpiresAtTick: device.jammedUntilTick
@@ -1046,6 +1076,13 @@ function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): voi
   for (const drone of state.drones) {
     if (drone.hp <= 0) continue;
     const target = chooseActorTarget(state, drone.x, drone.y);
+    // Authored-scene attack link: a linked drone may only open fire while its
+    // relay is outputting (ACTIVE). JAMMED/INACTIVE suppress NEW shots; already
+    // fired projectiles live on independently. Non-linked drones are untouched.
+    const linked = drone.relayDeviceId && state.signal && state.signal.deviceId === drone.relayDeviceId
+      ? state.signal
+      : null;
+    const attackAllowed = !linked || signalOutput(linked);
     // Exact pre-step timer decrements from Enemy.update(), now on the core.
     drone.data.hitFlash = Math.max(0, drone.data.hitFlash - dt);
     drone.attackTimer = Math.max(0, drone.attackTimer - dt);
@@ -1081,6 +1118,8 @@ function stepDrones(state: SimulationState, dt: number, events: SimEvent[]): voi
     drone.wanderTimer = step.wanderTimer;
     drone.data.patrolIndex = step.patrolIndex;
     drone.attackTimer = step.attackTimer;
+    if (!attackAllowed) step.attack = null;
+    step.suppressed = !!linked && !attackAllowed;
     // Keep the diagnostic target id honest when the drone locked the echo.
     if (target === state.echo) step.targetId = ECHO_ACTOR_ID;
     drone.data.targetId = step.targetId;

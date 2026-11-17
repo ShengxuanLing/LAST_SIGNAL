@@ -1,0 +1,973 @@
+{
+  "ok": true,
+  "start": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "ACTIVE",
+    "manual": true,
+    "energy": 100,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": false,
+    "portal": null,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "alive": [
+      1,
+      2
+    ],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 44
+  },
+  "cleared": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "ACTIVE",
+    "manual": true,
+    "energy": 100,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": {
+      "target": 1,
+      "wx": 12,
+      "wy": 50
+    },
+    "objective": "F AT PORTAL · ROUTE A · COMBAT",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 125
+  },
+  "bState": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "INACTIVE",
+    "manual": false,
+    "energy": 100,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": {
+      "target": 2,
+      "wx": 12,
+      "wy": 50
+    },
+    "objective": "F AT PORTAL · ROUTE B · RESOURCE",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 162
+  },
+  "jammed": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "JAMMED",
+    "manual": true,
+    "energy": 77,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": null,
+    "objective": "ROUTE BLOCKED · JAMMED — WAIT OR R TOGGLE RELAY",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 220
+  },
+  "afterJam": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "ACTIVE",
+    "manual": true,
+    "energy": 100,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": {
+      "target": 1,
+      "wx": 12,
+      "wy": 50
+    },
+    "objective": "F AT PORTAL · ROUTE A · COMBAT",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 576
+  },
+  "savedRun": {
+    "id": "1767514787-2658112563-1925107604-3668526351",
+    "seed": 20261117,
+    "stats": {
+      "kills": 2,
+      "items": 3,
+      "damage": 54,
+      "elapsedSeconds": 12
+    },
+    "roomId": 0,
+    "demo": "p1",
+    "position": {
+      "x": 8.312018860376655,
+      "y": 44.79198742641548
+    },
+    "clearedRooms": [
+      0
+    ],
+    "portalTarget": 2,
+    "rngState": 0,
+    "player": {
+      "maxHp": 100,
+      "hp": 100,
+      "speed": 220,
+      "armor": 0,
+      "damage": 1,
+      "critChance": 0.1,
+      "critDamage": 1.5,
+      "xpGain": 1,
+      "pickupRange": 90,
+      "dashCooldown": 0.9,
+      "dashDuration": 0.16,
+      "aimYaw": 0,
+      "cooldownReduced": 0,
+      "pierceCount": 0,
+      "hpRegen": 0,
+      "level": 1,
+      "xp": 16,
+      "xpToNext": 30,
+      "currency": 8,
+      "weaponKey": "pulse",
+      "weapons": [
+        {
+          "key": "pulse",
+          "level": 1,
+          "ammo": -1,
+          "magazine": -1,
+          "reloading": false,
+          "reloadTimer": 0
+        }
+      ],
+      "upgrades": [],
+      "abilities": []
+    },
+    "loot": [],
+    "coreState": {
+      "tick": 595,
+      "rngState": 2967354759,
+      "playerTimers": {
+        "dashTimer": 0,
+        "invuln": 0,
+        "hurtTimer": 0,
+        "fireTimer": 0,
+        "aimYaw": 2.5535899529819024
+      },
+      "nextProjectileId": 10,
+      "purchaseTransactions": [],
+      "signal": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "control": {
+          "manualEnabled": false,
+          "powered": true,
+          "jammedUntilTick": 0,
+          "disposed": false
+        },
+        "relay": "INACTIVE",
+        "manualEnabled": false,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "actors": {
+          "player": {
+            "actor": "player",
+            "energy": {
+              "energy": 100,
+              "regenAcc": 0
+            },
+            "cooldowns": {
+              "scanCooldownTicks": 0,
+              "scanRevealTicks": 0,
+              "jamCooldownTicks": 81,
+              "jamRemainingTicks": 0
+            }
+          },
+          "echo": {
+            "actor": "echo",
+            "energy": {
+              "energy": 100,
+              "regenAcc": 0
+            },
+            "cooldowns": {
+              "scanCooldownTicks": 0,
+              "scanRevealTicks": 0,
+              "jamCooldownTicks": 0,
+              "jamRemainingTicks": 0
+            }
+          }
+        },
+        "evidence": []
+      }
+    }
+  },
+  "restored": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "INACTIVE",
+    "manual": false,
+    "energy": 100,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": {
+      "target": 2,
+      "wx": 12,
+      "wy": 50
+    },
+    "objective": "F AT PORTAL · ROUTE B · RESOURCE",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 660
+  },
+  "travel": {
+    "target": 2,
+    "roomBefore": 0
+  },
+  "arrived": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "INACTIVE",
+    "manual": false,
+    "energy": 100,
+    "room": {
+      "id": 2,
+      "kind": "resource"
+    },
+    "cleared": false,
+    "portal": null,
+    "objective": "",
+    "alive": [
+      1,
+      3
+    ],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 668
+  },
+  "onPortalJammed": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "JAMMED",
+    "manual": true,
+    "energy": 77,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": null,
+    "objective": "ROUTE BLOCKED · JAMMED — WAIT OR R TOGGLE RELAY",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 146
+  },
+  "afterF": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "JAMMED",
+    "manual": true,
+    "energy": 79,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": null,
+    "objective": "ROUTE BLOCKED · JAMMED — WAIT OR R TOGGLE RELAY",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 171
+  },
+  "jamSaveRun": {
+    "id": "116518534-1264113332-3446785674-2182606355",
+    "seed": 20261117,
+    "stats": {
+      "kills": 2,
+      "items": 3,
+      "damage": 54,
+      "elapsedSeconds": 4
+    },
+    "roomId": 0,
+    "demo": "p1",
+    "position": {
+      "x": 12,
+      "y": 50
+    },
+    "clearedRooms": [
+      0
+    ],
+    "portalTarget": null,
+    "rngState": 0,
+    "player": {
+      "maxHp": 100,
+      "hp": 100,
+      "speed": 220,
+      "armor": 0,
+      "damage": 1,
+      "critChance": 0.1,
+      "critDamage": 1.5,
+      "xpGain": 1,
+      "pickupRange": 90,
+      "dashCooldown": 0.9,
+      "dashDuration": 0.16,
+      "aimYaw": 0,
+      "cooldownReduced": 0,
+      "pierceCount": 0,
+      "hpRegen": 0,
+      "level": 1,
+      "xp": 16,
+      "xpToNext": 30,
+      "currency": 8,
+      "weaponKey": "pulse",
+      "weapons": [
+        {
+          "key": "pulse",
+          "level": 1,
+          "ammo": -1,
+          "magazine": -1,
+          "reloading": false,
+          "reloadTimer": 0
+        }
+      ],
+      "upgrades": [],
+      "abilities": []
+    },
+    "loot": [],
+    "coreState": {
+      "tick": 172,
+      "rngState": 2967354759,
+      "playerTimers": {
+        "dashTimer": 0,
+        "invuln": 0.5499999999999986,
+        "hurtTimer": 0,
+        "fireTimer": 0,
+        "aimYaw": 2.613696926673594
+      },
+      "nextProjectileId": 10,
+      "purchaseTransactions": [],
+      "signal": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "control": {
+          "manualEnabled": true,
+          "powered": true,
+          "jammedUntilTick": 481,
+          "disposed": false
+        },
+        "relay": "JAMMED",
+        "manualEnabled": true,
+        "powered": true,
+        "jammedUntilTick": 481,
+        "actors": {
+          "player": {
+            "actor": "player",
+            "energy": {
+              "energy": 79,
+              "regenAcc": 3
+            },
+            "cooldowns": {
+              "scanCooldownTicks": 0,
+              "scanRevealTicks": 0,
+              "jamCooldownTicks": 429,
+              "jamRemainingTicks": 309
+            }
+          },
+          "echo": {
+            "actor": "echo",
+            "energy": {
+              "energy": 100,
+              "regenAcc": 0
+            },
+            "cooldowns": {
+              "scanCooldownTicks": 0,
+              "scanRevealTicks": 0,
+              "jamCooldownTicks": 0,
+              "jamRemainingTicks": 0
+            }
+          }
+        },
+        "evidence": []
+      }
+    }
+  },
+  "jamRestored": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "JAMMED",
+    "manual": true,
+    "energy": 83,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": null,
+    "objective": "ROUTE BLOCKED · JAMMED — WAIT OR R TOGGLE RELAY",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 227
+  },
+  "jamExpired": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "ACTIVE",
+    "manual": true,
+    "energy": 100,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": {
+      "target": 1,
+      "wx": 12,
+      "wy": 50
+    },
+    "objective": "F AT PORTAL · ROUTE A · COMBAT",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 507
+  },
+  "jamRouteB": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "INACTIVE",
+    "manual": false,
+    "energy": 100,
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "portal": {
+      "target": 2,
+      "wx": 12,
+      "wy": 50
+    },
+    "objective": "F AT PORTAL · ROUTE B · RESOURCE",
+    "alive": [],
+    "hp": 100,
+    "mapSeed": 20261117,
+    "tick": 526
+  },
+  "variants": [
+    {
+      "seed": 20261117,
+      "scenId": "p1",
+      "roomId": 0,
+      "mapSeed": 20261117,
+      "roomKind": "combat",
+      "relay": "ACTIVE",
+      "linked": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ],
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "alive": [
+        1,
+        2
+      ],
+      "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE"
+    },
+    {
+      "seed": 20261118,
+      "scenId": "p1",
+      "roomId": 0,
+      "mapSeed": 20261118,
+      "roomKind": "combat",
+      "relay": "ACTIVE",
+      "linked": [
+        {
+          "x": 5,
+          "y": 47
+        },
+        {
+          "x": 11,
+          "y": 47
+        }
+      ],
+      "routes": [
+        {
+          "target": 2,
+          "when": "RELAY_ACTIVE",
+          "label": "RESOURCE"
+        },
+        {
+          "target": 5,
+          "when": "RELAY_INACTIVE",
+          "label": "ELITE"
+        }
+      ],
+      "alive": [
+        1,
+        2
+      ],
+      "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE"
+    },
+    {
+      "seed": 20261119,
+      "scenId": "p1",
+      "roomId": 0,
+      "mapSeed": 20261119,
+      "roomKind": "combat",
+      "relay": "ACTIVE",
+      "linked": [
+        {
+          "x": 11,
+          "y": 47
+        },
+        {
+          "x": 5,
+          "y": 49
+        }
+      ],
+      "routes": [
+        {
+          "target": 5,
+          "when": "RELAY_ACTIVE",
+          "label": "ELITE"
+        },
+        {
+          "target": 3,
+          "when": "RELAY_INACTIVE",
+          "label": "COMBAT"
+        }
+      ],
+      "alive": [
+        1,
+        2
+      ],
+      "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE"
+    }
+  ],
+  "errors": []
+}

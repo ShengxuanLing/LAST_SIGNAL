@@ -33,6 +33,7 @@ import {
 import { CombatVfx, BOLT_HEIGHT, type BoltView, type TelegraphView } from '../art/survey/CombatVfx';
 import { CSS, DEPTH, FONT, INK } from '../art/survey/tokens';
 import { deckLabel, dungeonRng, encounter, TOTAL_DECKS } from '../config/dungeon';
+import { P1_DEMO_ID, p1RouteFor, type P1Scenario } from '../config/p1Scenario';
 
 export interface WorldCallbacks {
   onLevelUp: (level: number) => void;
@@ -43,6 +44,8 @@ export interface WorldCallbacks {
   onStats: (delta: { enemies: number; items: number; dmg: number }) => void;
   onBossWin: () => void;
   onNextDeck: () => void;
+  /** A committed Signal relay/command change (checkpoint-dirty hint). */
+  onSignalChanged?: () => void;
 }
 
 export interface RoomInfo {
@@ -184,6 +187,14 @@ export class World {
   /** Explicit human opt-in to Signal Collaboration (from save data). Ordinary
    *  NEW RUNS stay legacy (no device, no gating) until enabled in-game. */
   private signalCollaborationOptIn = false;
+  /** GAMEPLAY-01 P1 authored Demo-01 scenario. null for every normal run. */
+  p1Scenario: P1Scenario | null = null;
+  /** Set when the authored scene cannot be assembled (explicit visible failure). */
+  p1ScenarioError: string | null = null;
+  /** Sentinel -1 so the FIRST computed target (including null) is always applied. */
+  private lastP1RouteTarget: number | null = -1;
+  /** Last committed scan/jam result for honest HUD feedback. */
+  lastSignalFeedback: { kind: 'scan' | 'jam'; ok: boolean; code?: string; tick: number } | null = null;
 
   /** Deep, frozen read-only snapshot. External adapters must never mutate this. */
   get sim(): SimulationState {
@@ -351,6 +362,170 @@ export class World {
     return this.enqueueSignalCommand({ type: 'toggle-relay', enabled: enabled ?? !(this._sim.signal?.manualEnabled ?? false) });
   }
   setRelayPower(powered: boolean): boolean { return this.enqueueSignalCommand({ type: 'signal-power', powered }); }
+
+  // ---------------------------------------------------------------------------
+  // GAMEPLAY-01 P1 — authored Demo-01 scenario (null for normal runs/rooms)
+  // ---------------------------------------------------------------------------
+
+  /** Build the authored route data + graph edges. Idempotent; called before a
+   *  checkpoint restore and before spawning the demo sentry. Old rooms never
+   *  enter this path, so their behaviour and save data are unchanged. */
+  setupP1Scenario(): boolean {
+    // Idempotent: GameScene calls this before restore, and restoreCheckpoint
+    // may call it again. Recomputing would mutate connectedTo twice and pick a
+    // different route pair (breaking portalTarget restore).
+    if (this.p1Scenario) return true;
+    if (this.p1ScenarioError) return false;
+    const room = this.map.rooms[0];
+    if (!room) { this.p1ScenarioError = 'DEMO 01 UNAVAILABLE · NO START ROOM'; return false; }
+    const seen = new Set<number>([room.id]);
+    const targets: Room[] = [];
+    const consider = (candidate: Room | undefined): void => {
+      if (!candidate || seen.has(candidate.id)) return;
+      // The authored routes must continue play. Boss / extraction are terminal
+      // targets and are never offered as a route choice.
+      if (candidate.kind === 'boss' || candidate.kind === 'extraction') return;
+      seen.add(candidate.id);
+      targets.push(candidate);
+    };
+    for (const id of room.connectedTo) consider(this.map.rooms[id]);
+    for (const candidate of this.map.rooms) consider(candidate);
+    if (targets.length < 2) {
+      // Do not silently degrade the DEMO into a normal run: report the failure
+      // so GameScene can show a visible notice instead.
+      this.p1ScenarioError = 'DEMO 01 UNAVAILABLE · NOT ENOUGH SUITABLE ROUTES';
+      return false;
+    }
+    // Deterministic seed variation inside the authored scene: the route pair
+    // rotates with the real map seed. The scene is still authored data; this is
+    // not a generic route framework.
+    const variant = this.map.seed >>> 0;
+    const li = variant % targets.length;
+    const a = targets[li];
+    const b = targets[(li + 1) % targets.length];
+    // Keep the room graph consistent with the two authored routes so a saved
+    // portalTarget still validates on restore.
+    for (const target of [a, b]) {
+      if (!room.connectedTo.includes(target.id)) room.connectedTo.push(target.id);
+      if (!target.connectedTo.includes(room.id)) target.connectedTo.push(room.id);
+    }
+    // The authored room is a combat room on fresh and on restored runs.
+    room.kind = 'combat';
+    const relay = this.findWalkableInRoom(room);
+    const drones = this.findP1SentrySpots(room, relay, variant);
+    this.p1Scenario = {
+      id: P1_DEMO_ID,
+      roomId: room.id,
+      routes: [
+        { target: a.id, when: 'RELAY_ACTIVE', label: a.kind.toUpperCase() },
+        { target: b.id, when: 'RELAY_INACTIVE', label: b.kind.toUpperCase() }
+      ],
+      initial: { manualEnabled: true, powered: true },
+      relay,
+      drones
+    };
+    this.lastP1RouteTarget = -1;
+    return true;
+  }
+
+  /** Two walkable cells away from the player spawn and the relay. The pair is
+   *  rotated deterministically by the real map seed (3+ authored variants). */
+  private findP1SentrySpots(room: Room, relay: Vec2, variant: number): Vec2[] {
+    const candidates: Vec2[] = [];
+    const px = this.player.x, py = this.player.y;
+    for (const row of this.map.tiles) {
+      for (const tile of row) {
+        if (tile.x < room.gx || tile.x >= room.gx + room.w) continue;
+        if (tile.y < room.gy || tile.y >= room.gy + room.h) continue;
+        if (!this.isWalkable(tile.x, tile.y, 0.5)) continue;
+        if (Math.hypot(tile.x - px, tile.y - py) < 3.5) continue;
+        if (Math.hypot(tile.x - relay.x, tile.y - relay.y) < 1.5) continue;
+        if (candidates.some((s) => Math.hypot(s.x - tile.x, s.y - tile.y) < 2)) continue;
+        candidates.push({ x: tile.x, y: tile.y });
+      }
+    }
+    if (candidates.length === 0) {
+      return [{ x: relay.x, y: relay.y }, { x: relay.x, y: relay.y }];
+    }
+    const start = variant % candidates.length;
+    const picks: Vec2[] = [];
+    for (let k = 0; k < candidates.length && picks.length < 2; k++) {
+      const c = candidates[(start + k) % candidates.length];
+      if (picks.some((p) => Math.hypot(p.x - c.x, p.y - c.y) < 2)) continue;
+      picks.push(c);
+    }
+    if (picks.length === 0) picks.push(candidates[0]);
+    if (picks.length === 1) picks.push(candidates[Math.min(1, candidates.length - 1)]);
+    return [picks[0], picks[1]];
+  }
+
+  /** Spawn the authored sentry encounter in the scenario room (fresh demo only). */
+  spawnP1Sentry(): void {
+    const scenario = this.p1Scenario;
+    if (!scenario) return;
+    const room = this.map.rooms[scenario.roomId];
+    if (!room) return;
+    room.kind = 'combat';
+    room.spawned = true;
+    room.cleared = false;
+    this.clearPortal();
+    this.lastP1RouteTarget = -1;
+    this.signalDeviceSpawned = true;
+    enqueueCommand(this._sim, {
+      type: 'spawn-signal-device', deviceId: 'relay_main', roomId: scenario.roomId,
+      x: scenario.relay.x, y: scenario.relay.y, initial: scenario.initial
+    });
+    const ids: number[] = [];
+    for (const spot of scenario.drones) {
+      const enemy = this.spawnEnemy('drone', spot.x, spot.y, scenario.roomId, this.roomDepth.of(scenario.roomId));
+      ids.push(enemy._id);
+    }
+    enqueueCommand(this._sim, { type: 'link-drones-to-signal', deviceId: 'relay_main', droneIds: ids });
+    this.bumpSimVersion();
+  }
+
+  /** Recompute the authored route portal from the current relay state. */
+  private updateP1RoutePortal(): void {
+    const scenario = this.p1Scenario;
+    if (!scenario) return;
+    const room = this.map.rooms[scenario.roomId];
+    if (!room || this.currentRoomId !== room.id) {
+      if (this.portal) this.clearPortal();
+      this.lastP1RouteTarget = -1;
+      return;
+    }
+    if (!room.cleared) {
+      if (this.portal) this.clearPortal();
+      this.lastP1RouteTarget = -1;
+      return;
+    }
+    const relay = this._sim.signal?.relay ?? null;
+    const route = p1RouteFor(relay, scenario.routes);
+    const target = route?.target ?? null;
+    if (target === this.lastP1RouteTarget) return;
+    this.lastP1RouteTarget = target;
+    if (target === null) { this.clearPortal(); return; }
+    this.placePortalForTarget(room, target);
+  }
+
+  /** P1 HUD helper: null = no authored link; true = linked drones may fire. */
+  get p1LinkedFireEnabled(): boolean | null {
+    if (!this.p1Scenario) return null;
+    const signal = this._sim.signal;
+    if (!signal) return null;
+    return signal.relay === 'ACTIVE';
+  }
+
+  get p1JamRemainingTicks(): number {
+    const signal = this._sim.signal;
+    return signal ? Math.max(0, signal.jammedUntilTick - this._sim.tick) : 0;
+  }
+
+  get p1RouteTarget(): number | null {
+    const scenario = this.p1Scenario;
+    if (!scenario) return null;
+    return p1RouteFor(this._sim.signal?.relay ?? null, scenario.routes)?.target ?? null;
+  }
 
   /** Owner-confirmed companion action -> a SINGLE queued core intent (move/fire/
    *  aim/stop) consumed by the next stepFrame tick, or a Signal command
@@ -750,6 +925,14 @@ export class World {
   get roomObjective(): string {
     const room = this.map.rooms[this.currentRoomId];
     if (!room) return '';
+    if (this.p1Scenario && room.id === this.p1Scenario.roomId) {
+      if (!room.cleared) return 'CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE';
+      const relay = this._sim.signal?.relay ?? null;
+      if (relay === 'JAMMED') return 'ROUTE BLOCKED · JAMMED — WAIT OR R TOGGLE RELAY';
+      const route = p1RouteFor(relay, this.p1Scenario.routes);
+      if (route) return `F AT PORTAL · ${route.when === 'RELAY_ACTIVE' ? 'ROUTE A' : 'ROUTE B'} · ${route.label}`;
+      return 'ROUTE UNAVAILABLE';
+    }
     if (this.isDeckExit(room) && !this.exitUnlocked) return 'EXIT LOCKED · CLEAR OTHER ROOMS';
     if (room.cleared && this.isDeckExit(room) && this.nextDeck !== undefined) return `F · DESCEND TO ${deckLabel(this.nextDeck)}`;
     if (!room.cleared && this.waves.length) return `WAVE ${this.activeWave}/${this.waves.length}`;
@@ -795,6 +978,7 @@ export class World {
       if (this.map.deck !== undefined && !this.won) this.placePortal(r);
       this.callbacks.onRoomCleared(room);
     }
+    if (this.p1Scenario) this.updateP1RoutePortal();
   }
 
   private onEnterRoom(room: RoomInfo): void {
@@ -1077,12 +1261,19 @@ export class World {
 
   tryInteract(player: Player): void {
     if (!this.portal) return;
-    // Only an ACTIVE relay opens the exit. No device => legacy v1 run
-    // unchanged (portal always open). JAMMED/DISABLED relay keeps the gate
-    // shut: scan→confirm→ACTIVE is required to pass.
-    const sig = this.signalView();
-    if (sig && sig.relay !== 'ACTIVE') return;
-    if (this.map.deck !== undefined) {
+    const current = this.currentRoom();
+    const p1Room = current && this.p1Scenario && current.id === this.p1Scenario.roomId ? current : null;
+    if (p1Room) {
+      // Authored route room: its own route condition already selected the
+      // portal target. The legacy "only ACTIVE opens" gate does not apply.
+      if (!this.map.rooms[p1Room.id].cleared) return;
+    } else {
+      // Only an ACTIVE relay opens the exit. No device => legacy v1 run
+      // unchanged (portal always open). JAMMED/DISABLED keeps the gate shut.
+      const sig = this.signalView();
+      if (sig && sig.relay !== 'ACTIVE') return;
+    }
+    if (this.map.deck !== undefined && !p1Room) {
       const room = this.currentRoom();
       if (!room || (!this.map.rooms[room.id].cleared && !this.isDeckExit(this.map.rooms[room.id]))) return;
     }
@@ -1558,6 +1749,23 @@ export class World {
           audio.hurt();
           this.addShake(6);
           break;
+        case 'signal-scanned':
+          this.lastSignalFeedback = {
+            kind: 'scan', ok: event.ok !== false,
+            ...(event.code ? { code: event.code } : {}), tick: this._sim.tick
+          };
+          this.callbacks.onSignalChanged?.();
+          break;
+        case 'signal-jammed':
+          this.lastSignalFeedback = {
+            kind: 'jam', ok: event.ok !== false,
+            ...(event.code ? { code: event.code } : {}), tick: this._sim.tick
+          };
+          this.callbacks.onSignalChanged?.();
+          break;
+        case 'signal-relay-changed':
+          this.callbacks.onSignalChanged?.();
+          break;
         case 'player-death':
           this.onPlayerDeath();
           break;
@@ -1968,6 +2176,7 @@ export class World {
     // would otherwise observe silently mutating "snapshots" (review R-03).
     return cloneCheckpoint({
       id, seed, deck: this.map.deck, stats, roomId: room.id,
+      ...(this.p1Scenario ? { demo: this.p1Scenario.id } : {}),
       position: { x: this.player.x, y: this.player.y },
       clearedRooms: this.map.rooms.filter((entry) => entry.cleared).map((entry) => entry.id),
       portalTarget: this.currentRoomId === room.id ? this.portal?.targetRoom ?? null : null,
@@ -1991,6 +2200,7 @@ export class World {
   }
 
   restoreCheckpoint(run: RunCheckpoint): boolean {
+    if (run.demo === P1_DEMO_ID && !this.setupP1Scenario()) return false;
     const room = this.map.rooms[run.roomId];
     if (!room || !run.clearedRooms.every((id) => this.map.rooms[id] &&
           (this.map.rooms[id].kind !== 'boss' || this.nextDeck !== undefined)) ||

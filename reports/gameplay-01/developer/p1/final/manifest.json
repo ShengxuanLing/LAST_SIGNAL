@@ -1,0 +1,176 @@
+{
+  "task": "GAMEPLAY-01 P1-A LINKED SENTRY / P1-B TWO SEALS",
+  "status": "P1-A/B STAGE engineering candidate PASS (reviewer P1_FINAL_REVIEW, 12 hashes match); full tester report pending; NOT overall GAMEPLAY-01 PASS; HUMAN ACCEPTANCE PENDING",
+  "branch": "feat/gameplay-01-ai-cooperation",
+  "baseCommit": "c7e03c5 (CI hermeticity) on top of 7aa8b51",
+  "workingTree": "uncommitted P1 source; Lead commits by whitelist",
+  "frozenSource": {
+    "src/scenes/GameScene.ts": "371fca31080fbecc5374f06d75ce7602f1b0bc013898973c4ecdc01e4f87ab1e",
+    "src/scenes/MainMenuScene.ts": "964b655c7c8acb3f7e0660e396684f9fdb25178b0e94f06928f009e1d02f5d40",
+    "src/signal/relay.ts": "4c5e51b39efabf2594be0e4b96dbea80bcd1bf73bd59b7229513a4a28d8fc050",
+    "src/systems/RunCheckpoint.ts": "244f1082433e2b83fa2f35daf23d9ea18e04995e257cf7870af2607ad3dcf936",
+    "src/types/index.ts": "a36a4c2eef981970615d8dd01d8dc7e6a0f7b6149be3981a9fee9cd45b49813f",
+    "src/world/World.ts": "90295aaa07abc321a16f2511549477a0c9cf1040939e199c0f5104e34953a8c7",
+    "src/world/sim/core.ts": "2afcb1d02b594bc3cade0f7ad0bad44eda35468085a200f892c4f59584b8cadf",
+    "src/world/sim/rules.ts": "3b905c704871d7fe581bbf33febedcc7998271ea5b3c1aa40319a705544f86b9",
+    "src/world/sim/signalState.ts": "ac71e51cbb0ba74eecf65de0d3efb6d3cea7c731df5871940f323bef674207ea",
+    "src/config/p1Scenario.ts": "1b87c1e39836d0a085b50b32e8f077c8224ab268a1d26feb7b3579db436c31d8",
+    "src/signal/relayRoutes.test.ts": "3dab67b685d62df16e16213f7755ea9d006b42ddee98cf44fb00f5523022e49d",
+    "src/world/sim/signalLink.test.ts": "d2c8daad3239028f39956b21f4f66d63614214182fc300ef89f572f4348f0d35"
+  },
+  "changedFiles": [
+    "src/scenes/GameScene.ts",
+    "src/scenes/MainMenuScene.ts",
+    "src/signal/relay.ts",
+    "src/systems/RunCheckpoint.ts",
+    "src/types/index.ts",
+    "src/world/World.ts",
+    "src/world/sim/core.ts",
+    "src/world/sim/rules.ts",
+    "src/world/sim/signalState.ts",
+    "src/config/p1Scenario.ts (new)",
+    "src/signal/relayRoutes.test.ts (new)",
+    "src/world/sim/signalLink.test.ts (new)"
+  ],
+  "demoSeed": 20261117,
+  "seedVariants": [
+    20261117,
+    20261118,
+    20261119
+  ],
+  "inputs": {
+    "A": "Playwright scripted real mouse/keyboard: walk/shoot via real weapon, real T/Y/R signal keys; no invuln/rescue; auto-Owner not used; labeled fixture/agent-driven.",
+    "B": "Same real weapon to clear; fixture teleports + temporary invuln for route/portal/jam-on-portal traversal (walking is not the subject). Owner toggles use the real production commands.",
+    "menu": "Real NEW RUN -> quit to menu -> DEMO 01 -> replace view -> REPLACE AND START at 800x600.",
+    "headless": "Pure shared core signalLink.test.ts; isolated copy for Rendered\u2192Headless parity (no shared reports touched)."
+  },
+  "gates": [
+    {
+      "command": "npx tsc --noEmit",
+      "result": "PASS(0)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/typecheck-8.log"
+    },
+    {
+      "command": "npm test (pure unit; 741 baseline + 14 new = 755)",
+      "result": "PASS(755/755)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/FINAL-npm-test.log"
+    },
+    {
+      "command": "new P1 rules",
+      "result": "PASS(14/14: signalLink 9 + relayRoutes 5)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/unit-link-routes-3.log"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "log": "reports/gameplay-01/developer/p1/final/logs/FINAL-build.log"
+    },
+    {
+      "command": "browser A counterfactual",
+      "result": "PASS(ACTIVE/JAM/OFF/expiry; event-counted unique shots)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/demo-a-verify-v2.run3.log"
+    },
+    {
+      "command": "browser B routes/save/3seed",
+      "result": "PASS(route A/B/JAMMED, portalTarget save/restore, jam-on-portal, 3 unique variants)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/demo-b-verify.run6.log"
+    },
+    {
+      "command": "menu 800x600 + replace",
+      "result": "PASS(entry within bounds/no overlap; replace notice; demo preserved)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/menu-demo-check.run.log"
+    },
+    {
+      "command": "isolated Rendered\u2192Headless parity export",
+      "result": "PASS(1/1)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/parity-isolated-export.log"
+    },
+    {
+      "command": "isolated Rendered\u2192Headless parity gate",
+      "result": "PASS(3/3)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/parity-isolated-gate.log"
+    },
+    {
+      "command": "browser compact 800x600 (HUD lines/keys/cost/range; no old copy)",
+      "result": "PASS (detail 5 lines right-aligned, no main/detail or objective/help overlap, no DRONES SAFE/FIRING)",
+      "log": "reports/gameplay-01/developer/p1/final/logs/demo-compact-800x600.log"
+    }
+  ],
+  "phaseSummary": {
+    "active": "linked drones fire (event-counted); HP 94 baseline in run3",
+    "jam25s": "0 NEW linked shots; HP 88 (old in-flight shots still hit \u2014 jam is not safety)",
+    "expiry25s": "relay ACTIVE; 3 new linked shots; HP 76",
+    "manualOff25s": "0 new linked shots; HP 70 (pre-OFF in-flight damage)",
+    "manualOn3s": "relay ACTIVE; 4 new linked shots; HP 52",
+    "note": "Shot counts are unique projectile-spawn events from the stepFrame observer, not in-flight array length. HP deltas include pre-existing projectiles; no assumption that Jam is better."
+  },
+  "screenshots": [
+    "reports/gameplay-01/developer/p1/final/screenshots/demo-A-v2-active-1280x720.png",
+    "reports/gameplay-01/developer/p1/final/screenshots/demo-A-v2-jammed-1280x720.png",
+    "reports/gameplay-01/developer/p1/final/screenshots/demo-A-v2-manual-off-1280x720.png",
+    "reports/gameplay-01/developer/p1/final/screenshots/demo-B-routeA-1280x720.png",
+    "reports/gameplay-01/developer/p1/final/screenshots/demo-B-routeB-1280x720.png",
+    "reports/gameplay-01/developer/p1/final/screenshots/demo-B-jammed-1280x720.png",
+    "reports/gameplay-01/developer/p1/final/screenshots/menu-demo-800x600.png",
+    "reports/gameplay-01/developer/p1/final/screenshots/demo-compact-800x600.png"
+  ],
+  "json": [
+    "reports/gameplay-01/developer/p1/final/json/demo-A-verify-v2.json",
+    "reports/gameplay-01/developer/p1/final/json/demo-B-verify.json",
+    "reports/gameplay-01/developer/p1/final/json/menu-demo-check.json"
+  ],
+  "obsolete": {
+    "note": "Kept on disk, not final. They show the old single-line HUD / DRONES SAFE / old objective. Use final/ only.",
+    "files": [
+      "reports/gameplay-01/developer/p1/demo-A-start-1280x720.png",
+      "reports/gameplay-01/developer/p1/demo-A-after-1280x720.png",
+      "reports/gameplay-01/developer/p1/demo-A-active-1280x720.png",
+      "reports/gameplay-01/developer/p1/demo-A-jammed-1280x720.png",
+      "reports/gameplay-01/developer/p1/demo-A-manual-off-1280x720.png",
+      "reports/gameplay-01/developer/p1/demo-A-active-early-1280x720.png",
+      "reports/gameplay-01/developer/p1/demo-A-jammed-early-1280x720.png",
+      "reports/gameplay-01/developer/p1/demo-A-manual-off-early-1280x720.png",
+      "reports/gameplay-01/developer/p1/demo-A-verify.json",
+      "reports/gameplay-01/developer/p1/demo-A-dump.json"
+    ]
+  },
+  "headlessBoundary": "Relay\u2192linked-drone attack gate, JAMMED new-fire suppression, old-shot persistence, expiry restore, unlinked independence, cost/cooldown/failure and scan-evidence whitelist are in src/world/sim and headless-tested. Route selection/portal placement/portalTarget/room objective/demo entry are World/scene orchestration and are Rendered-only; P1 does not claim full route parity. P4 later adds core level rules if needed.",
+  "knownLimits": [
+    "No human playtest; all evidence is fixture/agent-driven. HUMAN ACCEPTANCE PENDING.",
+    "Route/portal/checkpoint-demo is Rendered-only (explicit boundary).",
+    "P2 ECHO allowlist, P3 full feedback, P4 formal level are not implemented.",
+    "Jam suppresses NEW fire only; old projectiles still damage (HUD and tests say so).",
+    "Signal cost numbers in HUD are derived from SIGNAL_TUNING; range is separate (tiles).",
+    "The demo start room's first checkpoint is legitimately null while the sentry is alive; checkpointWritten keeps the first-write replace contract."
+  ],
+  "playableSteps": [
+    "Run the game (npm run dev or Start-LAST-SIGNAL.cmd).",
+    "Main menu -> DEMO 01 - LINKED SENTRY. No Settings opt-in / no restart guesswork.",
+    "On spawn: relay ACTIVE, two linked drones, HUD LINK - FIRE ENABLED, keys T SCAN / Y JAM / R TOGGLE, COST and RANGE separated.",
+    "T = scan (range/energy), Y = jam (suppresses NEW linked fire for the jam duration; old shots still live), R = manual relay toggle (INACTIVE also suppresses).",
+    "Clear the sentry room (fight normally, or use jam/off to buy a window).",
+    "After clear: ROUTE A (ACTIVE) or ROUTE B (INACTIVE) portal; JAMMED shows ROUTE BLOCKED and hides the portal; R flips the route; F at the portal travels.",
+    "Pause (ESC) saves a safe checkpoint with demo=p1 and portalTarget; CONTINUE resumes the same route; death still ends the run (new R0)."
+  ],
+  "compactEvidence": "reports/gameplay-01/developer/p1/final/screenshots/demo-compact-800x600.png",
+  "reviewStatus": {
+    "reviewer": "reports/gameplay-01/reviewer/P1_FINAL_REVIEW.md: stage engineering candidate PASS (no blocker); 6 non-blocking findings; independent browser reproduction of causality/routes/portal/save fields/failure/compact HUD",
+    "fullTesterReport": "pending",
+    "human": "pending (no human playtest)",
+    "realLLM": "BLOCKED (no configuration; not faked)",
+    "gapsNotIndependentlyVerified": [
+      "reload -> CONTINUE end-to-end route/portal restore (developer evidence exists; reviewer did not rerun)",
+      "3-seed route candidate exclusion (developer evidence exists; reviewer verified 1 seed)",
+      "Headless route/portal equivalence (explicitly Rendered-only in P1)",
+      "P4 solo vs human+ECHO value comparison / human playtest"
+    ]
+  },
+  "reviewerNonBlocking": [
+    "P3 HUD detail contrast: #5a7480 on #05070c = 4.07:1 < WCAG AA 4.5 at 10.63 CSS px; use a readable color or larger size.",
+    "P3/P4 player spawn coincides with the relay tile (dist 0.00); authored layout should exclude the spawn cell.",
+    "P3 INACTIVE relay can still be jammed (wastes 25 energy); either reject with honest no-charge or show an explicit already-silent hint.",
+    "P4 door is 6.9-7.0 tiles from the relay (> JAM_RANGE 6), so standing-on-door jam is naturally unreachable; the current teleport-to-device test must stay labeled fixture, or the layout/acceptance wording must change.",
+    "P3 range/LOS rejection reuses E_PERMISSION; split E_OUT_OF_RANGE / E_NO_LOS for honest feedback.",
+    "P4 natural walking path can detour through a door and leave the room; record walk time/path length as a playability metric and review layout."
+  ]
+}

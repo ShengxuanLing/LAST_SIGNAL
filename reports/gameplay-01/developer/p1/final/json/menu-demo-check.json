@@ -1,0 +1,66 @@
+{
+  "ok": true,
+  "demo": {
+    "text": "DEMO 01 · LINKED SENTRY",
+    "x": 480.5,
+    "y": 629.5,
+    "w": 319,
+    "h": 21
+  },
+  "sector": {
+    "text": "SECTOR RUN",
+    "x": 571.5,
+    "y": 569.5,
+    "w": 137,
+    "h": 21
+  },
+  "help": {
+    "text": "WASD move · MOUSE aim · CLICK fire · SPACE d",
+    "x": 332.5,
+    "y": 683,
+    "w": 615,
+    "h": 14
+  },
+  "within": true,
+  "noOverlap": true,
+  "save": "3505762537-2498043162-17590608-1466209083",
+  "hasReplaceNotice": true,
+  "demoState": {
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 12,
+          "y": 45
+        },
+        {
+          "x": 5,
+          "y": 47
+        }
+      ]
+    },
+    "relay": "ACTIVE"
+  },
+  "errors": []
+}

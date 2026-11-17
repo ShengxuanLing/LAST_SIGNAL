@@ -1,0 +1,15 @@
+START: relay=ACTIVE room={"id":0,"kind":"combat"} linkedAlive=[1,2] routes=[{"target":1,"when":"RELAY_ACTIVE","label":"COMBAT"},{"target":2,"when":"RELAY_INACTIVE","label":"RESOURCE"}]
+CLEARED: cleared=true portal={"target":1,"wx":12,"wy":50} routeA=1 routeB=2 objective="F AT PORTAL · ROUTE A · COMBAT"
+ROUTE B: relay=INACTIVE portal={"target":2,"wx":12,"wy":50} objective="F AT PORTAL · ROUTE B · RESOURCE"
+JAMMED: relay=JAMMED portal=null objective="ROUTE BLOCKED · JAMMED — WAIT OR R TOGGLE RELAY"
+POST-JAM: relay=ACTIVE portal={"target":1,"wx":12,"wy":50} objective="F AT PORTAL · ROUTE A · COMBAT"
+SAVE: demo=p1 portalTarget=2 relay=INACTIVE manual=false
+RESTORED: room={"id":0,"kind":"combat"} relay=INACTIVE portal={"target":2,"wx":12,"wy":50} objective="F AT PORTAL · ROUTE B · RESOURCE"
+TRAVEL B: target=2 roomAfter=2
+JAM ON PORTAL: jamEnqueued=true relay=JAMMED portal=null roomAfterF=0
+JAM SAVE: demo=p1 portalTarget=null relay=JAMMED
+JAM RESTORE: restoredPortal=null relay=JAMMED expiredPortal={"target":1,"wx":12,"wy":50} routeB={"target":2,"wx":12,"wy":50}
+VARIANT 20261117: room={"id":0,"kind":"combat"} relay=ACTIVE routes=[{"target":1,"when":"RELAY_ACTIVE","label":"COMBAT"},{"target":2,"when":"RELAY_INACTIVE","label":"RESOURCE"}] drones=[{"x":12,"y":45},{"x":5,"y":47}] alive=2
+VARIANT 20261118: room={"id":0,"kind":"combat"} relay=ACTIVE routes=[{"target":2,"when":"RELAY_ACTIVE","label":"RESOURCE"},{"target":5,"when":"RELAY_INACTIVE","label":"ELITE"}] drones=[{"x":5,"y":47},{"x":11,"y":47}] alive=2
+VARIANT 20261119: room={"id":0,"kind":"combat"} relay=ACTIVE routes=[{"target":5,"when":"RELAY_ACTIVE","label":"ELITE"},{"target":3,"when":"RELAY_INACTIVE","label":"COMBAT"}] drones=[{"x":11,"y":47},{"x":5,"y":49}] alive=2
+RESULT: PASS (fixture; not human acceptance) uniqueVariants=3

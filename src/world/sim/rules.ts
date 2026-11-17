@@ -441,6 +441,8 @@ export interface DroneAiResult {
   attackTimer: number;
   faceAngle: number | null;
   attack: DroneAttackDescriptor | null;
+  /** Set by the core when an authored relay link suppressed this attack. */
+  suppressed?: boolean;
 }
 
 /**

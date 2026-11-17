@@ -1,0 +1,250 @@
+[
+  {
+    "item": "human-like-combat",
+    "at": "2026-11-17T19:33:06.232Z",
+    "runner": "agent (real mouse/keyboard; NOT a human)",
+    "fixtures": "none (no Dev seam, no seed override, no HP rescue)",
+    "seed": 623861148,
+    "ms": 11891,
+    "ticks": 410,
+    "startRoom": {
+      "id": 0,
+      "kind": "start"
+    },
+    "roomsVisitedToCombat": 1,
+    "combatRoom": {
+      "id": 3,
+      "kind": "combat"
+    },
+    "enemyFound": true,
+    "fireClicks": 6,
+    "damageDealt": {
+      "before": 0,
+      "after": 48
+    },
+    "kills": {
+      "before": 0,
+      "after": 0
+    },
+    "hp": {
+      "before": 100,
+      "after": 56
+    },
+    "xp": {
+      "before": 0,
+      "after": 0,
+      "toNext": 30,
+      "level": 1
+    },
+    "enemies": {
+      "before": 0,
+      "after": 3
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\shots\\p0-1-humanlike-combat.png"
+  },
+  {
+    "item": "local-ai-combat",
+    "at": "2026-11-17T19:33:21.783Z",
+    "runner": "agent (real pause-menu clicks) + LOCAL DETERMINISTIC controller",
+    "fixtures": "none for combat; AI toggle is the product pause entry",
+    "notProven": "this is NOT an LLM run and NOT human play",
+    "ms": 15362,
+    "windowMs": 8000,
+    "ticks": 171,
+    "aiActions": {
+      "before": 1,
+      "after": 12
+    },
+    "damageDealt": {
+      "before": 0,
+      "after": 162
+    },
+    "kills": {
+      "before": 0,
+      "after": 2
+    },
+    "hp": {
+      "before": 100,
+      "after": 100
+    },
+    "rooms": {
+      "before": {
+        "id": 0,
+        "kind": "start"
+      },
+      "after": {
+        "id": 3,
+        "kind": "combat"
+      }
+    },
+    "owner": "ai",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\shots\\p0-2-local-ai-combat.png"
+  },
+  {
+    "item": "echo-cooperation",
+    "at": "2026-11-17T19:33:42.423Z",
+    "runner": "agent (real pause-menu clicks)",
+    "fixtures": "autoOwner: the Owner CONFIRM is an automated click, not a human",
+    "notProven": "not a human owner confirmation; no judgement that ECHO is better",
+    "ms": 20441,
+    "roomsVisitedToCombat": 1,
+    "enemiesInRoom": 3,
+    "suggestionAtOpen": null,
+    "spawnQueuedWhilePaused": null,
+    "echoAfterTick": {
+      "hp": 100,
+      "max": 100,
+      "mode": "follow",
+      "armed": false
+    },
+    "assist": {
+      "before": false,
+      "after": true
+    },
+    "echoProjectiles": {
+      "before": 1,
+      "after": 1
+    },
+    "echoHp": {
+      "hp": 89,
+      "max": 100,
+      "mode": "follow",
+      "armed": true
+    },
+    "damageDealt": 126,
+    "kills": 2,
+    "room": {
+      "id": 3,
+      "kind": "combat"
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\shots\\p0-3-echo-cooperation.png"
+  },
+  {
+    "item": "signal-ops",
+    "at": "2026-11-17T19:33:54.840Z",
+    "runner": "agent (real Settings click + real T/Y/R keys)",
+    "fixtures": "none",
+    "optIn": {
+      "before": false,
+      "after": true
+    },
+    "ms": 12210,
+    "signals": {
+      "base": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "INACTIVE",
+        "manualEnabled": false,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "playerEnergy": 100,
+        "echoEnergy": 100,
+        "playerScanCD": 0,
+        "playerJamCD": 0,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 0,
+        "exitOpen": false
+      },
+      "afterScan": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "INACTIVE",
+        "manualEnabled": false,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "playerEnergy": 92,
+        "echoEnergy": 100,
+        "playerScanCD": 88,
+        "playerJamCD": 0,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 1,
+        "exitOpen": false
+      },
+      "afterJam": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "JAMMED",
+        "manualEnabled": false,
+        "powered": true,
+        "jammedUntilTick": 452,
+        "playerEnergy": 70,
+        "echoEnergy": 100,
+        "playerScanCD": 51,
+        "playerJamCD": 446,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 1,
+        "exitOpen": false
+      },
+      "afterRelay": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "JAMMED",
+        "manualEnabled": true,
+        "powered": true,
+        "jammedUntilTick": 452,
+        "playerEnergy": 73,
+        "echoEnergy": 100,
+        "playerScanCD": 16,
+        "playerJamCD": 411,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 1,
+        "exitOpen": false
+      }
+    },
+    "room": {
+      "id": 0,
+      "kind": "start"
+    },
+    "ticks": 108,
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\shots\\p0-4-signal-ops.png"
+  },
+  {
+    "item": "level-progression",
+    "at": "2026-11-17T19:34:05.695Z",
+    "runner": "agent (real movement/fire/room keys)",
+    "fixtures": "none (no addXp)",
+    "ms": 10734,
+    "levelUpSeen": true,
+    "choices": 1,
+    "level": {
+      "before": 1,
+      "after": 2
+    },
+    "xp": {
+      "before": 0,
+      "after": 6,
+      "toNext": 74
+    },
+    "kills": {
+      "before": 0,
+      "after": 2
+    },
+    "damage": {
+      "before": 0,
+      "after": 120
+    },
+    "rooms": {
+      "before": {
+        "id": 0,
+        "kind": "start"
+      },
+      "after": {
+        "id": 3,
+        "kind": "combat"
+      }
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\shots\\p0-5-level-progression.png"
+  }
+]

@@ -126,6 +126,8 @@ export interface RunCheckpoint {
   id: string;
   seed: number;
   deck?: number;
+  /** Optional authored-scene id (GAMEPLAY-01 P1 Demo-01). Absent = legacy run. */
+  demo?: 'p1';
   roomId: number;
   position: Vec2;
   clearedRooms: number[];

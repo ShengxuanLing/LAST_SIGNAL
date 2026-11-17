@@ -1,0 +1,6 @@
+ACTIVE baseline: relay=ACTIVE hp=94 linkedShots=2 tick=169 objective="CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE"
+JAM: relay=JAMMED energy=77 remaining=328 hpAfter2.5s=88 newLinkedShots=0
+EXPIRY: relay=ACTIVE newLinkedShotsAfter=3 hp=76
+MANUAL OFF: relay=INACTIVE newLinkedShots=0 hp=70 objective="CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE"
+MANUAL ON: relay=ACTIVE newLinkedShotsAfter=4 hp=52
+RESULT: PASS (fixture, not human acceptance)

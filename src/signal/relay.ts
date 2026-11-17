@@ -8,6 +8,14 @@
 export type RelayState = 'ACTIVE' | 'INACTIVE' | 'JAMMED' | 'DISABLED';
 export type BridgeState = 'UNAVAILABLE' | 'TRANSITIONING' | 'STABLE' | 'UNSTABLE' | 'DISABLED';
 
+/** Authored-scene route condition. JAMMED is NEITHER (temporary suppression,
+ *  not a manual state); the old exit gate semantics are unchanged. */
+export type RouteWhen = 'RELAY_ACTIVE' | 'RELAY_INACTIVE';
+
+export function routeMatches(relay: RelayState, when: RouteWhen): boolean {
+  return when === 'RELAY_ACTIVE' ? relay === 'ACTIVE' : relay === 'INACTIVE';
+}
+
 /** One immutable post-commit relay reading, independent of callback order. */
 export interface RelayReading {
   readonly manualEnabled: boolean;

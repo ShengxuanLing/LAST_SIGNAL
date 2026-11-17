@@ -116,6 +116,7 @@ export function validEchoActor(value: unknown): boolean {
 export function validateCheckpoint(run: RunCheckpoint | undefined): run is RunCheckpoint {
   if (!run || typeof run.id !== 'string' || !run.id || !isUint32(run.seed) || !isUint32(run.rngState)) return false;
   if (run.deck !== undefined && (!isCount(run.deck) || run.deck >= TOTAL_DECKS)) return false;
+  if (run.demo !== undefined && run.demo !== 'p1') return false;
   if (!isRoomId(run.roomId) || !Number.isFinite(run.position?.x) || !Number.isFinite(run.position?.y)) return false;
   if (!Array.isArray(run.clearedRooms) || !run.clearedRooms.every(isRoomId) || !run.clearedRooms.includes(run.roomId)) return false;
   if (run.portalTarget !== null && !isRoomId(run.portalTarget)) return false;

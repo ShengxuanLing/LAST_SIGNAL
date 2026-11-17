@@ -33,8 +33,10 @@ export interface SimSignalDevice {
 
 export function createSignalDevice(input: {
   deviceId: string; roomId: number; x: number; y: number; tick: number;
+  /** Authored-scene initial state. Defaults keep legacy INACTIVE. */
+  initial?: { manualEnabled?: boolean; powered?: boolean };
 }): SimSignalDevice {
-  const control = createRelayControl();
+  const control = createRelayControl(input.initial);
   return {
     deviceId: input.deviceId,
     roomId: input.roomId,

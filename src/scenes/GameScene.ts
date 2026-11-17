@@ -14,6 +14,7 @@ import { WORLD_PROTOCOL_VERSION } from '../ai-native/worldProtocol';
 import { Player } from '../entities/Player';
 import type { RunCheckpoint } from '../types';
 import { CSS, DEPTH, FONT, INK, TIME } from '../art/survey/tokens';
+import { SIGNAL_TUNING } from '../signal/signalTuning';
 import { deckLabel, deckSeed, sectorFor } from '../config/dungeon';
 import type { MapData } from '../types';
 
@@ -22,6 +23,8 @@ interface SceneConfig {
   resume?: boolean;
   sectorRun?: boolean;
   transition?: Pick<RunCheckpoint, 'id' | 'player' | 'stats'> & { deck: number };
+  /** GAMEPLAY-01 P1 authored Demo-01 entry from the main menu. */
+  demo?: 'p1';
 }
 
 export class GameScene extends Phaser.Scene {
@@ -65,6 +68,8 @@ export class GameScene extends Phaser.Scene {
   private txtAgentLink!: Phaser.GameObjects.Text;
   private txtEcho!: Phaser.GameObjects.Text;
   private txtSignal!: Phaser.GameObjects.Text;
+  /** P1 Signal detail: costs/ranges/jam remaining/last failure + link state. */
+  private txtSignalDetail!: Phaser.GameObjects.Text;
   /** P3-b A: browser-held owner capability (never exposed to the agent). */
   companionLink: CompanionLink | null = null;
   private companionFrame = 0;
@@ -79,7 +84,7 @@ export class GameScene extends Phaser.Scene {
   /** Compact-viewport HUD layout (F-06): larger logical fonts, no z-index tricks. */
   private hudLayout = {
     weaponY: 20, roomY: 44, enemiesY: 64,
-    controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164, signalY: 182,
+    controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164, signalY: 182, signalDetailY: 202,
     helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
     helpFont: '13px', helpColor: '#8fb8c8'
   };
@@ -90,6 +95,12 @@ export class GameScene extends Phaser.Scene {
   private damageDealt = 0;
   private runId = '';
   private checkpointDirty = false;
+  /** True once the first checkpoint of this run actually reached disk. The
+   *  first write may legitimately be delayed (e.g. the authored Demo-01 starts
+   *  in a live combat room); until it lands, the next write must use the
+   *  "replace any run" contract (expectedId undefined), not a run id that does
+   *  not exist on disk yet. */
+  private checkpointWritten = false;
   private runFinished = false;
   // Pending level-up levels. When one XP gain crosses several levels, addXp()
   // fires onLevelUp multiple times; we queue them and open the scene one at a
@@ -148,14 +159,25 @@ export class GameScene extends Phaser.Scene {
         if (delta.dmg) this.damageDealt += delta.dmg;
       },
       onBossWin: () => this.onBossWin(),
-      onNextDeck: () => this.advanceDeck()
+      onNextDeck: () => this.advanceDeck(),
+      onSignalChanged: () => { this.checkpointDirty = true; }
     };
     this.world = new World(this, map, save, callbacks);
+    // GAMEPLAY-01 P1: the authored Demo-01 scenario is reconstructed before a
+    // checkpoint restore (route edges/validation) and spawned only on a fresh
+    // demo run. Every normal run leaves world.p1Scenario null.
+    const demo = config?.demo ?? checkpoint?.demo;
+    if (demo === 'p1' && !this.world.setupP1Scenario()) {
+      // Never silently turn the DEMO into an ordinary run: show a visible notice.
+      this.scene.start('MainMenuScene', { notice: 'DEMO 01 UNAVAILABLE' });
+      return;
+    }
     if (checkpoint && !this.world.restoreCheckpoint(checkpoint)) {
       saveSystem.discardCheckpoint(checkpoint.id);
       this.scene.start('MainMenuScene', { notice: 'CHECKPOINT INCOMPATIBLE' });
       return;
     }
+    if (demo === 'p1' && !checkpoint) this.world.spawnP1Sentry();
     if (transition) this.world.applyTransitionPlayerData(transition.player);
     if (!checkpoint) {
       this.world.updateRoom();
@@ -169,7 +191,7 @@ export class GameScene extends Phaser.Scene {
       // First write replaces any existing on-disk checkpoint (expectedId ===
       // undefined) so a NEW RUN clears the old run and a RESUME re-saves the same
       // id. Later writes pass this.runId so they can only touch the active run.
-      saveSystem.writeCheckpoint(firstCheckpoint, progress?.id);
+      this.checkpointWritten = saveSystem.writeCheckpoint(firstCheckpoint, progress?.id);
     }
     this.checkpointDirty = false;
 
@@ -350,13 +372,13 @@ export class GameScene extends Phaser.Scene {
     this.hudLayout = compact
       ? {
           weaponY: 16, roomY: 42, enemiesY: 68,
-          controlY: 96, actionY: 124, targetY: 152, linkY: 180, echoY: 208, signalY: 236,
+          controlY: 96, actionY: 124, targetY: 152, linkY: 180, echoY: 208, signalY: 236, signalDetailY: 258,
           helpY: GAME.WINDOW_H - 52, baseRowFont: '17px', controlFont: '17px', rowFont: '17px',
           helpFont: '16px', helpColor: '#8fb8c8'
         }
       : {
           weaponY: 20, roomY: 44, enemiesY: 64,
-          controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164, signalY: 182,
+          controlY: 90, actionY: 110, targetY: 128, linkY: 146, echoY: 164, signalY: 182, signalDetailY: 202,
           helpY: GAME.WINDOW_H - 44, baseRowFont: '13px', controlFont: '13px', rowFont: '12px',
           helpFont: '13px', helpColor: '#8fb8c8'
         };
@@ -396,13 +418,14 @@ export class GameScene extends Phaser.Scene {
     this.txtAgentLink = add.text(GAME.WINDOW_W - 20, L.linkY, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtEcho = add.text(GAME.WINDOW_W - 20, L.echoY, 'ECHO OFF · PAUSE > ECHO COMPANION', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#33e0ff' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtSignal = add.text(GAME.WINDOW_W - 20, L.signalY, 'RELAY OFF · NO DEVICE', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtSignalDetail = add.text(GAME.WINDOW_W - 20, L.signalDetailY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#5a7480', align: 'right' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
 
     this.hudObjects = [
       this.hud, this.txtVitals, this.txtHp, this.txtXp, this.txtCurrency, this.txtLevel, this.timer,
       this.txtWeapon, this.txtRoom, this.txtObjective, this.txtEnemies, this.txtBossHp, this.bossBarFill,
       this.txtMap, this.txtStats, this.txtControl, this.txtAiAction, this.txtAiTarget, this.txtAgentLink,
-      this.txtEcho, this.txtSignal, this.txtHelp
+      this.txtEcho, this.txtSignal, this.txtSignalDetail, this.txtHelp
     ];
     this.hudVisible = true;
   }
@@ -439,7 +462,9 @@ export class GameScene extends Phaser.Scene {
     const L = this.hudLayout;
     place(this.txtWeapon, GAME.WINDOW_W - 20, L.weaponY);
     place(this.txtRoom, GAME.WINDOW_W - 20, L.roomY);
-    place(this.txtObjective, GAME.WINDOW_W / 2, 676);
+    // The authored P1 room's objective is long; give it its own line above the
+    // left help row instead of colliding with it at y=676.
+    place(this.txtObjective, GAME.WINDOW_W / 2, this.world.p1Scenario ? L.helpY - 26 : 676);
     place(this.txtEnemies, GAME.WINDOW_W - 20, L.enemiesY);
     place(this.txtControl, GAME.WINDOW_W - 20, L.controlY);
     place(this.txtAiAction, GAME.WINDOW_W - 20, L.actionY);
@@ -447,6 +472,7 @@ export class GameScene extends Phaser.Scene {
     place(this.txtAgentLink, GAME.WINDOW_W - 20, L.linkY);
     place(this.txtEcho, GAME.WINDOW_W - 20, L.echoY);
     place(this.txtSignal, GAME.WINDOW_W - 20, L.signalY);
+    place(this.txtSignalDetail, GAME.WINDOW_W - 20, L.signalDetailY);
     place(this.txtHelp, 20, L.helpY);
     place(this.txtBossHp, GAME.WINDOW_W / 2, 30);
     place(this.bossBarFill, GAME.WINDOW_W / 2, 52);
@@ -635,6 +661,9 @@ export class GameScene extends Phaser.Scene {
     const total = this.world.map.rooms.length;
     if (this.deck === undefined) {
       if (room) this.txtRoom.setText(`R-${String(room.id).padStart(2, '0')} · ${room.kind.toUpperCase()} · SURVEYED ${this.world.surveyedRooms()}/${total}`);
+      // The authored P1 room uses the objective line for its causal instructions
+      // (clear the sentry / route A/B / jammed block), even on a non-deck run.
+      this.txtObjective.setText(this.world.p1Scenario ? this.world.roomObjective : '');
     } else {
       this.txtRoom.setText(`${deckLabel(this.deck)} · ${room?.kind.toUpperCase() ?? 'CORRIDOR'}`);
       this.txtObjective.setText(this.world.roomObjective);
@@ -746,21 +775,60 @@ export class GameScene extends Phaser.Scene {
   }
 
   private refreshSignalHud(): void {
-    const s = this.world.signalView() as { relay: string; echoEnergy?: number; playerEnergy?: number; playerScanCD?: number; playerJamCD?: number; echoScanCD?: number; echoJamCD?: number; exitOpen: boolean } | null;
+    const s = this.world.signalView() as { relay: string; echoEnergy?: number; playerEnergy?: number; playerScanCD?: number; playerJamCD?: number; echoScanCD?: number; echoJamCD?: number; exitOpen: boolean; jammedUntilTick?: number } | null;
     if (!s) {
       if (this.txtSignal) this.txtSignal.setText('RELAY OFF · NO DEVICE');
+      if (this.txtSignalDetail) {
+        this.txtSignalDetail.setText(this.world.p1Scenario ? 'NO DEVICE' : 'SIGNAL COLLABORATION OFF · ENABLE IN SETTINGS');
+        this.txtSignalDetail.setColor('#5a7480');
+      }
       return;
     }
     const e = s.echoEnergy ?? 0, p = s.playerEnergy ?? 0;
-    let c = '';
-    if (s.echoEnergy !== undefined) c += ` echoScanCD:${s.echoScanCD}t/jamCD:${s.echoJamCD}t`;
-    if (s.playerEnergy !== undefined && s.playerEnergy > 0) c += ` playerScanCD:${s.playerScanCD}t/jamCD:${s.playerJamCD}t`;
-    const exit = s.exitOpen ? 'EXIT OPEN' : 'EXIT CLOSED';
-    let txt = `RELAY ${s.relay.toUpperCase()} | e:${e} p:${p}`;
-    if (c) txt += c;
-    txt += ` · ${exit}`;
-    if (this.txtSignal) this.txtSignal.setText(txt);
-    this.txtSignal.setColor(s.relay === 'ACTIVE' ? '#00ff77' : s.relay === 'JAMMED' ? '#ff3333' : '#8fb8c8');
+    const hasLink = this.world.p1Scenario !== null;
+    const fireEnabled = this.world.p1LinkedFireEnabled;
+    // In the authored route room the exit condition is the ROUTE, not the old
+    // "only ACTIVE opens" gate. Every other room keeps the legacy label.
+    const p1 = this.world.p1Scenario;
+    const currentRoom = this.world.currentRoom();
+    const p1RouteRoom = !!p1 && !!currentRoom && currentRoom.id === p1.roomId && this.world.map.rooms[currentRoom.id].cleared;
+    const p1RouteTarget = this.world.p1RouteTarget;
+    const exit = p1RouteRoom
+      ? (s.relay === 'JAMMED' ? 'ROUTE BLOCKED' : p1RouteTarget !== null ? (s.relay === 'ACTIVE' ? 'ROUTE A OPEN' : 'ROUTE B OPEN') : 'ROUTE UNAVAILABLE')
+      : (s.exitOpen ? 'EXIT OPEN' : 'EXIT CLOSED');
+    if (this.txtSignal) {
+      this.txtSignal.setText(`RELAY ${s.relay.toUpperCase()} · ${exit}`);
+      this.txtSignal.setColor(s.relay === 'ACTIVE' ? '#00ff77' : s.relay === 'JAMMED' ? '#ff3333' : '#8fb8c8');
+    }
+    if (this.txtSignalDetail) {
+      const lines: string[] = [];
+      if (hasLink && fireEnabled !== null) {
+        // Relay output controls NEW fire only; already-fired projectiles keep
+        // flying. Say that explicitly instead of claiming "safe".
+        lines.push(fireEnabled
+          ? 'LINK · FIRE ENABLED'
+          : 'LINK · NEW FIRE BLOCKED · OLD SHOTS STILL LIVE');
+      }
+      const remaining = this.world.p1JamRemainingTicks;
+      lines.push('KEYS · T SCAN · Y JAM · R TOGGLE');
+      // Numbers are derived from SIGNAL_TUNING (never hardcoded) and are clearly
+      // labelled: COST is energy, RANGE is tiles, JAM remaining is seconds.
+      lines.push(`COST · SCAN ${SIGNAL_TUNING.SCAN_COST} ENERGY · JAM ${SIGNAL_TUNING.JAM_COST} ENERGY`);
+      let range = `RANGE · SCAN ${SIGNAL_TUNING.SCAN_RADIUS} TILES · JAM ${SIGNAL_TUNING.JAM_RANGE} TILES`;
+      if (s.relay === 'JAMMED' && remaining > 0) {
+        range += ` · JAM ${(remaining / SIGNAL_TUNING.TICK_HZ).toFixed(1)}s`;
+      }
+      lines.push(range);
+      let energy = `PLAYER ${p} · ECHO ${e}`;
+      const feedback = this.world.lastSignalFeedback;
+      const age = feedback ? this.world.sim.tick - feedback.tick : Infinity;
+      if (feedback && age >= 0 && age < 180) {
+        energy += ` · LAST ${feedback.kind.toUpperCase()} ${feedback.ok ? 'OK' : (feedback.code ?? 'FAIL')}`;
+      }
+      lines.push(energy);
+      this.txtSignalDetail.setText(lines.join('\n'));
+      this.txtSignalDetail.setColor(feedback && !feedback.ok && age < 180 ? '#ff8a3c' : '#5a7480');
+    }
   }
 
   private runStats(): RunCheckpoint['stats'] {
@@ -779,9 +847,13 @@ export class GameScene extends Phaser.Scene {
     const checkpoint = this.world.captureCheckpoint(this.runId, this.seed, this.runStats());
     if (!checkpoint) return false;
     // Only clear the dirty flag once the write actually succeeded; a failed
-    // save must stay dirty so a later retry persists it.
-    const written = saveSystem.writeCheckpoint(checkpoint, this.runId);
-    if (written) this.checkpointDirty = false;
+    // save must stay dirty so a later retry persists it. Before the first
+    // checkpoint lands, a later write must still use the replace contract.
+    const written = saveSystem.writeCheckpoint(checkpoint, this.checkpointWritten ? this.runId : undefined);
+    if (written) {
+      this.checkpointDirty = false;
+      this.checkpointWritten = true;
+    }
     return written;
   }
 
