@@ -1,0 +1,55 @@
+[
+  {
+    "item": "legacy-save",
+    "at": "2026-11-17T23:47:07.040Z",
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "fixture: remove ONLY the new optional cooperation fields from a product-written save",
+    "removedFields": [
+      "permanent.echoCooperationOptIn"
+    ],
+    "continued": true,
+    "optIn": false,
+    "echo": true,
+    "pending": null,
+    "note": "a rejection of an arbitrary invalid save would not count as compatibility; this uses a valid save",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\reviewer\\p2-test\\shots-case67\\p2-6-legacy-save.png"
+  },
+  {
+    "item": "save-reload-boundary",
+    "at": "2026-11-17T23:47:23.736Z",
+    "runner": "agent (real pause-menu clicks + real reload + real CONTINUE)",
+    "fixtures": "none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm",
+    "beforePause": {
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 138,
+      "echoHp": 94,
+      "energy": 81
+    },
+    "confirmed": {
+      "id": "local_140_1",
+      "kind": "scan",
+      "ok": true,
+      "queue": [
+        "signal-scan"
+      ],
+      "applied": false
+    },
+    "after": {
+      "active": [
+        "GameScene"
+      ],
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 185,
+      "echoHp": 94,
+      "energy": 85,
+      "relay": "JAMMED",
+      "queue": [],
+      "pending": null,
+      "appliedAudit": 0
+    },
+    "contract": "the confirmed-but-uncommitted local action is not persisted, not executed, no busy marker, no fake applied receipt",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\reviewer\\p2-test\\shots-case67\\p2-7-save-reload.png"
+  }
+]

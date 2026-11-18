@@ -1,0 +1,11 @@
+workdir=/d/tmp/ls-p2-v3-accept spec=tests/gameplay-02-echo-coop.spec.ts devRoot=D:/tmp/ls-p2-v3-accept PORT=5491 commit=2c4584c
+
+Running 6 tests using 1 worker
+
+[1/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:184:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry
+[2/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:237:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command
+[3/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:259:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it
+[4/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:298:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 4) rawsim restore: a restored human-local action is busy, not re-confirmable, and commits exactly once
+[5/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:346:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap
+[6/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:411:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) an old save without cooperation fields loads unchanged and defaults to OFF
+  6 passed (1.2m)

@@ -1,0 +1,9 @@
+
+Running 5 tests using 1 worker
+
+[1/5] [chromium] › tests\gameplay-02-echo-coop.spec.ts:184:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry
+[2/5] [chromium] › tests\gameplay-02-echo-coop.spec.ts:237:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command
+[3/5] [chromium] › tests\gameplay-02-echo-coop.spec.ts:259:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it
+[4/5] [chromium] › tests\gameplay-02-echo-coop.spec.ts:298:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 4) rawsim restore: a restored human-local action is busy, not re-confirmable, and commits exactly once
+[5/5] [chromium] › tests\gameplay-02-echo-coop.spec.ts:346:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap
+  5 passed (1.1m)

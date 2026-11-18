@@ -1,0 +1,9 @@
+# cwd=D:/tmp/gp01-p2t3 snapshot=manifest-verified P2 v3 sources (10/10) + frozen spec 9b5900aa
+# src sha256(12): 5408830f9774 37cf6ffb81db ed323491252d 
+# devRoot=http://localhost:5492/ (reviewer port) start=01:40:31
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1 passed (19.4s)
+PW_EXIT=0

@@ -1,0 +1,53 @@
+[
+  {
+    "item": "viewport",
+    "at": "2026-11-17T22:17:18.627Z",
+    "runner": "agent",
+    "rows": [
+      {
+        "viewport": "1920x1080",
+        "scale": 1.5,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1366x768",
+        "scale": 1.067,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1280x720",
+        "scale": 1,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1024x768",
+        "scale": 0.8,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "800x600",
+        "scale": 0.625,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      }
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2-v3\\run1\\shots\\p2-5-viewports.png"
+  },
+  {
+    "item": "old-save",
+    "at": "2026-11-17T22:17:21.960Z",
+    "runner": "agent",
+    "loaded": true,
+    "optIn": false,
+    "pendingLocal": null
+  }
+]

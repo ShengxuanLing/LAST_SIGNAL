@@ -1,0 +1,10 @@
+# cwd=D:/tmp/gp01-p2t3  snapshot: manifest-verified P2 v3 sources (10/10) + frozen 7-case spec 315078430983165e
+# src sha256(12): 5408830f9774 37cf6ffb81db ed323491252d 
+# devRoot=http://localhost:5492/ (reviewer port)  start=00:46:49
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:496:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+[2/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:559:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  2 passed (32.4s)
+PW_EXIT=0

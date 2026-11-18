@@ -1,0 +1,16 @@
+# cwd=D:/tmp/gp01-p2t3
+# snapshot: worktree HEAD tree, P2 v3 10 sources taken from git show 87a0fac:<path>
+# src sha256(12): 4f84c9436518 69c29d864036 a3e9ab31fca3 3de7e0c9ace6 
+# spec 6-case sha256=bbb1a8a8186a3c64f083a54d820e917bcc73bf58d5f2586747381ef2ed5ea8cc
+# devRoot=http://localhost:5492/ start=00:39:52
+
+Running 6 tests using 1 worker
+
+[1/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:269:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry
+[2/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:322:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command
+[3/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:344:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it
+[4/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:383:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 4) rawsim restore: a restored human-local action is busy, not re-confirmable, and commits exactly once
+[5/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:431:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap
+[6/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:496:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+  6 passed (1.4m)
+PW_EXIT=0

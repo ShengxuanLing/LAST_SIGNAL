@@ -1,0 +1,160 @@
+[
+  {
+    "item": "single-pending",
+    "at": "2026-11-17T22:54:53.406Z",
+    "runner": "agent (real pause-menu clicks only)",
+    "fixtures": "none",
+    "queue": {
+      "before": [],
+      "afterFirst": [
+        "signal-scan"
+      ],
+      "afterSecond": [
+        "signal-scan"
+      ]
+    },
+    "pendingLocal": {
+      "afterFirst": {
+        "proposalId": "local_59_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 59,
+        "roomGeneration": 1
+      },
+      "afterSecond": {
+        "proposalId": "local_59_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 59,
+        "roomGeneration": 1
+      }
+    },
+    "auditTail": [
+      {
+        "tick": 59,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "enqueued",
+        "proposalId": "local_59_1"
+      }
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2-v3\\run3\\shots\\p2-1-single-pending.png"
+  },
+  {
+    "item": "reject",
+    "at": "2026-11-17T22:55:04.533Z",
+    "runner": "agent (real pause-menu clicks only)",
+    "proposalBefore": {
+      "kind": "scan"
+    },
+    "pendingAfter": null,
+    "queueBefore": [],
+    "queueAfter": [],
+    "auditTail": [
+      {
+        "tick": 74,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "result": "rejected",
+        "code": "E_USER_REJECTED",
+        "proposalId": "local_74_1"
+      }
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2-v3\\run3\\shots\\p2-2-reject.png"
+  },
+  {
+    "item": "lowrisk-owner-gate",
+    "at": "2026-11-17T22:55:20.088Z",
+    "runner": "agent (real pause-menu switches; real AI menu to change the owner)",
+    "fixtures": "none (the AI option is the product dev entry, labelled LOCAL DETERMINISTIC DEMO)",
+    "humanOn": {
+      "flag": true,
+      "saved": true,
+      "owner": "human"
+    },
+    "nonHumanRefused": true,
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2-v3\\run3\\shots\\p2-3-lowrisk.png"
+  },
+  {
+    "item": "restore-contract",
+    "at": "2026-11-17T22:55:20.885Z",
+    "runner": "agent (headless formal entry, no human)",
+    "fixtures": "fixture: raw sim snapshot + HeadlessWorld.fromSimulationState (the documented v3 restore seam)",
+    "saved": {
+      "kinds": [
+        "signal-scan"
+      ]
+    },
+    "restored": {
+      "busy": {
+        "proposalId": null,
+        "kind": "scan",
+        "target": null,
+        "acceptedTick": null,
+        "roomGeneration": 0,
+        "restored": true
+      },
+      "queue": [
+        "signal-scan"
+      ]
+    },
+    "contract": "restored action is busy (unknown provenance), a new local confirm is refused, unrelated commands kept, exactly one execution"
+  },
+  {
+    "item": "viewport",
+    "at": "2026-11-17T22:55:44.860Z",
+    "runner": "agent",
+    "rows": [
+      {
+        "viewport": "1920x1080",
+        "scale": 1.5,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1366x768",
+        "scale": 1.067,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1280x720",
+        "scale": 1,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1024x768",
+        "scale": 0.8,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "800x600",
+        "scale": 0.625,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      }
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2-v3\\run3\\shots\\p2-5-viewports.png"
+  }
+]

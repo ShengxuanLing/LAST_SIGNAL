@@ -1,0 +1,32 @@
+workdir=/d/tmp/ls-p2-v3-accept spec=tests/gameplay-02-echo-coop.spec.ts devRoot=D:/tmp/ls-p2-v3-accept PORT=5491 commit=2c4584c run=2
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:496:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+[2/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:559:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1) [chromium] › tests\gameplay-02-echo-coop.spec.ts:559:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 
+
+    Error: the relay state is the authored one (no un-executed action applied)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "ACTIVE"
+    Received: "JAMMED"
+
+      639 |     // The un-executed action must not have changed the signal outcome: relay is
+      640 |     // still the authored ACTIVE state and no scan cost was paid twice.
+    > 641 |     expect(after.relay, 'the relay state is the authored one (no un-executed action applied)').toBe('ACTIVE');
+          |                                                                                                ^
+      642 |   });
+      643 |
+      644 |   // TODO (tracked in the P2 report, not as a fake test): second-toggle refusal,
+        at D:\tmp\ls-p2-v3-accept\tests\gameplay-02-echo-coop.spec.ts:641:96
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:559:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 
+  1 passed (31.1s)

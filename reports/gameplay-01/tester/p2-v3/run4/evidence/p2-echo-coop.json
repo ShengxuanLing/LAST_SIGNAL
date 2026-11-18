@@ -1,0 +1,17 @@
+[
+  {
+    "item": "legacy-save",
+    "at": "2026-11-17T22:57:42.722Z",
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "fixture: remove ONLY the new optional cooperation fields from a product-written save",
+    "removedFields": [
+      "permanent.echoCooperationOptIn"
+    ],
+    "continued": true,
+    "optIn": false,
+    "echo": true,
+    "pending": null,
+    "note": "a rejection of an arbitrary invalid save would not count as compatibility; this uses a valid save",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2-v3\\run4\\shots\\p2-6-legacy-save.png"
+  }
+]

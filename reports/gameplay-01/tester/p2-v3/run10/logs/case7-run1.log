@@ -1,0 +1,23 @@
+workdir=/d/tmp/ls-p2-v3-accept spec=tests/gameplay-02-echo-coop.spec.ts devRoot=D:/tmp/ls-p2-v3-accept PORT=5491 commit=2c4584c specSha=fe984fe430bc128c785453e4d38393f605f0552516801ef09f8b9b6ca2539353 run=1 2026-11-18T00:27:58Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1) [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'restoreCheckpoint')
+        at eval (eval at evaluate (:370:30), <anonymous>:9:29)
+        at UtilityScript.evaluate (<anonymous>:372:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:370:30), <anonymous>:9:29)
+        at UtilityScript.evaluate (<anonymous>:372:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at D:\tmp\ls-p2-v3-accept\tests\gameplay-02-echo-coop.spec.ts:647:16
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 

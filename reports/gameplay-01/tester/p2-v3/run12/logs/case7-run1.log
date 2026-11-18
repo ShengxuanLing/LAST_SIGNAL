@@ -1,0 +1,29 @@
+workdir=/d/tmp/ls-p2-v3-accept spec=tests/gameplay-02-echo-coop.spec.ts devRoot=D:/tmp/ls-p2-v3-accept PORT=5491 commit=2c4584c specSha=dd9d5cb4a6a0ce4037c8a31436d2b8966ce0eeb3802a0fd421ecbb44fdb1afad run=1 2026-11-18T00:32:33Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1) [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 
+
+    Error: the first tick after the restore was observed
+
+    expect(received).not.toBeNull()
+
+    Received: null
+
+      758 |     expect(probe.restore.appliedAudit, 'no applied receipt exists at the instant of restore').toBe(0);
+      759 |     expect(probe.restore.relay, 'the restored relay is the saved state').toBe(savedRelay);
+    > 760 |     expect(probe.firstTickEvents, 'the first tick after the restore was observed').not.toBeNull();
+          |                                                                                        ^
+      761 |     expect(probe.scanned.filter((t: string) => t === 'signal-scanned'),
+      762 |       'from the restore onward no signal-scanned event was produced').toEqual([]);
+      763 |     // The later sample may be higher only because energy regenerates; it is an
+        at D:\tmp\ls-p2-v3-accept\tests\gameplay-02-echo-coop.spec.ts:760:88
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 

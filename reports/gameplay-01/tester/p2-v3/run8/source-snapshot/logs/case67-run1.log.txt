@@ -1,0 +1,7 @@
+workdir=/d/tmp/ls-p2-v3-accept spec=tests/gameplay-02-echo-coop.spec.ts devRoot=D:/tmp/ls-p2-v3-accept PORT=5491 commit=2c4584c run=1
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:496:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+[2/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:559:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  2 passed (35.7s)

@@ -1,0 +1,25 @@
+workdir=/d/tmp/ls-p2-v3-accept spec=tests/gameplay-02-echo-coop.spec.ts devRoot=D:/tmp/ls-p2-v3-accept PORT=5491 commit=2c4584c specSha=072ae0a2d64b29e8b912826a2254fbd76386d6f9898c9f5112dcc09df0b7c27b 2026-11-18T00:29:47Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1) [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 
+
+    TimeoutError: page.waitForFunction: Timeout 8000ms exceeded.
+
+      688 |       (window as any).__probe = { restore: null, firstTickEvents: null };
+      689 |     });
+    > 690 |     await page.waitForFunction(() => (window as any).__probe?.patched === true, undefined, { timeout: 8000 });
+          |                ^
+      691 |     await clickLabel(page, 'MainMenuScene', 'CONTINUE');
+      692 |     await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
+      693 |     await page.waitForTimeout(1000);
+        at D:\tmp\ls-p2-v3-accept\tests\gameplay-02-echo-coop.spec.ts:690:16
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 

@@ -1,0 +1,30 @@
+workdir=/d/tmp/ls-p2-v3-accept spec=tests/gameplay-02-echo-coop.spec.ts devRoot=D:/tmp/ls-p2-v3-accept PORT=5491 commit=2c4584c run=2
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-02-echo-coop.spec.ts:456:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1) [chromium] › tests\gameplay-02-echo-coop.spec.ts:456:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 
+
+    Error: the safe checkpoint was written
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      477 |     });
+      478 |     expect(saved.pendingBefore, 'no command is pending when the safe checkpoint is written').toBe(0);
+    > 479 |     expect(saved.ok, 'the safe checkpoint was written').toBe(true);
+          |                                                         ^
+      480 |     // 2) Enable cooperation on the real page, propose and confirm while paused.
+      481 |     await openLocalCoop(page);
+      482 |     await clickLabel(page, 'PauseScene', 'LOW-RISK COOPERATION');
+        at D:\tmp\ls-p2-v3-accept\tests\gameplay-02-echo-coop.spec.ts:479:57
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:456:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 

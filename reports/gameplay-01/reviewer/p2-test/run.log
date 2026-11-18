@@ -1,0 +1,125 @@
+# cwd=D:/tmp/gp01-p2t
+# snapshot=87a0fac + P2 v3 10 sources; spec=tests/gameplay-02-echo-coop.spec.ts (6-case reconstruction, test7 removed)
+# spec sha256=f2f6f977807c87d58e4bb155fa4b210e502e2f02686ec68eb8800b9d91aadc69
+# devRoot=http://localhost:5492/ (cwd=this snapshot)
+
+Running 6 tests using 1 worker
+
+[1/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:258:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry
+  1) [chromium] › tests\gameplay-02-echo-coop.spec.ts:258:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: page.waitForFunction: Test timeout of 180000ms exceeded.
+
+      89 |   await page.evaluate((k) => localStorage.removeItem(k), SAVE_KEY);
+      90 |   await page.reload();
+    > 91 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'), { timeout: 20000 });
+         |              ^
+      92 |   await page.waitForTimeout(400);
+      93 |   await clickLabel(page, 'MainMenuScene', 'DEMO 01');
+      94 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
+        at bootDemo (D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:91:14)
+        at D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:259:5
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-2d6b1-page-yields-ONE-queue-entry-chromium\error-context.md
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-2d6b1-page-yields-ONE-queue-entry-chromium\error-context.md
+
+
+[2/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:311:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command
+  2) [chromium] › tests\gameplay-02-echo-coop.spec.ts:311:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: page.waitForFunction: Test timeout of 180000ms exceeded.
+
+      89 |   await page.evaluate((k) => localStorage.removeItem(k), SAVE_KEY);
+      90 |   await page.reload();
+    > 91 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'), { timeout: 20000 });
+         |              ^
+      92 |   await page.waitForTimeout(400);
+      93 |   await clickLabel(page, 'MainMenuScene', 'DEMO 01');
+      94 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
+        at bootDemo (D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:91:14)
+        at D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:312:5
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-bb92c--queued-cooperation-command-chromium\error-context.md
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-bb92c--queued-cooperation-command-chromium\error-context.md
+
+
+[3/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:333:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it
+  3) [chromium] › tests\gameplay-02-echo-coop.spec.ts:333:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: page.waitForFunction: Test timeout of 180000ms exceeded.
+
+      89 |   await page.evaluate((k) => localStorage.removeItem(k), SAVE_KEY);
+      90 |   await page.reload();
+    > 91 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'), { timeout: 20000 });
+         |              ^
+      92 |   await page.waitForTimeout(400);
+      93 |   await clickLabel(page, 'MainMenuScene', 'DEMO 01');
+      94 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
+        at bootDemo (D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:91:14)
+        at D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:334:5
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-fed21--human-owner-cannot-flip-it-chromium\error-context.md
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-fed21--human-owner-cannot-flip-it-chromium\error-context.md
+
+
+[4/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:372:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 4) rawsim restore: a restored human-local action is busy, not re-confirmable, and commits exactly once
+[5/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:420:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap
+  4) [chromium] › tests\gameplay-02-echo-coop.spec.ts:420:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: page.waitForFunction: Test timeout of 180000ms exceeded.
+
+      89 |   await page.evaluate((k) => localStorage.removeItem(k), SAVE_KEY);
+      90 |   await page.reload();
+    > 91 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'), { timeout: 20000 });
+         |              ^
+      92 |   await page.waitForTimeout(400);
+      93 |   await clickLabel(page, 'MainMenuScene', 'DEMO 01');
+      94 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
+        at bootDemo (D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:91:14)
+        at D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:425:7
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-b7ade--clipped-unexpected-overlap-chromium\error-context.md
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-b7ade--clipped-unexpected-overlap-chromium\error-context.md
+
+
+[6/6] [chromium] › tests\gameplay-02-echo-coop.spec.ts:485:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+  5) [chromium] › tests\gameplay-02-echo-coop.spec.ts:485:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: page.waitForFunction: Test timeout of 180000ms exceeded.
+
+      89 |   await page.evaluate((k) => localStorage.removeItem(k), SAVE_KEY);
+      90 |   await page.reload();
+    > 91 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'), { timeout: 20000 });
+         |              ^
+      92 |   await page.waitForTimeout(400);
+      93 |   await clickLabel(page, 'MainMenuScene', 'DEMO 01');
+      94 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
+        at bootDemo (D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:91:14)
+        at D:\tmp\gp01-p2t\tests\gameplay-02-echo-coop.spec.ts:489:5
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-16a74--CONTINUEs-and-defaults-OFF-chromium\error-context.md
+
+    Error Context: _review\pw-results\gameplay-02-echo-coop-GAME-16a74--CONTINUEs-and-defaults-OFF-chromium\error-context.md
+
+
+  5 failed
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:258:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry 
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:311:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command 
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:333:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it 
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:420:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap 
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:485:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF 
+  1 passed (15.2m)

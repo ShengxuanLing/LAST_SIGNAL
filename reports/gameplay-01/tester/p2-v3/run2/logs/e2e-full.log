@@ -1,0 +1,226 @@
+
+Running 131 tests using 1 worker
+
+[1/131] [chromium] › tests\ai-character-roster.spec.ts:5:3 › grok loads its three community sprites in a playable run
+[2/131] [chromium] › tests\ai-character-roster.spec.ts:5:3 › gemini loads its three community sprites in a playable run
+[3/131] [chromium] › tests\ai-character-roster.spec.ts:5:3 › gpt loads its three community sprites in a playable run
+[4/131] [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+[5/131] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1920x1080
+[6/131] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1366x768
+[7/131] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1280x720
+[8/131] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1024x768
+[9/131] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 800x600
+[10/131] [chromium] › tests\ai-native-world.spec.ts:824:3 › AI-NATIVE-02 P1 real World › F-04/F-05: inventory/pause/level-up overlay ownership, UI clicks vs fire/F takeover
+[11/131] [chromium] › tests\ai-native-world.spec.ts:1020:3 › AI-NATIVE-02 P1 real World › F-01/F-02: perception radius, occlusion, unexplored rooms, boss/portal and bounded canWalk
+[12/131] [chromium] › tests\ai-native-world.spec.ts:1184:3 › AI-NATIVE-02 P1 real World › C1: rendered World applies the shared pure rules (movement, aim, pulse fire, drone FSM, hit)
+[13/131] [chromium] › tests\ai-native-world.spec.ts:1321:3 › P3-a echo companion › enable via pause, follow/hold, confirm-before-fire, real damage
+[14/131] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+[15/131] [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+[16/131] [chromium] › tests\boss-room.spec.ts:15:1 › boss room: player, camera bounds and shake stay sane after addShake(18)
+[17/131] [chromium] › tests\c2-parity.spec.ts:42:3 › AI-NATIVE-02 C2 fixed-tick core › subframe, 15-tick cap, pause freeze and no catch-up
+[18/131] [chromium] › tests\c2-parity.spec.ts:104:3 › AI-NATIVE-02 C2 fixed-tick core › controlled intent queue: Rendered canonical state/events for Node parity
+[19/131] [chromium] › tests\c2-parity.spec.ts:171:3 › AI-NATIVE-02 C2 fixed-tick core › B6/H2: real kill rewards, events and post-kill shot parity fixture
+[20/131] [chromium] › tests\c2-parity.spec.ts:251:3 › AI-NATIVE-02 C2 fixed-tick core › B11: loot magnet uses pixel->tile units; far 20/40/85 tiles stay, near loot collects
+[21/131] [chromium] › tests\c2-parity.spec.ts:362:3 › AI-NATIVE-02 C2 fixed-tick core › F-08: restoreCheckpoint uses a deep copy of the incoming frame
+[22/131] [chromium] › tests\c2-parity.spec.ts:392:3 › AI-NATIVE-02 C2 fixed-tick core › B1-B4: normal stepFrame damages all enemy kinds/Boss; laser/setter/player-hit authority
+[23/131] [chromium] › tests\c2-parity.spec.ts:500:3 › AI-NATIVE-02 C2 fixed-tick core › H10: non-Boss enemy-hit consumes hit flash state
+[24/131] [chromium] › tests\c2-parity.spec.ts:539:3 › AI-NATIVE-02 C2 fixed-tick core › B4: blocked hit is not a hurt fact; two lethal queued hits yield one death
+[25/131] [chromium] › tests\c2-parity.spec.ts:580:3 › AI-NATIVE-02 C2 fixed-tick core › H3: checkpoint capture/restore preserves core tick/rng/nextProjectileId
+[26/131] [chromium] › tests\c3b-external-link.spec.ts:85:1 › human authorization links the rendered world to the bridge; actions commit on a real tick
+[27/131] [chromium] › tests\c3b-external-link.spec.ts:211:1 › takeover / overlay / agent disconnect yield the link; no automatic re-take
+[28/131] [chromium] › tests\c3b-external-link.spec.ts:300:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+[chromium] › tests\c3b-external-link.spec.ts:300:1 › ticks=1 vs ticks=120 differ in REAL core ticks and real displacement
+C3B_EFFECT ticks {"d1":0.08102265201096025,"d120":6.05642578597574,"executed1":1,"executed120":120,"started1":29,"completed1":30,"started120":49,"completed120":169}
+
+[29/131] [chromium] › tests\c3b-external-link.spec.ts:374:1 › fire honours real cooldown / ammo / real projectiles; interact is one legal commit
+[30/131] [chromium] › tests\c3b-external-link.spec.ts:444:1 › blocked legal move still gets a receipt but cannot fake displacement
+[31/131] [chromium] › tests\c3b-external-link.spec.ts:486:1 › Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation
+[32/131] [chromium] › tests\c3b-external-link.spec.ts:562:1 › takeover while a long action is in flight: no pageerror, no ACK after the new epoch
+[33/131] [chromium] › tests\c3b-external-link.spec.ts:590:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+[chromium] › tests\c3b-external-link.spec.ts:590:1 › Rendered effects: a real drone takes REAL damage from a ticks-long fire action
+C3B_EFFECT damage {"droneId":1,"hpBefore":28,"lowestHp":0,"executedTicks":120}
+
+[34/131] [chromium] › tests\c3b-external-link.spec.ts:655:1 › a queued stop preempts the ACTIVE long action; other actions keep FIFO
+[35/131] [chromium] › tests\c3b-hard-disconnect.spec.ts:100:1 › SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach
+[36/131] [chromium] › tests\c3b-link-form.spec.ts:64:1 › the form is reachable without the console, masks the token and isolates typing
+[37/131] [chromium] › tests\c3b-link-form.spec.ts:107:1 › AUTHORIZE from the form links the rendered world; a wrong token shows a REAL error
+[38/131] [chromium] › tests\c3b-link-form.spec.ts:142:1 › the connection form fits and stays usable at five viewports
+[39/131] [chromium] › tests\c3c-bridge-reclaim.spec.ts:91:1 › browser reload -> LOST -> a NEW human AUTHORIZE reclaims the session without restarting the bridge
+[40/131] [chromium] › tests\c3c-bridge-reclaim.spec.ts:146:1 › a live connected link cannot be silently replaced (duplicate still 409)
+[41/131] [chromium] › tests\c3c-headless-parity.spec.ts:33:1 › Rendered canonical/events export (real kill + loot) for headless parity
+[42/131] [chromium] › tests\canvas.spec.ts:8:1 › full HUD renders and stays locked during camera movement
+[chromium] › tests\canvas.spec.ts:8:1 › full HUD renders and stays locked during camera movement
+HUD {"zoom":0.8,"hp":1186,"xp":1029,"credits":241,"level":87,"timer":122,"hpBar":1253,"weapon":544,"room":514,"enemies":545,"stats":1055}
+
+[43/131] [chromium] › tests\checkpoint.spec.ts:71:1 › inventory equips an owned weapon and the safe checkpoint restores the selection
+[44/131] [chromium] › tests\checkpoint.spec.ts:152:1 › number keys select an upgrade when four choices are eligible
+[45/131] [chromium] › tests\checkpoint.spec.ts:172:1 › loss recap shows run stats and retries the same seed
+[46/131] [chromium] › tests\checkpoint.spec.ts:197:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress
+[47/131] [chromium] › tests\checkpoint.spec.ts:316:1 › death routes to Game Over and clears the run checkpoint
+[48/131] [chromium] › tests\claude-character.spec.ts:10:1 › Claude can be selected, restored and shown in both side-facing views
+[49/131] [chromium] › tests\companion-room-cancel.spec.ts:123:1 › real portal retires old-room suggestions: no stale confirm, no execution; new room works once
+[50/131] [chromium] › tests\companion-room-cancel.spec.ts:279:1 › pause/resume with no room change never cancels a live proposal
+[51/131] [chromium] › tests\companion-room-race.spec.ts:208:1 › T1 delayed room notification 4000ms: old confirm refused synchronously; receipt never applied
+[52/131] [chromium] › tests\companion-room-race.spec.ts:303:1 › T2 decision response delayed 6s while the room changes: server ok, renderer refuses to apply
+[53/131] [chromium] › tests\companion-room-race.spec.ts:358:1 › T3 A->B->C with the first notification delayed: no rollback, newest room usable
+[54/131] [chromium] › tests\echo-portal-migration.spec.ts:75:1 › ordinary portal: the ECHO migrates with the protagonist in the same transition, assist cleared
+[55/131] [chromium] › tests\echo-portal-migration.spec.ts:122:1 › NEGATIVE CONTROL: a teleport without migration leaves the echo where it was
+[56/131] [chromium] › tests\economy.spec.ts:11:1 › earns and spends run credits, with purchases restored from the checkpoint
+[57/131] [chromium] › tests\economy.spec.ts:123:1 › a failed checkpoint save keeps the purchase pending and completes once after recovery
+[58/131] [chromium] › tests\gameplay-01.spec.ts:321:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 1) real menu entry: relay ACTIVE, linked drones, T/Y costs and jam expiry
+[59/131] [chromium] › tests\gameplay-01.spec.ts:471:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 2) route A reached by real walking + F after real combat (no teleport, no rescue)
+[60/131] [chromium] › tests\gameplay-01.spec.ts:505:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 3) route B: manual relay OFF (R) selects the other authored route
+[61/131] [chromium] › tests\gameplay-01.spec.ts:535:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 4) standing at the door: natural Y is range-rejected, fixture jam cannot pass
+[62/131] [chromium] › tests\gameplay-01.spec.ts:650:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 5) save -> page reload -> CONTINUE restores room, relay and route target
+[63/131] [chromium] › tests\gameplay-01.spec.ts:679:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 6) seeds 20261117/18/19 all set up a real playable authored layout
+[64/131] [chromium] › tests\gameplay-01.spec.ts:734:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 7) HUD + menu at five viewports: readable font, no clipped / unexpected overlap
+[chromium] › tests\gameplay-01.spec.ts:734:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 7) HUD + menu at five viewports: readable font, no clipped / unexpected overlap
+P1_METRICS D:\tmp\ls-p2-v3-accept\reports\gameplay-01\tester\evidence\p1-acceptance.json
+
+[65/131] [chromium] › tests\gameplay-02-echo-coop.spec.ts:184:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry
+[66/131] [chromium] › tests\gameplay-02-echo-coop.spec.ts:237:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command
+[67/131] [chromium] › tests\gameplay-02-echo-coop.spec.ts:259:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it
+[68/131] [chromium] › tests\gameplay-02-echo-coop.spec.ts:298:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 4) rawsim restore: a restored human-local action is busy, not re-confirmable, and commits exactly once
+[69/131] [chromium] › tests\gameplay-02-echo-coop.spec.ts:346:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap
+[70/131] [chromium] › tests\gameplay-02-echo-coop.spec.ts:411:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) an old save without cooperation fields loads unchanged and defaults to OFF
+[71/131] [chromium] › tests\gameplay.spec.ts:17:1 › menu + gameplay render
+[chromium] › tests\gameplay.spec.ts:17:1 › menu + gameplay render
+CONSOLE ERRORS: 0
+
+[72/131] [chromium] › tests\p3a-echo-parity.spec.ts:39:1 › Rendered echo canonical/events export for Headless byte parity
+[73/131] [chromium] › tests\p3a-enemy-target.spec.ts:47:1 › legacy hunter legally targets and damages the echo, then re-selects the player
+[74/131] [chromium] › tests\p3a-enemy-target.spec.ts:149:1 › all legacy enemy kinds and the Boss can legally select and hurt the echo
+[75/131] [chromium] › tests\p3a-restore.spec.ts:28:1 › restore clears echo assist/memory/intent, keeps HP, and old saves need new confirmation
+[76/131] [chromium] › tests\p3b-companion-owner.spec.ts:76:1 › real form: paused session survives 15s, official SDK observes/suggests, Owner confirm drives a real tick
+[77/131] [chromium] › tests\p3b-companion-owner.spec.ts:176:1 › Agent hard-kill degrades the companion; a fresh Owner grant reconnects (no auto-reconnect)
+[78/131] [chromium] › tests\purchase-ledger.spec.ts:51:1 › processed purchase id is persisted and cannot be replayed (rendered + restore)
+[79/131] [chromium] › tests\resume-no-step.spec.ts:26:1 › pause resume does not advance: real onResume/onLevelUpClosed + sub-tick update
+[80/131] [chromium] › tests\resume-no-step.spec.ts:75:1 › level-up close path does not advance; upgrade commits once on a real tick
+[81/131] [chromium] › tests\resume-no-step.spec.ts:124:1 › inventory close path commits the equipped weapon once via normal frames
+[82/131] [chromium] › tests\runtime-bugs.spec.ts:36:1 › runtime bug regressions: viewport scaling, text rendering, wall alignment, projectile cleanup
+[83/131] [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited
+[84/131] [chromium] › tests\sector-dungeon.spec.ts:77:1 › sector run locks encounters, descends all six decks and resumes from the same deck
+[85/131] [chromium] › tests\signal-coop-e2e.spec.ts:134:1 › Signal cooperation chain: default no relay → opt-in → device → Companion suggest → Owner CONFIRM → echo energy → ACTIVE → portal → next room
+[chromium] › tests\signal-coop-e2e.spec.ts:134:1 › Signal cooperation chain: default no relay → opt-in → device → Companion suggest → Owner CONFIRM → echo energy → ACTIVE → portal → next room
+STEP 1 default NEW RUN is legacy: no device, portal open
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/01-default-no-device.png
+
+STEP 2 explicit Signal Collaboration opt-in is ON
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/02-optin-on.png
+
+STEP 3 real room enter spawned relay_main INACTIVE (room 3, exit closed)
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/03-relay-spawned-inactive.png
+
+STEP 3b the gated exit really refused the interact while the relay was INACTIVE
+
+STEP 4 human OWNER authorized the Companion in the Pause UI
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/04-companion-connected.png
+
+STEP 5 echo_observe really perceives relay_main (INACTIVE) with its own energy 100/100
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/05-companion-observation.png
+
+RAW toggle-relay response: {"content":[{"type":"text","text":"{\"schema\":\"last_signal.mcp.companion-result.v1\",\"ok\":true,\"suggestion\":{\"schema\":\"last_signal.companion.v1\",\"session\":\"ses_8a12a14b6eb87ba0db89dfb9\",\"epoch\":1,\"suggestionId\":\"sug_ab063e7838343501633a227f\",\"actorId\":1,\"kind\":\"toggle-relay\",\"reason\":\"perceived_relay\",\"target\":null,\"confidence\":null,\"createdAtTick\":242,\"expiresAtTick\":842,\"roomId\":3,\"generation\":1,\"status\":\"proposed\",\"replayed\":false},\"replayed\":false,\"requestId\":\"req_59c9d6dcde327a7ba9b994ad\"}"}],"structuredContent":{"schema":"last_signal.mcp.companion-result.v1","ok":true,"suggestion":{"schema":"last_signal.companion.v1","session":"ses_8a12a14b6eb87ba0db89dfb9","epoch":1,"suggestionId":"sug_ab063e7838343501633a227f","actorId":1,"kind":"toggle-relay","reason":"perceived_relay","target":null,"confidence":null,"createdAtTick":242,"expiresAtTick":842,"roomId":3,"generation":1,"status":"proposed","replayed":false},"replayed":false,"requestId":"req_59c9d6dcde327a7ba9b994ad"}}
+
+STEP 6 Owner CONFIRM queued exactly one toggle-relay core command (no early state write)
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/06-confirm-queued-toggle.png
+
+STEP 7 the next real core tick committed the toggle: relay ACTIVE, gated exit open
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/07-relay-active.png
+
+STEP 8 the confirmed echo scan really charged ONLY the echo account (100 → 91)
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/08-echo-scan-committed.png
+
+STEP 9 human advanced through the ACTIVE-gated portal (room 3 → 5)
+
+STEP screenshot D:\tmp\ls-p2-v3-accept\reports\ai-native-02\signal\e2e\screens/09-next-room-entered.png
+
+STEP 10 echo_memory / echo_status still served after the whole chain
+
+[86/131] [chromium] › tests\signal-human-crossroom.spec.ts:37:1 › human R in a new room still controls the relay left in the old room
+[chromium] › tests\signal-human-crossroom.spec.ts:37:1 › human R in a new room still controls the relay left in the old room
+STEP U1 human R in room A: {"roomId":0,"relay":"ACTIVE","exitOpen":true,"manualEnabled":true,"deviceRoom":0,"pending":[]}
+
+STEP U2 real portal A->B: {"roomId":3,"relay":"ACTIVE","exitOpen":true,"manualEnabled":true,"deviceRoom":0,"pending":[]}
+
+STEP U3 human R in room B toggles old-room device: {"roomId":3,"relay":"INACTIVE","exitOpen":false,"manualEnabled":false,"deviceRoom":0,"pending":[]}
+
+[87/131] [chromium] › tests\signal-rendered-parity.spec.ts:36:1 › Rendered signal export for Headless parity (scan/jam/toggle/echo/real damage)
+[88/131] [chromium] › tests\signal-sdk-negative.spec.ts:146:1 › official MCP SDK: v1 scan is refused, actor=echo is E_PERMISSION, actor=player really commits
+[89/131] [chromium] › tests\supply-transaction.spec.ts:64:1 › supply purchase commits on close, saves once, and blocks duplicate clicks
+[90/131] [chromium] › tests\supply-transaction.spec.ts:114:1 › insufficient credits disables every supply offer
+[91/131] [chromium] › tests\supply-transaction.spec.ts:131:1 › uncommitted purchase is discarded on reload and keeps the last checkpoint
+[92/131] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1920x1080
+[93/131] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1920x1080
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1920x1080
+audit 1920x1080: 0 clipped/hidden, 0 overlaps
+
+[94/131] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1600x900
+[95/131] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1600x900
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1600x900
+audit 1600x900: 0 clipped/hidden, 0 overlaps
+
+[96/131] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1366x768
+[97/131] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1366x768
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1366x768
+audit 1366x768: 0 clipped/hidden, 0 overlaps
+
+[98/131] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1280x720
+[99/131] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1280x720
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1280x720
+audit 1280x720: 0 clipped/hidden, 0 overlaps
+
+[100/131] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1024x768
+[101/131] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1024x768
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1024x768
+audit 1024x768: 0 clipped/hidden, 0 overlaps
+
+[102/131] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 800x600
+[103/131] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 800x600
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 800x600
+audit 800x600: 0 clipped/hidden, 0 overlaps
+
+[104/131] [chromium] › tests\ui-menu-layout.spec.ts:712:3 › UI-REWORK-01 menu surfaces › navigation: ESC walks exactly one level back
+[105/131] [chromium] › tests\ui-menu-layout.spec.ts:780:3 › UI-REWORK-01 menu surfaces › functional: settings change, persist and reset; AI local toggle
+[106/131] [chromium] › tests\ui-menu-layout.spec.ts:846:3 › UI-REWORK-01 menu surfaces › functional: ECHO enable, mode and assist arming
+[107/131] [chromium] › tests\ui-menu-layout.spec.ts:909:3 › UI-REWORK-01 menu surfaces › functional: LLM page is honest without a model; failure feedback; no secret leak
+[chromium] › tests\ui-menu-layout.spec.ts:909:3 › UI-REWORK-01 menu surfaces › functional: LLM page is honest without a model; failure feedback; no secret leak
+CONSOLE_ERROR functional-llm: Failed to load resource: net::ERR_UNSAFE_PORT
+
+[108/131] [chromium] › tests\ui-menu-layout.spec.ts:990:3 › UI-REWORK-01 menu surfaces › functional: real pending proposal — Owner CONFIRM commits, REJECT does not
+[109/131] [chromium] › tests\ui-menu-layout.spec.ts:1116:3 › UI-REWORK-01 menu surfaces › boundary: repeated open/close never stacks or leaves hidden controls
+[110/131] [chromium] › tests\ui-menu-layout.spec.ts:1160:3 › UI-REWORK-01 menu surfaces › boundary: keyboard focus, wheel and real click agree
+[111/131] [chromium] › tests\ui-menu-layout.spec.ts:1203:3 › UI-REWORK-01 menu surfaces › audit: shared font stack, disabled controls, resize and destroy stability
+[112/131] [chromium] › tests\ui-menu-layout.spec.ts:1296:3 › UI-REWORK-01 menu surfaces › functional: inventory EQUIP is keyboard reachable and commits on the next tick
+[113/131] [chromium] › tests\ui-menu-layout.spec.ts:1348:3 › UI-REWORK-01 menu surfaces › functional: settings persist across reopen and reset
+[114/131] [chromium] › tests\ui-menu-layout.spec.ts:1385:3 › UI-REWORK-01 menu surfaces › functional: owner re-authorize swaps capability on the same instance and retires old suggestions
+[115/131] [chromium] › tests\ui-menu-layout.spec.ts:1506:3 › UI-REWORK-01 menu surfaces › functional: an expired proposal is never confirmed
+[116/131] [chromium] › tests\ui-menu-layout.spec.ts:1569:3 › UI-REWORK-01 menu surfaces › functional: level-up, death and restart keep the menu honest
+[117/131] [chromium] › tests\vs00.spec.ts:70:1 › E1: real Scan -> Jam -> WASD through the door (default, no fixture)
+[118/131] [chromium] › tests\vs00.spec.ts:105:1 › E2: Jam expiry while standing in the doorway never clamps the player
+[119/131] [chromium] › tests\vs00.spec.ts:130:1 › E3: Pause freezes movement and timers; resume does not catch up
+[120/131] [chromium] › tests\vs00.spec.ts:152:1 › E4: energy-insufficient feedback from a storage fixture, then natural recovery
+[121/131] [chromium] › tests\vs00.spec.ts:174:1 › E5: save/reload keeps main+economy key byte-identical; restart clears only the slice key
+[122/131] [chromium] › tests\vs00.spec.ts:204:1 › E6: a rejected save is preserved, never overwritten by Save or by completion auto-save
+[123/131] [chromium] › tests\vs00.spec.ts:224:1 › E7: storage write failure surfaces an explicit message and stays playable
+[124/131] [chromium] › tests\vs00.spec.ts:240:1 › E9: near the sealed door, F reports E_LINK_UNAVAILABLE without opening it
+[125/131] [chromium] › tests\vs00.spec.ts:256:1 › E8: reload after completion restores a passed-consistent position, not the spawn
+[126/131] [chromium] › tests\vs01.spec.ts:25:1 › each action key event is handled once when Scan and Jam arrive in the same frame
+[127/131] [chromium] › tests\vs01.spec.ts:43:1 › VS-01 follows real keyboard input from the lab to a safe collapse and across the rebuilt bridge
+[128/131] [chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+[chromium] › tests\vs01.spec.ts:131:1 › route B reaches the east shore within one guard Jam from the real entrance
+Route B reached SAFE_E in 5538ms / 333 logic ticks
+
+[129/131] [chromium] › tests\vs01.spec.ts:198:1 › a lethal collapse clears the run and permits a fresh start
+[130/131] [chromium] › tests\whale-character.spec.ts:21:1 › whale appearance persists and responds to real movement and shots
+[131/131] [chromium] › tests\world-sim-cache.spec.ts:30:1 › World.sim invalidates after spawnEnemy and the old snapshot stays frozen
+  Slow test file: [chromium] › tests\ui-menu-layout.spec.ts (5.2m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  131 passed (19.6m)
