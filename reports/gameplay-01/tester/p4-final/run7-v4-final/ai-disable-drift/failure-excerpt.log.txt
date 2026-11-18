@@ -1,0 +1,26 @@
+  1) [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit 
+
+    Error: disabled AI does not move the player (x 116.01757253487142 vs 115.32342141231187)
+
+    expect(received).toBeCloseTo(expected, precision)
+
+    Expected: 115.32342141231187
+    Received: 116.01757253487142
+
+    Expected precision:    6
+    Expected difference: < 0.0000005
+    Received difference:   0.6941511225595463
+
+      551 |     if (stationaryStart!.hp === stationary!.hp) {
+      552 |       // No enemy knockback involved: the disabled AI must not move the player.
+    > 553 |       expect(stationary!.grid.x, `disabled AI does not move the player (x ${stationary!.grid.x} vs ${stationaryStart!.grid.x})`).toBeCloseTo(stationaryStart!.grid.x, 6);
+          |                                                                                                                                  ^
+      554 |       expect(stationary!.grid.y, `disabled AI does not move the player (y ${stationary!.grid.y} vs ${stationaryStart!.grid.y})`).toBeCloseTo(stationaryStart!.grid.y, 6);
+      555 |     }
+      556 |     record('manual-disable', { owner: stationary!.owner, takeoverCount: stationary!.takeoverCount, reason: disabled!.lastTakeoverReason });
+        at D:\tmp\ls-p4-v4\tests\ai-native-world.spec.ts:553:130
+
+    Error Context: test-results\ai-native-world-AI-NATIVE--4bbd9-er-pause-death-restart-exit-chromium\error-context.md
+
+
+[5/155] [chromium] › tests\ai-native-world.spec.ts:728:5 › AI-NATIVE-02 P1 real World › HUD fully visible, non-overlapping and scaled geometry at 1920x1080

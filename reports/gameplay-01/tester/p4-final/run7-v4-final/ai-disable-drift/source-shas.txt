@@ -1,0 +1,6 @@
+ef1d2e92826d8dad98ed959b185ec251484d450764925a4781b68201516f2125 *tests/ai-native-world.spec.ts
+2a015c597c596b1901f50567b8d3f94733c6fc8cd44f63b674c09d6c7e89e9b4 *src/entities/Player.ts
+dd839b0e5cedf55a735c07515a92f0c249abca5091fbe7b82fdbef5b62f13ecb *src/ai-native/localController.ts
+349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64 *src/world/World.ts
+f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6 *src/world/sim/core.ts
+11af218697007584f9ea336aacd26a35d1ac3d67d915b2dc3cf665999e714e75 *src/scenes/GameScene.ts

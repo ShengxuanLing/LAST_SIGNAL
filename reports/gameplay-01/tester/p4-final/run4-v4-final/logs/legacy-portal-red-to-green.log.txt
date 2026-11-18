@@ -1,0 +1,13 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d source World sha256=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64 PORT=5199 tests='runtime-bugs:246 + audit:66 (unchanged legacy specs, were red on v3)' 2026-11-18T15:31:50Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited
+  1 passed (5.5s)
+EXIT_runtime_bugs=0
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+  1 passed (18.4s)
+EXIT_audit=0

@@ -1,0 +1,7 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d P4_sha=8ccc3b2953081b691472e401ef014d66cc328c76cef52b4cb7b17430680e6904 PORT=5199 diagnostic re-run of the one failing P4 case on identical bytes 2026-11-18T19:28:52Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+  1 passed (21.2s)
+EXIT=0

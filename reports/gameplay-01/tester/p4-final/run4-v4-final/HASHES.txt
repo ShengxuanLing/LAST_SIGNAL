@@ -1,0 +1,60 @@
+# GAMEPLAY-01 P4 — v4 frozen acceptance snapshot (tester)
+run=run4-v4-final
+tree=/d/tmp/ls-p4-v4 (own clone of D:/Project/LAST_SIGNAL + own npm ci), branch p4-v4
+HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d (3819621 test(gameplay): verify cooperation feedback and scaled HUD readability)
+manifest=reports/gameplay-01/developer/p4-recovery/manifest.v4.json sha256=bfafe0891149284b47cddf911604cb330d9fa6d5354dcbea3e4dd7388766f3ac
+manifest_sha_after_use=bfafe0891149284b47cddf911604cb330d9fa6d5354dcbea3e4dd7388766f3ac
+
+## delivered sources (10) — all equal to manifest.v4
+f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6 *src/world/sim/core.ts
+76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7 *src/config/p1Scenario.ts
+7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316 *src/ai-native/worldHeadless.ts
+349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64 *src/world/World.ts
+6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89 *src/signal/relay.ts
+097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423 *src/signal/relayRoutes.test.ts
+11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4 *src/ai-native/worldHeadlessDemoRoute.test.ts
+8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6 *src/config/p1ScenarioLayout.test.ts
+93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21 *src/ai-native/worldHeadlessFrameAuthored.test.ts
+ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652 *src/ai-native/worldHeadlessRestoreSafety.test.ts
+
+## delivered docs (4)
+7c9a19bf3557426d166fdd366bd7f8e15aa044b151fe0b056a70fe3e8c3ea7ff *docs/gameplay/COOP_LEVEL_DESIGN.P4-UPDATE.md
+80094d2d4ad3c95ca38c0af0a74d92f711456e9ddd56cf8c3bb3b21f9c1c8019 *docs/gameplay/P5_VARIANTS_PLAN.md
+3a75fb9603d2d2d6d5355812f4e803f7d4aff111132bc46afb4c7029da50597a *docs/gameplay/P4_TEST_AND_FINAL_LIMITS.md
+62986032c6b913cc48a5d4d36b43501984ce699449aa257b6d72ea01837419aa *docs/gameplay/P4_RESTORE_CONTRACT.V3.md
+
+## v3 -> v4: ONLY src/world/World.ts changed (local diff reproduced)
+  v3 World 3ff4f7e3ad7310d85796055846a45435ecb52ff671a3073ae9cd69d9cc19548f
+  v4 World 349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+  local_diff_lines=77 (centre-probe helper findWalkableCentreInRoom + both deck-exit placements)
+
+## tester specs (final frozen bytes)
+a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743 *tests/gameplay-01.spec.ts
+5369049539b8d8b802cf285eabcfd105098678f47991d3535123eb3c1b96648e *tests/gameplay-02-echo-coop.spec.ts
+839e91fb99bd5865e13feb850e04fa5de478cb8ef9d9188340ace9ba0ba270b7 *tests/gameplay-04-coop-level.spec.ts
+22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55 *tests/gameplay-04-headless-restore.spec.ts
+  archived==working: gameplay-01.spec.ts:True gameplay-02-echo-coop.spec.ts:True gameplay-04-coop-level.spec.ts:True gameplay-04-headless-restore.spec.ts:True 
+
+## gates (each log has cwd/HEAD or sha, command and exit code)
+typecheck              PASS exit 0 (0 bytes stdout)      logs/typecheck.log.txt
+npm test               FAIL 857/859, 1 file, exit 1      logs/unit-npm-test.log.txt
+  - 2 failures = src/ai-native/runtime.test.ts B7 CLI timeouts (420s/95s under load, 20s/15s budgets)
+  - isolated re-run of those B7 tests: PASS 4/4 in 8.2s  logs/unit-b7-isolated.log.txt
+test:mcp-surface       PASS 1/1 exit 0                   logs/mcp-surface.log.txt
+build                  PASS exit 0                     logs/build.log.txt
+full Playwright        FAIL 153/155 exit 1              logs/full-e2e.log.txt
+  - legacy red tests from v3 now PASS inside this run (runtime-bugs portal, audit portal)
+  - 2 failures = P2 tests 6/7 scene-restart race (driver), fixed afterwards -> new byte set:
+new P2 byte set        PASS 7/7 exit 0                 logs/p2-seven-new-bytes.log.txt (P2 sha 53690495, NOT the bytes of the 153/155 run)
+test:parity (fresh)    PASS 3/3 exit 0                 logs/parity.log.txt
+legacy portal targeted PASS 1/1 + 1/1 exit 0            logs/legacy-portal-red-to-green.log.txt
+P4 nine                PASS 9/9 (2.5m) exit 0          logs/p4-nine.log.txt
+P1 seven               PASS 7/7 (1.5m) exit 0          logs/p1-seven.log.txt
+R1/R2/R2b probes       PASS 7/7 exit 0                  logs/r1-r2-probes.log.txt
+checkpoint+portal      PASS 8/8 exit 0                  logs/portal-checkpoint-targeted.log.txt
+
+## historical byte mapping (never merged)
+  P4 spec 17fe4a09 = v3 full run 150/155 (run3-v3-final)
+  P4 spec 50e74fdc = v3 P4 nine 9/9 targeted
+  P4 spec 839e91fb = v4 P4 nine 9/9 on v4 (this run)
+  P2 spec fbe7ca78 = v4 full 153/155; P2 spec 53690495 = this run's 7/7 targeted

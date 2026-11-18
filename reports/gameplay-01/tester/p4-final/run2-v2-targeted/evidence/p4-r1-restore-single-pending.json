@@ -1,0 +1,34 @@
+{
+  "probe": "snapshot -> restore with one in-flight local command",
+  "seed": 20261117,
+  "row": {
+    "seed": 20261117,
+    "kind": "scan",
+    "proposalId": "local_1_1",
+    "pendingBefore": {
+      "kind": "scan",
+      "restored": false
+    },
+    "queueAfterRestore": [
+      "signal-scan"
+    ],
+    "pendingAfterRestore": null,
+    "secondProposal": {
+      "id": "local_1_1",
+      "kind": "scan"
+    },
+    "secondAccepted": true,
+    "queueAfterSecond": [
+      "signal-scan",
+      "signal-scan"
+    ],
+    "audit": [
+      {
+        "kind": "scan",
+        "result": "enqueued",
+        "code": null,
+        "proposalId": "local_1_1"
+      }
+    ]
+  }
+}

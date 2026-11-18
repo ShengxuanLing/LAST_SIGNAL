@@ -1,0 +1,31 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d P2_sha=5369049539b8d8b802cf285eabcfd105098678f47991d3535123eb3c1b96648e PORT=5199 diagnostic re-run of the one failing P2 test on identical bytes 2026-11-18T19:29:21Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-02-echo-coop.spec.ts:595:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1) [chromium] › tests\gameplay-02-echo-coop.spec.ts:595:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 
+
+    Error: the authored room was cleared by real play
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      606 |     // room, so the room is cleared by real play first.
+      607 |     const cleared = await clearRoomByRealPlay(page);
+    > 608 |     expect(cleared.cleared, 'the authored room was cleared by real play').toBe(true);
+          |                                                                           ^
+      609 |     const beforePause = await page.evaluate(() => {
+      610 |       const w = (window as any).__game.scene.getScene('GameScene').world;
+      611 |       return { roomId: w.currentRoom()?.id ?? null, demo: w.p1Scenario?.id ?? null, tick: w.sim.tick, echoHp: w.echoActor?.data.hp ?? null, energy: w.signalView()?.playerEnergy ?? 0 };
+        at D:\tmp\ls-p4-v4\tests\gameplay-02-echo-coop.spec.ts:608:75
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-14526-ever-persisted-nor-executed-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:595:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed 
+EXIT=1

@@ -1,0 +1,111 @@
+{
+  "runner": "agent (real reload + CONTINUE) + node headless model",
+  "archived": {
+    "routeTarget": 2,
+    "portal": {
+      "x": 11.5,
+      "y": 47.5,
+      "target": 2
+    },
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "checkpointSha256": "39e58897b0b49db6f862d3f98f668be086172a5acc40933580cb3fb4dd083b4c",
+    "checkpointBytes": 1447
+  },
+  "safePoint": {
+    "pendingLocal": null,
+    "queue": []
+  },
+  "reloaded": {
+    "routeTarget": 2,
+    "portal": {
+      "x": 11.5,
+      "y": 47.5,
+      "target": 2
+    },
+    "room": {
+      "id": 0,
+      "kind": "combat"
+    },
+    "cleared": true,
+    "relay": "INACTIVE",
+    "queueAfterResume": {
+      "queue": [],
+      "pendingLocal": null
+    }
+  },
+  "headless": {
+    "frameEpoch": 1,
+    "fromFrameAuthored": {
+      "id": "p1",
+      "roomId": 0,
+      "startRoomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT",
+          "portal": {
+            "x": 11.5,
+            "y": 49.5
+          }
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE",
+          "portal": {
+            "x": 11.5,
+            "y": 47.5
+          }
+        }
+      ]
+    },
+    "fromFrameRoute": {
+      "roomId": 0,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "target": 1,
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "playerAtPortal": false,
+      "completed": false
+    },
+    "replayKeys": [
+      "ok",
+      "sameState",
+      "sameEvents",
+      "expectedStateHash",
+      "actualStateHash",
+      "expectedEventsHash",
+      "actualEventsHash",
+      "expectedNewEventsHash",
+      "actualNewEventsHash",
+      "baselineEvents",
+      "historyPreserved",
+      "eventsTruncated",
+      "firstDivergence"
+    ],
+    "replayResult": {
+      "ok": true,
+      "sameState": true,
+      "sameEvents": true,
+      "expectedStateHash": "fnv1a32:1cfe7496",
+      "actualStateHash": "fnv1a32:1cfe7496",
+      "expectedEventsHash": "fnv1a32:ff05fa1b",
+      "actualEventsHash": "fnv1a32:ff05fa1b",
+      "expectedNewEventsHash": "fnv1a32:d69653af",
+      "actualNewEventsHash": "fnv1a32:d69653af",
+      "baselineEvents": 174,
+      "historyPreserved": true,
+      "eventsTruncated": false,
+      "firstDivergence": null
+    }
+  },
+  "note": "the checkpoint archive, the rendered reload and the headless frame replay are three separate facts"
+}

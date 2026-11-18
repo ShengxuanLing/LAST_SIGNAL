@@ -1,0 +1,8 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d P2_sha=b26b58d7fda86b0f76472a834d2e4564720997594d34dc654f98450e71ccf1e8 PORT=5199 cases='6+7 (tick-driven clear + trace)' 2026-11-18T19:40:54Z
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:589:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+[2/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:662:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  2 passed (27.7s)
+EXIT=0

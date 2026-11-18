@@ -1,0 +1,76 @@
+# run6 — input-semantics fixes for the two load-bound failures (v4 sources fixed, tests only)
+
+tree=/d/tmp/ls-p4-v4  HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d
+source snapshot frozen and equals manifest.v4:
+
+  src/world/sim/core.ts                          f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6
+  src/config/p1Scenario.ts                       76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7
+  src/ai-native/worldHeadless.ts                 7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316
+  src/world/World.ts                             349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+  src/signal/relay.ts                            6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89
+  src/signal/relayRoutes.test.ts                 097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423
+  src/ai-native/worldHeadlessDemoRoute.test.ts   11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4
+  src/config/p1ScenarioLayout.test.ts            8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6
+  src/ai-native/worldHeadlessFrameAuthored.test.ts 93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21
+  src/ai-native/worldHeadlessRestoreSafety.test.ts ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652
+
+## spec bytes: before (run5 full run) -> after (this run6)
+
+  tests/gameplay-01.spec.ts                    before=a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743  after=a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743
+                                               archived after identical=True
+  tests/gameplay-02-echo-coop.spec.ts          before=5369049539b8d8b802cf285eabcfd105098678f47991d3535123eb3c1b96648e  after=b26b58d7fda86b0f76472a834d2e4564720997594d34dc654f98450e71ccf1e8
+                                               archived after identical=True
+  tests/gameplay-04-coop-level.spec.ts         before=8ccc3b2953081b691472e401ef014d66cc328c76cef52b4cb7b17430680e6904  after=aa9ee012d307b26472f05357ea10017b50b1d7c1b997c3249281f18596b7363c
+                                               archived after identical=True
+  tests/gameplay-04-headless-restore.spec.ts   before=22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55  after=22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55
+                                               archived after identical=True
+
+## what changed (tests only; no product, no timeout, no assertion relaxation)
+
+P4 (gameplay-04-coop-level):
+  - the door jam no longer uses a fixed sleep. Before pressing Y it checks the REAL preconditions the
+    core checks (GameScene active + only scene / not paused / no level-up overlay / world+camera /
+    relay ACTIVE / jam CD 0 / energy>=25 / distance<=JAM_RANGE / LOS sampled at 0.25 with radius 0.5),
+    then sends ONE keydown held until the stepFrame trace shows a processed tick AND a real
+    signal-jammed event; keyup only after a further real frame; on a bounded timeout (5s) it records
+    the full trace and fails explicitly (no retry, no second keydown).
+  - added a read-only stepFrame trace (ticks per call, queue before/after, signal events, loop frame).
+  - receipt semantics: the ECHO assertion no longer claims a fixed tick gap. It now asserts the
+    committing stepFrame processed >=1 tick, the core queue held exactly this command in that batch,
+    the queue never survived a whole batch, exactly ONE commit event, and audit applied > enqueued.
+    The measured sim.tick gap (1, 2, 3 under load) is recorded, never asserted as a constant.
+P2 (gameplay-02-echo-coop):
+  - clearRoomByRealPlay keeps the 120 s wall budget but stops sleeping between inputs: every move/fire
+    input is held until the simulation advanced >=1..3 real ticks (bounded wait), so the edge is
+    consumed by real simulation frames. It also clears real overlays (level-up card) with a real click
+    and records per-sample tick / hp / enemiesAlive / paused / levelUpActive / owner / relay / active
+    scenes, plus stall events (input with no tick advance) in the evidence.
+  - no teleport, no clearEnemies, no heal, no skip, no timeout change.
+
+## targeted results on these bytes
+
+P4 seed 20261119 HumanEcho ×3 (the case that failed in the full run): 3 passed (1.1m)
+  -> logs/p4-jam-input-3x-final.log.txt ; preconditions all true, jam exact 25 from the event payload,
+     portal null, F blocked (evidence/p4-route-20261119-HumanEcho.json, jamInput).
+P2 tests 6+7 (tick-driven clear): 2 passed (27.7 s) -> logs/p2-6-7-tick-driven.log.txt
+  -> clearPlay trace: cleared true, 7 inputs / 73 ticks (test 6), 8 inputs / 84 ticks (test 7), 0 stalls,
+     0 overlays, ~1.2-1.4 s wall; hp 100, owner human, paused false, levelUpActive false.
+P4 receipt diagnostics (one run) -> logs/p4-receipt-semantics-diag.log.txt + evidence/p4-receipt-diag-*.json:
+  confirm at tick 1037, the committing stepFrame went 1037->1038 with queueBefore=["signal-scan"] and
+  emitted signal-scanned#1 + signal-energy#1 in that batch; the audit applied row is stamped 1038.
+  => the command is drained by the next processed tick batch; the only reason the audit tick gap can
+     read 2-3 is that one frame may advance several fixed ticks (batches with ticks=2 observed).
+
+## classification
+
+CONFIRMED by these runs:
+  - with a tick-consumed Y edge, the door jam commits on the first processed batch after the press;
+  - with tick-consumed inputs, both P2 tests clear the authored room in ~1.2-1.4 s at current load;
+  - the ECHO command is enqueued and drained inside one stepFrame batch (queue never held across batches).
+INFERENCE (not proven by these bytes):
+  - that the earlier full-run failures were caused by key edges landing in frames that never processed a
+    tick: the old driver did not record per-input tick progress, so its exact failure mechanism is
+    reconstructed, not measured. The new drivers make that mechanism observable.
+NOT CHANGED: product sources (10 manifest files), timeouts (20s/15s/120s), any assertion threshold,
+  skip/fixme, model calls. No commit/push.
+

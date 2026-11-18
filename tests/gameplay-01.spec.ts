@@ -45,6 +45,21 @@ async function shot(page: Page, name: string): Promise<string> {
   await page.screenshot({ path: file });
   return file;
 }
+/**
+ * One real frame edge for a single-frame key (T/Y/R/F): keydown -> at least one
+ * real game frame -> keyup. Phaser's `press()` can lose `JustDown` at a frame
+ * boundary, which made the same assertion fail in a full-suite run and pass in
+ * isolation (diagnosed 2026-11-18). Input-driver fix only: no result threshold,
+ * timeout or assertion is relaxed.
+ */
+async function tapKey(page: Page, code: string): Promise<void> {
+  const t0 = await page.evaluate(() => (window as any).__game?.loop?.frame ?? -1);
+  await page.keyboard.down(code);
+  await page.waitForFunction((f: number) => ((window as any).__game?.loop?.frame ?? f) > f, t0, { timeout: 4000 });
+  await page.keyboard.up(code);
+  await page.waitForTimeout(120);
+}
+
 async function canvasBox(page: Page) {
   const box = await page.evaluate(() => {
     const c = document.querySelector('canvas');
@@ -114,7 +129,14 @@ async function bootDemo(page: Page, seed?: number): Promise<void> {
   }
   await clickLabel(page, 'MainMenuScene', 'DEMO 01');
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
-  await page.waitForTimeout(900);
+  // Readiness by real state, not by a fixed sleep: the scene can be "active"
+  // while create() is still running (world/cameras not built yet), and a key
+  // pressed in that window is lost. No assertion is relaxed by this wait.
+  await page.waitForFunction(() => {
+    const gs: any = (window as any).__game?.scene.getScene('GameScene');
+    return !!gs?.world && gs.world.sim.tick > 0 && !!gs.cameras?.main && gs.world.p1Scenario !== undefined;
+  }, undefined, { timeout: 30000 });
+  await page.waitForTimeout(400);
 }
 
 async function snap(page: Page) {
@@ -163,7 +185,7 @@ async function snap(page: Page) {
 async function jamFromStart(page: Page): Promise<{ relay: string | null; jamLeft: number | null; energy: number | null }> {
   const before = await snap(page);
   expect(before!.relay!.state, 'relay is ACTIVE before the jam').toBe('ACTIVE');
-  await page.keyboard.press('KeyY');
+  await tapKey(page, 'KeyY');
   await page.waitForTimeout(450);
   const after = await snap(page);
   return { relay: after!.relay!.state, jamLeft: after!.jamRemaining, energy: after!.energy!.playerEnergy };
@@ -294,7 +316,7 @@ async function walkToPortalAndEnter(page: Page, maxMs = 30000) {
     const dx = info.portal.x - info.player.x;
     const dy = info.portal.y - info.player.y;
     if (Math.hypot(dx, dy) < 1.0) {
-      await page.keyboard.press('KeyF');
+      await tapKey(page, 'KeyF');
       await page.waitForTimeout(900);
       const after = await snap(page);
       return { entered: (after?.room?.id ?? null) !== before?.room?.id, reason: 'interact', before, after };
@@ -350,7 +372,7 @@ test.describe('GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance', () => {
     });
 
     // Real key input: T = scan.
-    await page.keyboard.press('KeyT');
+    await tapKey(page, 'KeyT');
     // Wait for the committed scan (cooldown starts) instead of a fixed delay.
     await page.waitForFunction(() => {
       const w = (window as any).__game.scene.getScene('GameScene').world;
@@ -391,7 +413,7 @@ test.describe('GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance', () => {
     expect(scanned!.energy!.scanCD, 'scan cooldown is running').toBeGreaterThan(0);
 
     // Real key input: Y = jam.
-    await page.keyboard.press('KeyY');
+    await tapKey(page, 'KeyY');
     await page.waitForFunction(() => {
       const w = (window as any).__game.scene.getScene('GameScene').world;
       const v = w.signalView();
@@ -506,7 +528,7 @@ test.describe('GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance', () => {
     await bootDemo(page);
     // Real key input: R = manual relay toggle (human control, not a jam). Doing
     // it first also stops the linked sentries from firing during the fight.
-    await page.keyboard.press('KeyR');
+    await tapKey(page, 'KeyR');
     await page.waitForTimeout(600);
     const afterToggle = await snap(page);
     expect(afterToggle!.relay!.manual, 'manual relay control is off before the fight').toBe(false);
@@ -532,124 +554,230 @@ test.describe('GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance', () => {
     });
   });
 
-  test('4) standing at the door: natural Y is range-rejected, fixture jam cannot pass', async ({ page }) => {
+  test('4) the door is naturally jam-usable (exact cost) and a JAMMED route cannot be passed', async ({ page }) => {
     await bootDemo(page);
-    // Suppress linked fire with a real jam so the walk/fight is survivable; the
-    // script later needs route A, which returns when the jam expires.
-    await jamFromStart(page);
+    // Real strategy: jam the relay from the spawn tile (legitimately in range) so
+    // the linked sentries stop firing during the fight.
+    const jam = await jamFromStart(page);
+    expect(jam.relay, 'the spawn jam is committed before the fight').toBe('JAMMED');
     const fight = await fightUntilCleared(page, 120000);
     expect(fight.cleared, 'room cleared by real play').toBe(true);
-    await page.waitForFunction(() => ((window as any).__game.scene.getScene('GameScene').world.signalView()?.relay ?? null) === 'ACTIVE', undefined, { timeout: 20000 });
-    // Walk to the door with real keys but stop just outside (do not press F).
-    const walker = await page.evaluate(() => {
+    // A real capability wait: the spawn jam's cooldown must clear on real ticks,
+    // otherwise the out-of-range attempt would be refused by COOLDOWN and would
+    // prove nothing about range.
+    await page.waitForFunction(() => {
       const w = (window as any).__game.scene.getScene('GameScene').world;
-      return { player: { x: w.player.wx, y: w.player.wy }, portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null, relay: w.p1Scenario?.relay ?? null };
+      const v = w.signalView();
+      return !!v && v.relay === 'ACTIVE' && v.playerJamCD === 0;
+    }, undefined, { timeout: 40000 });
+
+    // --- branch 1: a real position OUTSIDE jam range is still rejected ---
+    // The authored relay now sits next to the door, so the out-of-range attempt
+    // has to be made from a genuinely distant, walkable cell (real walking).
+    const awayTarget = await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      const room = w.currentRoom();
+      const relay = w.p1Scenario.relay;
+      let best: { x: number; y: number; d: number } | null = null;
+      for (const row of w.map.tiles) {
+        for (const t of row) {
+          if (t.x < room.gx || t.x >= room.gx + room.w) continue;
+          if (t.y < room.gy || t.y >= room.gy + room.h) continue;
+          if (!w.isWalkable(t.x + 0.5, t.y + 0.5, 0.5)) continue;
+          const d = Math.hypot(t.x + 0.5 - relay.x, t.y + 0.5 - relay.y);
+          if (!best || d > best.d) best = { x: t.x + 0.5, y: t.y + 0.5, d };
+        }
+      }
+      return { target: best, relay };
     });
-    expect(walker.portal, 'portal exists').not.toBeNull();
-    for (let i = 0; i < 90; i++) {
-      const info = await page.evaluate(() => {
+    expect(awayTarget.target, 'the room has a walkable cell away from the device').not.toBeNull();
+    for (let i = 0; i < 160; i++) {
+      const p = await page.evaluate(() => {
         const w = (window as any).__game.scene.getScene('GameScene').world;
-        return { player: { x: w.player.wx, y: w.player.wy }, portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null };
+        return { x: w.player.wx, y: w.player.wy };
       });
-      if (!info.portal) break;
-      const dx = info.portal.x - info.player.x, dy = info.portal.y - info.player.y;
-      if (Math.hypot(dx, dy) < 1.6) break;
+      const dx = awayTarget.target!.x - p.x, dy = awayTarget.target!.y - p.y;
+      if (Math.hypot(dx, dy) < 1.0) break;
       const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
       await page.keyboard.down(key);
-      await page.waitForTimeout(80);
+      await page.waitForTimeout(90);
+      await page.keyboard.up(key);
+      await page.waitForTimeout(30);
+    }
+    const farAway = await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      const sig = w.signalView();
+      const relay = w.p1Scenario.relay;
+      return {
+        player: { x: w.player.wx, y: w.player.wy },
+        distanceRelayPlayer: Math.hypot(w.player.wx - relay.x, w.player.wy - relay.y),
+        energy: sig?.playerEnergy ?? null,
+        relayState: sig?.relay ?? null,
+        jamCD: sig?.playerJamCD ?? null
+      };
+    });
+    expect(farAway.distanceRelayPlayer, 'the player really walked outside JAM_RANGE').toBeGreaterThan(TUNE.JAM_RANGE);
+    expect(farAway.jamCD, 'the jam cooldown had already cleared (range, not cooldown)').toBe(0);
+    await tapKey(page, 'KeyY');
+    await page.waitForTimeout(500);
+    const afterFarY = await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      const sig = w.signalView();
+      return { energy: sig?.playerEnergy ?? null, relayState: sig?.relay ?? null, jamCD: sig?.playerJamCD ?? null };
+    });
+    expect(afterFarY.relayState, 'an out-of-range jam is rejected (relay unchanged)').toBe('ACTIVE');
+    expect(afterFarY.jamCD, 'a rejected jam starts no cooldown').toBe(0);
+    expect(afterFarY.energy, 'a rejected jam does not spend energy').toBe(farAway.energy);
+
+    // --- branch 2: the authored door IS inside jam range (P4 layout) ---
+    const door = await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      const relay = w.p1Scenario.relay;
+      return {
+        portal: w.portal ? { x: w.portal.wx, y: w.portal.wy, target: w.portal.targetRoom } : null,
+        doorToRelay: w.portal ? Math.hypot(w.portal.wx - relay.x, w.portal.wy - relay.y) : null
+      };
+    });
+    expect(door.portal, 'the authored route portal exists once the room is cleared').not.toBeNull();
+    expect(door.doorToRelay, 'authored door is inside JAM_RANGE (P4 natural layout)').toBeLessThanOrEqual(TUNE.JAM_RANGE);
+    for (let i = 0; i < 200; i++) {
+      const p = await page.evaluate(() => {
+        const w = (window as any).__game.scene.getScene('GameScene').world;
+        return { x: w.player.wx, y: w.player.wy };
+      });
+      const dx = door.portal!.x - p.x, dy = door.portal!.y - p.y;
+      if (Math.hypot(dx, dy) < 1.0) break;
+      const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
+      await page.keyboard.down(key);
+      await page.waitForTimeout(90);
       await page.keyboard.up(key);
       await page.waitForTimeout(30);
     }
     const atDoor = await page.evaluate(() => {
       const w = (window as any).__game.scene.getScene('GameScene').world;
       const sig = w.signalView();
-      const relay = w.p1Scenario?.relay;
+      const relay = w.p1Scenario.relay;
       return {
         player: { x: w.player.wx, y: w.player.wy },
         portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null,
-        relay,
         distanceRelayDoor: w.portal && relay ? Math.hypot(w.portal.wx - relay.x, w.portal.wy - relay.y) : null,
         distanceRelayPlayer: relay ? Math.hypot(w.player.wx - relay.x, w.player.wy - relay.y) : null,
         energy: sig?.playerEnergy ?? null,
         relayState: sig?.relay ?? null
       };
     });
-    // The authored door is intentionally outside jam range (6 tiles).
-    expect(atDoor.distanceRelayDoor, 'authored door is farther than JAM_RANGE from the relay').toBeGreaterThan(TUNE.JAM_RANGE);
-    await page.keyboard.press('KeyY');
-    await page.waitForTimeout(500);
-    const afterNaturalY = await page.evaluate(() => {
-      const w = (window as any).__game.scene.getScene('GameScene').world;
-      const sig = w.signalView();
-      return { energy: sig?.playerEnergy ?? null, relayState: sig?.relay ?? null, jamCD: sig?.playerJamCD ?? null, room: w.currentRoom()?.id ?? null };
-    });
-    // Natural range rejection: no energy spent, relay unchanged.
-    expect(afterNaturalY.relayState, 'a door-distance jam is rejected by range (relay unchanged)').toBe('ACTIVE');
-    expect(afterNaturalY.energy, 'a rejected jam does not spend energy').toBe(atDoor.energy);
-    record('p1-jam-range', {
-      runner: 'agent (real walking + real Y)',
-      fixtures: 'none for the natural rejection',
-      distanceRelayDoor: atDoor.distanceRelayDoor,
-      distanceRelayPlayer: atDoor.distanceRelayPlayer,
-      jamRange: TUNE.JAM_RANGE,
-      before: { energy: atDoor.energy, relay: atDoor.relayState },
-      after: afterNaturalY,
-      shot: await shot(page, '4-door-range-reject')
-    });
+    expect(atDoor.distanceRelayPlayer, 'the player standing on the door is inside JAM_RANGE').toBeLessThanOrEqual(TUNE.JAM_RANGE);
 
-    // FIXTURE (labelled): the jam itself must be launched from inside JAM_RANGE
-    // (the natural door-distance attempt above was correctly refused). Reposition
-    // to the relay with the dev seam, then jam with a REAL key press, and walk
-    // back to the door with REAL keys: the question here is only "does a JAMMED
-    // relay let the door be passed?".
+    // Exact cost from the committed core event (regen makes the net delta smaller).
     await page.evaluate(() => {
       const w = (window as any).__game.scene.getScene('GameScene').world;
-      w.setPlayerPositionForTest(w.p1Scenario.relay.x, w.p1Scenario.relay.y);
+      (window as any).__p1DoorBatches = [];
+      const orig = w.stepFrame.bind(w);
+      w.stepFrame = (dt: number, intent: any, echoIntent?: any) => {
+        const pre = w.signalView()?.playerEnergy ?? null;
+        const ev = orig(dt, intent, echoIntent) ?? [];
+        if (ev.length) (window as any).__p1DoorBatches.push({ pre, ev });
+        return ev;
+      };
     });
-    await page.waitForTimeout(400);
-    await page.keyboard.press('KeyY');
-    await page.waitForTimeout(600);
-    // Walk back to the door with real keys (no teleport for the approach).
-    for (let i = 0; i < 120; i++) {
-      const info = await page.evaluate(() => {
-        const w = (window as any).__game.scene.getScene('GameScene').world;
-        return { player: { x: w.player.wx, y: w.player.wy }, portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null };
-      });
-      if (!info.portal) break;
-      const dx = info.portal.x - info.player.x, dy = info.portal.y - info.player.y;
-      if (Math.hypot(dx, dy) < 1.4) break;
-      const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
-      await page.keyboard.down(key);
-      await page.waitForTimeout(80);
-      await page.keyboard.up(key);
-      await page.waitForTimeout(30);
-    }
+    await tapKey(page, 'KeyY');
+    await page.waitForFunction(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      return (w.signalView()?.relay ?? '') === 'JAMMED';
+    }, undefined, { timeout: 8000 });
+    const jamCommit = await page.evaluate(() => {
+      const batches = ((window as any).__p1DoorBatches ?? []) as any[];
+      for (const b of batches) {
+        const i = (b.ev as any[]).findIndex((e) => e.type === 'signal-jammed');
+        if (i < 0) continue;
+        let before: number | null = null;
+        for (let k = i - 1; k >= 0; k--) {
+          if (typeof b.ev[k].energy === 'number') { before = b.ev[k].energy; break; }
+        }
+        const regen = (b.ev as any[]).slice(0, i).filter((e) => e.type === 'signal-energy').length;
+        if (before === null) before = b.pre;
+        return {
+          actorId: b.ev[i].actorId, ok: b.ev[i].ok !== false, energy: b.ev[i].energy, before,
+          relay: b.ev[i].relay, regenEvents: regen,
+          source: regen > 0 ? 'energy-event-in-batch' : 'pre-tick-energy'
+        };
+      }
+      return null;
+    });
     const jammedAtDoor = await page.evaluate(() => {
       const w = (window as any).__game.scene.getScene('GameScene').world;
       const sig = w.signalView();
-      return { relay: sig?.relay ?? null, portal: w.portal ? { target: w.portal.targetRoom } : null, routeTarget: w.p1RouteTarget ?? null, room: w.currentRoom()?.id ?? null };
+      return {
+        relay: sig?.relay ?? null, energy: sig?.playerEnergy ?? null,
+        portal: w.portal ? { target: w.portal.targetRoom } : null,
+        routeTarget: w.p1RouteTarget ?? null, room: w.currentRoom()?.id ?? null
+      };
     });
-    expect(jammedAtDoor.relay, 'fixture jam is committed by the core').toBe('JAMMED');
+    expect(jamCommit, 'the door jam committed a signal-jammed core event').not.toBeNull();
+    expect(jamCommit!.ok, 'the core accepted the door jam (range + LOS)').toBe(true);
+    expect(jamCommit!.actorId, 'the jam was committed by the PLAYER actor').toBe(0);
+    expect(jamCommit!.before! - jamCommit!.energy!, `jam deducts exactly ${TUNE.JAM_COST} (event payload)`).toBe(TUNE.JAM_COST);
+    const netJamDelta = atDoor.energy! - jammedAtDoor.energy!;
+    expect(jammedAtDoor.relay, 'fixture-free jam from the real door is committed').toBe('JAMMED');
     expect(jammedAtDoor.portal, 'no authored route portal exists while JAMMED').toBeNull();
-    await page.keyboard.press('KeyF');
+    expect(jammedAtDoor.routeTarget, 'JAMMED matches neither authored route').toBeNull();
+    await tapKey(page, 'KeyF');
     await page.waitForTimeout(700);
     const afterF = await page.evaluate(() => {
       const w = (window as any).__game.scene.getScene('GameScene').world;
       return { room: w.currentRoom()?.id ?? null };
     });
-    expect(afterF.room, 'F at the door while JAMMED does not change rooms').toBe(atDoor.portal ? jammedAtDoor.room : afterF.room);
-    record('p1-jam-door-fixture', {
-      runner: 'agent (real F)',
-      fixtures: 'FIXTURE: setPlayerPositionForTest(relay) so the real-key jam is in range; the door approach is real walking',
-      jammed: jammedAtDoor, roomAfterF: afterF.room, roomBefore: jammedAtDoor.room,
-      proves: 'a JAMMED relay closes the authored route portal and F cannot pass',
-      cannotProve: 'that a player can jam from the door (natural attempt above was range-rejected)'
+    expect(afterF.room, 'F at the door while JAMMED does not change rooms').toBe(jammedAtDoor.room);
+
+    // --- expiry through REAL ticks restores a selectable route, no fixture ---
+    await page.waitForFunction(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      return (w.signalView()?.relay ?? '') !== 'JAMMED';
+    }, undefined, { timeout: 60000 });
+    const recovered = await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      const sig = w.signalView();
+      return {
+        relay: sig?.relay ?? null,
+        portal: w.portal ? { target: w.portal.targetRoom } : null,
+        routeTarget: w.p1RouteTarget ?? null
+      };
+    });
+    expect(recovered.relay, 'the relay recovers after the jam expires').toBe('ACTIVE');
+    expect(recovered.portal, 'the route portal is selectable again after expiry').not.toBeNull();
+    expect(recovered.routeTarget, 'route A is selectable again').toBe(1);
+    await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      delete (w as any).stepFrame;
+    });
+    record('p1-jam-range-door', {
+      runner: 'agent (real walking + real Y, real F)',
+      fixtures: 'none for either jam (both positions are real)',
+      fight,
+      outOfRange: {
+        distanceRelayPlayer: farAway.distanceRelayPlayer,
+        targetCell: awayTarget.target,
+        before: { energy: farAway.energy, relay: farAway.relayState, jamCD: farAway.jamCD },
+        after: afterFarY,
+        proves: 'a legal Y outside JAM_RANGE spends nothing and changes nothing'
+      },
+      atDoor: {
+        distanceRelayDoor: atDoor.distanceRelayDoor,
+        distanceRelayPlayer: atDoor.distanceRelayPlayer,
+        before: { energy: atDoor.energy, relay: atDoor.relayState },
+        commit: jamCommit, netDelta: netJamDelta,
+        note: 'exact 25 comes from the committed signal-jammed event; the net view delta is smaller because of regen',
+        jammed: jammedAtDoor, roomAfterF: afterF.room,
+        proves: 'the authored door is naturally jam-usable and a JAMMED relay closes the authored route portal (F cannot pass)'
+      },
+      recovered,
+      shot: await shot(page, '4-door-range-jam')
     });
   });
 
   test('5) save -> page reload -> CONTINUE restores room, relay and route target', async ({ page }) => {
     await bootDemo(page);
-    await page.keyboard.press('KeyR'); // manual OFF first: stops linked fire AND gives a non-default route
+    await tapKey(page, 'KeyR'); // manual OFF first: stops linked fire AND gives a non-default route
     await page.waitForTimeout(500);
     const fight = await fightUntilCleared(page, 120000);
     expect(fight.cleared, 'room cleared by real play').toBe(true);

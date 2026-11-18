@@ -1,0 +1,22 @@
+# unfiltered typecheck (v3 tree)
+workdir=/d/tmp/ls-p4-v3
+HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d 3819621 test(gameplay): verify cooperation feedback and scaled HUD readability
+sources:
+  f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6 *src/world/sim/core.ts
+  76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7 *src/config/p1Scenario.ts
+  7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316 *src/ai-native/worldHeadless.ts
+  3ff4f7e3ad7310d85796055846a45435ecb52ff671a3073ae9cd69d9cc19548f *src/world/World.ts
+  6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89 *src/signal/relay.ts
+  097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423 *src/signal/relayRoutes.test.ts
+  11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4 *src/ai-native/worldHeadlessDemoRoute.test.ts
+  8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6 *src/config/p1ScenarioLayout.test.ts
+  93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21 *src/ai-native/worldHeadlessFrameAuthored.test.ts
+  ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652 *src/ai-native/worldHeadlessRestoreSafety.test.ts
+tests:
+  8945e574054c5e6885ddad170f5c8ec80c832e37173e2928ef024ea3adabc1a9 *tests/gameplay-01.spec.ts
+  17fe4a096913769144661c8be0f5114ef38a116e781ed5f027a2dea10973c60e *tests/gameplay-04-coop-level.spec.ts
+  d515ed9ee41340dd255781479fb7edf0b7c35680e3608296ec9d13bb6b4baaec *tests/gameplay-04-headless-restore.spec.ts
+command=npx tsc --noEmit (whole tree, unfiltered)
+--- output begin
+--- output end
+exit_code=0

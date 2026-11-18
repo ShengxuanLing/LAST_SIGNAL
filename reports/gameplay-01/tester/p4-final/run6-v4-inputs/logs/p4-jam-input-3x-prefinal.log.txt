@@ -1,0 +1,9 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d P4_sha=1ecd8020701cf12dc48389f32274479d2fcd7dd63bc02c25479998e70ac6c6c4 PORT=5199 case='seed 20261119 · HumanEcho' repetitions=3 (input semantics: hold keydown until sim tick consumed + real signal-jammed event) 2026-11-18T19:38:07Z
+
+Running 3 tests using 1 worker
+
+[1/3] [chromium] › tests\gameplay-04-coop-level.spec.ts:671:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[2/3] [chromium] › tests\gameplay-04-coop-level.spec.ts:671:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[3/3] [chromium] › tests\gameplay-04-coop-level.spec.ts:671:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+  3 passed (1.1m)
+EXIT=0

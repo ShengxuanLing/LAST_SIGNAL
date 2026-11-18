@@ -1,0 +1,117 @@
+--- /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run7-v4-final/before-spec/gameplay-02-echo-coop.spec.ts	2026-11-18 22:24:31.549187200 +0100
++++ /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run7-v4-final/after-spec/gameplay-02-echo-coop.spec.ts	2026-11-18 22:24:31.642424700 +0100
+@@ -237,26 +237,31 @@
+ 
+   /** A real overlay (level-up card etc.) owns input: clear it by a real click on
+    *  the overlay's own card/button, never by closing a scene programmatically. */
+-  const clearOverlay = async (): Promise<string | null> => {
++  /** Only the REAL level-up card is cleared, with a real click on the card.
++   *  Any other overlay (GameOver, Pause, unknown) is reported, never clicked:
++   *  clicking those would restart/leave the run and turn a failure into a hang. */
++  const clearOverlay = async (): Promise<{ cleared: string | null; bail: string | null }> => {
+     const overlay = await page.evaluate(() => {
+       const g: any = (window as any).__game;
+       const active = g.scene.getScenes(true).map((s: any) => s.sys.settings.key);
+-      if (active.length === 1 && active[0] === 'GameScene') return null;
+-      const key = active.find((k: string) => k !== 'GameScene') ?? null;
+-      if (!key) return null;
++      const extra = active.filter((k: string) => k !== 'GameScene');
++      if (extra.length === 0) return null;
++      const key = extra[0];
++      if (key !== 'LevelUpScene') return { key, allowed: false, x: null, y: null };
+       const s: any = g.scene.getScene(key);
+       const flat: any[] = [];
+       const walk = (l: any[]) => { for (const c of l) { if (c?.type === 'Container' && c.list) walk(c.list); else flat.push(c); } };
+       walk(s.children.list);
+-      const hit = flat.find((c) => c.input && c.input.enabled !== false && c.visible !== false) ?? flat.find((c) => c.type === 'Text' && c.visible !== false);
++      const hit = flat.find((c) => c.input && c.input.enabled !== false && c.visible !== false);
+       const b = hit?.getBounds ? hit.getBounds() : null;
+-      return b ? { key, x: b.x + b.width / 2, y: b.y + b.height / 2 } : { key, x: null, y: null };
++      return { key, allowed: true, x: b ? b.x + b.width / 2 : null, y: b ? b.y + b.height / 2 : null };
+     });
+-    if (!overlay) return null;
+-    if (overlay.x === null) return `overlay ${overlay.key} active with no clickable card`;
++    if (!overlay) return { cleared: null, bail: null };
++    if (!overlay.allowed) return { cleared: null, bail: `unexpected overlay "${overlay.key}" active; not clicked (only LevelUpScene is whitelisted)` };
++    if (overlay.x === null) return { cleared: null, bail: 'LevelUpScene active with no clickable card (real click impossible)' };
+     await clickLogical(page, overlay.x as number, overlay.y as number);
+     await page.waitForTimeout(250);
+-    return `overlay ${overlay.key} cleared by a real click`;
++    return { cleared: `LevelUpScene card clicked (real click)`, bail: null };
+   };
+ 
+   const events: any[] = [];
+@@ -268,10 +273,22 @@
+       if (!w || !gs.cameras?.main) return { notReady: true };
+       const room = w.currentRoom();
+       const rec = room ? w.map.rooms[room.id] : null;
++      // Enemy HP is read from the canonical sim drone that matches the sprite
++      // position (same id space, read-only). When no sim drone matches, the
++      // sample records `notCaptured` instead of fabricating a null curve.
++      const simDrones = ((w.sim?.drones as any[]) ?? []).filter((d: any) => d.hp > 0)
++        .map((d: any) => ({ id: d.id, x: d.x, y: d.y, hp: d.hp }));
+       const list = ((w.enemies as any[]) ?? []).map((e: any) => {
+         const x = typeof e._wx === 'number' ? e._wx : (e.wx ?? e.x);
+         const y = typeof e._wy === 'number' ? e._wy : (e.wy ?? e.y);
+-        return { x, y, hp: e._data?.hp ?? e.data?.hp ?? null, d: Math.hypot(x - w.player.wx, y - w.player.wy) };
++        let near: any = null;
++        let nd = Infinity;
++        for (const d of simDrones) {
++          const dd = Math.hypot(d.x - x, d.y - y);
++          if (dd < nd) { nd = dd; near = d; }
++        }
++        const hp = near && nd <= 0.75 ? near.hp : 'notCaptured';
++        return { x, y, hp, hpSource: near && nd <= 0.75 ? `sim-drone#${near.id}@${nd.toFixed(2)}` : 'no matching sim drone', d: Math.hypot(x - w.player.wx, y - w.player.wy) };
+       }).sort((a, b) => a.d - b.d);
+       const pick = list[0];
+       let screen: { x: number; y: number } | null = null;
+@@ -294,6 +311,7 @@
+         enemiesAlive: list.length,
+         player: { x: w.player.wx, y: w.player.wy },
+         hp: w.player.data.hp,
++        gameOver: g.scene.isActive('GameOverScene'),
+         paused: !!gs.paused,
+         levelUpActive: !!gs.levelUpActive,
+         owner: w.player.control?.owner ?? null,
+@@ -316,10 +334,22 @@
+   let inputs = 0;
+   while (Date.now() - started < maxMs) {
+     const overlay = await clearOverlay();
+-    if (overlay) events.push({ tag: 'overlay', note: overlay, atMs: Date.now() });
++    if (overlay.cleared) events.push({ tag: 'overlay', note: overlay.cleared, atMs: Date.now() });
++    if (overlay.bail) events.push({ tag: 'bail', note: overlay.bail, atMs: Date.now() });
+     const info = await sample('loop');
+     if (info.notReady) { await page.waitForTimeout(200); continue; }
+     if (info.cleared) return { cleared: true, shots, inputs, events, elapsedMs: Date.now() - started };
++    // Death is a distinct outcome, never "the room did not clear": report it and
++    // stop driving (no restart, no menu click, no heal).
++    if ((info.hp ?? 0) <= 0 || info.gameOver) {
++      events.push({ tag: 'death', note: `hp=${info.hp} gameOver=${info.gameOver}`, atMs: Date.now() });
++      return { cleared: false, died: true, hp: info.hp, gameOver: info.gameOver, shots, inputs, events, elapsedMs: Date.now() - started };
++    }
++    // An overlay we are not allowed to touch means the driver cannot make
++    // progress: bail out with the reason instead of clicking through it.
++    if ((events[events.length - 1]?.tag === 'bail') && overlay.bail) {
++      return { cleared: false, died: false, blocked: overlay.bail, shots, inputs, events, elapsedMs: Date.now() - started };
++    }
+ 
+     const before = info.tick;
+     if (!info.enemy || !info.enemy.screen) {
+@@ -595,6 +625,8 @@
+     // A checkpoint can only be captured in a CLEARED room (product rule), so the
+     // room is cleared by real play first (no enemy clearing / teleport / heal).
+     const cleared = await clearRoomByRealPlay(page);
++    expect(cleared.died ?? false,
++      `the player must not die during the real clear (hp=${cleared.hp}, gameOver=${cleared.gameOver})`).toBe(false);
+     expect(cleared.cleared, 'the authored room was cleared by real play').toBe(true);
+     // Let the product persist a valid save (pause tick -> checkpoint write).
+     await page.keyboard.press('Escape');
+@@ -672,6 +704,8 @@
+     // Precondition (product rule): a checkpoint is only captured in a cleared
+     // room, so the room is cleared by real play first.
+     const cleared = await clearRoomByRealPlay(page);
++    expect(cleared.died ?? false,
++      `the player must not die during the real clear (hp=${cleared.hp}, gameOver=${cleared.gameOver})`).toBe(false);
+     expect(cleared.cleared, 'the authored room was cleared by real play').toBe(true);
+     const clearSummary = {
+       cleared: cleared.cleared, shots: cleared.shots, inputs: cleared.inputs, elapsedMs: cleared.elapsedMs,

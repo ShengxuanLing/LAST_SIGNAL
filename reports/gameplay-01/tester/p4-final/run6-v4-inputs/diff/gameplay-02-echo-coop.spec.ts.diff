@@ -1,0 +1,219 @@
+--- /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run6-v4-inputs/before-spec/gameplay-02-echo-coop.spec.ts	2026-11-18 20:36:19.100588000 +0100
++++ /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run6-v4-inputs/after-spec/gameplay-02-echo-coop.spec.ts	2026-11-18 20:47:17.146573300 +0100
+@@ -216,45 +216,62 @@
+  * then fight with real mouse aim + real movement keys. No enemy clearing, no
+  * teleport, no heal.
+  */
+-async function clearRoomByRealPlay(page: Page, maxMs = 120000): Promise<{ cleared: boolean; shots: number }> {
+-  // The scene can be "active" while create() still builds the world/cameras
+-  // (CONTINUE under load). Wait for real readiness so the driver never samples
+-  // undefined cameras; the combat assertions themselves are unchanged.
++async function clearRoomByRealPlay(page: Page, maxMs = 120000): Promise<any> {
++  // The scene can be "active" while create() still builds the world/cameras.
+   await page.waitForFunction(() => {
+     const gs: any = (window as any).__game?.scene.getScene('GameScene');
+     return !!gs?.world && gs.world.sim.tick > 0 && !!gs.cameras?.main;
+   }, undefined, { timeout: 30000 });
+-  const before = await page.evaluate(() => {
+-    const w = (window as any).__game.scene.getScene('GameScene').world;
+-    return { relay: w.signalView()?.relay ?? null, energy: w.signalView()?.playerEnergy ?? null };
+-  });
+-  if (before.relay === 'ACTIVE') {
+-    await page.keyboard.press('KeyY'); // real jam (in range from the start tile)
+-    // The jam may be refused (range/cooldown); the strategy then continues with
+-    // the un-jammed relay, so this is a measurement, not a hard requirement.
+-    await page.waitForFunction(() => {
+-      const w = (window as any).__game.scene.getScene('GameScene').world;
+-      const relay = w.signalView()?.relay ?? null;
+-      return relay === 'JAMMED' || relay === 'INACTIVE';
+-    }, undefined, { timeout: 6000 }).catch(() => undefined);
+-  }
+-  const started = Date.now();
+-  let shots = 0;
+-  while (Date.now() - started < maxMs) {
++
++  /** Wait until the fixed-tick simulation has consumed at least `n` ticks.
++   *  Bounded: the harness never waits on wall-clock as if it were a game tick. */
++  const tickAdvance = async (from: number, n = 1, timeoutMs = 1500): Promise<number> => {
++    const okWait = await page.waitForFunction(({ t, k }: any) => {
++      const w = (window as any).__game?.scene.getScene('GameScene')?.world;
++      return !!w && w.sim.tick >= t + k;
++    }, { t: from, k: n }, { timeout: timeoutMs }).then(() => true).catch(() => false);
++    void okWait;
++    return page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.sim.tick);
++  };
++  const tick = async (): Promise<number> => page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.sim.tick);
++
++  /** A real overlay (level-up card etc.) owns input: clear it by a real click on
++   *  the overlay's own card/button, never by closing a scene programmatically. */
++  const clearOverlay = async (): Promise<string | null> => {
++    const overlay = await page.evaluate(() => {
++      const g: any = (window as any).__game;
++      const active = g.scene.getScenes(true).map((s: any) => s.sys.settings.key);
++      if (active.length === 1 && active[0] === 'GameScene') return null;
++      const key = active.find((k: string) => k !== 'GameScene') ?? null;
++      if (!key) return null;
++      const s: any = g.scene.getScene(key);
++      const flat: any[] = [];
++      const walk = (l: any[]) => { for (const c of l) { if (c?.type === 'Container' && c.list) walk(c.list); else flat.push(c); } };
++      walk(s.children.list);
++      const hit = flat.find((c) => c.input && c.input.enabled !== false && c.visible !== false) ?? flat.find((c) => c.type === 'Text' && c.visible !== false);
++      const b = hit?.getBounds ? hit.getBounds() : null;
++      return b ? { key, x: b.x + b.width / 2, y: b.y + b.height / 2 } : { key, x: null, y: null };
++    });
++    if (!overlay) return null;
++    if (overlay.x === null) return `overlay ${overlay.key} active with no clickable card`;
++    await clickLogical(page, overlay.x as number, overlay.y as number);
++    await page.waitForTimeout(250);
++    return `overlay ${overlay.key} cleared by a real click`;
++  };
++
++  const events: any[] = [];
++  const sample = async (tag: string) => {
+     const info = await page.evaluate(() => {
+-      const g = (window as any).__game;
++      const g: any = (window as any).__game;
+       const gs: any = g.scene.getScene('GameScene');
+-      const w = gs?.world;
+-      // A scene restart (CONTINUE / reload) can clear cameras between ticks; the
+-      // driver waits for readiness instead of sampling a half-built scene. This
+-      // is a driver guard only: the combat assertions are unchanged.
+-      if (!w || !gs.cameras?.main) return { notReady: true, cleared: false, enemy: null, player: null, hp: null };
++      const w: any = gs?.world;
++      if (!w || !gs.cameras?.main) return { notReady: true };
+       const room = w.currentRoom();
+-      const cleared = !!(room && w.map.rooms[room.id] && w.map.rooms[room.id].cleared);
++      const rec = room ? w.map.rooms[room.id] : null;
+       const list = ((w.enemies as any[]) ?? []).map((e: any) => {
+         const x = typeof e._wx === 'number' ? e._wx : (e.wx ?? e.x);
+         const y = typeof e._wy === 'number' ? e._wy : (e.wy ?? e.y);
+-        return { x, y, d: Math.hypot(x - w.player.wx, y - w.player.wy) };
++        return { x, y, hp: e._data?.hp ?? e.data?.hp ?? null, d: Math.hypot(x - w.player.wx, y - w.player.wy) };
+       }).sort((a, b) => a.d - b.d);
+       const pick = list[0];
+       let screen: { x: number; y: number } | null = null;
+@@ -268,33 +285,73 @@
+         const ay = (py.y - p0.y) / 100, by = p0.y;
+         screen = { x: (d.x - bx) / ax, y: (d.y - by) / ay };
+       }
+-      return { notReady: false, cleared, enemy: pick ? { ...pick, screen } : null, player: { x: w.player.wx, y: w.player.wy }, hp: w.player.data.hp };
++      return {
++        notReady: false,
++        tick: w.sim.tick,
++        cleared: !!(rec && rec.cleared),
++        spawned: !!(rec && rec.spawned),
++        enemy: pick ? { ...pick, screen } : null,
++        enemiesAlive: list.length,
++        player: { x: w.player.wx, y: w.player.wy },
++        hp: w.player.data.hp,
++        paused: !!gs.paused,
++        levelUpActive: !!gs.levelUpActive,
++        owner: w.player.control?.owner ?? null,
++        active: g.scene.getScenes(true).map((s: any) => s.sys.settings.key),
++        relay: w.signalView?.()?.relay ?? null
++      };
+     });
+-    if ((info as any).notReady) { await page.waitForTimeout(200); continue; }
+-    if (info.cleared) return { cleared: true, shots };
++    events.push({ tag, atMs: Date.now(), ...(info as any) });
++    return info as any;
++  };
++
++  const t0Tick = await tick();
++  if ((await sample('start')).relay === 'ACTIVE') {
++    await page.keyboard.press('KeyY'); // real jam attempt (may be refused; measured)
++    await tickAdvance(t0Tick, 2, 3000);
++  }
++
++  const started = Date.now();
++  let shots = 0;
++  let inputs = 0;
++  while (Date.now() - started < maxMs) {
++    const overlay = await clearOverlay();
++    if (overlay) events.push({ tag: 'overlay', note: overlay, atMs: Date.now() });
++    const info = await sample('loop');
++    if (info.notReady) { await page.waitForTimeout(200); continue; }
++    if (info.cleared) return { cleared: true, shots, inputs, events, elapsedMs: Date.now() - started };
++
++    const before = info.tick;
+     if (!info.enemy || !info.enemy.screen) {
+       await page.keyboard.down('KeyD');
+-      await page.waitForTimeout(200);
++      const after = await tickAdvance(before, 2);
+       await page.keyboard.up('KeyD');
++      if (after === before) { events.push({ tag: 'stall', note: 'no tick advanced while KeyD held', atMs: Date.now() }); }
++      inputs += 1;
+       continue;
+     }
+     if (info.enemy.d > 4.5) {
+       const dx = info.enemy.x - info.player.x, dy = info.enemy.y - info.player.y;
+       const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
+       await page.keyboard.down(key);
+-      await page.waitForTimeout(300);
++      const after = await tickAdvance(before, 2);
+       await page.keyboard.up(key);
++      if (after === before) events.push({ tag: 'stall', note: `no tick advanced while ${key} held`, atMs: Date.now() });
++      inputs += 1;
+       continue;
+     }
+     const box = await canvasBox(page);
+     await page.mouse.move(box.x + (info.enemy.screen.x * box.w) / LOCAL_W, box.y + (info.enemy.screen.y * box.h) / LOCAL_H);
+     await page.mouse.down();
+-    await page.waitForTimeout(360);
++    const after = await tickAdvance(before, 3);
+     await page.mouse.up();
+-    shots++;
+-    await page.waitForTimeout(70);
++    if (after === before) events.push({ tag: 'stall', note: 'no tick advanced while firing', atMs: Date.now() });
++    shots += 1;
++    inputs += 1;
++    await page.waitForTimeout(40);
+   }
+-  return { cleared: false, shots };
++  const fin = await sample('timeout');
++  return { cleared: false, shots, inputs, events, elapsedMs: Date.now() - started, final: fin };
+ }
+ 
+ test.describe('GAMEPLAY-01 P2 · ECHO local cooperation', () => {
+@@ -578,7 +635,17 @@
+       const w = g.scene.getScene('GameScene').world;
+       return { active: g.scene.getScenes(true).map((s: any) => s.sys.settings.key), optIn: w.echoCooperation, echo: !!w.echoActor, pending: w.echoPendingLocal ? { ...w.echoPendingLocal } : null };
+     });
++    const clearSummary = {
++      cleared: cleared.cleared, shots: cleared.shots, inputs: cleared.inputs, elapsedMs: cleared.elapsedMs,
++      ticksAdvanced: cleared.events?.length
++        ? (cleared.events[cleared.events.length - 1]?.tick ?? 0) - (cleared.events[0]?.tick ?? 0)
++        : null,
++      stalls: (cleared.events ?? []).filter((e: any) => e.tag === 'stall'),
++      overlays: (cleared.events ?? []).filter((e: any) => e.tag === 'overlay'),
++      trace: (cleared.events ?? []).slice(0, 12)
++    };
+     record('legacy-save', {
++      clearPlay: clearSummary,
+       runner: 'agent (real reload + CONTINUE click)',
+       fixtures: 'fixture: remove ONLY the new optional cooperation fields from a product-written save',
+       removedFields: ['permanent.echoCooperationOptIn'],
+@@ -606,6 +673,15 @@
+     // room, so the room is cleared by real play first.
+     const cleared = await clearRoomByRealPlay(page);
+     expect(cleared.cleared, 'the authored room was cleared by real play').toBe(true);
++    const clearSummary = {
++      cleared: cleared.cleared, shots: cleared.shots, inputs: cleared.inputs, elapsedMs: cleared.elapsedMs,
++      ticksAdvanced: cleared.events?.length
++        ? (cleared.events[cleared.events.length - 1]?.tick ?? 0) - (cleared.events[0]?.tick ?? 0)
++        : null,
++      stalls: (cleared.events ?? []).filter((e: any) => e.tag === 'stall'),
++      overlays: (cleared.events ?? []).filter((e: any) => e.tag === 'overlay'),
++      trace: (cleared.events ?? []).slice(0, 12)
++    };
+     const beforePause = await page.evaluate(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+       return { roomId: w.currentRoom()?.id ?? null, demo: w.p1Scenario?.id ?? null, tick: w.sim.tick, echoHp: w.echoActor?.data.hp ?? null, energy: w.signalView()?.playerEnergy ?? 0 };
+@@ -734,6 +810,7 @@
+       }
+     }).catch(() => undefined);
+     record('save-reload-boundary', {
++      clearPlay: clearSummary,
+       runner: 'agent (real pause-menu clicks + real reload + real CONTINUE)',
+       fixtures: 'none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm',
+       beforePause, confirmed, after,

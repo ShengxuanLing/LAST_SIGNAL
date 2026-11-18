@@ -1,0 +1,456 @@
+{
+  "runner": "agent (real keys/mouse; NON-BLIND driver: reads canonical state to aim/route)",
+  "fixtures": [
+    "seed override (menu start wrapper)",
+    "autoOwner: setEchoCooperationOptIn(true) + enableEcho() (same calls as the menu ENABLE)"
+  ],
+  "seed": 20261119,
+  "mode": "HumanEcho",
+  "spawnToRelay": 3.1622776601683795,
+  "doorToRelay": 1.4142135623730951,
+  "playerToRelay": 1.5943456131050824,
+  "standOnDoor": 0.7218757515627883,
+  "spawnJam": {
+    "attempted": true,
+    "distance": 3.1622776601683795,
+    "commit": {
+      "actorId": 0,
+      "ok": true,
+      "code": null,
+      "energy": 75,
+      "before": 100,
+      "relay": "JAMMED",
+      "jamExpiresAtTick": 409,
+      "regenEvents": 0,
+      "tick": 50,
+      "source": "pre-tick-energy"
+    },
+    "after": {
+      "state": "JAMMED",
+      "manual": true,
+      "powered": true,
+      "jamUntil": 409,
+      "evidence": 0
+    }
+  },
+  "cleared": {
+    "fight": {
+      "shots": 2,
+      "approaches": 1,
+      "cleared": true,
+      "died": false,
+      "firstHp": 100,
+      "minEnemies": 0,
+      "elapsedMs": 1325,
+      "flags": {
+        "spawned": true,
+        "cleared": true
+      }
+    },
+    "mapFlag": true,
+    "spawned": true,
+    "coreClearEvents": 1,
+    "liveDrones": 0
+  },
+  "headless": {
+    "strategy": "plain-fight",
+    "initial": {
+      "roomId": 0,
+      "spawned": true,
+      "cleared": false,
+      "liveDrones": 2,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": false,
+        "relay": null,
+        "target": null,
+        "portal": null,
+        "playerAtPortal": false,
+        "completed": false
+      },
+      "tick": 0
+    },
+    "final": {
+      "tick": 60,
+      "status": "running",
+      "spawned": true,
+      "cleared": true,
+      "liveDrones": 0,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": true,
+        "relay": "ACTIVE",
+        "target": 5,
+        "portal": {
+          "x": 12.5,
+          "y": 45.5
+        },
+        "playerAtPortal": false,
+        "completed": false
+      },
+      "kills": 2,
+      "shots": 6,
+      "hp": 100
+    },
+    "clearEvents": [
+      {
+        "tick": 60,
+        "event": {
+          "type": "room-cleared",
+          "roomId": 0
+        }
+      }
+    ],
+    "firstClearTick": 60,
+    "liveAtClear": 0,
+    "parity": true
+  },
+  "jam": {
+    "commit": {
+      "actorId": 0,
+      "ok": true,
+      "code": null,
+      "energy": 75,
+      "before": 100,
+      "relay": "JAMMED",
+      "jamExpiresAtTick": 1001,
+      "regenEvents": 0,
+      "tick": 642,
+      "source": "pre-tick-energy"
+    },
+    "netDelta": 22,
+    "state": "JAMMED",
+    "portal": null,
+    "routeTarget": null
+  },
+  "afterF": {
+    "room": 0,
+    "unchanged": true
+  },
+  "recovered": {
+    "relay": "ACTIVE",
+    "portal": {
+      "x": 12.5,
+      "y": 45.5,
+      "target": 5
+    },
+    "routeTarget": 5,
+    "tickDelta": 322
+  },
+  "spriteToInteractionPx": 0,
+  "route": {
+    "from": 0,
+    "to": 5,
+    "distanceAtPress": 0.7218757515627883
+  },
+  "echo": {
+    "proposal": {
+      "id": "local_1022_1",
+      "kind": "scan",
+      "target": {
+        "x": 11.5,
+        "y": 46.5
+      },
+      "echoReady": true
+    },
+    "accepted": true,
+    "applied": true,
+    "audit": [
+      {
+        "tick": 1025,
+        "kind": "scan",
+        "result": "enqueued",
+        "code": null,
+        "provenance": "human-local"
+      },
+      {
+        "tick": 1026,
+        "kind": "scan",
+        "result": "applied",
+        "code": null,
+        "provenance": "human-local"
+      }
+    ],
+    "before": {
+      "seed": 20261119,
+      "tick": 1020,
+      "page": "pause",
+      "room": {
+        "id": 0,
+        "kind": "combat"
+      },
+      "roomFlags": {
+        "spawned": true,
+        "cleared": true,
+        "kind": "combat"
+      },
+      "mapCleared": true,
+      "player": {
+        "x": 11.994791666666654,
+        "y": 44.984375000000114,
+        "hp": 100
+      },
+      "portal": {
+        "x": 12.5,
+        "y": 45.5,
+        "target": 5
+      },
+      "portalSprite": {
+        "x": 3472,
+        "y": 440
+      },
+      "observedPortal": {
+        "x": 12.5,
+        "y": 45.5
+      },
+      "relay": {
+        "state": "ACTIVE",
+        "manual": true,
+        "powered": true,
+        "jamUntil": 0,
+        "evidence": 0
+      },
+      "energy": {
+        "player": 100,
+        "echo": 100,
+        "jamCD": 101
+      },
+      "scenario": {
+        "id": "p1",
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 46.5
+        },
+        "playerStart": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "drones": 2,
+        "routes": [
+          {
+            "target": 5,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          },
+          {
+            "target": 3,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "scenarioError": null,
+      "routeTarget": 5,
+      "jamRemaining": 0,
+      "linkedFire": true,
+      "liveDrones": 0,
+      "enemies": 0,
+      "echo": {
+        "exists": true,
+        "hp": 100,
+        "energy": 100
+      },
+      "proposal": null,
+      "pending": null,
+      "companionStatus": "OFF"
+    },
+    "beforeApply": {
+      "seed": 20261119,
+      "tick": 1023,
+      "page": "pause",
+      "room": {
+        "id": 0,
+        "kind": "combat"
+      },
+      "roomFlags": {
+        "spawned": true,
+        "cleared": true,
+        "kind": "combat"
+      },
+      "mapCleared": true,
+      "player": {
+        "x": 11.994791666666654,
+        "y": 44.984375000000114,
+        "hp": 100
+      },
+      "portal": {
+        "x": 12.5,
+        "y": 45.5,
+        "target": 5
+      },
+      "portalSprite": {
+        "x": 3472,
+        "y": 440
+      },
+      "observedPortal": {
+        "x": 12.5,
+        "y": 45.5
+      },
+      "relay": {
+        "state": "ACTIVE",
+        "manual": true,
+        "powered": true,
+        "jamUntil": 0,
+        "evidence": 0
+      },
+      "energy": {
+        "player": 100,
+        "echo": 100,
+        "jamCD": 98
+      },
+      "scenario": {
+        "id": "p1",
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 46.5
+        },
+        "playerStart": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "drones": 2,
+        "routes": [
+          {
+            "target": 5,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          },
+          {
+            "target": 3,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "scenarioError": null,
+      "routeTarget": 5,
+      "jamRemaining": 0,
+      "linkedFire": true,
+      "liveDrones": 0,
+      "enemies": 0,
+      "echo": {
+        "exists": true,
+        "hp": 100,
+        "energy": 100
+      },
+      "proposal": {
+        "id": "local_1022_1",
+        "kind": "scan"
+      },
+      "pending": null,
+      "companionStatus": "OFF"
+    },
+    "after": {
+      "seed": 20261119,
+      "tick": 1031,
+      "page": "pause",
+      "room": {
+        "id": 0,
+        "kind": "combat"
+      },
+      "roomFlags": {
+        "spawned": true,
+        "cleared": true,
+        "kind": "combat"
+      },
+      "mapCleared": true,
+      "player": {
+        "x": 11.994791666666654,
+        "y": 44.984375000000114,
+        "hp": 100
+      },
+      "portal": {
+        "x": 12.5,
+        "y": 45.5,
+        "target": 5
+      },
+      "portalSprite": {
+        "x": 3472,
+        "y": 440
+      },
+      "observedPortal": {
+        "x": 12.5,
+        "y": 45.5
+      },
+      "relay": {
+        "state": "ACTIVE",
+        "manual": true,
+        "powered": true,
+        "jamUntil": 0,
+        "evidence": 1
+      },
+      "energy": {
+        "player": 100,
+        "echo": 90,
+        "jamCD": 90
+      },
+      "scenario": {
+        "id": "p1",
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 46.5
+        },
+        "playerStart": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "drones": 2,
+        "routes": [
+          {
+            "target": 5,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          },
+          {
+            "target": 3,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "scenarioError": null,
+      "routeTarget": 5,
+      "jamRemaining": 0,
+      "linkedFire": true,
+      "liveDrones": 0,
+      "enemies": 0,
+      "echo": {
+        "exists": true,
+        "hp": 100,
+        "energy": 90
+      },
+      "proposal": null,
+      "pending": null,
+      "companionStatus": "OFF"
+    }
+  },
+  "shots": [
+    "D:\\tmp\\ls-p4-v1\\.p4logs\\p4-v1\\shots\\p4-20261119-HumanEcho-route.png",
+    "D:\\tmp\\ls-p4-v1\\.p4logs\\p4-v1\\shots\\p4-20261119-HumanEcho-jam-at-door.png",
+    "D:\\tmp\\ls-p4-v1\\.p4logs\\p4-v1\\shots\\p4-20261119-HumanEcho-expired.png"
+  ]
+}

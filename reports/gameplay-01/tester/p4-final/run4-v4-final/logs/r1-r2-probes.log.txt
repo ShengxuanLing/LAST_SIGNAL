@@ -1,0 +1,13 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d spec=tests/gameplay-04-headless-restore.spec.ts sha256=22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55 mode=node-model 2026-11-18T15:33:03Z
+
+Running 7 tests using 1 worker
+
+[1/7] [chromium] › tests\gameplay-04-headless-restore.spec.ts:112:3 › R1 · snapshot -> restore(frame) keeps one pending guard (seed 20261117)
+[2/7] [chromium] › tests\gameplay-04-headless-restore.spec.ts:130:3 › R2 · fromFrame keeps the same guard and a readable pending projection (seed 20261117)
+[3/7] [chromium] › tests\gameplay-04-headless-restore.spec.ts:112:3 › R1 · snapshot -> restore(frame) keeps one pending guard (seed 20261118)
+[4/7] [chromium] › tests\gameplay-04-headless-restore.spec.ts:130:3 › R2 · fromFrame keeps the same guard and a readable pending projection (seed 20261118)
+[5/7] [chromium] › tests\gameplay-04-headless-restore.spec.ts:112:3 › R1 · snapshot -> restore(frame) keeps one pending guard (seed 20261119)
+[6/7] [chromium] › tests\gameplay-04-headless-restore.spec.ts:130:3 › R2 · fromFrame keeps the same guard and a readable pending projection (seed 20261119)
+[7/7] [chromium] › tests\gameplay-04-headless-restore.spec.ts:142:1 › R2b · replay() inherits the same guard (it builds its world with fromFrame)
+  7 passed (8.5s)
+EXIT=0

@@ -1,0 +1,15 @@
+
+## FROZEN for the final full run (written after the targeted gates passed, before the full chain)
+
+  tests/gameplay-01.spec.ts                    a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743  archived_identical=True
+  tests/gameplay-02-echo-coop.spec.ts          4bc6288f6cbc123eb2ea7c13626141a786cc957ea353fd34f31cb28946ef6266  archived_identical=True
+  tests/gameplay-04-coop-level.spec.ts         13a834644327ef29b30e0135d44f485de1728dafcfc7626a3a05abbdf7234df2  archived_identical=True
+  tests/gameplay-04-headless-restore.spec.ts   22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55  archived_identical=True
+
+Targeted gates before the freeze:
+  unfiltered typecheck exit 0 -> logs/typecheck.log.txt
+  P4 seed 20261119 HumanEcho x2 PASS 2/2 EXIT=0 -> logs/p4-echo-firstbatch-2x.log.txt
+  P2 case 6+7 PASS 2/2 EXIT=0 -> logs/p2-6-7-targeted.log.txt
+
+No spec edit is allowed after this freeze; the full Playwright run and the fresh parity
+are evidence for exactly these bytes.

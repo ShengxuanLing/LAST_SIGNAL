@@ -1,0 +1,21 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d PORT=5199 specs='checkpoint, echo-portal-migration, signal-human-crossroom' 2026-11-18T15:33:18Z
+
+Running 8 tests using 1 worker
+
+[1/8] [chromium] › tests\checkpoint.spec.ts:71:1 › inventory equips an owned weapon and the safe checkpoint restores the selection
+[2/8] [chromium] › tests\checkpoint.spec.ts:152:1 › number keys select an upgrade when four choices are eligible
+[3/8] [chromium] › tests\checkpoint.spec.ts:172:1 › loss recap shows run stats and retries the same seed
+[4/8] [chromium] › tests\checkpoint.spec.ts:197:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress
+[5/8] [chromium] › tests\checkpoint.spec.ts:316:1 › death routes to Game Over and clears the run checkpoint
+[6/8] [chromium] › tests\echo-portal-migration.spec.ts:75:1 › ordinary portal: the ECHO migrates with the protagonist in the same transition, assist cleared
+[7/8] [chromium] › tests\echo-portal-migration.spec.ts:122:1 › NEGATIVE CONTROL: a teleport without migration leaves the echo where it was
+[8/8] [chromium] › tests\signal-human-crossroom.spec.ts:37:1 › human R in a new room still controls the relay left in the old room
+[chromium] › tests\signal-human-crossroom.spec.ts:37:1 › human R in a new room still controls the relay left in the old room
+STEP U1 human R in room A: {"roomId":0,"relay":"ACTIVE","exitOpen":true,"manualEnabled":true,"deviceRoom":0,"pending":[]}
+
+STEP U2 real portal A->B: {"roomId":3,"relay":"ACTIVE","exitOpen":true,"manualEnabled":true,"deviceRoom":0,"pending":[]}
+
+STEP U3 human R in room B toggles old-room device: {"roomId":3,"relay":"INACTIVE","exitOpen":false,"manualEnabled":false,"deviceRoom":0,"pending":[]}
+
+  8 passed (29.5s)
+EXIT=0

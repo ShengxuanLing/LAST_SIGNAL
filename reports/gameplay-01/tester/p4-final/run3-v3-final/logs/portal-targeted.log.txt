@@ -1,0 +1,16 @@
+workdir=/d/tmp/ls-p4-v3 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d PORT=5199 specs=echo-portal-migration, signal-human-crossroom 2026-11-18T14:21:54Z
+
+Running 3 tests using 1 worker
+
+[1/3] [chromium] › tests\echo-portal-migration.spec.ts:75:1 › ordinary portal: the ECHO migrates with the protagonist in the same transition, assist cleared
+[2/3] [chromium] › tests\echo-portal-migration.spec.ts:122:1 › NEGATIVE CONTROL: a teleport without migration leaves the echo where it was
+[3/3] [chromium] › tests\signal-human-crossroom.spec.ts:37:1 › human R in a new room still controls the relay left in the old room
+[chromium] › tests\signal-human-crossroom.spec.ts:37:1 › human R in a new room still controls the relay left in the old room
+STEP U1 human R in room A: {"roomId":0,"relay":"ACTIVE","exitOpen":true,"manualEnabled":true,"deviceRoom":0,"pending":[]}
+
+STEP U2 real portal A->B: {"roomId":3,"relay":"ACTIVE","exitOpen":true,"manualEnabled":true,"deviceRoom":0,"pending":[]}
+
+STEP U3 human R in room B toggles old-room device: {"roomId":3,"relay":"INACTIVE","exitOpen":false,"manualEnabled":false,"deviceRoom":0,"pending":[]}
+
+  3 passed (11.5s)
+EXIT=0

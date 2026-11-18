@@ -1,0 +1,227 @@
+## Gate A1 (attempt 2) — FULL unit suite, BOUNDED CONCURRENCY PROFILE
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d World_sha256=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+dev_servers_listening=0  node_processes_start=3  cpu_load_pct_start=13  logical_cpus=8
+vitest_version=vitest/2.1.9 win32-x64 node-v24.20.0
+flag_note=vitest 2.1.9: '--maxWorkers=2' alone fails with RangeError 'options.minThreads and options.maxThreads must not conflict' (attempt 1 below, exit 1, 0 tests run); the official equivalent is to set the minimum too: --maxWorkers=2 --minWorkers=1
+attempt1_log=.p4logs/unit-bounded.log (kept, exit 1, no tests)
+command=npm test -- --maxWorkers=2 --minWorkers=1
+profile=2 workers (bounded run-resource profile, NOT the default concurrency; no test, timeout or assertion changed)
+started=2026-11-18T16:36:01Z
+
+> last-signal@0.1.0 test
+> vitest run --maxWorkers=2 --minWorkers=1
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/ls-p4-v4[39m
+
+ [32m✓[39m src/ai-native/protocol.test.ts [2m([22m[2m72 tests[22m[2m)[22m[90m 67[2mms[22m[39m
+ [32m✓[39m src/ai-native/sessions.test.ts [2m([22m[2m43 tests[22m[2m)[22m[33m 798[2mms[22m[39m
+ [32m✓[39m src/world/sim/core.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 1051[2mms[22m[39m
+   [33m[2m✓[22m[39m C2 fixed-tick authoritative core[2m > [22mis reproducible from a serializable snapshot (same seed + intents + ticks) [33m584[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldGateway.test.ts [2m([22m[2m23 tests[22m[2m)[22m[90m 83[2mms[22m[39m
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/world/sim/signalCombat.test.ts [2m([22m[2m32 tests[22m[2m)[22m[33m 721[2mms[22m[39m
+ [32m✓[39m src/ai-native/harness.test.ts [2m([22m[2m32 tests[22m[2m)[22m[33m 811[2mms[22m[39m
+   [33m[2m✓[22m[39m scenario / batch / compare[2m > [22msame seed reproduces state and gameplay events; a different seed changes only state [33m473[2mms[22m[39m
+ [32m✓[39m src/ai-native/companionFacet.test.ts [2m([22m[2m23 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+[headless] channel=restricted (public commands only); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/coop.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 129[2mms[22m[39m
+ [32m✓[39m src/slice/vs00.rules.test.ts [2m([22m[2m28 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m)[22m[33m 23670[2mms[22m[39m
+   [33m[2m✓[22m[39m B5 — canonical hash is authoritative-state only[2m > [22mCLI 0-step replay hash equals the source snapshot hash [33m3454[2mms[22m[39m
+   [33m[2m✓[22m[39m B6 — CLI Dev channel identity (no audience upgrade)[2m > [22msnapshot/replay/restore require the explicit --dev channel [33m2826[2mms[22m[39m
+   [33m[2m✓[22m[39m B6 — CLI Dev channel identity (no audience upgrade)[2m > [22mobserve never leaks seed/RNG/full model even on the Dev channel [33m2879[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mstep/replay reject non-array actions/steps instead of silently using [] [33m2650[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22menforces instance count, id length and JSON line size [33m3313[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mrestore requires hashes and only accepts this instance issued frame [33m2906[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mquit exits and cleans up without waiting for stdin EOF [33m2584[2mms[22m[39m
+   [33m[2m✓[22m[39m purity and real Node CLI process[2m > [22mfull CLI cycle: create/step/observe/snapshot/replay/pause/resume/close/quit [33m2926[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessEchoCoop.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 6241[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22ma new run defaults low-risk OFF; the option only enables it explicitly [33m479[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mrestore keeps one queued scan, blocks a second confirm, then executes once [33m490[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mrestore keeps one queued toggle, blocks a second confirm, flips exactly once [33m453[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mdoes not mark or delete a player/other-actor command as human-local [33m526[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mpreserves an external Owner toggle command while blocking a new local confirm [33m639[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22ma room generation change does not clear the restored guard before the core [33m556[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mdoes not let an explicit local cancel delete an unknown restored command [33m593[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22ma dead echo does not leave an actually-local guard stuck [33m326[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldBridgeServer.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 529[2mms[22m[39m
+ [32m✓[39m src/ai-native/c3bBridge.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 373[2mms[22m[39m
+ [32m✓[39m src/slice/vs01.corridor.test.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 32[2mms[22m[39m
+ [32m✓[39m src/world/sim/rules.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+ [32m✓[39m src/world/sim/echo.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 1034[2mms[22m[39m
+   [33m[2m✓[22m[39m P3-a echo actor core[2m > [22mwith no echo the canonical state has no echo key and 3-arg stepping is unchanged [33m599[2mms[22m[39m
+   [33m[2m✓[22m[39m P3-a echo actor core[2m > [22mspawn-echo / remove-echo commit at the tick boundary and keep canonical shape [33m357[2mms[22m[39m
+ [32m✓[39m src/ai-native/task0.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 4812[2mms[22m[39m
+   [33m[2m✓[22m[39m Task0 — bounded lease history[2m > [22mreal HTTP bridge routes stay bounded across many sessions [33m4754[2mms[22m[39m
+ [32m✓[39m src/ai-native/companionRoomGeneration.test.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m src/ai-native/echoCoop.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m src/ai-native/companionGateway.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessDemoRoute.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 19761[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mconsumes the shared builder (same cells as a fresh authored build) [33m471[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mM1: the core clears the room exactly once and the presenter reads the same flag [33m1352[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mcompletes a legal route by walking onto the authored portal and pressing F [33m2314[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mJAMMED closes the route while the room stays cleared (safety gate intact) [33m2765[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mmanual OFF also yields exactly one route (no JAMMED-style blackout) [33m1680[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22msnapshot → restore keeps demo + route + cleared state [33m2011[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22mfromFrame and fromSimulationState keep the SAME demo identity [33m2039[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22mreplay reproduces the same route state after the same inputs [33m6657[2mms[22m[39m
+ [32m✓[39m src/world/sim/parity.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m src/core/runtime.test.ts [2m([22m[2m15 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/slice/evidence.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLinkDuration.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 40[2mms[22m[39m
+ [32m✓[39m src/world/sim/signalLink.test.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 68[2mms[22m[39m
+[90mstdout[2m | src/ai-native/agentLease.test.ts[2m > [22m[2mC3-b fix — bridge / MCP lease integration[2m > [22m[2ma late renew from an old lease cannot extend a newer lease
+[22m[39mFRESH [33m200[39m {"ok":true,"expiresAtMs":1795019837306,"version":1}
+
+ [32m✓[39m src/ai-native/agentLease.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 4744[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-b fix — bridge / MCP lease integration[2m > [22ma browser heartbeat does NOT renew the Agent lease; expiry closes the session [33m4575[2mms[22m[39m
+ [32m✓[39m src/ai-native/control.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m src/signal/signalCore.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadless.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 8216[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mreal combat: fire -> projectile -> hit -> enemy-died -> cleared; real damage taken [33m603[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mreal death: the core emits player-death and the session reports dead [33m800[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mtwo worlds with the same seed + same intents produce identical canonical state/events [33m1683[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22man owner snapshot carries state, commands, RNG, ledger and map identity [33m677[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mrestore bumps the epoch and replay reproduces the real canonical state/events [33m1583[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mrestore rejects a malformed frame without mutating the session [33m682[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22mDev room loading spawns REAL enemies from real enemy config [33m302[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22ma real kill drops loot and the REAL stepLoot path collects it into resources [33m359[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless same-core runtime[2m > [22ma Dev failure export never contains credentials or a Phaser object [33m784[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLinkLifecycle.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessSignal.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 4158[2mms[22m[39m
+   [33m[2m✓[22m[39m world_signal_status[2m > [22mDev signal commands and batch really consume energy / suppress emission [33m1135[2mms[22m[39m
+   [33m[2m✓[22m[39m Rendered↔Headless signal canonical parity[2m > [22msame seed + same ordered signal actions produce identical canonical state + events [33m1025[2mms[22m[39m
+   [33m[2m✓[22m[39m Rendered↔Headless signal canonical parity[2m > [22mdifferent signal action order diverges canonical state [33m1046[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessRestoreSafety.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 5957[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mscan: guard is rebuilt, no second command can be confirmed, receipt clears it [33m697[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mtoggle: guard is rebuilt, no second command can be confirmed, receipt clears it [33m657[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mdoes not delete other actors' queued commands (mixed player + echo scan) [33m603[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mtoggle: echoPendingLocal is readable, proposal is blocked, runSteps commits once [33m311[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mfromSimulationState keeps the SAME contract as restore/fromFrame [33m1107[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mreplay (which uses fromFrame internally) does not crash on a guarded frame [33m1320[2mms[22m[39m
+   [33m[2m✓[22m[39m R1/R2 — old frames and echo-less worlds stay compatible[2m > [22ma frame with no echo / no queued signal has a null guard everywhere [33m1030[2mms[22m[39m
+ [32m✓[39m src/ai-native/ownerAuth.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 189[2mms[22m[39m
+ [32m✓[39m src/ai-native/c3cOwnerFile.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 10832[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c owner file — A: ACL is current-user only[2m > [22mframe export and failure export are owner-only [33m2049[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c owner file — B: junction/symlink escape is rejected[2m > [22mrejects a symlink/junction under frames that points outside [33m980[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c owner file — B: junction/symlink escape is rejected[2m > [22ma plain file inside frames is accepted, the frames root itself is not [33m1621[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c owner file — C: budget is the full MCP result[2m > [22ma page near the byte budget is shrunk using the full-result accounting [33m4990[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c owner file — D: oversized file rejected before read[2m > [22mrejects a >16MiB frame file with a resource error (no parse) [33m1128[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessPlayerCrop.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 94677[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22mstep exposes NO canonicalState/canonicalEvents (Player) [33m419[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22man idempotent step replay does not leak owner data [33m405[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player output allowlist[2m > [22mDev keeps canonical + snapshot + inspect detail [33m1897[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player step boundaries[2m > [22mafter the encounter ends, a NEW Player step is rejected (replay still works) [33m486[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — Player step boundaries[2m > [22man old epoch is rejected; a same-id different payload is rejected [33m500[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — cross-step execution (shared duration rule)[2m > [22mstep10 keeps the action executing (10/110) and does NOT ACK applied [33m776[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — cross-step execution (shared duration rule)[2m > [22mstep10 + step110 equals one step120 canonically and in events [33m1395[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — cross-step execution (shared duration rule)[2m > [22ma queued stop preempts the ACTIVE action mid-flight [33m649[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — bounded request ledger[2m > [22man evicted response cannot re-advance an old requestId [33m27784[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — bounded request ledger[2m > [22mthe dedup set has a hard cap: new requests are rejected atomically when full [33m58588[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c fix — public events are perception-cropped[2m > [22ma Player step never returns drone-step / room-generated / hidden positions [33m428[2mms[22m[39m
+ [32m✓[39m src/world/sim/rewiring.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m src/world/sim/purchaseLedger.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 1372[2mms[22m[39m
+   [33m[2m✓[22m[39m purchase ledger determinism and bounded replay protection[2m > [22mledger is part of canonical state (same ledger => same future; different ledger => different canonical) [33m1318[2mms[22m[39m
+ [32m✓[39m src/systems/runCheckpoint.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m src/signal/relayRoutes.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 91[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessMcp.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 9678[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22mreal fire damage + encounter end through legal core ticks [33m441[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Player surface[2m > [22mstep request is idempotent; a different payload is rejected [33m414[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Dev surface[2m > [22mDev can create with an explicit seed and inspect RNG/ledger/map identity [33m1054[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Dev surface[2m > [22mDev load_room / spawn_enemies use REAL enemies and bump the epoch [33m1713[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Dev surface[2m > [22mDev snapshot/restore bumps the epoch and rejects the old one [33m2164[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c headless MCP manager — Dev surface[2m > [22mDev batch/compare/perf produce REAL results; Signal stays unsupported [33m2738[2mms[22m[39m
+ [32m✓[39m src/ai-native/p4.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 65[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessSnapshotBoundary.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 14323[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mrefuses a mid-execution snapshot without cancelling, ACKing or advancing [33m1769[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mrefuses a snapshot while an action is queued but not started [33m1054[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22ma completed boundary snapshot is restorable and restore bumps the epoch [33m2360[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mrestore rejects a frame without the boundary marker and a mid-execution session [33m2168[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mpost-restore subsequent actions match the same sequence without restore [33m3269[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mexportFailure marks a mid-execution bundle as NOT replayable [33m2404[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22minspect exposes manager execution state for diagnostics [33m1297[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldProtocol.test.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalLink.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/config/p1ScenarioLayout.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/ai-native/companionInsights.test.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m src/ai-native/companionBridge.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 194[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessHistoryReplay.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 5350[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — snapshot/restore/fromFrame isolation[2m > [22mmutating the input frame after restore does not change the live world [33m1378[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — snapshot/restore/fromFrame isolation[2m > [22mfromFrame is isolated from the input frame [33m307[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — replay baseline offset[2m > [22mreplays a MID-RUN boundary frame over the same interval (sameState/sameEvents) [33m753[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — replay baseline offset[2m > [22mtampering the baseline history is detected at the exact index [33m790[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — replay baseline offset[2m > [22ma different continuation is detected in the NEW segment, not at 0 [33m668[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — replay baseline offset[2m > [22ma tick0/start frame still replays all steps exactly [33m636[2mms[22m[39m
+ [32m✓[39m src/world/sim/signalState.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 915[2mms[22m[39m
+   [33m[2m✓[22m[39m optional core Signal device[2m > [22mabsent signal leaves the canonical projection byte-identical [33m665[2mms[22m[39m
+ [32m✓[39m src/ai-native/canonicalStability.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 4199[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — key order independence[2m > [22ma key-sorted rebuild of the same state has the same canonical string [33m673[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — key order independence[2m > [22mplayer data constructed in a different key order still hashes identically [33m482[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — precision and array order[2m > [22mpreserves full numeric precision (a tiny change is NOT rounded away) [33m390[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — precision and array order[2m > [22mdoes not reorder arrays (array order is part of the projection) [33m394[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — transport → restore round trip[2m > [22ma boundary frame sorted on the wire restores to the same state/events for the same actions [33m1459[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — transport → restore round trip[2m > [22ma numeric tamper in the frame is detected (no rounded/ignored diff) [33m799[2mms[22m[39m
+ [32m✓[39m src/ai-native/externalObservation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessFrameAuthored.test.ts [2m([22m[2m22 tests[22m[2m)[22m[33m 5683[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22man ordinary (non-demo) frame has no authored key and is accepted [33m715[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22ma P1 demo frame captured before the authored field existed still restores [33m416[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22ma valid demo frame restores the same route identity, once [33m492[2mms[22m[39m
+ [32m✓[39m src/world/sim/echoRoomTransition.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 532[2mms[22m[39m
+   [33m[2m✓[22m[39m ordinary portal transition moves the ECHO on the same tick[2m > [22mis deterministic: identical state + identical command => identical canonical state [33m507[2mms[22m[39m
+ [32m✓[39m src/ai-native/echo.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/ui/feedback.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldObservation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessStepChannel.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 2244[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c step channel — Player has no direct intent[2m > [22mrejects a direct intent with E_PERMISSION and does not advance/charge [33m449[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c step channel — Player has no direct intent[2m > [22ma step with no queued action is neutral: no movement and no fire [33m449[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c step channel — Player has no direct intent[2m > [22mact(move) + step produces real movement through the legal channel [33m476[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c step channel — Player has no direct intent[2m > [22mDev keeps a strict intent for fixture/replay [33m445[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c step channel — Player has no direct intent[2m > [22mDev still rejects a malformed intent (unknown/HP/over-speed), but over-speed is clamped [33m424[2mms[22m[39m
+ [32m✓[39m src/slice/corridorGuard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/config/supplies.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessEcho.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1988[2mms[22m[39m
+   [33m[2m✓[22m[39m HeadlessWorld echo[2m > [22mspawns the echo at the next committed tick and only moves with an echoIntent [33m599[2mms[22m[39m
+   [33m[2m✓[22m[39m HeadlessWorld echo[2m > [22mcanonical state includes the echo only after it exists [33m659[2mms[22m[39m
+   [33m[2m✓[22m[39m HeadlessWorld echo observation (shared projection)[2m > [22mincludes non-drone core targets and Boss public state, not hidden ones [33m462[2mms[22m[39m
+ [32m✓[39m src/ai-native/budget.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldPerception.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessHarness.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 9163[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c harness — deterministic combat regression[2m > [22mruns a REAL encounter and is reproducible for a fixed seed [33m923[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c harness — deterministic combat regression[2m > [22mbatch regression aggregates real per-seed outcomes [33m828[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c harness — deterministic combat regression[2m > [22mbaseline comparison is explicitly NOT an AI agent / NOT Signal Combat [33m2078[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c harness — REAL perf[2m > [22mruns 1000 ticks x 10 sessions of real combat (no empty scene) [33m3311[2mms[22m[39m
+   [33m[2m✓[22m[39m C3-c / P3-b harness — Signal[2m > [22mwith a real device it is supported and the batch drives REAL core state [33m2021[2mms[22m[39m
+ [32m✓[39m src/world/sim/targetRemoval.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 21[2mms[22m[39m
+ [32m✓[39m src/ai-native/c3bControl.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/ai-native/companionRoomBoundary.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 60[2mms[22m[39m
+ [32m✓[39m src/systems/SaveSystem.echoCoop.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/world/dungeon.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 426[2mms[22m[39m
+   [33m[2m✓[22m[39m sector dungeon[2m > [22mgenerates reachable maps with the right exit and at least one combat room [33m417[2mms[22m[39m
+ [32m✓[39m src/ai-native/echoView.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/slice/vs00.room.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m src/ai-native/c3cExportFlag.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 36592[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c export flag — boundary and mid-execution[2m > [22ma short boundary export is replayable with no truncation [33m1186[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c export flag — boundary and mid-execution[2m > [22ma mid-execution export is NOT replayable even when not truncated [33m1062[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c export flag — boundary and mid-execution[2m > [22ma boundary export with TRUNCATED history is NOT replayable and says so [33m18169[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c export flag — boundary and mid-execution[2m > [22ma truncated snapshot still carries the exact truncation flag (history vs state) [33m16170[2mms[22m[39m
+ [32m✓[39m src/world/actorTarget.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m73 passed[39m[22m[90m (73)[39m
+[2m      Tests [22m [1m[32m859 passed[39m[22m[90m (859)[39m
+[2m   Start at [22m 17:36:03
+[2m   Duration [22m 164.11s[2m (transform 2.09s, setup 0ms, collect 13.87s, tests 282.23s, environment 15ms, prepare 8.97s)[22m
+
+exit_code=0
+finished=2026-11-18T16:38:47Z
+node_processes_end=3  cpu_load_pct_end=23

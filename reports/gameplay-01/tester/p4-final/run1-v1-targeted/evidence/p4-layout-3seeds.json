@@ -1,0 +1,206 @@
+{
+  "runner": "agent (real menu entry per seed)",
+  "fixtures": [
+    "seed override (menu start wrapper)"
+  ],
+  "jamRange": 6,
+  "rows": [
+    {
+      "seed": 20261117,
+      "roomId": 0,
+      "startRoomId": 0,
+      "relay": {
+        "x": 11.5,
+        "y": 48.5
+      },
+      "playerStart": {
+        "x": 8.5,
+        "y": 45.5
+      },
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "portal": {
+            "x": 11.5,
+            "y": 49.5
+          }
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "portal": {
+            "x": 11.5,
+            "y": 47.5
+          }
+        }
+      ],
+      "spawnRelay": 4.242640687119286,
+      "relayToA": 1,
+      "relayToB": 1,
+      "routeSeparation": 2,
+      "drones": 2,
+      "headless": {
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 48.5,
+          "deviceId": "relay_main",
+          "roomId": 0,
+          "relay": "ACTIVE"
+        },
+        "routes": [
+          {
+            "target": 1,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 2,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "seed": 20261118,
+      "roomId": 0,
+      "startRoomId": 0,
+      "relay": {
+        "x": 11.5,
+        "y": 47.5
+      },
+      "playerStart": {
+        "x": 8.5,
+        "y": 45.5
+      },
+      "routes": [
+        {
+          "target": 2,
+          "when": "RELAY_ACTIVE",
+          "portal": {
+            "x": 11.5,
+            "y": 49.5
+          }
+        },
+        {
+          "target": 5,
+          "when": "RELAY_INACTIVE",
+          "portal": {
+            "x": 12.5,
+            "y": 45.5
+          }
+        }
+      ],
+      "spawnRelay": 3.6055512754639896,
+      "relayToA": 2,
+      "relayToB": 2.23606797749979,
+      "routeSeparation": 4.123105625617661,
+      "drones": 2,
+      "headless": {
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 47.5,
+          "deviceId": "relay_main",
+          "roomId": 0,
+          "relay": "ACTIVE"
+        },
+        "routes": [
+          {
+            "target": 2,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 5,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "seed": 20261119,
+      "roomId": 0,
+      "startRoomId": 0,
+      "relay": {
+        "x": 11.5,
+        "y": 46.5
+      },
+      "playerStart": {
+        "x": 8.5,
+        "y": 45.5
+      },
+      "routes": [
+        {
+          "target": 5,
+          "when": "RELAY_ACTIVE",
+          "portal": {
+            "x": 12.5,
+            "y": 45.5
+          }
+        },
+        {
+          "target": 3,
+          "when": "RELAY_INACTIVE",
+          "portal": {
+            "x": 11.5,
+            "y": 47.5
+          }
+        }
+      ],
+      "spawnRelay": 3.1622776601683795,
+      "relayToA": 1.4142135623730951,
+      "relayToB": 1,
+      "routeSeparation": 2.23606797749979,
+      "drones": 2,
+      "headless": {
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 46.5,
+          "deviceId": "relay_main",
+          "roomId": 0,
+          "relay": "ACTIVE"
+        },
+        "routes": [
+          {
+            "target": 5,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          },
+          {
+            "target": 3,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "parity": "Headless demo scenario cells/identity equal the rendered ones for every seed",
+  "shot": "D:\\tmp\\ls-p4-v1\\.p4logs\\p4-v1\\shots\\p4-layout-3seeds.png"
+}

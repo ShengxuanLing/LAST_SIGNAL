@@ -1,0 +1,7 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d PORT=5199 isolated re-run of the ONE failing test on identical bytes (ai-native-world.spec.ts:272) 2026-11-18T21:55:04Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+  1 passed (46.6s)
+EXIT=0

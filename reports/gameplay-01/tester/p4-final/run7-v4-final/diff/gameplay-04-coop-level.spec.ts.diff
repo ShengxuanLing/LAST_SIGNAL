@@ -1,0 +1,62 @@
+--- /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run7-v4-final/before-spec/gameplay-04-coop-level.spec.ts	2026-11-18 22:24:31.568735700 +0100
++++ /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run7-v4-final/after-spec/gameplay-04-coop-level.spec.ts	2026-11-18 22:24:31.660565400 +0100
+@@ -567,7 +567,10 @@
+       commitBatchTicks: idx < 0 ? null : sf[idx].ticks,
+       queueBeforeCommitOrder: queueBeforeCommit,
+       queueAfterCommit,
+-      queueHeldMoreThanOneBatch: idx >= 0 && sf.slice(0, idx).some((b: any) => (b.queueBefore ?? []).length > 0),
++      // Only a batch that actually PROCESSED a tick can drain the queue; a 0-tick
++      // frame legitimately keeps the command queued, so it must not count.
++      queueHeldMoreThanOneBatch: idx >= 0 && sf.slice(0, idx).some((b: any) => b.ticks > 0 && (b.queueBefore ?? []).length > 0),
++      batchesWithTicks: sf.filter((b: any) => b.ticks > 0).length,
+       batches: sf
+     };
+   }, { from: sf0, type: proposal.kind === 'scan' ? 'signal-scanned' : 'signal-jammed' });
+@@ -762,9 +765,12 @@
+       try {
+         await page.waitForFunction((from: number) => {
+           const sf = ((window as any).__p4sf ?? []).slice(from) as any[];
+-          const jamEvent = sf.some((b) => b.ev.some((e: string) => e.startsWith('signal-jammed')));
+-          // the tick actually advanced inside a processed stepFrame AND the event exists
+-          return jamEvent && sf.some((b) => b.ticks > 0);
++          const jamJams = sf.reduce((n: number, b: any) => n + b.ev.filter((e: string) => e.startsWith('signal-jammed')).length, 0);
++          // ONE committed jam, in a batch that actually processed a tick AND whose
++          // queue already held the player's signal-jam command (same-batch drain).
++          const sameBatch = sf.some((b: any) => b.ev.some((e: string) => e.startsWith('signal-jammed'))
++            && b.ticks > 0 && (b.queueBefore ?? []).includes('signal-jam'));
++          return jamJams === 1 && sameBatch;
+         }, sf0, { timeout: 5000 });
+       } catch (e: any) {
+         const trace = await page.evaluate((from: number) => ((window as any).__p4sf ?? []).slice(from), sf0);
+@@ -863,11 +869,30 @@
+         // audit "applied" row is stamped after the "enqueued" row. The sim.tick
+         // gap can exceed 1 only because one frame may advance several fixed ticks.
+         expect(receiptTicks!, `the receipt is after the confirmation (measured ${receiptTicks} tick(s))`).toBeGreaterThanOrEqual(1);
++        // EVIDENCE-BASED next-core-tick identity (review P4_TEST_REVIEW §8.3):
++        // the audit `enqueued` tick is the START of the draining batch (World.ts
++        // 797-800), processCommands drains the whole queue on that batch's first
++        // tick (core.ts 518-521, 1371), and the audit `applied` row is stamped at
++        // the batch END (World.ts 1899, 2021-2026). Therefore:
++        //   firstBatchWithCommit === the first batch that processed a tick after
++        //   the confirmation, and receiptTicks === that batch's tick count.
+         expect(echo.receiptSemantics, 'the stepFrame trace around the confirmation exists').not.toBeNull();
++        const enq = enqueuedRow!.tick;
++        const firstProcessing = echo.receiptSemantics!.batches.findIndex(
++          (b: any) => b.ticks > 0 && b.t0 >= enq);
++        expect(firstProcessing, 'a stepFrame processed a tick after the confirmation').toBeGreaterThanOrEqual(0);
++        expect(echo.receiptSemantics!.firstBatchWithCommit,
++          'the command is drained by the FIRST batch that processes a tick after the confirmation')
++          .toBe(firstProcessing);
++        expect(receiptTicks, 'the applied row is stamped at the END of the draining batch (batch tick count)')
++          .toBe(echo.receiptSemantics!.commitBatchTicks);
+         expect(echo.receiptSemantics!.commitBatchTicks,
+           'the committing stepFrame processed at least one tick (the command was drained, not deferred)').toBeGreaterThanOrEqual(1);
++        // Architectural bound: one frame can never advance more ticks than the
++        // core catch-up cap (src/world/sim/core.ts SIM_TUNING.MAX_TICKS_PER_FRAME = 15).
++        expect(echo.receiptSemantics!.commitBatchTicks!, 'the draining batch respects the core catch-up cap (<= 15)').toBeLessThanOrEqual(15);
+         expect(echo.receiptSemantics!.queueHeldMoreThanOneBatch,
+-          'the queued command never survives a whole stepFrame batch before committing').toBe(false);
++          'the queued command never survives a PROCESSING batch before committing (0-tick frames excluded)').toBe(false);
+         expect(echo.receiptSemantics!.queueBeforeCommitOrder,
+           'the trace shows the core queue holding exactly this command in the committing batch').toEqual([echo.proposal!.kind === 'scan' ? 'signal-scan' : 'signal-jam']);
+         // The action's OWN event: exactly one commit, exact cost from the payload.

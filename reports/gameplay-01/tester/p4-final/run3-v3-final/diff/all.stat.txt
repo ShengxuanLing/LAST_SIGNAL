@@ -1,0 +1,41 @@
+ .../c2-fixes-round2/parity-kill/kill-initial.json  |   4 +-
+ .../c2-fixes-round2/parity-kill/kill-rendered.json |   6 +-
+ reports/ai-native-02/c2/parity/parity-initial.json |   4 +-
+ .../ai-native-02/c2/parity/parity-rendered.json    |   6 +-
+ reports/ai-native-02/c3c/parity/rendered.json      |   6 +-
+ .../evidence/ai-active-hud-1280x720.png            | Bin 301088 -> 405959 bytes
+ reports/ai-native-02/evidence/ai-run-00.png        | Bin 256247 -> 531422 bytes
+ reports/ai-native-02/evidence/ai-run-03.png        | Bin 307388 -> 526300 bytes
+ reports/ai-native-02/evidence/ai-run-06.png        | Bin 309177 -> 398950 bytes
+ reports/ai-native-02/evidence/ai-run-09.png        | Bin 281446 -> 334413 bytes
+ reports/ai-native-02/evidence/ai-run-12.png        | Bin 283093 -> 515855 bytes
+ reports/ai-native-02/evidence/ai-run-15.png        | Bin 303700 -> 489200 bytes
+ reports/ai-native-02/evidence/ai-run-18.png        | Bin 279380 -> 421333 bytes
+ .../evidence/c1-rendered-rules-1280x720.png        | Bin 251053 -> 462404 bytes
+ .../evidence/death-ownership-1280x720.png          | Bin 222791 -> 223958 bytes
+ reports/ai-native-02/evidence/hud-ai-1024x768.png  | Bin 260606 -> 330083 bytes
+ reports/ai-native-02/evidence/hud-ai-1280x720.png  | Bin 306728 -> 329337 bytes
+ reports/ai-native-02/evidence/hud-ai-1366x768.png  | Bin 386251 -> 471707 bytes
+ reports/ai-native-02/evidence/hud-ai-1920x1080.png | Bin 630303 -> 938585 bytes
+ reports/ai-native-02/evidence/hud-ai-800x600.png   | Bin 163000 -> 220773 bytes
+ .../ai-native-02/evidence/hud-human-1280x720.png   | Bin 248840 -> 452750 bytes
+ .../evidence/levelup-ai-paused-1280x720.png        | Bin 161624 -> 245344 bytes
+ .../operation-log-c1-rendered-rules-1280x720.json  |  22 +-
+ .../operation-log-control-flow-1280x720.json       | 530 +++++++++++----------
+ .../evidence/operation-log-hud-1024x768.json       | 145 +++---
+ .../evidence/operation-log-hud-1280x720.json       | 149 +++---
+ .../evidence/operation-log-hud-1366x768.json       | 145 +++---
+ .../evidence/operation-log-hud-1920x1080.json      | 145 +++---
+ .../evidence/operation-log-hud-800x600.json        | 147 +++---
+ .../operation-log-overlay-ownership-1280x720.json  |   6 +-
+ .../evidence/pause-ai-entry-1280x720.png           | Bin 183370 -> 217451 bytes
+ .../evidence/pause-ai-off-1280x720.png             | Bin 223317 -> 211698 bytes
+ src/ai-native/worldHeadless.ts                     | 226 ++++++++-
+ src/config/p1Scenario.ts                           | 192 +++++++-
+ src/signal/relay.ts                                |  11 +
+ src/signal/relayRoutes.test.ts                     | 167 ++++++-
+ src/world/World.ts                                 | 152 +++---
+ src/world/sim/core.ts                              |  59 ++-
+ tests/gameplay-01.spec.ts                          | 280 ++++++++---
+ tests/gameplay-02-echo-coop.spec.ts                |   7 +
+ 40 files changed, 1601 insertions(+), 808 deletions(-)

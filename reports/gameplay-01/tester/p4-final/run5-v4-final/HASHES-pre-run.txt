@@ -1,0 +1,41 @@
+## PRE-RUN FREEZE — v4 final byte state, taken BEFORE the full chain runs
+tree=/d/tmp/ls-p4-v4   HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d
+manifest=.../p4-recovery/manifest.v4.json sha256=bfafe0891149284b47cddf911604cb330d9fa6d5354dcbea3e4dd7388766f3ac
+frozen_world_sha=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64  (manifest 349544bf…)
+
+--- tester spec bytes used for the full run (sha256 | archived copy identical)
+  tests/gameplay-01.spec.ts                  a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743  archived_identical=True
+  tests/gameplay-02-echo-coop.spec.ts        5369049539b8d8b802cf285eabcfd105098678f47991d3535123eb3c1b96648e  archived_identical=True
+  tests/gameplay-04-coop-level.spec.ts       8ccc3b2953081b691472e401ef014d66cc328c76cef52b4cb7b17430680e6904  archived_identical=True
+  tests/gameplay-04-headless-restore.spec.ts 22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55  archived_identical=True
+
+--- source bytes (sha256 | archived identical | equals manifest)
+  src/world/sim/core.ts                          f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6  archived=True  manifest=True
+  src/config/p1Scenario.ts                       76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7  archived=True  manifest=True
+  src/ai-native/worldHeadless.ts                 7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316  archived=True  manifest=True
+  src/world/World.ts                             349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64  archived=True  manifest=True
+  src/signal/relay.ts                            6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89  archived=True  manifest=True
+  src/signal/relayRoutes.test.ts                 097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423  archived=True  manifest=True
+  src/ai-native/worldHeadlessDemoRoute.test.ts   11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4  archived=True  manifest=True
+  src/config/p1ScenarioLayout.test.ts            8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6  archived=True  manifest=True
+  src/ai-native/worldHeadlessFrameAuthored.test.ts 93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21  archived=True  manifest=True
+  src/ai-native/worldHeadlessRestoreSafety.test.ts ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652  archived=True  manifest=True
+
+--- unchanged files: tests/uiNav.ts=1cc431ab756ff56f  tests/ui-menu-layout.spec.ts=8aa12c9eda2840c8  playwright.config.ts=df6fcc565c57af53  tests/gameplay-03-feedback.spec.ts=d446a76835602361
+--- no spec imports a project helper (all tester specs are self-contained)
+--- rule for this run: the byte set above is frozen; no test or evidence edit is allowed inside the full chain.
+
+## Amendment before the (final) full run
+The interrupted attempt (full-e2e-final.log, killed by the harness 1800s cap) produced one REAL test-basis failure:
+P4 seed 20261119 HumanEcho -> "receipt lands on the next processed core tick (measured 1-2; got 3)".
+The fixed 1-2 gap was load-sensitive (one frame can step several fixed ticks); the assertion now requires
+receipt AFTER confirm + exactly one commit + no extra input, and records the measured gap.
+P4 spec sha256 is therefore 8ccc3b2953081b691472e401ef014d66cc328c76cef52b4cb7b17430680e6904 for the final full run (previous 839e91fb produced run4 and the interrupted run).
+
+## POST-RUN final hashes (v4, run5)
+
+  tests/gameplay-01.spec.ts                    a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743  archived_identical=True
+  tests/gameplay-02-echo-coop.spec.ts          5369049539b8d8b802cf285eabcfd105098678f47991d3535123eb3c1b96648e  archived_identical=True
+  tests/gameplay-04-coop-level.spec.ts         8ccc3b2953081b691472e401ef014d66cc328c76cef52b4cb7b17430680e6904  archived_identical=True
+  tests/gameplay-04-headless-restore.spec.ts   22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55  archived_identical=True
+  src/world/World.ts                           349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64  (manifest 349544bf…)

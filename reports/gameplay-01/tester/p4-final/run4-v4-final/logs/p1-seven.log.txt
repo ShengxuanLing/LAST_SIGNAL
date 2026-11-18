@@ -1,0 +1,16 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d spec=tests/gameplay-01.spec.ts sha256=a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743 PORT=5199 2026-11-18T15:37:10Z
+
+Running 7 tests using 1 worker
+
+[1/7] [chromium] › tests\gameplay-01.spec.ts:343:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 1) real menu entry: relay ACTIVE, linked drones, T/Y costs and jam expiry
+[2/7] [chromium] › tests\gameplay-01.spec.ts:493:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 2) route A reached by real walking + F after real combat (no teleport, no rescue)
+[3/7] [chromium] › tests\gameplay-01.spec.ts:527:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 3) route B: manual relay OFF (R) selects the other authored route
+[4/7] [chromium] › tests\gameplay-01.spec.ts:557:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 4) the door is naturally jam-usable (exact cost) and a JAMMED route cannot be passed
+[5/7] [chromium] › tests\gameplay-01.spec.ts:778:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 5) save -> page reload -> CONTINUE restores room, relay and route target
+[6/7] [chromium] › tests\gameplay-01.spec.ts:807:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 6) seeds 20261117/18/19 all set up a real playable authored layout
+[7/7] [chromium] › tests\gameplay-01.spec.ts:862:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 7) HUD + menu at five viewports: readable font, no clipped / unexpected overlap
+[chromium] › tests\gameplay-01.spec.ts:862:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 7) HUD + menu at five viewports: readable font, no clipped / unexpected overlap
+P1_METRICS D:\tmp\ls-p4-v4\.p4logs\p1\evidence\p1-acceptance.json
+
+  7 passed (1.5m)
+EXIT=0

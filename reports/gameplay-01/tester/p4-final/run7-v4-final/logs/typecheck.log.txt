@@ -1,0 +1,6 @@
+## Gate R7-1 — unfiltered typecheck (no source change since v4 freeze)
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d World_sha=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+command=npx tsc --noEmit
+started=2026-11-18T21:24:59Z
+exit_code=0
+finished=2026-11-18T21:25:09Z

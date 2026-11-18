@@ -1,0 +1,22 @@
+{
+  "probe": "fromFrame with a pending local action",
+  "seed": 20261117,
+  "row": {
+    "seed": 20261117,
+    "error": null,
+    "projectionError": "TypeError: Cannot read properties of undefined (reading 'restoredPendingKind')",
+    "loadedRouteState": {
+      "roomId": 0,
+      "roomCleared": false,
+      "relay": "ACTIVE",
+      "target": 1,
+      "portal": null,
+      "playerAtPortal": false,
+      "completed": false
+    },
+    "projected": null,
+    "frameQueue": [
+      "signal-scan"
+    ]
+  }
+}

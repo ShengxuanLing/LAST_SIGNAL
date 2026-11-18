@@ -1,0 +1,230 @@
+--- /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run6-v4-inputs/before-spec/gameplay-04-coop-level.spec.ts	2026-11-18 20:36:19.116456700 +0100
++++ /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run6-v4-inputs/after-spec/gameplay-04-coop-level.spec.ts	2026-11-18 20:47:17.170818900 +0100
+@@ -272,6 +272,76 @@
+ }
+ 
+ // ---------------------------------------------------------------------------
++// input-consumption diagnostics (read-only): which stepFrame actually processed
++// the ticks, so a key edge can be judged by simulation progress, not by sleep.
++// ---------------------------------------------------------------------------
++
++/** Per-stepFrame trace: ticks processed, queue before/after, signal events emitted. */
++async function installStepTrace(page: Page): Promise<void> {
++  await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    if ((w as any).__p4sfTap) return;
++    (window as any).__p4sf = [];
++    const orig = w.stepFrame.bind(w);
++    w.stepFrame = (dt: number, intent: any, echoIntent?: any) => {
++      const t0 = w.sim.tick;
++      const queueBefore = (w.sim.pendingCommands ?? []).map((c: any) => c.type);
++      const energyBefore = w.signalView?.()?.playerEnergy ?? null;
++      const ev = orig(dt, intent, echoIntent) ?? [];
++      const t1 = w.sim.tick;
++      (window as any).__p4sf.push({
++        t0, t1, ticks: t1 - t0, queueBefore,
++        queueAfter: (w.sim.pendingCommands ?? []).map((c: any) => c.type),
++        energyBefore, energyAfter: w.signalView?.()?.playerEnergy ?? null,
++        ev: ev.map((e: any) => `${e.type}${e.actorId !== undefined ? '#' + e.actorId : ''}`),
++        loopFrame: (window as any).__game?.loop?.frame ?? null
++      });
++      return ev;
++    };
++    (w as any).__p4sfTap = true;
++  });
++}
++
++/** Everything the core checks for a HUMAN jam, read from the real world state. */
++async function jamPreconditions(page: Page) {
++  return page.evaluate(() => {
++    const g: any = (window as any).__game;
++    const gs: any = g.scene.getScene('GameScene');
++    const w: any = gs?.world;
++    if (!w) return { ok: false, checks: { world: false } };
++    const sv: any = w.signalView?.() ?? null;
++    const sc: any = w.p1Scenario;
++    const relay = sc?.relay;
++    const dist = relay ? Math.hypot(w.player.wx - relay.x, w.player.wy - relay.y) : null;
++    // LOS exactly like the core: sample the segment at 0.25 with radius 0.5.
++    let los = false;
++    if (relay) {
++      const samples = Math.max(1, Math.ceil(dist! / 0.25));
++      los = true;
++      for (let i = 1; i <= samples; i += 1) {
++        const t = i / samples;
++        if (!w.isWalkable(w.player.wx + (relay.x - w.player.wx) * t, w.player.wy + (relay.y - w.player.wy) * t, 0.5)) { los = false; break; }
++      }
++    }
++    const activeScenes = g.scene.getScenes(true).map((s: any) => s.sys.settings.key);
++    const checks = {
++      gameSceneActive: g.scene.isActive('GameScene'),
++      onlyGameScene: activeScenes.length === 1 && activeScenes[0] === 'GameScene',
++      notPaused: gs.paused === false,
++      notLevelUp: gs.levelUpActive === false,
++      world: !!w,
++      camera: !!gs.cameras?.main,
++      relayActive: sv?.relay === 'ACTIVE',
++      jamCDzero: sv?.playerJamCD === 0,
++      energyEnough: (sv?.playerEnergy ?? 0) >= 25,
++      inRange: dist !== null && dist <= 6,
++      lineOfSight: los
++    };
++    return { ok: Object.values(checks).every(Boolean), checks, distance: dist, energy: sv?.playerEnergy ?? null, activeScenes };
++  });
++}
++
++// ---------------------------------------------------------------------------
+ // real play
+ // ---------------------------------------------------------------------------
+ 
+@@ -457,6 +527,8 @@
+   if (!proposal) return { proposal: null, accepted: false, applied: false, before, beforeApply, commit: null, audit: [] as any[] };
+   // Only the events produced by THIS confirmation are considered.
+   await page.evaluate(() => { (window as any).__p4Batches = []; });
++  await installStepTrace(page);
++  const sf0 = await page.evaluate(() => ((window as any).__p4sf ?? []).length);
+   const accepted = await page.evaluate((id: string) => {
+     const w: any = (window as any).__game.scene.getScene('GameScene').world;
+     return !!w.confirmLocalEchoProposal(id);
+@@ -476,13 +548,36 @@
+   // delta is never used as the cost.
+   const commit = proposal.kind === 'scan' ? await signalCommitAny(page, 'signal-scanned')
+     : await signalCommitAny(page, 'signal-jammed');
++  // Receipt semantics: WHICH stepFrame processed the consuming tick, how many
++  // ticks each batch advanced, and what the core queue looked like around it.
++  // This separates "core executed late" from "UI/audit stamped late".
++  const sfTrace = await page.evaluate((from: number) => ((window as any).__p4sf ?? []).slice(from), sf0);
++  const receiptSemantics = await page.evaluate(({ from, type }: any) => {
++    const sf = ((window as any).__p4sf ?? []).slice(from) as any[];
++    const idx = sf.findIndex((b) => b.ev.some((e: string) => e.startsWith(type)));
++    const ticksUntil = idx < 0 ? null : sf.slice(0, idx + 1).reduce((n: number, b: any) => n + b.ticks, 0);
++    const queueBeforeCommit = idx < 0 ? null : sf[idx].queueBefore;
++    const queueAfterCommit = idx < 0 ? null : sf[idx].queueAfter;
++    return {
++      batchCount: sf.length,
++      firstBatchWithCommit: idx,
++      ticksUntilCommit: ticksUntil,
++      // ticks advanced in the batch that actually drained the queue: this is the
++      // "next processed core tick" evidence (the pre-confirm batch is not part of it)
++      commitBatchTicks: idx < 0 ? null : sf[idx].ticks,
++      queueBeforeCommitOrder: queueBeforeCommit,
++      queueAfterCommit,
++      queueHeldMoreThanOneBatch: idx >= 0 && sf.slice(0, idx).some((b: any) => (b.queueBefore ?? []).length > 0),
++      batches: sf
++    };
++  }, { from: sf0, type: proposal.kind === 'scan' ? 'signal-scanned' : 'signal-jammed' });
+   const commitCount = await page.evaluate((t: string) => {
+     const batches = ((window as any).__p4Batches ?? []) as any[];
+     let n = 0;
+     for (const b of batches) for (const e of b.ev as any[]) if (e.type === t) n += 1;
+     return n;
+   }, proposal.kind === 'scan' ? 'signal-scanned' : 'signal-jammed');
+-  return { proposal, accepted, applied, audit, before, beforeApply, after, commit, commitCount };
++  return { proposal, accepted, applied, audit, before, beforeApply, after, commit, commitCount, receiptSemantics };
+ }
+ 
+ // ---------------------------------------------------------------------------
+@@ -652,10 +747,43 @@
+       const playerToRelay = Math.hypot(atDoor!.player.x - atDoor!.scenario!.relay.x, atDoor!.player.y - atDoor!.scenario!.relay.y);
+       expect(playerToRelay, 'the player standing on the door is in jam range').toBeLessThanOrEqual(TUNE.JAM_RANGE);
+       await page.evaluate(() => { (window as any).__p4Batches = []; }); // only this jam
+-      await tapKey(page, 'KeyY');
+-      await page.waitForTimeout(500);
++
++      // --- real Y edge, judged by SIMULATION CONSUMPTION, not by a sleep ---
++      // Preconditions first: everything the core will check (scene/pause/overlay,
++      // range, LOS, cooldown, energy). Then ONE keydown held until the stepFrame
++      // trace shows the tick ran and the jam event committed; keyup happens only
++      // after a further real frame so the two edges never share a Phaser frame.
++      const jamPre = await jamPreconditions(page);
++      expect(jamPre.ok, `jam preconditions must hold before pressing Y: ${JSON.stringify(jamPre.checks)}`).toBe(true);
++      await installStepTrace(page);
++      const sf0 = await page.evaluate(() => ((window as any).__p4sf ?? []).length);
++      let consumed: any = null;
++      await page.keyboard.down('KeyY');
++      try {
++        await page.waitForFunction((from: number) => {
++          const sf = ((window as any).__p4sf ?? []).slice(from) as any[];
++          const jamEvent = sf.some((b) => b.ev.some((e: string) => e.startsWith('signal-jammed')));
++          // the tick actually advanced inside a processed stepFrame AND the event exists
++          return jamEvent && sf.some((b) => b.ticks > 0);
++        }, sf0, { timeout: 5000 });
++      } catch (e: any) {
++        const trace = await page.evaluate((from: number) => ((window as any).__p4sf ?? []).slice(from), sf0);
++        rec(`p4-jam-input-timeout-${seed}-${mode}`, { pre: jamPre, trace, snapshot: await snap(page) });
++        throw new Error(`Y was not consumed by the simulation within the bounded wait: ${e?.message}; trace=${JSON.stringify(trace)}`);
++      } finally {
++        const f0 = await page.evaluate(() => (window as any).__game?.loop?.frame ?? -1);
++        await page.waitForFunction((f: number) => ((window as any).__game?.loop?.frame ?? f) > f, f0, { timeout: 4000 });
++        await page.keyboard.up('KeyY');
++      }
++      const sfTrace = await page.evaluate((from: number) => ((window as any).__p4sf ?? []).slice(from), sf0);
+       const jammed = await snap(page);
+       const jamCommit = await signalCommit(page, 'signal-jammed', 0);
++      consumed = {
++        pre: jamPre,
++        stepFrames: sfTrace,
++        ticksBeforeEvent: sfTrace.findIndex((b: any) => b.ev.some((x: string) => x.startsWith('signal-jammed'))),
++        totalTicks: sfTrace.reduce((n: number, b: any) => n + b.ticks, 0)
++      };
+       expect(jamCommit, 'the door jam committed a signal-jammed event').not.toBeNull();
+       expect(jamCommit!.ok, 'the core accepted the door jam (range + LOS)').toBe(true);
+       expect(jamCommit!.before! - jamCommit!.energy!, `the jam deducts exactly ${TUNE.JAM_COST} (event payload)`).toBe(TUNE.JAM_COST);
+@@ -695,6 +823,11 @@
+         const enqueuedRow = echo.audit!.find((a: any) => a.result === 'enqueued');
+         const appliedRow = echo.audit!.find((a: any) => a.result === 'applied');
+         const receiptTicks = enqueuedRow && appliedRow ? appliedRow.tick - enqueuedRow.tick : null;
++        rec(`p4-receipt-diag-${seed}-${mode}`, {
++          runner: 'agent', fixtures,
++          audit: echo.audit, commit: echo.commit, commitCount: echo.commitCount,
++          receiptSemantics: echo.receiptSemantics, beforeApplyTick: echo.beforeApply!.tick, afterTick: echo.after!.tick
++        });
+         echoEnergyFacts = {
+           confirmTick: enqueuedRow ? enqueuedRow.tick : null,
+           receiptTick: appliedRow ? appliedRow.tick : null,
+@@ -705,7 +838,16 @@
+           eventEnergy: echo.commit ? echo.commit.energy : null,
+           actualCost: echo.commit ? (echo.commit.pre! - echo.commit.energy!) : null,
+           netPlayerDelta: echo.beforeApply!.energy!.player - echo.after!.energy!.player,
+-          commitsInWindow: echo.commitCount
++          commitsInWindow: echo.commitCount,
++          auditEnqueuedTick: enqueuedRow ? enqueuedRow.tick : null,
++          auditAppliedTick: appliedRow ? appliedRow.tick : null,
++          commitEventBatchTick: echo.commit ? echo.commit.batchTick : null,
++          ticksUntilCommitBatchCounted: echo.receiptSemantics ? echo.receiptSemantics.ticksUntilCommit : null,
++          commitBatchTicks: echo.receiptSemantics ? echo.receiptSemantics.commitBatchTicks : null,
++          firstBatchWithCommit: echo.receiptSemantics ? echo.receiptSemantics.firstBatchWithCommit : null,
++          queueBeforeCommit: echo.receiptSemantics ? echo.receiptSemantics.queueBeforeCommitOrder : null,
++          queueHeldAcrossBatches: echo.receiptSemantics ? echo.receiptSemantics.queueHeldMoreThanOneBatch : null,
++          stepFrameBatches: echo.receiptSemantics ? echo.receiptSemantics.batches : null
+         };
+         expect(enqueuedRow, 'the confirmation itself is recorded for this proposal').toBeTruthy();
+         expect(appliedRow, 'the receipt is recorded for the same proposal').toBeTruthy();
+@@ -715,7 +857,19 @@
+         // build, larger under host load because one frame can step several fixed
+         // ticks), so the measured value is recorded and the invariant asserted is
+         // ordering + single commit, never a hard-coded gap.
++        // EVIDENCE-BASED next-core-tick semantics (not "any later"): the command
++        // is drained by the FIRST stepFrame that advances a simulation tick after
++        // the confirmation (the raw trace shows the queue in that batch), and the
++        // audit "applied" row is stamped after the "enqueued" row. The sim.tick
++        // gap can exceed 1 only because one frame may advance several fixed ticks.
+         expect(receiptTicks!, `the receipt is after the confirmation (measured ${receiptTicks} tick(s))`).toBeGreaterThanOrEqual(1);
++        expect(echo.receiptSemantics, 'the stepFrame trace around the confirmation exists').not.toBeNull();
++        expect(echo.receiptSemantics!.commitBatchTicks,
++          'the committing stepFrame processed at least one tick (the command was drained, not deferred)').toBeGreaterThanOrEqual(1);
++        expect(echo.receiptSemantics!.queueHeldMoreThanOneBatch,
++          'the queued command never survives a whole stepFrame batch before committing').toBe(false);
++        expect(echo.receiptSemantics!.queueBeforeCommitOrder,
++          'the trace shows the core queue holding exactly this command in the committing batch').toEqual([echo.proposal!.kind === 'scan' ? 'signal-scan' : 'signal-jam']);
+         // The action's OWN event: exactly one commit, exact cost from the payload.
+         expect(echo.proposal!.kind, 'the proposal in this state is a scan (observed on all three seeds)').toBe('scan');
+         expect(echo.commit, 'the confirmed scan produced its own signal-scanned event').not.toBeNull();
+@@ -767,6 +921,7 @@
+         cleared: { fight, mapFlag: afterFight!.mapCleared, spawned: afterFight!.roomFlags!.spawned, coreClearEvents: clearEvents.length, liveDrones: afterFight!.liveDrones },
+         headless: hl.result,
+         jam: { commit: jamCommit, netDelta: netJamDelta, state: jammed!.relay!.state, portal: jammed!.portal, routeTarget: jammed!.routeTarget },
++        jamInput: consumed,
+         afterF: { room: afterF!.room!.id, unchanged: afterF!.room!.id === jammed!.room!.id },
+         recovered: { relay: recovered!.relay!.state, portal: recovered!.portal, routeTarget: recovered!.routeTarget, tickDelta: recovered!.tick - tickAtJam },
+         spriteToInteractionPx: spriteOff,

@@ -1,0 +1,7 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d P2_sha=fa4c65b068bb203af2698a15bd420944ffffe0ce392d1f4fdd5e1db4e34051f1 PORT=5199 case='7) real save + reload' (tick-driven clearRoom, 120s wall budget unchanged) 2026-11-18T19:39:31Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-02-echo-coop.spec.ts:652:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1 passed (15.9s)
+EXIT=0

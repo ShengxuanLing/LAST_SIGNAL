@@ -1,0 +1,15 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d spec=tests/gameplay-04-coop-level.spec.ts sha256=839e91fb99bd5865e13feb850e04fa5de478cb8ef9d9188340ace9ba0ba270b7 PORT=5199 2026-11-18T15:34:39Z
+
+Running 9 tests using 1 worker
+
+[1/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261117 · HumanOnly: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[2/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261117 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[3/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261118 · HumanOnly: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[4/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261118 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[5/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261119 · HumanOnly: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[6/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[7/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:796:1 › P4 · rejected proposal and a no-connection sample still leave a legal route
+[8/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:855:1 › P4 · checkpoint reload re-derives the route; raw frame replay keeps authored identity
+[9/9] [chromium] › tests\gameplay-04-coop-level.spec.ts:955:1 › P4 · three seeds produce valid, distinct authored layouts (World and Headless agree)
+  9 passed (2.5m)
+EXIT=0

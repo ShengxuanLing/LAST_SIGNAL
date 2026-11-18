@@ -1,0 +1,28 @@
+workdir=/d/tmp/ls-p4-v4 P4_sha=6a8085f521b32278ae9a840e975fd813d8789d9f0bbf1725ddb7c6958d2bb0ba PORT=5199 one iteration with pre-assert receipt diagnostics 2026-11-18T19:43:50Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-04-coop-level.spec.ts:671:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+  1) [chromium] › tests\gameplay-04-coop-level.spec.ts:671:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Matcher error: received value must be a number or bigint
+
+    Received has value: undefined
+
+      861 |         expect(echo.receiptSemantics, 'the stepFrame trace around the confirmation exists').not.toBeNull();
+      862 |         expect(echo.receiptSemantics!.processedTicksUntilCommit,
+    > 863 |           'the confirmation is drained by the first processed tick batch (A then... not any later)').toBeGreaterThanOrEqual(1);
+          |                                                                                                      ^
+      864 |         expect(echo.receiptSemantics!.queueHeldAcrossBatches,
+      865 |           'the queued command never survives a whole stepFrame batch before committing').toBe(false);
+      866 |         expect(echo.receiptSemantics!.queueBeforeCommitOrder,
+        at D:\tmp\ls-p4-v4\tests\gameplay-04-coop-level.spec.ts:863:102
+
+    Error Context: test-results\gameplay-04-coop-level-P4--f119e--blocked-expiry-route-taken-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\gameplay-04-coop-level.spec.ts:671:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken 
+EXIT=1

@@ -1,0 +1,40 @@
+{
+  "runner": "agent (real keys/mouse + real reject call)",
+  "fixtures": [
+    "autoOwner echo enable",
+    "seed override"
+  ],
+  "rejected": {
+    "proposed": true,
+    "id": "local_225_1",
+    "kind": "scan",
+    "rejected": true,
+    "audit": [
+      {
+        "tick": 225,
+        "kind": "scan",
+        "result": "rejected",
+        "code": "E_USER_REJECTED"
+      }
+    ]
+  },
+  "afterReject": {
+    "relay": "ACTIVE",
+    "portal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    },
+    "routeTarget": 1
+  },
+  "connectionSample": {
+    "companionStatus": "OFF",
+    "modelState": null
+  },
+  "note": "no-connection sample only; the run never connected to a model. P2 holds the separate model-outage evidence.",
+  "route": {
+    "from": 0,
+    "to": 1
+  },
+  "shot": "D:\\tmp\\ls-p4-v1\\.p4logs\\p4-v1\\shots\\p4-reject-noconn.png"
+}

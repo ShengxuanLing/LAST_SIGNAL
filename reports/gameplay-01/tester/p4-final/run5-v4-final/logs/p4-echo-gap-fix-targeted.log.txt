@@ -1,0 +1,12 @@
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d spec=tests/gameplay-04-coop-level.spec.ts sha256=8ccc3b2953081b691472e401ef014d66cc328c76cef52b4cb7b17430680e6904 PORT=5199 reason='receipt-gap assertion is load-sensitive (observed 3 ticks under host load); now asserts ordering + single commit and records the measured gap' 2026-11-18T18:53:05Z
+
+Running 6 tests using 1 worker
+
+[1/6] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261117 · HumanOnly: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[2/6] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261117 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[3/6] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261118 · HumanOnly: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[4/6] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261118 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[5/6] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261119 · HumanOnly: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[6/6] [chromium] › tests\gameplay-04-coop-level.spec.ts:579:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+  6 passed (2.0m)
+EXIT=0

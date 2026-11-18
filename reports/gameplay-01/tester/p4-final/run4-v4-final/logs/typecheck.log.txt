@@ -1,0 +1,8 @@
+# unfiltered typecheck (v4 frozen tree)
+workdir=/d/tmp/ls-p4-v4
+HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d 3819621 test(gameplay): verify cooperation feedback and scaled HUD readability
+World_sha256=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+command=npx tsc --noEmit
+--- output begin
+--- output end
+exit_code=0

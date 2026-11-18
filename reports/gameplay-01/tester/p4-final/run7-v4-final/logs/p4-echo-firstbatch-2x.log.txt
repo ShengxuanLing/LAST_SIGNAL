@@ -1,0 +1,8 @@
+workdir=/d/tmp/ls-p4-v4 P4_sha=13a834644327ef29b30e0135d44f485de1728dafcfc7626a3a05abbdf7234df2 PORT=5199 targeted: P4 seed20261119 HumanEcho x2 (first-batch identity) 2026-11-18T21:25:09Z
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-04-coop-level.spec.ts:677:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+[2/2] [chromium] › tests\gameplay-04-coop-level.spec.ts:677:5 › P4 route · seed 20261119 · HumanEcho: real clear, natural door jam (exact cost), F blocked, expiry, route taken
+  2 passed (46.7s)
+EXIT=0

@@ -1,0 +1,207 @@
+[
+  {
+    "item": "p1-save-reload-continue",
+    "at": "2026-11-18T13:05:02.135Z",
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "none",
+    "before": {
+      "room": {
+        "id": 0,
+        "kind": "combat",
+        "cleared": true
+      },
+      "manual": false,
+      "routeTarget": 2,
+      "tick": 264
+    },
+    "after": {
+      "room": {
+        "id": 0,
+        "kind": "combat",
+        "cleared": true
+      },
+      "manual": false,
+      "routeTarget": 2,
+      "tick": 186
+    },
+    "shot": "D:\\tmp\\ls-p4-v1\\.p4logs\\p1-full2\\shots\\p1-5-continue.png"
+  },
+  {
+    "item": "p1-seeds",
+    "at": "2026-11-18T13:05:11.966Z",
+    "runner": "agent (real menu entry per seed)",
+    "fixtures": "seed override only",
+    "requirement": "each seed must build the authored scene with two legal, distinct routes",
+    "rows": [
+      {
+        "seed": 20261117,
+        "p1": true,
+        "error": null,
+        "routes": [
+          {
+            "target": 1,
+            "when": "RELAY_ACTIVE",
+            "kind": "combat"
+          },
+          {
+            "target": 2,
+            "when": "RELAY_INACTIVE",
+            "kind": "resource"
+          }
+        ],
+        "drones": [
+          {
+            "x": 10.5,
+            "y": 42.5
+          },
+          {
+            "x": 4.5,
+            "y": 44.5
+          }
+        ],
+        "relay": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+        "roomKind": "combat"
+      },
+      {
+        "seed": 20261118,
+        "p1": true,
+        "error": null,
+        "routes": [
+          {
+            "target": 2,
+            "when": "RELAY_ACTIVE",
+            "kind": "resource"
+          },
+          {
+            "target": 5,
+            "when": "RELAY_INACTIVE",
+            "kind": "elite"
+          }
+        ],
+        "drones": [
+          {
+            "x": 4.5,
+            "y": 48.5
+          },
+          {
+            "x": 6.5,
+            "y": 48.5
+          }
+        ],
+        "relay": {
+          "x": 11.5,
+          "y": 47.5
+        },
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+        "roomKind": "combat"
+      },
+      {
+        "seed": 20261119,
+        "p1": true,
+        "error": null,
+        "routes": [
+          {
+            "target": 5,
+            "when": "RELAY_ACTIVE",
+            "kind": "elite"
+          },
+          {
+            "target": 3,
+            "when": "RELAY_INACTIVE",
+            "kind": "combat"
+          }
+        ],
+        "drones": [
+          {
+            "x": 4.5,
+            "y": 46.5
+          },
+          {
+            "x": 4.5,
+            "y": 48.5
+          }
+        ],
+        "relay": {
+          "x": 11.5,
+          "y": 46.5
+        },
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+        "roomKind": "combat"
+      }
+    ],
+    "distinctLayouts": 3
+  },
+  {
+    "item": "p1-viewports",
+    "at": "2026-11-18T13:05:32.327Z",
+    "runner": "agent",
+    "fixtures": "none",
+    "rows": [
+      {
+        "viewport": "1920x1080",
+        "scale": 1.5,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1366x768",
+        "scale": 1.067,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1280x720",
+        "scale": 1,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1024x768",
+        "scale": 0.8,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "800x600",
+        "scale": 0.625,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      }
+    ],
+    "note": "HUD/pause text measured as fontSize * canvas scale (CSS px)"
+  }
+]

@@ -1,0 +1,8 @@
+workdir=/d/tmp/ls-p4-v4 P2_sha=4bc6288f6cbc123eb2ea7c13626141a786cc957ea353fd34f31cb28946ef6266 PORT=5199 targeted: P2 case 6+7 (overlay whitelist + death diagnostics + tick-driven clear) 2026-11-18T21:26:07Z
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:619:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+[2/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:694:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  2 passed (28.5s)
+EXIT=0

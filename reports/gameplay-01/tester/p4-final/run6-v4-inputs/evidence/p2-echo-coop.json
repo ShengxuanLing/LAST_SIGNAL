@@ -1,0 +1,693 @@
+[
+  {
+    "item": "legacy-save",
+    "at": "2026-11-18T19:41:09.112Z",
+    "clearPlay": {
+      "cleared": true,
+      "shots": 7,
+      "inputs": 7,
+      "elapsedMs": 1201,
+      "ticksAdvanced": 73,
+      "stalls": [],
+      "overlays": [],
+      "trace": [
+        {
+          "tag": "start",
+          "atMs": 1795030864628,
+          "notReady": false,
+          "tick": 76,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030864663,
+          "notReady": false,
+          "tick": 78,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030864778,
+          "notReady": false,
+          "tick": 85,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030864895,
+          "notReady": false,
+          "tick": 92,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030865051,
+          "notReady": false,
+          "tick": 101,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.980551275463987,
+            "screen": {
+              "x": 770.9533159344289,
+              "y": 347.2950989332904
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.29198742641555,
+            "y": 45.812018860376696
+          },
+          "hp": 94,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030865248,
+          "notReady": false,
+          "tick": 112,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": null,
+            "d": 4.012550576887199,
+            "screen": {
+              "x": 572.9903003638904,
+              "y": 295.61890674644764
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.29198742641555,
+            "y": 45.812018860376696
+          },
+          "hp": 94,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030865458,
+          "notReady": false,
+          "tick": 125,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": null,
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 573.6051833058251,
+              "y": 292.26198273977747
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 88,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030865665,
+          "notReady": false,
+          "tick": 137,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": null,
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 576.5574638845002,
+              "y": 288.6639003351022
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 88,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030865847,
+          "notReady": false,
+          "tick": 149,
+          "cleared": true,
+          "spawned": true,
+          "enemy": null,
+          "enemiesAlive": 0,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 88,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        }
+      ]
+    },
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "fixture: remove ONLY the new optional cooperation fields from a product-written save",
+    "removedFields": [
+      "permanent.echoCooperationOptIn"
+    ],
+    "continued": true,
+    "optIn": false,
+    "echo": true,
+    "pending": null,
+    "note": "a rejection of an arbitrary invalid save would not count as compatibility; this uses a valid save",
+    "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p2\\shots\\p2-6-legacy-save.png"
+  },
+  {
+    "item": "save-reload-boundary",
+    "at": "2026-11-18T19:41:23.693Z",
+    "clearPlay": {
+      "cleared": true,
+      "shots": 8,
+      "inputs": 8,
+      "elapsedMs": 1368,
+      "ticksAdvanced": 84,
+      "stalls": [],
+      "overlays": [],
+      "trace": [
+        {
+          "tag": "start",
+          "atMs": 1795030876096,
+          "notReady": false,
+          "tick": 79,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030876146,
+          "notReady": false,
+          "tick": 82,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030876279,
+          "notReady": false,
+          "tick": 91,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030876432,
+          "notReady": false,
+          "tick": 99,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.980551275463987,
+            "screen": {
+              "x": 770.6488909129088,
+              "y": 346.125052391253
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.29198742641555,
+            "y": 45.812018860376696
+          },
+          "hp": 94,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030876610,
+          "notReady": false,
+          "tick": 110,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": null,
+            "d": 3.980551275463987,
+            "screen": {
+              "x": 779.0893908800809,
+              "y": 346.0910609882856
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.29198742641555,
+            "y": 45.812018860376696
+          },
+          "hp": 94,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030876763,
+          "notReady": false,
+          "tick": 119,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": null,
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 574.1843052133438,
+              "y": 293.19170066382725
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 88,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030876897,
+          "notReady": false,
+          "tick": 127,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": null,
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 580.6961444038978,
+              "y": 288.7114952204891
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 88,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030877125,
+          "notReady": false,
+          "tick": 140,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": null,
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 573.4414405336903,
+              "y": 287.7364397649762
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 88,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030877322,
+          "notReady": false,
+          "tick": 152,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": null,
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 574.7640813075105,
+              "y": 287.17681860916633
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 88,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795030877497,
+          "notReady": false,
+          "tick": 163,
+          "cleared": true,
+          "spawned": true,
+          "enemy": null,
+          "enemiesAlive": 0,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 88,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        }
+      ]
+    },
+    "runner": "agent (real pause-menu clicks + real reload + real CONTINUE)",
+    "fixtures": "none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm",
+    "beforePause": {
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 164,
+      "echoHp": 100,
+      "energy": 100
+    },
+    "confirmed": {
+      "id": "local_164_1",
+      "kind": "scan",
+      "ok": true,
+      "provenance": "product-boundary call (real click covered by case 1)",
+      "queue": [
+        "signal-scan"
+      ],
+      "applied": false
+    },
+    "after": {
+      "active": [
+        "GameScene"
+      ],
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 227,
+      "echoHp": 100,
+      "energy": 100,
+      "relay": "ACTIVE",
+      "queue": [],
+      "pending": null,
+      "appliedAudit": 0,
+      "probe": {
+        "restore": {
+          "ok": true,
+          "tick": 164,
+          "energy": 100,
+          "queue": [],
+          "appliedAudit": 0,
+          "relay": "ACTIVE",
+          "savedArg": {
+            "tick": 164,
+            "queue": 0
+          }
+        },
+        "firstTickEvents": [],
+        "scanned": [],
+        "patched": true,
+        "restoreStarted": true
+      },
+      "sameWorldModule": true
+    },
+    "contract": "the confirmed-but-uncommitted local action is not persisted, not executed, no busy marker, no fake applied receipt",
+    "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p2\\shots\\p2-7-save-reload.png"
+  },
+  {
+    "item": "save-reload-instant",
+    "at": "2026-11-18T19:41:23.698Z",
+    "savedEnergy": 100,
+    "savedRelay": "ACTIVE",
+    "restoreInstant": {
+      "ok": true,
+      "tick": 164,
+      "energy": 100,
+      "queue": [],
+      "appliedAudit": 0,
+      "relay": "ACTIVE",
+      "savedArg": {
+        "tick": 164,
+        "queue": 0
+      }
+    },
+    "firstTickEvents": [],
+    "scannedEvents": [],
+    "laterSample": {
+      "energy": 100,
+      "relay": "ACTIVE",
+      "tick": 227
+    }
+  }
+]

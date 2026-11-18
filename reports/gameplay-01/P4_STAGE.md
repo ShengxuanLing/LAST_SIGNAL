@@ -2,6 +2,14 @@
 
 状态：源码与独立审查范围内通过，可本地阶段集成。Tester 的三 seed Rendered 通关与完整回归尚未交付；整体 GAMEPLAY-01 未 PASS，HUMAN ACCEPTANCE PENDING。
 
+## run7 测试收尾（不等于完整验收）
+
+截至 run7，三 seed Rendered HumanOnly/HumanEcho 合法清房、自然 Jam 与实际换房已由 Tester 执行，并经 Reviewer 复核测试及日志。最终测试四份 SHA 见 `integration-tests-run7/hashes.log.txt`：P1 a7db1885、P2 4bc6288f、P4 13a83464、恢复探针 22ae61f7。首处理批序号与回执批末 tick 恒等式阻止任意延迟后提交也通过；零 tick 帧不误判为命令跨处理批保留。驱动只在实际模拟消费输入后释放按键，不增加结果阈值。
+
+完整 E2E 最终记录仍为 **154/155，exit 1**；唯一失败是未修改的 ai-native-world 用例关闭 AI 后 x 漂移约 0.694 格。孤立同字节通过仅为相关性，失败现场的逐 tick 意图/输入/碰撞未持久化，根因仍待诊断，不能声明非产品问题或稳定性已解决。P4/P2 用例在该完整运行内均通过，fresh parity 3/3。该运行未再测 unit/build/surface：单测引用 run5 的无 devserver、有界并发 `--maxWorkers=2 --minWorkers=1` 配置 73/859 全过；默认并发 857/859 的 CLI 壁钟风险保持。build/surface 引用 v4 同源已有门禁，不能称 run7 重新测过。
+
+run7 全量测试字节与开始前冻结副本一致。其逐动作 JSON 来自此前定向绿门；全量通过证据为日志，不能将定向 JSON 冒充全量现场。导出时间 22:42 本地 UTC+1 即 21:42Z，早于 parity，时区不可混算。独立结论见 [P4_TEST_REVIEW.md](reviewer/P4_TEST_REVIEW.md) §9；完整原始材料见 [P4_TEST_REPORT.md](tester/p4-final/P4_TEST_REPORT.md)。此前 150/155、两套 153/155 不回填。原未提交测试字节已备份于 `integration-tests-run7/pre-integration/`。
+
 后续 v3 测试已交付：三 seed × HumanOnly/HumanEcho 在真实浏览器均完成清房与换房，Headless 另验证同权威规则。单测实际 73 文件 / 859 条、surface 1、build、fresh parity 3 均通过；完整 E2E 为 150/155。两条失败是 legacy 门户中心不可走的真实产品回归，另三条为有证据的 world/camera 就绪前置错误，定向修后通过。全量当时 P4 测试字节为 17fe4a09，最终 50e74fdc 有全量后扩展，不能说那次全量运行了最终字节。
 
 v4 仅改 World.ts（SHA256 `349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64`）：legacy 门户按实际格中心检测 radius 0.5 并呈现同一点，deck-exit 同步；作者门户和 spawn/landing/boss 位置路径不变。Reviewer 独立用原测试、原阈值跑出 v3 两红、v4 两绿，并通过 8 条门户/存档定向测试，见 [P4_V4_REVIEW.md](reviewer/P4_V4_REVIEW.md)。这不回填旧 150/155，新 v4 完整链仍待 Tester。

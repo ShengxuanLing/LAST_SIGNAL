@@ -1,0 +1,68 @@
+ M reports/ai-native-02/c2-fixes-round2/parity-kill/kill-initial.json
+ M reports/ai-native-02/c2-fixes-round2/parity-kill/kill-rendered.json
+ M reports/ai-native-02/c2-fixes-round2/parity-kill/kill-sequence.json
+ M reports/ai-native-02/c2/parity/parity-initial.json
+ M reports/ai-native-02/c2/parity/parity-rendered.json
+ M reports/ai-native-02/c2/parity/parity-sequence.json
+ M reports/ai-native-02/c3c/parity/rendered.json
+ M reports/ai-native-02/c3c/parity/sequence.json
+ M reports/ai-native-02/evidence/ai-active-hud-1280x720.png
+ M reports/ai-native-02/evidence/ai-run-00.png
+ M reports/ai-native-02/evidence/ai-run-03.png
+ M reports/ai-native-02/evidence/ai-run-06.png
+ M reports/ai-native-02/evidence/ai-run-09.png
+ M reports/ai-native-02/evidence/ai-run-12.png
+ M reports/ai-native-02/evidence/ai-run-15.png
+ M reports/ai-native-02/evidence/ai-run-18.png
+ M reports/ai-native-02/evidence/c1-rendered-rules-1280x720.png
+ M reports/ai-native-02/evidence/death-ownership-1280x720.png
+ M reports/ai-native-02/evidence/hud-ai-1024x768.png
+ M reports/ai-native-02/evidence/hud-ai-1280x720.png
+ M reports/ai-native-02/evidence/hud-ai-1366x768.png
+ M reports/ai-native-02/evidence/hud-ai-1920x1080.png
+ M reports/ai-native-02/evidence/hud-ai-800x600.png
+ M reports/ai-native-02/evidence/hud-human-1280x720.png
+ M reports/ai-native-02/evidence/levelup-ai-paused-1280x720.png
+ M reports/ai-native-02/evidence/operation-log-c1-rendered-rules-1280x720.json
+ M reports/ai-native-02/evidence/operation-log-control-flow-1280x720.json
+ M reports/ai-native-02/evidence/operation-log-hud-1024x768.json
+ M reports/ai-native-02/evidence/operation-log-hud-1280x720.json
+ M reports/ai-native-02/evidence/operation-log-hud-1366x768.json
+ M reports/ai-native-02/evidence/operation-log-hud-1920x1080.json
+ M reports/ai-native-02/evidence/operation-log-hud-800x600.json
+ M reports/ai-native-02/evidence/operation-log-overlay-ownership-1280x720.json
+ M reports/ai-native-02/evidence/operation-log-perception-bounds-1280x720.json
+ M reports/ai-native-02/evidence/pause-ai-entry-1280x720.png
+ M reports/ai-native-02/evidence/pause-ai-off-1280x720.png
+ M src/ai-native/worldHeadless.ts
+ M src/config/p1Scenario.ts
+ M src/signal/relay.ts
+ M src/signal/relayRoutes.test.ts
+ M src/world/World.ts
+ M src/world/sim/core.ts
+ M tests/gameplay-01.spec.ts
+ M tests/gameplay-02-echo-coop.spec.ts
+?? .p4logs/
+?? docs/gameplay/COOP_LEVEL_DESIGN.P4-UPDATE.md
+?? docs/gameplay/P4_RESTORE_CONTRACT.V3.md
+?? docs/gameplay/P4_TEST_AND_FINAL_LIMITS.md
+?? docs/gameplay/P5_VARIANTS_PLAN.md
+?? evidence/
+?? reports/ai-native-02/evidence/operation-log-p3a-echo-1280x720.json
+?? reports/ai-native-02/evidence/p3a-echo-1-enabled-1280x720.png
+?? reports/ai-native-02/evidence/p3a-echo-2-armed-1280x720.png
+?? reports/ai-native-02/evidence/p3a-echo-3-killed-1280x720.png
+?? reports/ai-native-02/evidence/p3a-echo-4-hurt-1280x720.png
+?? reports/ai-native-02/signal-fix/
+?? reports/ai-native-02/signal/
+?? reports/gameplay-01/tester/evidence/p1-acceptance.json
+?? reports/gameplay-01/tester/p2/
+?? reports/gameplay-01/tester/p4-final/
+?? reports/gameplay-01/tester/shots/
+?? reports/ui-rework-01/auto/
+?? src/ai-native/worldHeadlessDemoRoute.test.ts
+?? src/ai-native/worldHeadlessFrameAuthored.test.ts
+?? src/ai-native/worldHeadlessRestoreSafety.test.ts
+?? src/config/p1ScenarioLayout.test.ts
+?? tests/gameplay-04-coop-level.spec.ts
+?? tests/gameplay-04-headless-restore.spec.ts
