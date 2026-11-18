@@ -1,0 +1,1045 @@
+{
+  "ok": true,
+  "env": {
+    "cwd": "D:\\tmp\\gp01-p3-ui",
+    "spec": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\developer\\p3\\matrix.mjs",
+    "devroot": "D:/tmp/gp01-p3-ui",
+    "lastSignalRoot": null,
+    "note": "Independent P3 gate tree; own reports; c2/c3c were not run. Fixture/agent-driven; not human."
+  },
+  "results": [
+    {
+      "viewport": "1920x1080",
+      "ok": true,
+      "minCss": 18,
+      "minContrast": 9.46,
+      "outside": [],
+      "overlaps": [],
+      "proposal": {
+        "page": "local-coop",
+        "status": "Ready to confirm · 94/100 HP · Following · Human owner",
+        "proposal": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ],
+        "minCss": 18,
+        "minContrast": 9.46
+      },
+      "waiting": {
+        "status": "Queued · 94/100 HP · Following · Human owner",
+        "proposal": "Waiting to resume\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+        "notice": "Queued · Scan relay · runs after you resume\nRecent actions: 1",
+        "confirm": false,
+        "reject": false,
+        "pending": {
+          "proposalId": "local_120_1",
+          "kind": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "acceptedTick": 120,
+          "roomGeneration": 1
+        },
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ]
+      },
+      "audit": {
+        "page": "local-audit",
+        "texts": [
+          "LOCAL AUDIT",
+          "Recent actions · local and model details · as of opening",
+          "#1 You · Scan relay · Queued\n  id local_120_1 · tick 120 · target 8.0,45.0 · room gen 1",
+          "BACK",
+          "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE"
+        ],
+        "minCss": 18,
+        "minContrast": 9.46
+      },
+      "done": {
+        "status": "Ready to confirm · 88/100 HP · Following · Human owner",
+        "notice": "Done · relay scanned\nRecent actions: 2",
+        "audit": {
+          "tick": 121,
+          "provenance": "human-local",
+          "action": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "result": "applied",
+          "proposalId": "local_120_1"
+        },
+        "proposal": "Change relay route\nSeen: relay in sight\nCost: no echo energy · range 6 tiles\nReady now\nA human must confirm\nExpect: change the relay route\nOnly if still in sight and permitted"
+      },
+      "hud": {
+        "signal": {
+          "text": "RELAY ACTIVE · EXIT OPEN",
+          "w": 159,
+          "h": 13,
+          "font": "12px",
+          "color": "#00ff77",
+          "x": 4135.640423797476,
+          "y": 139.16405505169317,
+          "originX": 1
+        },
+        "detail": {
+          "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+          "w": 231,
+          "h": 13,
+          "font": "12px",
+          "color": "#8fb8c8",
+          "x": 4135.640423797476,
+          "y": 164.16405467916414,
+          "originX": 1
+        },
+        "echo": {
+          "text": "ECHO 88/100 · FOLLOW · ASSIST SAFE · CONFIRM FIRE",
+          "w": 324,
+          "h": 13,
+          "font": "12px",
+          "color": "#ffd233",
+          "x": 4135.640423797476,
+          "y": 116.6640553869693,
+          "originX": 1
+        },
+        "help": {
+          "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+          "w": 365,
+          "h": 14,
+          "font": "13px",
+          "color": "#8fb8c8",
+          "x": 2585.6404468942746,
+          "y": 756.6640458502263,
+          "originX": 0
+        },
+        "minCss": 18,
+        "minContrast": 9.46
+      },
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1600x900",
+      "ok": true,
+      "minCss": 15,
+      "minContrast": 9.46,
+      "outside": [],
+      "overlaps": [],
+      "proposal": {
+        "page": "local-coop",
+        "status": "Ready to confirm · 94/100 HP · Following · Human owner",
+        "proposal": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ],
+        "minCss": 15,
+        "minContrast": 9.46
+      },
+      "waiting": {
+        "status": "Queued · 94/100 HP · Following · Human owner",
+        "proposal": "Waiting to resume\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+        "notice": "Queued · Scan relay · runs after you resume\nRecent actions: 1",
+        "confirm": false,
+        "reject": false,
+        "pending": {
+          "proposalId": "local_134_1",
+          "kind": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "acceptedTick": 134,
+          "roomGeneration": 1
+        },
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ]
+      },
+      "audit": {
+        "page": "local-audit",
+        "texts": [
+          "LOCAL AUDIT",
+          "Recent actions · local and model details · as of opening",
+          "#1 You · Scan relay · Queued\n  id local_134_1 · tick 134 · target 8.0,45.0 · room gen 1",
+          "BACK",
+          "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE"
+        ],
+        "minCss": 15,
+        "minContrast": 9.46
+      },
+      "done": {
+        "status": "Ready to confirm · 88/100 HP · Following · Human owner",
+        "notice": "Done · relay scanned\nRecent actions: 2",
+        "audit": {
+          "tick": 135,
+          "provenance": "human-local",
+          "action": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "result": "applied",
+          "proposalId": "local_134_1"
+        },
+        "proposal": "Change relay route\nSeen: relay in sight\nCost: no echo energy · range 6 tiles\nReady now\nA human must confirm\nExpect: change the relay route\nOnly if still in sight and permitted"
+      },
+      "hud": {
+        "signal": {
+          "text": "RELAY ACTIVE · EXIT OPEN",
+          "w": 159,
+          "h": 13,
+          "font": "12px",
+          "color": "#00ff77",
+          "x": 4135.640949680302,
+          "y": 139.16410763997575,
+          "originX": 1
+        },
+        "detail": {
+          "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+          "w": 231,
+          "h": 13,
+          "font": "12px",
+          "color": "#8fb8c8",
+          "x": 4135.640949680302,
+          "y": 164.16410726744675,
+          "originX": 1
+        },
+        "echo": {
+          "text": "ECHO 88/100 · FOLLOW · ASSIST SAFE · CONFIRM FIRE",
+          "w": 324,
+          "h": 13,
+          "font": "12px",
+          "color": "#ffd233",
+          "x": 4135.640949680302,
+          "y": 116.66410797525188,
+          "originX": 1
+        },
+        "help": {
+          "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+          "w": 365,
+          "h": 14,
+          "font": "13px",
+          "color": "#8fb8c8",
+          "x": 2585.6409727771006,
+          "y": 756.664098438509,
+          "originX": 0
+        },
+        "minCss": 15,
+        "minContrast": 9.46
+      },
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1366x768",
+      "ok": true,
+      "minCss": 12.8,
+      "minContrast": 9.46,
+      "outside": [],
+      "overlaps": [],
+      "proposal": {
+        "page": "local-coop",
+        "status": "Ready to confirm · 94/100 HP · Following · Human owner",
+        "proposal": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ],
+        "minCss": 12.8,
+        "minContrast": 9.46
+      },
+      "waiting": {
+        "status": "Queued · 94/100 HP · Following · Human owner",
+        "proposal": "Waiting to resume\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+        "notice": "Queued · Scan relay · runs after you resume\nRecent actions: 1",
+        "confirm": false,
+        "reject": false,
+        "pending": {
+          "proposalId": "local_129_1",
+          "kind": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "acceptedTick": 129,
+          "roomGeneration": 1
+        },
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ]
+      },
+      "audit": {
+        "page": "local-audit",
+        "texts": [
+          "LOCAL AUDIT",
+          "Recent actions · local and model details · as of opening",
+          "#1 You · Scan relay · Queued\n  id local_129_1 · tick 129 · target 8.0,45.0 · room gen 1",
+          "BACK",
+          "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE"
+        ],
+        "minCss": 12.8,
+        "minContrast": 9.46
+      },
+      "done": {
+        "status": "Ready to confirm · 88/100 HP · Following · Human owner",
+        "notice": "Done · relay scanned\nRecent actions: 2",
+        "audit": {
+          "tick": 130,
+          "provenance": "human-local",
+          "action": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "result": "applied",
+          "proposalId": "local_129_1"
+        },
+        "proposal": "Change relay route\nSeen: relay in sight\nCost: no echo energy · range 6 tiles\nReady now\nA human must confirm\nExpect: change the relay route\nOnly if still in sight and permitted"
+      },
+      "hud": {
+        "signal": {
+          "text": "RELAY ACTIVE · EXIT OPEN",
+          "w": 159,
+          "h": 13,
+          "font": "12px",
+          "color": "#00ff77",
+          "x": 4135.640946931917,
+          "y": 139.1641073651373,
+          "originX": 1
+        },
+        "detail": {
+          "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+          "w": 231,
+          "h": 13,
+          "font": "12px",
+          "color": "#8fb8c8",
+          "x": 4135.640946931917,
+          "y": 164.16410699260828,
+          "originX": 1
+        },
+        "echo": {
+          "text": "ECHO 88/100 · FOLLOW · ASSIST SAFE · CONFIRM FIRE",
+          "w": 324,
+          "h": 13,
+          "font": "12px",
+          "color": "#ffd233",
+          "x": 4135.640946931917,
+          "y": 116.66410770041341,
+          "originX": 1
+        },
+        "help": {
+          "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+          "w": 365,
+          "h": 14,
+          "font": "13px",
+          "color": "#8fb8c8",
+          "x": 2585.640970028716,
+          "y": 756.6640981636706,
+          "originX": 0
+        },
+        "minCss": 12.8,
+        "minContrast": 9.46
+      },
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1280x720",
+      "ok": true,
+      "minCss": 12,
+      "minContrast": 9.46,
+      "outside": [],
+      "overlaps": [],
+      "proposal": {
+        "page": "local-coop",
+        "status": "Ready to confirm · 94/100 HP · Following · Human owner",
+        "proposal": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ],
+        "minCss": 12,
+        "minContrast": 9.46
+      },
+      "waiting": {
+        "status": "Queued · 94/100 HP · Following · Human owner",
+        "proposal": "Waiting to resume\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+        "notice": "Queued · Scan relay · runs after you resume\nRecent actions: 1",
+        "confirm": false,
+        "reject": false,
+        "pending": {
+          "proposalId": "local_141_1",
+          "kind": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "acceptedTick": 141,
+          "roomGeneration": 1
+        },
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ]
+      },
+      "audit": {
+        "page": "local-audit",
+        "texts": [
+          "LOCAL AUDIT",
+          "Recent actions · local and model details · as of opening",
+          "#1 You · Scan relay · Queued\n  id local_141_1 · tick 141 · target 8.0,45.0 · room gen 1",
+          "BACK",
+          "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE"
+        ],
+        "minCss": 12,
+        "minContrast": 9.46
+      },
+      "done": {
+        "status": "Ready to confirm · 88/100 HP · Following · Human owner",
+        "notice": "Done · relay scanned\nRecent actions: 2",
+        "audit": {
+          "tick": 142,
+          "provenance": "human-local",
+          "action": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "result": "applied",
+          "proposalId": "local_141_1"
+        },
+        "proposal": "Change relay route\nSeen: relay in sight\nCost: no echo energy · range 6 tiles\nReady now\nA human must confirm\nExpect: change the relay route\nOnly if still in sight and permitted"
+      },
+      "hud": {
+        "signal": {
+          "text": "RELAY ACTIVE · EXIT OPEN",
+          "w": 159,
+          "h": 13,
+          "font": "12px",
+          "color": "#00ff77",
+          "x": 4135.6409531925065,
+          "y": 139.1641079911963,
+          "originX": 1
+        },
+        "detail": {
+          "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+          "w": 231,
+          "h": 13,
+          "font": "12px",
+          "color": "#8fb8c8",
+          "x": 4135.6409531925065,
+          "y": 164.16410761866726,
+          "originX": 1
+        },
+        "echo": {
+          "text": "ECHO 88/100 · FOLLOW · ASSIST SAFE · CONFIRM FIRE",
+          "w": 324,
+          "h": 13,
+          "font": "12px",
+          "color": "#ffd233",
+          "x": 4135.6409531925065,
+          "y": 116.66410832647242,
+          "originX": 1
+        },
+        "help": {
+          "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+          "w": 365,
+          "h": 14,
+          "font": "13px",
+          "color": "#8fb8c8",
+          "x": 2585.640976289306,
+          "y": 756.6640987897295,
+          "originX": 0
+        },
+        "minCss": 12,
+        "minContrast": 9.46
+      },
+      "focus": {
+        "before": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "focused": false
+          }
+        ],
+        "after": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "focused": false
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "focused": true
+          },
+          {
+            "label": "BACK",
+            "focused": false
+          }
+        ]
+      },
+      "resize": {
+        "beforeMinCss": 12,
+        "resizedMinCss": 12.8,
+        "backMinCss": 12,
+        "resizedPage": "local-coop",
+        "outside": 0
+      },
+      "repeat": {
+        "before": 17,
+        "after": 17
+      },
+      "esc": [
+        "local-coop",
+        "echo",
+        "ai",
+        "pause",
+        "pause"
+      ]
+    },
+    {
+      "viewport": "1024x768",
+      "ok": true,
+      "minCss": 12.8,
+      "minContrast": 9.46,
+      "outside": [],
+      "overlaps": [],
+      "proposal": {
+        "page": "local-coop",
+        "status": "Ready to confirm · 94/100 HP · Following · Human owner",
+        "proposal": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ],
+        "minCss": 12.8,
+        "minContrast": 9.46
+      },
+      "waiting": {
+        "status": "Queued · 94/100 HP · Following · Human owner",
+        "proposal": "Waiting to resume\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+        "notice": "Queued · Scan relay · runs after you resume\nRecent actions: 1",
+        "confirm": false,
+        "reject": false,
+        "pending": {
+          "proposalId": "local_139_1",
+          "kind": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "acceptedTick": 139,
+          "roomGeneration": 1
+        },
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ]
+      },
+      "audit": {
+        "page": "local-audit",
+        "texts": [
+          "LOCAL AUDIT",
+          "Recent actions · local and model details · as of opening",
+          "#1 You · Scan relay · Queued\n  id local_139_1 · tick 139 · target 8.0,45.0 · room gen 1",
+          "BACK",
+          "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE"
+        ],
+        "minCss": 12.8,
+        "minContrast": 9.46
+      },
+      "done": {
+        "status": "Ready to confirm · 88/100 HP · Following · Human owner",
+        "notice": "Done · relay scanned\nRecent actions: 2",
+        "audit": {
+          "tick": 140,
+          "provenance": "human-local",
+          "action": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "result": "applied",
+          "proposalId": "local_139_1"
+        },
+        "proposal": "Change relay route\nSeen: relay in sight\nCost: no echo energy · range 6 tiles\nReady now\nA human must confirm\nExpect: change the relay route\nOnly if still in sight and permitted"
+      },
+      "hud": {
+        "signal": {
+          "text": "RELAY ACTIVE · EXIT OPEN",
+          "w": 225,
+          "h": 17,
+          "font": "17px",
+          "color": "#00ff77",
+          "x": 4135.640951328495,
+          "y": 206.66410679896677,
+          "originX": 1
+        },
+        "detail": {
+          "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+          "w": 328,
+          "h": 17,
+          "font": "17px",
+          "color": "#8fb8c8",
+          "x": 4135.640951328495,
+          "y": 234.16410638918484,
+          "originX": 1
+        },
+        "echo": {
+          "text": "ECHO 88/100 · FOLLOW · ASSIST SAFE · CONFIRM FIRE",
+          "w": 458,
+          "h": 17,
+          "font": "17px",
+          "color": "#ffd233",
+          "x": 4135.640951328495,
+          "y": 171.66410732050736,
+          "originX": 1
+        },
+        "help": {
+          "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+          "w": 449,
+          "h": 16,
+          "font": "16px",
+          "color": "#8fb8c8",
+          "x": 2585.640974425294,
+          "y": 746.6640987523399,
+          "originX": 0
+        },
+        "minCss": 12.8,
+        "minContrast": 9.46
+      },
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "800x600",
+      "ok": true,
+      "minCss": 10,
+      "minContrast": 9.46,
+      "outside": [],
+      "overlaps": [],
+      "proposal": {
+        "page": "local-coop",
+        "status": "Ready to confirm · 94/100 HP · Following · Human owner",
+        "proposal": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ],
+        "minCss": 10,
+        "minContrast": 9.46
+      },
+      "waiting": {
+        "status": "Queued · 94/100 HP · Following · Human owner",
+        "proposal": "Waiting to resume\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+        "notice": "Queued · Scan relay · runs after you resume\nRecent actions: 1",
+        "confirm": false,
+        "reject": false,
+        "pending": {
+          "proposalId": "local_141_1",
+          "kind": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "acceptedTick": 141,
+          "roomGeneration": 1
+        },
+        "buttons": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "enabled": true,
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "enabled": false,
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "enabled": true,
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "enabled": true,
+            "focused": false
+          }
+        ]
+      },
+      "audit": {
+        "page": "local-audit",
+        "texts": [
+          "LOCAL AUDIT",
+          "Recent actions · local and model details · as of opening",
+          "#1 You · Scan relay · Queued\n  id local_141_1 · tick 141 · target 8.0,45.0 · room gen 1",
+          "BACK",
+          "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE"
+        ],
+        "minCss": 10,
+        "minContrast": 9.46
+      },
+      "done": {
+        "status": "Ready to confirm · 88/100 HP · Following · Human owner",
+        "notice": "Done · relay scanned\nRecent actions: 2",
+        "audit": {
+          "tick": 142,
+          "provenance": "human-local",
+          "action": "scan",
+          "target": {
+            "x": 8,
+            "y": 45
+          },
+          "result": "applied",
+          "proposalId": "local_141_1"
+        },
+        "proposal": "Change relay route\nSeen: relay in sight\nCost: no echo energy · range 6 tiles\nReady now\nA human must confirm\nExpect: change the relay route\nOnly if still in sight and permitted"
+      },
+      "hud": {
+        "signal": {
+          "text": "RELAY ACTIVE · EXIT OPEN",
+          "w": 225,
+          "h": 17,
+          "font": "17px",
+          "color": "#00ff77",
+          "x": 4135.6409524945975,
+          "y": 206.66410691557707,
+          "originX": 1
+        },
+        "detail": {
+          "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+          "w": 328,
+          "h": 17,
+          "font": "17px",
+          "color": "#8fb8c8",
+          "x": 4135.6409524945975,
+          "y": 234.16410650579508,
+          "originX": 1
+        },
+        "echo": {
+          "text": "ECHO 88/100 · FOLLOW · ASSIST SAFE · CONFIRM FIRE",
+          "w": 458,
+          "h": 17,
+          "font": "17px",
+          "color": "#ffd233",
+          "x": 4135.6409524945975,
+          "y": 171.66410743711765,
+          "originX": 1
+        },
+        "help": {
+          "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+          "w": 449,
+          "h": 16,
+          "font": "16px",
+          "color": "#8fb8c8",
+          "x": 2585.640975591397,
+          "y": 746.6640988689501,
+          "originX": 0
+        },
+        "minCss": 10,
+        "minContrast": 9.46
+      },
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    }
+  ],
+  "errors": []
+}

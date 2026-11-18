@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "viewport": "800x600",
+  "minCss": 10,
+  "outside": [],
+  "auditCount": 8,
+  "lines": 21,
+  "height": 336,
+  "title": "LOCAL AUDIT",
+  "subtitle": "Recent actions · local and model details · as of opening",
+  "auditText": "#1 You · Scan relay · Queued\n  id local_338_3 · tick 338 · target 8.0,45.0 · room gen 1\n#2 You · Scan relay · Done\n  id local_338_3 · tick 339 · target 8.0,45.0 · room gen 1\n#3 You · Change relay route · Rejected\n  not sent (E_USER_REJECTED)\n  id local_414_4 · tick 414 · target 8.0,45.0 · room gen 1\n#4 You · Change relay route · Rejected\n  this suggestion changed (E_STALE_ID)\n  id local_missing_0 · tick 543 · target none · room gen 1\n#5 You · Change relay route · Rejected\n  this suggestion changed (E_STALE_ID)\n  id local_missing_1 · tick 543 · target none · room gen 1\n#6 You · Change relay route · Rejected\n  this suggestion changed (E_STALE_ID)\n  id local_missing_2 · tick 543 · target none · room gen 1\n#7 You · Change relay route · Rejected\n  this suggestion changed (E_STALE_ID)\n  id local_missing_3 · tick 543 · target none · room gen 1\n#8 You · Scan relay · Queued\n  id local_557_5 · tick 557 · target 8.0,45.0 · room gen 1",
+  "scroll": {
+    "beforeY": 140,
+    "afterY": 140,
+    "restoredY": 140,
+    "scrolled": false
+  },
+  "escPage": "local-coop",
+  "escState": {
+    "page": "local-coop",
+    "pending": {
+      "proposalId": "local_557_5",
+      "kind": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "acceptedTick": 557,
+      "roomGeneration": 1
+    },
+    "queue": 1,
+    "confirmEnabled": false,
+    "rejectEnabled": false
+  },
+  "singlePending": true,
+  "confirmBeforeAudit": true,
+  "errors": []
+}

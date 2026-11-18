@@ -1,0 +1,732 @@
+{
+  "stage": "GAMEPLAY-01 P3 v2 \u2014 player-understandable ECHO/Signal presentation (review fixes)",
+  "date": "2026-11-17",
+  "status": "P3 v2 DISPLAY CANDIDATE \u2014 independent re-review pending; not human acceptance; P2 core unchanged",
+  "branch": "feat/gameplay-01-ai-cooperation",
+  "head": "0083e20",
+  "base": {
+    "p2_candidate": "87a0fac",
+    "p3_v1_review": "reports/gameplay-01/reviewer/P3_REVIEW.md",
+    "note": "P3 v2 source is uncommitted on top of the working tree; P2 World/echo/headless/core/Owner/Save/queue/restore rules are untouched. The superseded P3 v1 manifest (reports/gameplay-01/developer/p3/final/manifest.json) recorded older wording and is NOT current-code evidence; it is kept as history."
+  },
+  "supersedes": {
+    "manifest": "reports/gameplay-01/developer/p3/final/manifest.json",
+    "status": "superseded \u2014 old wording/hash set; kept as history, not current evidence",
+    "early_evidence": "reports/gameplay-01/developer/p3/early (direction check only, pre-polish wording)"
+  },
+  "source_whitelist": [
+    {
+      "path": "src/ui/feedback.ts",
+      "status": "modified",
+      "purpose": "pure copy: honest local source, friendly audit lines with raw traceability below, generic permission copy",
+      "sha256": "7c1e9bd9bf6b79086286e5d1f5aab3b013a45ad12d10bf486e4ee40222302b71",
+      "bytes": 9128
+    },
+    {
+      "path": "src/ui/feedback.test.ts",
+      "status": "new",
+      "purpose": "8 pure feedback branch tests (queued vs done, permission, restored/unknown source, no raw fields on default page, audit order)",
+      "sha256": "717e87e604f3b96bd0b3621f21e7bce7b4a5da8ec226b305875f6aceea503592",
+      "bytes": 4972
+    },
+    {
+      "path": "src/scenes/PauseScene.ts",
+      "status": "modified",
+      "purpose": "local source without blanket OFFLINE, LLM footer 'Takes effect when you resume', scrollable audit region, RECENT ACTIONS",
+      "sha256": "ed3a1078824aa0deb3a81be65bb5dfaec9a98b54314ae0658f37356e5a24a14e",
+      "bytes": 61064
+    },
+    {
+      "path": "src/scenes/GameScene.ts",
+      "status": "modified",
+      "purpose": "2-line Signal HUD (unchanged in v2; carried over from v1)",
+      "sha256": "11af218697007584f9ea336aacd26a35d1ac3d67d915b2dc3cf665999e714e75",
+      "bytes": 62760
+    },
+    {
+      "path": "src/ui/menuKit.ts",
+      "status": "modified",
+      "purpose": "dim label color only (unchanged in v2; carried over from v1)",
+      "sha256": "3fd1258255796b345d2f81b548e605acbb699204ab1b56c8f9e3ed92103cc7ec",
+      "bytes": 12054
+    }
+  ],
+  "docs": [
+    {
+      "path": "docs/gameplay/P3_IMPLEMENTATION.md",
+      "sha256": "ee73d7f870764e35a401bc3b5fe9adc26e20565cda2a809cfdab98dd9dd4def2",
+      "bytes": 12949
+    },
+    {
+      "path": "docs/gameplay/AI_FEEDBACK.md",
+      "sha256": "1d2a8db26b911148da74904f61205cd11f3cd5cf407087c62a81af8ff9310af2",
+      "bytes": 15434
+    }
+  ],
+  "working_tree_src": [
+    "M src/scenes/GameScene.ts",
+    " M src/scenes/PauseScene.ts",
+    " M src/ui/menuKit.ts",
+    "?? src/ui/feedback.test.ts",
+    "?? src/ui/feedback.ts"
+  ],
+  "p2_core_untouched": true,
+  "review_fixes": {
+    "blocker_manifest_hash": "this manifest is regenerated from the current working tree; the v2 hashes below match the isolated tree and the working tree byte-for-byte (checked before and after the gates)",
+    "local_source": "LOCAL ECHO \u00b7 A HUMAN CONFIRMS (blanket OFFLINE removed; it was inaccurate when the model link is connected)",
+    "audit_detail": "friendly first line per entry (You / Model (Owner), action, Queued/Done/Rejected/Cancelled) + error explanation, then the raw proposalId/tick/code/target/room gen traceability line; the default page shows none of it",
+    "error_copy": "E_PERMISSION \u2192 'Not possible right now' (no invented range/LOS); E_RETRYABLE \u2192 'try again' (not cooldown)",
+    "llm_footer": "'COMMIT ON THE NEXT CORE TICK' \u2192 'Takes effect when you resume'",
+    "audit_scroll": "audit region is a MenuPage scroll region; at 800 with 8 real entries the content fits (measured scroll offset unchanged), ESC returns one layer",
+    "audit_snapshot": "subtitle states 'as of opening' (the page is a snapshot of the real audit ring)"
+  },
+  "evidence": [
+    {
+      "path": "reports/gameplay-01/developer/p3/v2/manifest.json",
+      "sha256": "e8c35a0457ea776dd4abb0c9cd1fc9eb30f541fe9f49c082ddc3186c615d6709",
+      "bytes": 29327
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/echo-detail.json",
+      "sha256": "332cd3cf9e1d5478b66264c6d012c1956f4c2ed651ea3f860e1cf4c73b375751",
+      "bytes": 8527
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/echo-detail.log",
+      "sha256": "aba47236f4c11be212e3f80410d046f423b2537c7ce9b4db12bace60ea48a95c",
+      "bytes": 952
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/env.json",
+      "sha256": "3ad4312fc32fcddd607fdb79dffa71a794cd005cc0bd9493a81735758d6bd149",
+      "bytes": 287
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/matrix.log",
+      "sha256": "385e54d78bbfd6cd0ceb667647ea608f179ab9ba934fbc1bdaf5106609356f9d",
+      "bytes": 376
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/summary.json",
+      "sha256": "c5a7f6016a67a5537b22a93ef8e8ae0277ed0d839c2a26b820696277907644c0",
+      "bytes": 29953
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1024x768/audit.png",
+      "sha256": "96ca971c76b563260ffe558b03ac3418689b58a0090172f05072d49f1b2f38ca",
+      "bytes": 175221
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1024x768/done.png",
+      "sha256": "18f7dac4748244e23bab899da0945ebe1051bfa91b16cf6323c5bd61cdb098d0",
+      "bytes": 207501
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1024x768/echo-detail.png",
+      "sha256": "8f92489d551f41439ffbe13e3159de13205288ec137272de3be21da437d908f6",
+      "bytes": 201850
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1024x768/hud.png",
+      "sha256": "9046588338ca12be61822bfbcd12014d18f5f7169353b4c81af78c2a1b095613",
+      "bytes": 387361
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1024x768/proposal.png",
+      "sha256": "e2d4b054f98e6f1f06e133d96493b3439232b4dc7e4634a22cc403fa362697b1",
+      "bytes": 202314
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1024x768/waiting.png",
+      "sha256": "1822755d56634cbcfe2365587ed4a2fe10ae798fe3be7ff8e1feb2b974ca36a4",
+      "bytes": 200406
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1280x720/audit.png",
+      "sha256": "dcf028d5a731e2aaca85cc64846a9b368a017630cec4526a0bb4d912cba2d94a",
+      "bytes": 209733
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1280x720/done.png",
+      "sha256": "ef73d70448fa553e5eea5a8ce124ac67fd03f320a70c7a1ced96d77b384ef31e",
+      "bytes": 238065
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1280x720/echo-detail.png",
+      "sha256": "f0914a445686482064e33699d7fa0beca722316251b3f6b09270b2c2b4d47f7f",
+      "bytes": 235987
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1280x720/hud.png",
+      "sha256": "ea81e0531573e905eeea55b055defb5373e9ef9d2298af781ef60dd519af4490",
+      "bytes": 468541
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1280x720/proposal.png",
+      "sha256": "a31c5650c640dbe747bedbb0adef2b9776a7df40e160bfdc7873c939fa0f4624",
+      "bytes": 234441
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1280x720/resize-1366x768.png",
+      "sha256": "282c733bf2e18006745bc4ee4e6dd2606c55a706f3d66187333c80b672989cbb",
+      "bytes": 324724
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1280x720/waiting.png",
+      "sha256": "7f3e00f53f2b87bce0139df0195039402b264e66e78121da9876738e0244dfb3",
+      "bytes": 234324
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1366x768/audit.png",
+      "sha256": "8c28dcaf4602e0d809a7c9582664ccd8723077874a0ec16fdb42fc3dd980ce68",
+      "bytes": 284775
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1366x768/done.png",
+      "sha256": "8d1af0f1008b373b5201747bfc933abbc7513522ec3c3652bab387079b1a7c3e",
+      "bytes": 332973
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1366x768/echo-detail.png",
+      "sha256": "6130fa53beee343c012d0511f1b2e6f0f3f3c745d71753ce61a3e78eb4c74ee7",
+      "bytes": 323390
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1366x768/hud.png",
+      "sha256": "7c4ef489e22752ba86345ac376973dee1bb873f4eeb2f84cda94a43f48551e7b",
+      "bytes": 599395
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1366x768/proposal.png",
+      "sha256": "5c2c0149c9f71aa554e4367ad58a28e681f37ae5bf0412ee4fafdd35785e8a37",
+      "bytes": 327523
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1366x768/waiting.png",
+      "sha256": "b1ef2a968c4cda862dc08165332fdd88652fcd4fd277be556783f577ee6884f1",
+      "bytes": 324290
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1600x900/audit.png",
+      "sha256": "f0995581977cd5e43827a17b295c7487561d123ddbc293da8cf277f1c6117031",
+      "bytes": 286998
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1600x900/done.png",
+      "sha256": "84d531e152cd020a30c69f8b49c4922131e12cb424f18531bb1582568e0efcce",
+      "bytes": 347638
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1600x900/echo-detail.png",
+      "sha256": "1326574cfaca7a3184f4e7057e00827356b59d128acb76b9364c9807da1373a1",
+      "bytes": 339390
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1600x900/hud.png",
+      "sha256": "6ce65b8155d2f3eeb2fa30a455b776878148995f1987ffcadecbb5ae2d42cbf1",
+      "bytes": 650649
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1600x900/proposal.png",
+      "sha256": "b39f7daeaa546e33cb13ad2705a6fd1c0ced4f01b110f48f3b22b6a439ab2402",
+      "bytes": 340768
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1600x900/waiting.png",
+      "sha256": "5b54dfa84b64a794dc84d6ac10077984a93b1ef312826a767ace7807ce78c7aa",
+      "bytes": 336367
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1920x1080/audit.png",
+      "sha256": "3c8474c8734170549759e1998eb96dd08a604dc34ed2ece28a44823adf65d521",
+      "bytes": 374667
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1920x1080/done.png",
+      "sha256": "0e046763b1753b47f37a2eeabb826e514807911ec408c711d330420eef0442c5",
+      "bytes": 454628
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1920x1080/echo-detail.png",
+      "sha256": "5c5cefd50a8e54192b3d9fec24d12ff43c5d3e51a86895968e2b26d4fef9596e",
+      "bytes": 439579
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1920x1080/hud.png",
+      "sha256": "ec2fb1d20d95c981e9c411af6f6f3cd08c840c880fe1975c3d2b7afafb47d019",
+      "bytes": 854832
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1920x1080/proposal.png",
+      "sha256": "43aad92c8b0c19b5340ab4038e2b2a33e9a090687a1d9f6fb3eaf6c0e5af89aa",
+      "bytes": 443605
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/1920x1080/waiting.png",
+      "sha256": "5fd4401ddda61d9e6f35b0d9ad52f30d8c912fdfef56bb64f4402250b9ba8703",
+      "bytes": 436452
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/800x600/audit.png",
+      "sha256": "0357fa1151648e8ceab3c778e0e3cda21c648e8018b6e65b28fb4d49aea11f35",
+      "bytes": 108977
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/800x600/done.png",
+      "sha256": "120f105605e81ad01488604b4605d8987ebe1755c55bd8875497308f7563e125",
+      "bytes": 130204
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/800x600/echo-detail.png",
+      "sha256": "0c5f95a2f5c1b45174cdd5131b13e92687d85d37ad32d5f67102a2ba3452c0c5",
+      "bytes": 126453
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/800x600/hud.png",
+      "sha256": "f242fdd95f8340b02e04e328276579a651f2130571d05f5e058252a41f9cc4b2",
+      "bytes": 228027
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/800x600/proposal.png",
+      "sha256": "4bf22cde3a1832c33691a6dbb7162197df9b4482edffb14da3e086c71b282038",
+      "bytes": 127267
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/800x600/waiting.png",
+      "sha256": "1956c4db69d1b32da288782164a18d169d29ba62ec7a19f539fc0b0fb7441a56",
+      "bytes": 125246
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/audit8.run.log",
+      "sha256": "37211929c1fd005ec7d43ad0e0506dde698d541c2432a800ba80502580fd5f25",
+      "bytes": 1116
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/before.run.log",
+      "sha256": "86db8bf02286b3d9b450b500087d288012fa1ae8c114c5fdeddc4e095a6c288f",
+      "bytes": 1129
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/build-final.log",
+      "sha256": "5fea83931d3375a914c5a46d3fad2aafde0faa4ee8e89041493a06f11c3cc96f",
+      "bytes": 4457
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/build.log",
+      "sha256": "f2c792edfab772cb885e227ce64f1949a072c44ef3e1147778b5332745cf51d5",
+      "bytes": 4457
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5496.log",
+      "sha256": "a8293db7e73cd5f0fc9cd760d5e150a0d3d379c69358427a48ff2a539b43e326",
+      "bytes": 764
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5497-final.log",
+      "sha256": "7f5d1e0c6e31274277eaf49eedf6162dc7cb5532b1e2f535ca6ec41292eacb57",
+      "bytes": 759
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5497-p3v2.log",
+      "sha256": "19a5305551bca36cd615d2f58aa3d1c8a06ca273d59a0bf68036105aee524c09",
+      "bytes": 759
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5497-p3v2b.log",
+      "sha256": "eedd773753442f21c72d3dc21a454cd3f340c74c913f8036e6eb0c916d5216db",
+      "bytes": 411
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5497-p3v2c.log",
+      "sha256": "49508c1953f766db75d1ab92ae37e46ee41176c80b459fc27895e899eadfcadf",
+      "bytes": 352
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5497-p3v2d.log",
+      "sha256": "2d3a9f7b6ccab644e32c79fc95b579962f276f0c0f51f5b3cb7e734efe2dc752",
+      "bytes": 700
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5497.log",
+      "sha256": "c4c1c2ce9aa58873cea12fd1a21efa90d243d5aea0deca8adc7ad01f336f7fcd",
+      "bytes": 760
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/early.run.log",
+      "sha256": "5efedeae2058c1b4e36352cd68e5094818baa469319cbe949d68d37e8857d5bd",
+      "bytes": 2522
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/echo-detail-p3v2.run.log",
+      "sha256": "94df3d12c4784dfc01ce3689c3358d4b963ee0458e0b54a2232dfac44582db18",
+      "bytes": 977
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/echo-detail.run.log",
+      "sha256": "94df3d12c4784dfc01ce3689c3358d4b963ee0458e0b54a2232dfac44582db18",
+      "bytes": 977
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/matrix-final.run.log",
+      "sha256": "29d00e0bd3877342e87a62c3419671ec98f2b3726f09d8cd472e106ac2de0ea4",
+      "bytes": 430
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/matrix-p3v2.run.log",
+      "sha256": "29d00e0bd3877342e87a62c3419671ec98f2b3726f09d8cd472e106ac2de0ea4",
+      "bytes": 430
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/matrix.run.log",
+      "sha256": "29d00e0bd3877342e87a62c3419671ec98f2b3726f09d8cd472e106ac2de0ea4",
+      "bytes": 430
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/p3v2-feedback-isolated.log",
+      "sha256": "dac5e0fad71323a643e220857e6e7ab7fc9695b8a091754dff8ecd5e7ae7f4d2",
+      "bytes": 465
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/p3v2-feedback-targeted.log",
+      "sha256": "a2a39324a3ec1f221c4373af4fefdcbf1f1c8836f75a8160f0663df589cdb588",
+      "bytes": 472
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/p3v2-typecheck-isolated.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/p3v2-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/strict-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/strict-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/strictunit-final.log",
+      "sha256": "7a62cfe76324e07e5a0d64da9375a9d7830188b4711af43bdc028a8a96483b80",
+      "bytes": 31173
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/strictunit.log",
+      "sha256": "808944d9772357390acdc6cf9796aba79043aff578d6a920dc54ea7d549d5d0e",
+      "bytes": 31509
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/surface-final.log",
+      "sha256": "976755fba323bd7261628fe367e703a4f6d8be2332d7ffef88622c07348830fc",
+      "bytes": 1704
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/surface.log",
+      "sha256": "aaabcd6079f46eb594011acd73229c4857873a8c2e47c5c0d43a5b7be199400f",
+      "bytes": 1704
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/audit8/audit8-800x600-scrolled.png",
+      "sha256": "01d8f32e8de63a108878dad2bcbecbb917e4453e24df8591c57b5956498f68b1",
+      "bytes": 156819
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/audit8/audit8-800x600.png",
+      "sha256": "01d8f32e8de63a108878dad2bcbecbb917e4453e24df8591c57b5956498f68b1",
+      "bytes": 156819
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/audit8/audit8.json",
+      "sha256": "0adbfde0f92c583f16b684d26a47715106e406b4e0137f6e313fd77f130b49bc",
+      "bytes": 1754
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/audit8/audit8.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/audit8/debug-pause.png",
+      "sha256": "75fae667d8b604551624bccc89371852db90f6eb2bdc1c7769f57560459343b3",
+      "bytes": 116869
+    }
+  ],
+  "verification": [
+    {
+      "gate": "npx tsc --noEmit (unfiltered, isolated tree)",
+      "result": "PASS (0)",
+      "log": "reports/gameplay-01/developer/p3/logs/p3v2-typecheck-isolated.log"
+    },
+    {
+      "gate": "npx tsc --noEmit (main working tree)",
+      "result": "PASS (0)",
+      "log": "reports/gameplay-01/developer/p3/logs/p3v2-typecheck.log"
+    },
+    {
+      "gate": "npx vitest run src/ui/feedback.test.ts (isolated)",
+      "result": "PASS 8/8",
+      "log": "reports/gameplay-01/developer/p3/logs/p3v2-feedback-isolated.log"
+    },
+    {
+      "gate": "npx vitest run src/ui/feedback.test.ts (main)",
+      "result": "PASS 8/8",
+      "log": "reports/gameplay-01/developer/p3/logs/p3v2-feedback-targeted.log"
+    },
+    {
+      "gate": "P3 six-viewport browser matrix (v2 source)",
+      "result": "PASS 6/6; outside=0, overlaps=0, minCss>=10, contrast>=9.46",
+      "log": "reports/gameplay-01/developer/p3/logs/matrix-p3v2.run.log + reports/gameplay-01/developer/p3/matrix/summary.json"
+    },
+    {
+      "gate": "P3 audit page with 8 real entries at 800x600",
+      "result": "PASS: 8 entries, 21 lines, minCss 10, outside 0, ESC -> local-coop, scroll region measured (content fits)",
+      "log": "reports/gameplay-01/developer/p3/logs/audit8.run.log + reports/gameplay-01/developer/p3/audit8/audit8.json"
+    },
+    {
+      "gate": "HUD unchanged in v2",
+      "result": "carried over from v1 (2 signal lines, #8fb8c8) \u2014 not re-run as a v2 change",
+      "log": "reports/gameplay-01/developer/p3/matrix/summary.json"
+    },
+    {
+      "gate": "full 794 pure suite",
+      "result": "not re-run (Tester owns the full regression; no P2 change) \u2014 v1 run was 794/794",
+      "log": "reports/gameplay-01/developer/p3/logs/strictunit-final.log"
+    }
+  ],
+  "viewport_summary": [
+    {
+      "viewport": "1920x1080",
+      "ok": true,
+      "minCss": 18,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "audit_sample": [
+        "LOCAL AUDIT",
+        "Recent actions \u00b7 local and model details \u00b7 as of opening",
+        "#1 You \u00b7 Scan relay \u00b7 Queued\n  id local_120_1 \u00b7 tick 120 \u00b7 target 8.0,45.0 \u00b7 room gen 1"
+      ],
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1600x900",
+      "ok": true,
+      "minCss": 15,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "audit_sample": [
+        "LOCAL AUDIT",
+        "Recent actions \u00b7 local and model details \u00b7 as of opening",
+        "#1 You \u00b7 Scan relay \u00b7 Queued\n  id local_134_1 \u00b7 tick 134 \u00b7 target 8.0,45.0 \u00b7 room gen 1"
+      ],
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1366x768",
+      "ok": true,
+      "minCss": 12.8,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "audit_sample": [
+        "LOCAL AUDIT",
+        "Recent actions \u00b7 local and model details \u00b7 as of opening",
+        "#1 You \u00b7 Scan relay \u00b7 Queued\n  id local_129_1 \u00b7 tick 129 \u00b7 target 8.0,45.0 \u00b7 room gen 1"
+      ],
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1280x720",
+      "ok": true,
+      "minCss": 12,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "audit_sample": [
+        "LOCAL AUDIT",
+        "Recent actions \u00b7 local and model details \u00b7 as of opening",
+        "#1 You \u00b7 Scan relay \u00b7 Queued\n  id local_141_1 \u00b7 tick 141 \u00b7 target 8.0,45.0 \u00b7 room gen 1"
+      ],
+      "focus": {
+        "before": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "focused": false
+          }
+        ],
+        "after": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "focused": false
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "focused": true
+          },
+          {
+            "label": "BACK",
+            "focused": false
+          }
+        ]
+      },
+      "resize": {
+        "beforeMinCss": 12,
+        "resizedMinCss": 12.8,
+        "backMinCss": 12,
+        "resizedPage": "local-coop",
+        "outside": 0
+      },
+      "repeat": {
+        "before": 17,
+        "after": 17
+      },
+      "esc": [
+        "local-coop",
+        "echo",
+        "ai",
+        "pause",
+        "pause"
+      ]
+    },
+    {
+      "viewport": "1024x768",
+      "ok": true,
+      "minCss": 12.8,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "audit_sample": [
+        "LOCAL AUDIT",
+        "Recent actions \u00b7 local and model details \u00b7 as of opening",
+        "#1 You \u00b7 Scan relay \u00b7 Queued\n  id local_139_1 \u00b7 tick 139 \u00b7 target 8.0,45.0 \u00b7 room gen 1"
+      ],
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "800x600",
+      "ok": true,
+      "minCss": 10,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "audit_sample": [
+        "LOCAL AUDIT",
+        "Recent actions \u00b7 local and model details \u00b7 as of opening",
+        "#1 You \u00b7 Scan relay \u00b7 Queued\n  id local_141_1 \u00b7 tick 141 \u00b7 target 8.0,45.0 \u00b7 room gen 1"
+      ],
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    }
+  ],
+  "audit8": {
+    "entries": 8,
+    "lines": 21,
+    "minCss": 10,
+    "outside": 0,
+    "esc": "local-coop",
+    "scroll": {
+      "beforeY": 140,
+      "afterY": 140,
+      "restoredY": 140,
+      "scrolled": false
+    },
+    "text": "#1 You \u00b7 Scan relay \u00b7 Queued\n  id local_338_3 \u00b7 tick 338 \u00b7 target 8.0,45.0 \u00b7 room gen 1\n#2 You \u00b7 Scan relay \u00b7 Done\n  id local_338_3 \u00b7 tick 339 \u00b7 target 8.0,45.0 \u00b7 room gen 1\n#3 You \u00b7 Change relay route \u00b7 Rejected\n  not sent (E_USER_REJECTED)\n  id local_414_4 \u00b7 tick 414 \u00b7 target 8.0,45.0 \u00b7 room gen 1\n#4 You \u00b7 Change relay route \u00b7 Rejected\n  this suggestion changed (E_STALE_ID)\n  id local_missing_0 \u00b7 tick 543 \u00b7 target none \u00b7 room gen 1\n#5 You \u00b7 Change relay route \u00b7 Rejected\n  this suggestion changed (E_STALE_ID)\n  id local_missing_1 \u00b7 tick 543 \u00b7 target none \u00b7 room gen 1\n#6 You \u00b7 Change relay route \u00b7 Rejected\n  this suggestion changed (E_STALE_ID)\n  id local_missing_2 \u00b7 tick 543 \u00b7 target none \u00b7 room gen 1\n#7 You \u00b7 Change relay route \u00b7 Rejected\n  this suggestion changed (E_STALE_ID)\n  id local_missing_3 \u00b7 tick 543 \u00b7 target none \u00b7 room gen 1\n#8 You \u00b7 Scan relay \u00b7 Queued\n  id local_557_5 \u00b7 tick 557 \u00b7 target 8.0,45.0 \u00b7 room gen 1",
+    "screenshot": "reports/gameplay-01/developer/p3/audit8/audit8-800x600.png"
+  },
+  "hash_consistency": {
+    "isolated_tree": "D:/tmp/gp01-p3-ui",
+    "checked_before_and_after": true,
+    "files": [
+      "src/ui/feedback.ts",
+      "src/ui/feedback.test.ts",
+      "src/scenes/PauseScene.ts",
+      "src/scenes/GameScene.ts",
+      "src/ui/menuKit.ts"
+    ],
+    "note": "main and isolated hashes matched before the gates and after the gates (see gate logs/summary)"
+  },
+  "gate_environment": {
+    "cwd": "D:\\tmp\\gp01-p3-ui",
+    "spec": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\developer\\p3\\matrix.mjs",
+    "devroot": "D:/tmp/gp01-p3-ui",
+    "lastSignalRoot": null,
+    "shared_old_reports_written": false,
+    "c2_c3c_run": false,
+    "before_tree": "D:/tmp/gp01-p3-before (clean git archive 87a0fac)"
+  },
+  "human_playtest": {
+    "executed": false,
+    "status": "HUMAN PENDING; all current screenshots are fixture/agent-driven",
+    "sessions": [
+      "HumanOnly",
+      "LocalAI",
+      "HumanEcho",
+      "Signal",
+      "Proposal confirmation"
+    ]
+  },
+  "limitations": [
+    "No human played; not human acceptance or proof of understanding.",
+    "Audit page is a snapshot of the audit ring at open time (stated in the subtitle); it does not live-update.",
+    "At 800 with 8 real entries the audit content fits (22 lines, scroll region measured inactive); denser histories are not covered.",
+    "Focus test skips disabled CONFIRM/REJECT while pending by design; not a full keyboard-only matrix. Pointer edge cases not run.",
+    "E_PERMISSION stays generic ('Not possible right now'); the precise range/LOS split is a separate P3 rule decision.",
+    "P3 does not change P2 core/Owner/queue/restore; the fixed P2 v3 tree at 87a0fac does not see display changes.",
+    "P4 spawn/relay overlap, door-vs-jam layout and route Headless gap remain P4.",
+    "The #5a7480 replacement is limited to the P3 paths."
+  ],
+  "not_claimed": [
+    "human acceptance or human understanding",
+    "full Tester regression or whole-GAMEPLAY PASS",
+    "real-model ECHO chain",
+    "P4 level/route/headless work",
+    "any core/Owner/queue/restore change",
+    "every screen outside the P3 whitelist"
+  ],
+  "evidence_note": "All browser evidence is fixture/agent-driven; not human. The isolated P3 tree has its own reports; c2/c3c were not run and shared old reports were not written. P3 v2 stops after this freeze; no commit/push."
+}

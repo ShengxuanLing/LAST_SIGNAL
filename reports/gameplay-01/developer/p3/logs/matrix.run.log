@@ -1,0 +1,7 @@
+1920x1080 PASS minCss=18 minContrast=9.46 outside=0 overlaps=0
+1600x900 PASS minCss=15 minContrast=9.46 outside=0 overlaps=0
+1366x768 PASS minCss=12.8 minContrast=9.46 outside=0 overlaps=0
+1280x720 PASS minCss=12 minContrast=9.46 outside=0 overlaps=0
+1024x768 PASS minCss=12.8 minContrast=9.46 outside=0 overlaps=0
+800x600 PASS minCss=10 minContrast=9.46 outside=0 overlaps=0
+MATRIX RESULT: PASS (fixture/agent-driven; not human)

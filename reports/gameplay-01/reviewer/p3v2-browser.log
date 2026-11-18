@@ -1,0 +1,28 @@
+# run6 cwd=D:/tmp/gp01-p3v2
+BEFORE 7c1e9bd9bf6b 717e87e604f3 ed3a1078824a 11af21869700 3fd125825579 
+# devRoot=http://localhost:5493/ start=01:22:37
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\reviewer-p3v2.spec.ts:134:3 › P3 v2 reviewer › single session: default copy, queued state, audit detail, 800 compact, pure copy
+[chromium] › tests\reviewer-p3v2.spec.ts:134:3 › P3 v2 reviewer › single session: default copy, queued state, audit detail, 800 compact, pure copy
+[step] boot @00:22:40
+
+[step] enable echo @00:22:44
+
+[step] wait proposal @00:22:48
+
+[step] open local @00:22:51
+
+[step] confirm @00:22:51
+
+[step] open audit detail @00:22:52
+
+[step] resize 800x600 @00:22:53
+
+[step] pure copy loop @00:22:54
+
+[step] eight-row audit fixture @00:23:00
+
+  1 passed (22.8s)
+PW_EXIT=0

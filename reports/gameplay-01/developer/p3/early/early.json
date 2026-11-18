@@ -1,0 +1,642 @@
+{
+  "ok": true,
+  "viewport": "1280x720",
+  "cssScale": 1,
+  "minSize": 12,
+  "outside": [],
+  "sizes": [
+    {
+      "text": "ECHO LOCAL COOPERATION",
+      "px": 42
+    },
+    {
+      "text": "LOCAL ECHO · OFFLINE · A HUMAN CONFIRMS",
+      "px": 12
+    },
+    {
+      "text": "Ready to confirm · 94/100 HP · Following",
+      "px": 14
+    },
+    {
+      "text": "Scan relay\nSeen: relay in sight\nCost: 10",
+      "px": 12
+    },
+    {
+      "text": "LOW-RISK COOPERATION: OFF",
+      "px": 18
+    },
+    {
+      "text": "CONFIRM (HUMAN)",
+      "px": 18
+    },
+    {
+      "text": "REJECT",
+      "px": 18
+    },
+    {
+      "text": "VIEW AUDIT",
+      "px": 18
+    },
+    {
+      "text": "BACK",
+      "px": 18
+    },
+    {
+      "text": "No recent actions",
+      "px": 12
+    },
+    {
+      "text": "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+      "px": 12
+    },
+    {
+      "text": "ECHO LOCAL COOPERATION",
+      "px": 42
+    },
+    {
+      "text": "LOCAL ECHO · OFFLINE · A HUMAN CONFIRMS",
+      "px": 12
+    },
+    {
+      "text": "Waiting for the core tick · 94/100 HP · ",
+      "px": 14
+    },
+    {
+      "text": "Waiting for the next core tick\nQueued: S",
+      "px": 12
+    },
+    {
+      "text": "LOW-RISK COOPERATION: OFF",
+      "px": 18
+    },
+    {
+      "text": "CONFIRM (HUMAN)",
+      "px": 18
+    },
+    {
+      "text": "REJECT",
+      "px": 18
+    },
+    {
+      "text": "VIEW AUDIT",
+      "px": 18
+    },
+    {
+      "text": "BACK",
+      "px": 18
+    },
+    {
+      "text": "Queued · Scan relay · runs after you res",
+      "px": 12
+    },
+    {
+      "text": "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+      "px": 12
+    },
+    {
+      "text": "LOCAL AUDIT",
+      "px": 42
+    },
+    {
+      "text": "Human-local and model-owner receipts fro",
+      "px": 12
+    },
+    {
+      "text": "#1 human-local · scan · enqueued · tick ",
+      "px": 12
+    },
+    {
+      "text": "BACK",
+      "px": 18
+    },
+    {
+      "text": "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+      "px": 12
+    }
+  ],
+  "proposal": {
+    "page": "local-coop",
+    "texts": [
+      {
+        "text": "ECHO LOCAL COOPERATION",
+        "x": 322.5,
+        "y": 30.5,
+        "w": 635,
+        "h": 43,
+        "font": "42px",
+        "color": "#33e0ff"
+      },
+      {
+        "text": "LOCAL ECHO · OFFLINE · A HUMAN CONFIRMS",
+        "x": 511,
+        "y": 77.5,
+        "w": 258,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "Ready to confirm · 94/100 HP · Following · Human owner",
+        "x": 432,
+        "y": 110.5,
+        "w": 416,
+        "h": 15,
+        "font": "14px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now · expires in 2s\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+        "x": 400,
+        "y": 150,
+        "w": 245,
+        "h": 91,
+        "font": "12px",
+        "color": "#cfe8ef"
+      },
+      {
+        "text": "LOW-RISK COOPERATION: OFF",
+        "x": 504,
+        "y": 330.5,
+        "w": 272,
+        "h": 19,
+        "font": "18px",
+        "color": "#ffffff"
+      },
+      {
+        "text": "CONFIRM (HUMAN)",
+        "x": 558.5,
+        "y": 386.5,
+        "w": 163,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "REJECT",
+        "x": 607.5,
+        "y": 442.5,
+        "w": 65,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "VIEW AUDIT",
+        "x": 586,
+        "y": 498.5,
+        "w": 108,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "BACK",
+        "x": 618.5,
+        "y": 554.5,
+        "w": 43,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "No recent actions",
+        "x": 583.5,
+        "y": 613.5,
+        "w": 113,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+        "x": 517.5,
+        "y": 683.5,
+        "w": 245,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      }
+    ],
+    "status": "Ready to confirm · 94/100 HP · Following · Human owner",
+    "proposal": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now · expires in 2s\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+    "notice": "No recent actions",
+    "auditEnabled": true,
+    "confirmEnabled": true,
+    "rejectEnabled": true,
+    "pending": null,
+    "proposalNow": {
+      "id": "local_109_1",
+      "kind": "scan"
+    },
+    "audit": null,
+    "tick": 109,
+    "echo": {
+      "hp": 94
+    }
+  },
+  "waiting": {
+    "page": "local-coop",
+    "texts": [
+      {
+        "text": "ECHO LOCAL COOPERATION",
+        "x": 322.5,
+        "y": 30.5,
+        "w": 635,
+        "h": 43,
+        "font": "42px",
+        "color": "#33e0ff"
+      },
+      {
+        "text": "LOCAL ECHO · OFFLINE · A HUMAN CONFIRMS",
+        "x": 511,
+        "y": 77.5,
+        "w": 258,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "Waiting for the core tick · 94/100 HP · Following · Human owner",
+        "x": 397.5,
+        "y": 110.5,
+        "w": 485,
+        "h": 15,
+        "font": "14px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "Waiting for the next core tick\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+        "x": 400,
+        "y": 150,
+        "w": 278,
+        "h": 39,
+        "font": "12px",
+        "color": "#ffd233"
+      },
+      {
+        "text": "LOW-RISK COOPERATION: OFF",
+        "x": 504,
+        "y": 330.5,
+        "w": 272,
+        "h": 19,
+        "font": "18px",
+        "color": "#ffffff"
+      },
+      {
+        "text": "CONFIRM (HUMAN)",
+        "x": 558.5,
+        "y": 386.5,
+        "w": 163,
+        "h": 19,
+        "font": "18px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "REJECT",
+        "x": 607.5,
+        "y": 442.5,
+        "w": 65,
+        "h": 19,
+        "font": "18px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "VIEW AUDIT",
+        "x": 586,
+        "y": 498.5,
+        "w": 108,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "BACK",
+        "x": 618.5,
+        "y": 554.5,
+        "w": 43,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "Queued · Scan relay · runs after you resume\nAudit: 1 recent · open for ids and codes",
+        "x": 498,
+        "y": 607,
+        "w": 284,
+        "h": 26,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+        "x": 517.5,
+        "y": 683.5,
+        "w": 245,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      }
+    ],
+    "status": "Waiting for the core tick · 94/100 HP · Following · Human owner",
+    "proposal": "Waiting for the next core tick\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+    "notice": "Queued · Scan relay · runs after you resume\nAudit: 1 recent · open for ids and codes",
+    "auditEnabled": true,
+    "confirmEnabled": false,
+    "rejectEnabled": false,
+    "pending": {
+      "proposalId": "local_109_1",
+      "kind": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "acceptedTick": 109,
+      "roomGeneration": 1
+    },
+    "proposalNow": null,
+    "audit": {
+      "tick": 109,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "enqueued",
+      "proposalId": "local_109_1"
+    },
+    "tick": 109,
+    "echo": {
+      "hp": 94
+    }
+  },
+  "audit": {
+    "page": "local-audit",
+    "texts": [
+      {
+        "text": "LOCAL AUDIT",
+        "x": 482.5,
+        "y": 30.5,
+        "w": 315,
+        "h": 43,
+        "font": "42px",
+        "color": "#33e0ff"
+      },
+      {
+        "text": "Human-local and model-owner receipts from the real events",
+        "x": 451.5,
+        "y": 77.5,
+        "w": 377,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "#1 human-local · scan · enqueued · tick 109 · local_109_1 · target 8.0,45.0 · room gen 1",
+        "x": 400,
+        "y": 130,
+        "w": 542,
+        "h": 26,
+        "font": "12px",
+        "color": "#cfe8ef"
+      },
+      {
+        "text": "BACK",
+        "x": 618.5,
+        "y": 610.5,
+        "w": 43,
+        "h": 19,
+        "font": "18px",
+        "color": "#ffffff"
+      },
+      {
+        "text": "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+        "x": 517.5,
+        "y": 683.5,
+        "w": 245,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      }
+    ],
+    "status": "",
+    "proposal": "",
+    "notice": "",
+    "auditEnabled": null,
+    "confirmEnabled": null,
+    "rejectEnabled": null,
+    "pending": {
+      "proposalId": "local_109_1",
+      "kind": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "acceptedTick": 109,
+      "roomGeneration": 1
+    },
+    "proposalNow": null,
+    "audit": {
+      "tick": 109,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "enqueued",
+      "proposalId": "local_109_1"
+    },
+    "tick": 109,
+    "echo": {
+      "hp": 94
+    }
+  },
+  "hud": {
+    "signal": {
+      "text": "RELAY ACTIVE · EXIT OPEN",
+      "x": 3936.889480078812,
+      "y": 139.1639606798268,
+      "w": 198.75,
+      "h": 16.25,
+      "font": "12px",
+      "color": "#00ff77"
+    },
+    "detail": {
+      "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      "x": 3846.889480078812,
+      "y": 164.1639603072978,
+      "w": 288.75,
+      "h": 16.25,
+      "font": "12px",
+      "color": "#8fb8c8"
+    },
+    "echo": {
+      "text": "ECHO 88/100 · FOLLOW · ASSIST SAFE · CONFIRM FIRE",
+      "x": 3730.639480078812,
+      "y": 116.66396101510293,
+      "w": 405,
+      "h": 16.25,
+      "font": "12px",
+      "color": "#ffd233"
+    },
+    "help": {
+      "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+      "x": 2585.639503175612,
+      "y": 756.6639514783599,
+      "w": 456.25,
+      "h": 17.5,
+      "font": "13px",
+      "color": "#8fb8c8"
+    },
+    "view": {
+      "deviceId": "relay_main",
+      "roomId": 0,
+      "x": 8,
+      "y": 45,
+      "relay": "ACTIVE",
+      "manualEnabled": true,
+      "powered": true,
+      "jammedUntilTick": 0,
+      "playerEnergy": 100,
+      "echoEnergy": 98,
+      "playerScanCD": 0,
+      "playerJamCD": 0,
+      "echoScanCD": 23,
+      "echoJamCD": 0,
+      "evidence": 1,
+      "exitOpen": true
+    }
+  },
+  "done": {
+    "page": "local-coop",
+    "texts": [
+      {
+        "text": "ECHO LOCAL COOPERATION",
+        "x": 322.5,
+        "y": 30.5,
+        "w": 635,
+        "h": 43,
+        "font": "42px",
+        "color": "#33e0ff"
+      },
+      {
+        "text": "LOCAL ECHO · OFFLINE · A HUMAN CONFIRMS",
+        "x": 511,
+        "y": 77.5,
+        "w": 258,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "Ready to confirm · 88/100 HP · Following · Human owner",
+        "x": 432,
+        "y": 110.5,
+        "w": 416,
+        "h": 15,
+        "font": "14px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now · expires in 2s\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+        "x": 400,
+        "y": 150,
+        "w": 245,
+        "h": 91,
+        "font": "12px",
+        "color": "#cfe8ef"
+      },
+      {
+        "text": "LOW-RISK COOPERATION: OFF",
+        "x": 504,
+        "y": 330.5,
+        "w": 272,
+        "h": 19,
+        "font": "18px",
+        "color": "#ffffff"
+      },
+      {
+        "text": "CONFIRM (HUMAN)",
+        "x": 558.5,
+        "y": 386.5,
+        "w": 163,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "REJECT",
+        "x": 607.5,
+        "y": 442.5,
+        "w": 65,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "VIEW AUDIT",
+        "x": 586,
+        "y": 498.5,
+        "w": 108,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "BACK",
+        "x": 618.5,
+        "y": 554.5,
+        "w": 43,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "Done · relay scanned\nAudit: 2 recent · open for ids and codes",
+        "x": 508,
+        "y": 607,
+        "w": 264,
+        "h": 26,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+        "x": 517.5,
+        "y": 683.5,
+        "w": 245,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      }
+    ],
+    "status": "Ready to confirm · 88/100 HP · Following · Human owner",
+    "proposal": "Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now · expires in 2s\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted",
+    "notice": "Done · relay scanned\nAudit: 2 recent · open for ids and codes",
+    "auditEnabled": true,
+    "confirmEnabled": true,
+    "rejectEnabled": true,
+    "pending": null,
+    "proposalNow": {
+      "id": "local_235_2",
+      "kind": "scan"
+    },
+    "audit": {
+      "tick": 110,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "applied",
+      "proposalId": "local_109_1"
+    },
+    "tick": 235,
+    "echo": {
+      "hp": 88
+    }
+  },
+  "errors": []
+}

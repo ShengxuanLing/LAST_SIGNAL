@@ -1,0 +1,144 @@
+[
+  {
+    "item": "default-page",
+    "at": "2026-11-18T00:22:51.484Z",
+    "idleRaw": [],
+    "idleText": "ECHO LOCAL COOPERATION | LOCAL ECHO · A HUMAN CONFIRMS | Ready to confirm · 94/100 HP · Following · Human owner | Scan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted | LOW-RISK COOPERATION: OFF | CONFIRM (HUMAN) | REJECT | RECENT ACTIONS | BACK | No recent actions | ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\reviewer\\p3v2-shots\\v2-A-default-local.png"
+  },
+  {
+    "item": "queued-state",
+    "at": "2026-11-18T00:22:52.634Z",
+    "status": "Queued · 94/100 HP · Following · Human owner",
+    "proposal": "Waiting to resume\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused",
+    "notice": "Queued · Scan relay · runs after you resume\nRecent actions: 1",
+    "confirmDisabled": true,
+    "rejectDisabled": true,
+    "queue": [
+      "signal-scan"
+    ],
+    "applied": 0,
+    "queuedRaw": [],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\reviewer\\p3v2-shots\\v2-B-queued.png"
+  },
+  {
+    "item": "audit-detail",
+    "at": "2026-11-18T00:22:53.766Z",
+    "lines": [
+      "#1 You · Scan relay · Queued",
+      "  id local_153_1 · tick 153 · target 8.0,45.0 · room gen 1"
+    ],
+    "entries": [
+      {
+        "result": "enqueued",
+        "provenance": "human-local",
+        "code": null,
+        "tick": 153,
+        "id": "local_153_1"
+      }
+    ],
+    "auditRaw": [
+      "/\\blocal_\\d+_\\d+\\b/ :: #1 You · Scan relay · Queued\n  id local_153_1 · tick 153 · target 8.0,45.0 · roo",
+      "/\\btick\\s+\\d{2,}\\b/ :: #1 You · Scan relay · Queued\n  id local_153_1 · tick 153 · target 8.0,45.0 · roo",
+      "/\\broom gen\\b/ :: #1 You · Scan relay · Queued\n  id local_153_1 · tick 153 · target 8.0,45.0 · roo",
+      "/\\btarget\\s+-?\\d+\\.\\d/ :: #1 You · Scan relay · Queued\n  id local_153_1 · tick 153 · target 8.0,45.0 · roo"
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\reviewer\\p3v2-shots\\v2-C-audit-detail.png"
+  },
+  {
+    "item": "compact-800",
+    "at": "2026-11-18T00:22:54.733Z",
+    "minCss": 10,
+    "outside": [],
+    "overlaps": [],
+    "backVisible": true,
+    "auditInfo": {
+      "y": 140,
+      "h": 32,
+      "lines": 2
+    },
+    "count": 5,
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\reviewer\\p3v2-shots\\v2-D-800-audit.png"
+  },
+  {
+    "item": "pure-copy",
+    "at": "2026-11-18T00:23:00.984Z",
+    "before": {
+      "proposal": null,
+      "pending": {
+        "proposalId": "local_153_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 153,
+        "roomGeneration": 1
+      },
+      "queue": [
+        "signal-scan"
+      ],
+      "audit": 1,
+      "applied": 0,
+      "echoHp": 94
+    },
+    "after": {
+      "proposal": null,
+      "pending": {
+        "proposalId": "local_153_1",
+        "kind": "scan",
+        "target": {
+          "x": 8,
+          "y": 45
+        },
+        "acceptedTick": 153,
+        "roomGeneration": 1
+      },
+      "queue": [
+        "signal-scan"
+      ],
+      "audit": 1,
+      "applied": 0,
+      "echoHp": 94
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\reviewer\\p3v2-shots\\v2-E-pure-copy.png"
+  },
+  {
+    "item": "eight-row-800",
+    "at": "2026-11-18T00:23:02.236Z",
+    "lines": [
+      "#1 Model (Owner) · Scan relay · Queued",
+      "  id fixture_0 · tick 1000 · target 8.0,45.0 · room gen 1",
+      "#2 You · Jam relay · Rejected",
+      "  Not possible right now (E_PERMISSION)",
+      "  id fixture_1 · tick 1001 · target 8.0,45.0 · room gen 1",
+      "#3 You · Scan relay · Queued",
+      "  id fixture_2 · tick 1002 · target 8.0,45.0 · room gen 1",
+      "#4 Model (Owner) · Jam relay · Queued",
+      "  id fixture_3 · tick 1003 · target 8.0,45.0 · room gen 1",
+      "#5 You · Scan relay · Queued",
+      "  id fixture_4 · tick 1004 · target 8.0,45.0 · room gen 1",
+      "#6 You · Jam relay · Rejected",
+      "  Not possible right now (E_PERMISSION)",
+      "  id fixture_5 · tick 1005 · target 8.0,45.0 · room gen 1",
+      "#7 Model (Owner) · Scan relay · Queued",
+      "  id fixture_6 · tick 1006 · target 8.0,45.0 · room gen 1",
+      "#8 You · Jam relay · Done",
+      "  id fixture_7 · tick 1007 · target 8.0,45.0 · room gen 1"
+    ],
+    "y": 140,
+    "h": 288,
+    "rows": 8,
+    "eightMinCss": 10,
+    "eightBack": true,
+    "rawLines": [
+      "#1 Model (Owner) · Scan relay · Queued",
+      "  id fixture_0 · tick 1000 · target 8.0,45.0 · room gen 1",
+      "#2 You · Jam relay · Rejected",
+      "  Not possible right now (E_PERMISSION)",
+      "  id fixture_1 · tick 1001 · target 8.0,45.0 · room gen 1",
+      "#3 You · Scan relay · Queued"
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\reviewer\\p3v2-shots\\v2-F-800-eight-rows.png"
+  }
+]

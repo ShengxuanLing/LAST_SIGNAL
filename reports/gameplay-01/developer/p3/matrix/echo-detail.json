@@ -1,0 +1,366 @@
+{
+  "ok": true,
+  "env": {
+    "cwd": "D:\\tmp\\gp01-p3-ui",
+    "spec": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\developer\\p3\\echo-detail.mjs",
+    "devroot": "D:/tmp/gp01-p3-ui",
+    "note": "Independent P3 gate tree; own reports; c2/c3c not run; fixture."
+  },
+  "results": [
+    {
+      "viewport": "1920x1080",
+      "ok": true,
+      "page": "echo",
+      "detail": "Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on",
+      "status": "STATUS  DISABLED",
+      "minCss": 18,
+      "minContrast": 8.59,
+      "outside": [],
+      "overlaps": [],
+      "buttons": [
+        {
+          "label": "ENABLE ECHO",
+          "enabled": true
+        },
+        {
+          "label": "MODE: FOLLOW",
+          "enabled": true
+        },
+        {
+          "label": "MODE: HOLD POSITION",
+          "enabled": true
+        },
+        {
+          "label": "MODE: MOVE TO AIM",
+          "enabled": true
+        },
+        {
+          "label": "CONFIRM ASSIST FIRE",
+          "enabled": true
+        },
+        {
+          "label": "BACK",
+          "enabled": true
+        },
+        {
+          "label": "LOCAL COOPERATION >",
+          "enabled": true
+        }
+      ],
+      "signal": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "ACTIVE",
+        "manualEnabled": true,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "playerEnergy": 100,
+        "echoEnergy": 100,
+        "playerScanCD": 0,
+        "playerJamCD": 0,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 0,
+        "exitOpen": true
+      }
+    },
+    {
+      "viewport": "1600x900",
+      "ok": true,
+      "page": "echo",
+      "detail": "Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on",
+      "status": "STATUS  DISABLED",
+      "minCss": 15,
+      "minContrast": 8.59,
+      "outside": [],
+      "overlaps": [],
+      "buttons": [
+        {
+          "label": "ENABLE ECHO",
+          "enabled": true
+        },
+        {
+          "label": "MODE: FOLLOW",
+          "enabled": true
+        },
+        {
+          "label": "MODE: HOLD POSITION",
+          "enabled": true
+        },
+        {
+          "label": "MODE: MOVE TO AIM",
+          "enabled": true
+        },
+        {
+          "label": "CONFIRM ASSIST FIRE",
+          "enabled": true
+        },
+        {
+          "label": "BACK",
+          "enabled": true
+        },
+        {
+          "label": "LOCAL COOPERATION >",
+          "enabled": true
+        }
+      ],
+      "signal": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "ACTIVE",
+        "manualEnabled": true,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "playerEnergy": 100,
+        "echoEnergy": 100,
+        "playerScanCD": 0,
+        "playerJamCD": 0,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 0,
+        "exitOpen": true
+      }
+    },
+    {
+      "viewport": "1366x768",
+      "ok": true,
+      "page": "echo",
+      "detail": "Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on",
+      "status": "STATUS  DISABLED",
+      "minCss": 12.8,
+      "minContrast": 8.59,
+      "outside": [],
+      "overlaps": [],
+      "buttons": [
+        {
+          "label": "ENABLE ECHO",
+          "enabled": true
+        },
+        {
+          "label": "MODE: FOLLOW",
+          "enabled": true
+        },
+        {
+          "label": "MODE: HOLD POSITION",
+          "enabled": true
+        },
+        {
+          "label": "MODE: MOVE TO AIM",
+          "enabled": true
+        },
+        {
+          "label": "CONFIRM ASSIST FIRE",
+          "enabled": true
+        },
+        {
+          "label": "BACK",
+          "enabled": true
+        },
+        {
+          "label": "LOCAL COOPERATION >",
+          "enabled": true
+        }
+      ],
+      "signal": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "ACTIVE",
+        "manualEnabled": true,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "playerEnergy": 100,
+        "echoEnergy": 100,
+        "playerScanCD": 0,
+        "playerJamCD": 0,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 0,
+        "exitOpen": true
+      }
+    },
+    {
+      "viewport": "1280x720",
+      "ok": true,
+      "page": "echo",
+      "detail": "Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on",
+      "status": "STATUS  DISABLED",
+      "minCss": 12,
+      "minContrast": 8.59,
+      "outside": [],
+      "overlaps": [],
+      "buttons": [
+        {
+          "label": "ENABLE ECHO",
+          "enabled": true
+        },
+        {
+          "label": "MODE: FOLLOW",
+          "enabled": true
+        },
+        {
+          "label": "MODE: HOLD POSITION",
+          "enabled": true
+        },
+        {
+          "label": "MODE: MOVE TO AIM",
+          "enabled": true
+        },
+        {
+          "label": "CONFIRM ASSIST FIRE",
+          "enabled": true
+        },
+        {
+          "label": "BACK",
+          "enabled": true
+        },
+        {
+          "label": "LOCAL COOPERATION >",
+          "enabled": true
+        }
+      ],
+      "signal": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "ACTIVE",
+        "manualEnabled": true,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "playerEnergy": 100,
+        "echoEnergy": 100,
+        "playerScanCD": 0,
+        "playerJamCD": 0,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 0,
+        "exitOpen": true
+      }
+    },
+    {
+      "viewport": "1024x768",
+      "ok": true,
+      "page": "echo",
+      "detail": "Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on",
+      "status": "STATUS  DISABLED",
+      "minCss": 12.8,
+      "minContrast": 8.59,
+      "outside": [],
+      "overlaps": [],
+      "buttons": [
+        {
+          "label": "ENABLE ECHO",
+          "enabled": true
+        },
+        {
+          "label": "MODE: FOLLOW",
+          "enabled": true
+        },
+        {
+          "label": "MODE: HOLD POSITION",
+          "enabled": true
+        },
+        {
+          "label": "MODE: MOVE TO AIM",
+          "enabled": true
+        },
+        {
+          "label": "CONFIRM ASSIST FIRE",
+          "enabled": true
+        },
+        {
+          "label": "BACK",
+          "enabled": true
+        },
+        {
+          "label": "LOCAL COOPERATION >",
+          "enabled": true
+        }
+      ],
+      "signal": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "ACTIVE",
+        "manualEnabled": true,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "playerEnergy": 100,
+        "echoEnergy": 100,
+        "playerScanCD": 0,
+        "playerJamCD": 0,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 0,
+        "exitOpen": true
+      }
+    },
+    {
+      "viewport": "800x600",
+      "ok": true,
+      "page": "echo",
+      "detail": "Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on",
+      "status": "STATUS  DISABLED",
+      "minCss": 10,
+      "minContrast": 8.59,
+      "outside": [],
+      "overlaps": [],
+      "buttons": [
+        {
+          "label": "ENABLE ECHO",
+          "enabled": true
+        },
+        {
+          "label": "MODE: FOLLOW",
+          "enabled": true
+        },
+        {
+          "label": "MODE: HOLD POSITION",
+          "enabled": true
+        },
+        {
+          "label": "MODE: MOVE TO AIM",
+          "enabled": true
+        },
+        {
+          "label": "CONFIRM ASSIST FIRE",
+          "enabled": true
+        },
+        {
+          "label": "BACK",
+          "enabled": true
+        },
+        {
+          "label": "LOCAL COOPERATION >",
+          "enabled": true
+        }
+      ],
+      "signal": {
+        "deviceId": "relay_main",
+        "roomId": 0,
+        "x": 8,
+        "y": 45,
+        "relay": "ACTIVE",
+        "manualEnabled": true,
+        "powered": true,
+        "jammedUntilTick": 0,
+        "playerEnergy": 100,
+        "echoEnergy": 100,
+        "playerScanCD": 0,
+        "playerJamCD": 0,
+        "echoScanCD": 0,
+        "echoJamCD": 0,
+        "evidence": 0,
+        "exitOpen": true
+      }
+    }
+  ],
+  "errors": []
+}

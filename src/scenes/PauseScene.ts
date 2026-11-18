@@ -10,6 +10,11 @@ import {
   type UITokens, type Focusable, type ButtonHandle
 } from '../ui/menuKit';
 import { GameScene } from './GameScene';
+import {
+  auditLines, auditSummary, lastLocalAudit, localStatus as localStatusLine,
+  proposalLines, receiptLine, signalDetailLines, waitingLines,
+  type FeedbackSignalView, type LocalPendingView
+} from '../ui/feedback';
 
 /**
  * UI-REWORK-01 — unified Pause navigator.
@@ -23,13 +28,14 @@ import { GameScene } from './GameScene';
  * token set raises the logical font sizes to keep the effective CSS size
  * readable (same criterion as GameScene F-06).
  */
-type Page = 'pause' | 'ai' | 'echo' | 'local-coop' | 'llm' | 'inventory' | 'settings';
+type Page = 'pause' | 'ai' | 'echo' | 'local-coop' | 'local-audit' | 'llm' | 'inventory' | 'settings';
 
 const PARENT_PAGE: Record<Page, Page | null> = {
   pause: null,
   ai: 'pause',
   echo: 'ai',
   'local-coop': 'echo',
+  'local-audit': 'local-coop',
   llm: 'ai',
   inventory: 'pause',
   settings: 'pause'
@@ -87,6 +93,7 @@ export class PauseScene extends Phaser.Scene {
   private echoStatus: Phaser.GameObjects.Text | null = null;
   private echoModeText: Phaser.GameObjects.Text | null = null;
   private echoSuggest: Phaser.GameObjects.Text | null = null;
+  private echoSignalDetail: Phaser.GameObjects.Text | null = null;
   private btnEchoAssist: ButtonHandle | null = null;
   private btnEchoLocal: ButtonHandle | null = null;
   private localSwitch: ButtonHandle | null = null;
@@ -95,6 +102,8 @@ export class PauseScene extends Phaser.Scene {
   private localStatus: Phaser.GameObjects.Text | null = null;
   private localProposalText: Phaser.GameObjects.Text | null = null;
   private localNoticeText: Phaser.GameObjects.Text | null = null;
+  private localAuditText: Phaser.GameObjects.Text | null = null;
+  private localAudit: ButtonHandle | null = null;
   private localNotice: string | null = null;
   private pageCleanups: Array<() => void> = [];
   /** Cached Signal opt-in for the status footer (avoids a per-frame save parse). */
@@ -224,6 +233,7 @@ export class PauseScene extends Phaser.Scene {
       case 'ai': this.buildAi(p); break;
       case 'echo': this.buildEcho(p); break;
       case 'local-coop': this.buildLocalCoop(p); break;
+      case 'local-audit': this.buildLocalAudit(p); break;
       case 'llm': this.buildLlm(p); break;
       case 'inventory': this.buildInventory(p); break;
       case 'settings': this.buildSettings(p); break;
@@ -251,6 +261,7 @@ export class PauseScene extends Phaser.Scene {
     this.echoStatus = null;
     this.echoModeText = null;
     this.echoSuggest = null;
+    this.echoSignalDetail = null;
     this.btnEchoAssist = null;
     this.btnEchoLocal = null;
     this.localSwitch = null;
@@ -259,6 +270,8 @@ export class PauseScene extends Phaser.Scene {
     this.localStatus = null;
     this.localProposalText = null;
     this.localNoticeText = null;
+    this.localAuditText = null;
+    this.localAudit = null;
     this.btnLocalBack = null;
     this.btnResume = null;
     this.btnInventory = null;
@@ -428,7 +441,7 @@ export class PauseScene extends Phaser.Scene {
       });
     }
     p.text(GAME.WINDOW_W / 2, fx(698, 690), 'ESC RESUME · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     p.refresh = () => this.refreshStatusTexts();
     this.refreshStatusTexts();
@@ -446,7 +459,7 @@ export class PauseScene extends Phaser.Scene {
       fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     p.text(GAME.WINDOW_W / 2, fx(110, 128), 'MODES  HUMAN · LOCAL DETERMINISTIC DEMO · EXTERNAL AGENT', {
-      fontSize: this.tokens.SMALL_FONT, color: '#5a7480'
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     const rows: Array<[string, number, number]> = [
       ['control', 136, 156], ['aiMode', 160, 182], ['external', 184, 208],
@@ -476,7 +489,7 @@ export class PauseScene extends Phaser.Scene {
     });
     this.btnAiBack = p.button({ y: y0 + stride * 4, label: 'BACK', onClick: () => this.navigate('pause') });
     p.text(GAME.WINDOW_W / 2, fx(690, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     p.refresh = () => this.refreshStatusTexts();
     this.refreshStatusTexts();
@@ -523,7 +536,7 @@ export class PauseScene extends Phaser.Scene {
     });
     this.echoStatus = p.text(GAME.WINDOW_W / 2, fx(124, 132), '', { fontSize: this.tokens.BODY_FONT, color: '#eafaff' });
     this.echoModeText = p.text(GAME.WINDOW_W / 2, fx(148, 160), '', { fontSize: this.tokens.BODY_FONT, color: '#cfe8ef' });
-    this.echoSuggest = p.text(GAME.WINDOW_W / 2, fx(172, 188), '', { fontSize: this.tokens.SMALL_FONT, color: '#5a7480' });
+    this.echoSuggest = p.text(GAME.WINDOW_W / 2, fx(172, 188), '', { fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8' });
 
     const y0 = fx(214, 224);
     const stride = this.tokens.BTN_STRIDE;
@@ -551,8 +564,11 @@ export class PauseScene extends Phaser.Scene {
       y: y0 + stride * 6 + 10, label: 'LOCAL COOPERATION >', tone: 'primary',
       onClick: () => this.navigate('local-coop')
     });
+    this.echoSignalDetail = p.text(GAME.WINDOW_W / 2, fx(650, 650), '', {
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8', align: 'center', wrapWidth: 560
+    });
     p.text(GAME.WINDOW_W / 2, fx(698, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     p.refresh = () => this.refreshEcho();
     this.refreshEcho(true);
@@ -581,9 +597,13 @@ export class PauseScene extends Phaser.Scene {
     const suggestion = gs.suggestEcho();
     if (this.echoSuggest) {
       this.echoSuggest.setText(suggestion === 'fire'
-        ? 'ASSIST READY: an enemy is inside the echo perception cone — confirm below'
-        : 'ASSIST: no perceived target — the echo will not fire');
-      this.echoSuggest.setColor(suggestion === 'fire' ? '#ffd233' : '#5a7480');
+        ? 'Assist ready · enemy in sight'
+        : 'Assist · no target in sight');
+      this.echoSuggest.setColor(suggestion === 'fire' ? '#ffd233' : '#8fb8c8');
+    }
+    if (this.echoSignalDetail) {
+      const view = world.signalView() as FeedbackSignalView | null;
+      this.echoSignalDetail.setText(signalDetailLines(view, world.p1LinkedFireEnabled, world.p1JamRemainingTicks));
     }
     if (this.btnEchoAssist) {
       this.btnEchoAssist.setLabel(world.echoAssistArmed ? 'ASSIST ARMED — CLICK TO REVOKE' : 'CONFIRM ASSIST FIRE');
@@ -598,64 +618,90 @@ export class PauseScene extends Phaser.Scene {
   private buildLocalCoop(p: MenuPage): void {
     const c = this.compact;
     const fx = (n: number, k: number) => (c ? k : n);
+    const world = this.gameScene.world;
+    // One non-executing generation when the page opens. Formatting/refreshing
+    // must not re-call this and manufacture a new proposal.
+    world.proposeLocalEcho();
     p.title('ECHO LOCAL COOPERATION', fx(52, 56));
-    p.text(GAME.WINDOW_W / 2, fx(84, 100), 'LOCAL ECHO · NO EXTERNAL MODEL · HUMAN CONFIRM REQUIRED', {
+    p.text(GAME.WINDOW_W / 2, fx(84, 100), 'LOCAL ECHO · A HUMAN CONFIRMS', {
       fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     this.localStatus = p.text(GAME.WINDOW_W / 2, fx(118, 126), '', {
       fontSize: this.tokens.BODY_FONT, color: '#eafaff'
     });
     this.localProposalText = p.text(400, fx(150, 152), '', {
-      origin: [0, 0], fontSize: this.tokens.SMALL_FONT, color: '#cfe8ef', wrapWidth: 480, align: 'left'
+      origin: [0, 0], fontSize: this.tokens.SMALL_FONT, color: '#cfe8ef', wrapWidth: 520, align: 'left'
     });
     this.localSwitch = p.button({
-      y: fx(360, 360), w: 440, h: 44, label: 'LOW-RISK COOPERATION: OFF',
+      y: fx(340, 340), w: 440, h: 44, label: 'LOW-RISK COOPERATION: OFF',
       onClick: () => {
-        const world = this.gameScene.world;
-        const next = !world.echoCooperation;
+        const w = this.gameScene.world;
+        const next = !w.echoCooperation;
         const latest = saveSystem.load();
         latest.permanent.echoCooperationOptIn = next;
         saveSystem.save(latest);
-        world.setEchoCooperationOptIn(next);
-        this.localNotice = next
-          ? 'LOW-RISK COOPERATION ENABLED (HUMAN)'
-          : 'LOW-RISK COOPERATION DISABLED · MANUAL MODE PRESERVED';
+        w.setEchoCooperationOptIn(next);
+        this.localNotice = next ? 'Low-risk auto on (human)' : 'Low-risk auto off · manual mode kept';
         this.navigate('local-coop');
       }
     });
     this.localConfirm = p.button({
-      y: fx(426, 426), label: 'CONFIRM (HUMAN) · LOCAL', tone: 'primary', disabled: true,
+      y: fx(396, 396), label: 'CONFIRM (HUMAN)', tone: 'primary', disabled: true,
       onClick: () => {
-        const world = this.gameScene.world;
-        const proposal = world.echoLocalProposal;
+        const w = this.gameScene.world;
+        const proposal = w.echoLocalProposal;
         if (!proposal) return;
-        const ok = world.confirmLocalEchoProposal(proposal.id);
-        this.localNotice = ok
-          ? 'CONFIRMED · ENQUEUED FOR THE NEXT CORE TICK'
-          : 'NOT CONFIRMED · see LAST (real validation/core code)';
+        w.confirmLocalEchoProposal(proposal.id);
+        this.localNotice = null;
         this.navigate('local-coop');
       }
     });
     this.localReject = p.button({
-      y: fx(488, 488), label: 'REJECT LOCAL', tone: 'danger', disabled: true,
+      y: fx(452, 452), label: 'REJECT', tone: 'danger', disabled: true,
       onClick: () => {
-        const world = this.gameScene.world;
-        const proposal = world.echoLocalProposal;
+        const w = this.gameScene.world;
+        const proposal = w.echoLocalProposal;
         if (!proposal) return;
-        world.rejectLocalEchoProposal(proposal.id);
-        this.localNotice = 'LOCAL PROPOSAL REJECTED BY HUMAN';
+        w.rejectLocalEchoProposal(proposal.id);
+        this.localNotice = null;
         this.navigate('local-coop');
       }
     });
-    this.btnLocalBack = p.button({ y: fx(550, 550), w: 300, label: 'BACK', onClick: () => this.navigate('echo') });
-    this.localNoticeText = p.text(GAME.WINDOW_W / 2, fx(610, 610), '', {
+    this.localAudit = p.button({
+      y: fx(508, 508), label: 'RECENT ACTIONS',
+      onClick: () => this.navigate('local-audit')
+    });
+    this.btnLocalBack = p.button({ y: fx(564, 564), w: 300, label: 'BACK', onClick: () => this.navigate('echo') });
+    this.localNoticeText = p.text(GAME.WINDOW_W / 2, fx(620, 620), '', {
       fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8', wrapWidth: 620
     });
     p.text(GAME.WINDOW_W / 2, fx(690, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     p.refresh = () => this.refreshLocalCoop();
     this.refreshLocalCoop(true);
+  }
+
+  private buildLocalAudit(p: MenuPage): void {
+    const c = this.compact;
+    const fx = (n: number, k: number) => (c ? k : n);
+    const world = this.gameScene.world;
+    p.title('LOCAL AUDIT', fx(52, 56));
+    p.text(GAME.WINDOW_W / 2, fx(84, 100), 'Recent actions · local and model details · as of opening', {
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+    });
+    const entries = world.echoAudit.recent(8);
+    const liveRoom = world.echoPendingLocal?.roomGeneration ?? world.echoLocalProposal?.roomGeneration;
+    p.beginRegion();
+    this.localAuditText = p.text(400, fx(130, 140), '', {
+      origin: [0, 0], fontSize: this.tokens.SMALL_FONT, color: '#cfe8ef', wrapWidth: 560, align: 'left'
+    });
+    this.localAuditText.setText(auditLines(entries, liveRoom));
+    p.endRegion(fx(570, 560), fx(140, 140) + this.localAuditText.height + fx(12, 12));
+    p.button({ y: fx(620, 620), w: 300, label: 'BACK', onClick: () => this.navigate('local-coop') });
+    p.text(GAME.WINDOW_W / 2, fx(690, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
+    });
   }
 
   btnLocalBack: ButtonHandle | null = null;
@@ -665,45 +711,50 @@ export class PauseScene extends Phaser.Scene {
     const world = this.gameScene.world;
     const echo = world.echoActor;
     const pending = world.echoPendingLocal;
-    const proposal = world.proposeLocalEcho();
+    const proposal = world.echoLocalProposal;
     const owner = world.player.control.owner;
     const ownerHuman = owner === 'human';
     const switchOn = world.echoCooperation;
+    const signal = world.signalView() as FeedbackSignalView | null;
+    const pendingView: LocalPendingView | null = pending
+      ? {
+          kind: pending.kind, target: pending.target,
+          proposalId: pending.proposalId, acceptedTick: pending.acceptedTick,
+          roomGeneration: pending.roomGeneration,
+          restored: (pending as { restored?: boolean }).restored === true
+        }
+      : null;
     this.localSwitch?.setLabel(`LOW-RISK COOPERATION: ${switchOn ? 'ON' : 'OFF'}`);
     this.localSwitch?.setTone(switchOn ? 'primary' : 'neutral');
     this.localSwitch?.setDisabled(!ownerHuman);
+    this.localAudit?.setDisabled(false);
     if (this.localStatus) {
-      const status = !echo ? 'ECHO OFFLINE · DISABLED'
-        : `ECHO HP ${Math.ceil(echo.data.hp)}/${echo.data.maxHp} · ${world.echoMode.toUpperCase()} · ${world.echoAssistArmed ? 'ASSIST ARMED' : 'ASSIST SAFE'}`;
-      this.localStatus.setText(`${status} · OWNER ${owner.toUpperCase()} · ${switchOn ? 'LOW-RISK ON' : 'LOW-RISK OFF'}`);
+      this.localStatus.setText(localStatusLine({
+        echo: echo ? { hp: echo.data.hp, maxHp: echo.data.maxHp } : null,
+        mode: world.echoMode,
+        owner,
+        lowRisk: switchOn,
+        proposal,
+        pending: pendingView
+      }));
       this.localStatus.setColor(echo ? '#eafaff' : '#ff8a3c');
     }
     if (this.localProposalText) {
       if (!echo) {
-        this.localProposalText.setText('ENABLE ECHO IN THE ECHO PAGE FIRST.');
+        this.localProposalText.setText(['Echo is offline', 'Enable ECHO first']);
         this.localProposalText.setColor('#8fb8c8');
-      } else if (pending) {
-        const target = pending.target ? `${pending.target.x.toFixed(1)},${pending.target.y.toFixed(1)}` : 'none';
-        this.localProposalText.setText([
-          `WAITING FOR NEXT CORE TICK · ${pending.proposalId}`,
-          `LOCAL · ${pending.kind.toUpperCase()} · target ${target}`,
-          `CONFIRMED BY HUMAN · ACCEPTED TICK ${pending.acceptedTick} · ROOM GEN ${pending.roomGeneration}`,
-          'CONFIRM AND REJECT DISABLED UNTIL THE REAL CORE RECEIPT'
-        ].join('\n'));
+      } else if (pendingView) {
+        this.localProposalText.setText(waitingLines(pendingView));
         this.localProposalText.setColor('#ffd233');
       } else if (!proposal) {
-        this.localProposalText.setText('NO LOCAL PROPOSAL · move the echo near the relay so it can perceive it.');
+        this.localProposalText.setText(['No local suggestion', 'Move ECHO closer to the relay']);
         this.localProposalText.setColor('#8fb8c8');
       } else {
-        const target = proposal.target ? `${proposal.target.x.toFixed(1)},${proposal.target.y.toFixed(1)}` : 'none';
-        this.localProposalText.setText([
-          `LOCAL · ${proposal.kind.toUpperCase()} · target ${target}`,
-          `SEEN ${proposal.reason} · evidence ${proposal.evidenceRef} · @tick ${proposal.observedTick}`,
-          `EXPIRES tick ${proposal.expiresAtTick} · room gen ${proposal.roomGeneration}`,
-          `EXPECT ${proposal.expectation}`,
-          `UNCERTAIN ${proposal.uncertainty}`,
-          `COST ${proposal.cost.energy} ${proposal.cost.resource === 'echo-energy' ? 'ECHO ENERGY' : 'NONE'} · HUMAN CONFIRM REQUIRED`
-        ].join('\n'));
+        this.localProposalText.setText(proposalLines(proposal, {
+          tick: world.sim.tick,
+          scanCooldownTicks: signal?.echoScanCD ?? 0,
+          jamCooldownTicks: signal?.echoJamCD ?? 0
+        }));
         this.localProposalText.setColor('#cfe8ef');
       }
     }
@@ -711,16 +762,15 @@ export class PauseScene extends Phaser.Scene {
     this.localConfirm?.setDisabled(!canConfirm);
     this.localReject?.setDisabled(!proposal || !echo || !!pending);
     if (this.localNoticeText) {
-      const audit = world.echoAudit.last();
-      let notice = this.localNotice;
-      // An applied core result supersedes the stale "enqueued" line.
-      if (notice && /ENQUEUED/.test(notice) && audit?.result === 'applied') notice = null;
-      const auditLine = audit
-        ? `LAST ${audit.provenance.toUpperCase()} · ${audit.action.toUpperCase()} · ${audit.result.toUpperCase()}${audit.code ? ` · ${audit.code}` : ''} @tick ${audit.tick}${audit.proposalId ? ` · ${audit.proposalId}` : ''}`
-        : '';
-      const text = [notice, auditLine].filter(Boolean).join('\n');
-      this.localNoticeText.setText(text);
-      this.localNoticeText.setColor(/REJECT|FAIL|E_/.test(text) ? '#ff8a3c' : '#8fb8c8');
+      const all = world.echoAudit.recent(8);
+      const localEntries = all.filter((e) => e.provenance === 'human-local');
+      const last = lastLocalAudit(localEntries);
+      const lines: string[] = [];
+      if (this.localNotice) lines.push(this.localNotice);
+      lines.push(receiptLine(last));
+      if (all.length > 0) lines.push(auditSummary(all));
+      this.localNoticeText.setText(lines);
+      this.localNoticeText.setColor(lines.some((l) => /Rejected|Cancelled|Failed|no effect/.test(l)) ? '#ff8a3c' : '#8fb8c8');
     }
   }
 
@@ -763,8 +813,8 @@ export class PauseScene extends Phaser.Scene {
       onClick: () => { this.gameScene.companionLink?.disconnect(); this.lastCompanionSig = ''; this.refreshLlm(true); }
     });
     this.btnLlmBack = p.button({ y: y0 + stride * 3, label: 'BACK', onClick: () => this.navigate('ai') });
-    this.llmFooter = p.text(GAME.WINDOW_W / 2, fx(690, 686), 'CONFIRM ACTS ON THE ▶ LINE ONLY · COMMIT ON THE NEXT CORE TICK', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+    this.llmFooter = p.text(GAME.WINDOW_W / 2, fx(690, 686), 'CONFIRM ACTS ON THE ▶ LINE ONLY · Takes effect when you resume', {
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     p.refresh = () => { this.refreshStatusTexts(); this.refreshLlm(); };
     this.refreshStatusTexts();
@@ -1067,11 +1117,11 @@ export class PauseScene extends Phaser.Scene {
       this.openExternalLinkForm('external');
     }});
     p.text(GAME.WINDOW_W / 2, fx(496, 518), 'HUMAN OWNER FORM · TOKEN + PAIRING KEY MASKED · NEVER STORED', {
-      fontSize: this.tokens.SMALL_FONT, color: '#5a7480'
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
     this.btnSettingsBack = p.button({ y: fx(548, 566), w: 300, label: 'BACK', onClick: () => this.navigate('pause') });
     p.text(GAME.WINDOW_W / 2, fx(690, 690), 'ESC BACK · ↑↓ SELECT · ENTER ACTIVATE', {
-      fontSize: this.tokens.SMALL_FONT, color: '#48606b'
+      fontSize: this.tokens.SMALL_FONT, color: '#8fb8c8'
     });
   }
 

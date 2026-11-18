@@ -1,0 +1,144 @@
+{
+  "ok": true,
+  "local": {
+    "page": "local-coop",
+    "texts": [
+      {
+        "text": "ECHO LOCAL COOPERATION",
+        "x": 322.5,
+        "y": 30.5,
+        "w": 635,
+        "h": 43,
+        "font": "42px",
+        "color": "#33e0ff"
+      },
+      {
+        "text": "LOCAL ECHO · NO EXTERNAL MODEL · HUMAN CONFIRM REQUIRED",
+        "x": 458.5,
+        "y": 77.5,
+        "w": 363,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "ECHO HP 94/100 · FOLLOW · ASSIST SAFE · OWNER HUMAN · LOW-RISK OFF",
+        "x": 385.5,
+        "y": 110.5,
+        "w": 509,
+        "h": 15,
+        "font": "14px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "LOCAL · SCAN · target 8.0,45.0\nSEEN perceived_relay · evidence relay:relay_main · @tick 129\nEXPIRES tick 249 · room gen 1\nEXPECT reveal relay facts\nUNCERTAIN only if still perceived and permitted\nCOST 10 ECHO ENERGY · HU",
+        "x": 400,
+        "y": 150,
+        "w": 396,
+        "h": 78,
+        "font": "12px",
+        "color": "#cfe8ef"
+      },
+      {
+        "text": "LOW-RISK COOPERATION: OFF",
+        "x": 504,
+        "y": 350.5,
+        "w": 272,
+        "h": 19,
+        "font": "18px",
+        "color": "#ffffff"
+      },
+      {
+        "text": "CONFIRM (HUMAN) · LOCAL",
+        "x": 515,
+        "y": 416.5,
+        "w": 250,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "REJECT LOCAL",
+        "x": 575,
+        "y": 478.5,
+        "w": 130,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "BACK",
+        "x": 618.5,
+        "y": 540.5,
+        "w": 43,
+        "h": 19,
+        "font": "18px",
+        "color": "#eafaff"
+      },
+      {
+        "text": "",
+        "x": 640,
+        "y": 603.5,
+        "w": 0,
+        "h": 13,
+        "font": "12px",
+        "color": "#8fb8c8"
+      },
+      {
+        "text": "ESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+        "x": 517.5,
+        "y": 683.5,
+        "w": 245,
+        "h": 13,
+        "font": "12px",
+        "color": "#48606b"
+      }
+    ],
+    "proposal": "LOCAL · SCAN · target 8.0,45.0\nSEEN perceived_relay · evidence relay:relay_main · @tick 129\nEXPIRES tick 249 · room gen 1\nEXPECT reveal relay facts\nUNCERTAIN only if still perceived and permitted\nCOST 10 ECHO ENERGY · HUMAN CONFIRM REQUIRED",
+    "notice": "",
+    "confirmEnabled": true,
+    "rejectEnabled": true,
+    "pending": null,
+    "audit": null
+  },
+  "hud": {
+    "signal": {
+      "text": "RELAY ACTIVE · EXIT OPEN",
+      "x": 3936.890707663403,
+      "y": 139.16408343828587,
+      "w": 198.75,
+      "h": 16.25,
+      "font": "12px",
+      "color": "#00ff77"
+    },
+    "detail": {
+      "text": "LINK · FIRE ENABLED\nKEYS · T SCAN · Y JAM · R TOGGLE\nCOST · SCAN 10 ENERGY · JAM 25 ENERGY\nRANGE · SCAN 12 TILES · JAM 6 TILES\nPLAYER 100 · ECHO 100",
+      "x": 3829.390707663403,
+      "y": 164.16408306575684,
+      "w": 306.25,
+      "h": 81.25,
+      "font": "12px",
+      "color": "#5a7480"
+    },
+    "echo": {
+      "text": "ECHO 88/100 · FOLLOW · ASSIST SAFE · CONFIRM FIRE",
+      "x": 3730.640707663403,
+      "y": 116.664083773562,
+      "w": 405,
+      "h": 16.25,
+      "font": "12px",
+      "color": "#ffd233"
+    },
+    "help": {
+      "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+      "x": 2585.640730760202,
+      "y": 756.664074236819,
+      "w": 456.25,
+      "h": 17.5,
+      "font": "13px",
+      "color": "#8fb8c8"
+    }
+  },
+  "errors": [],
+  "viewport": "1280x720"
+}

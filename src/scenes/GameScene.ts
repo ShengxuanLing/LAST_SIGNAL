@@ -6,6 +6,7 @@ import { WEAPONS } from '../config/weapons';
 import { UPGRADES } from '../config/upgrades';
 import { saveSystem, game } from '../main';
 import { audio } from '../systems/AudioSystem';
+import { hudDetailLines, hudSignalLine, type FeedbackSignalView } from '../ui/feedback';
 import { formatDuration } from '../core/formatDuration';
 import { ExternalLinkController, type ExternalLinkDegradeReason } from '../ai-native/externalLinkController';
 import { CompanionLink } from '../ai-native/companionLink';
@@ -418,7 +419,7 @@ export class GameScene extends Phaser.Scene {
     this.txtAgentLink = add.text(GAME.WINDOW_W - 20, L.linkY, 'LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#ff8a3c' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtEcho = add.text(GAME.WINDOW_W - 20, L.echoY, 'ECHO OFF · PAUSE > ECHO COMPANION', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#33e0ff' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtSignal = add.text(GAME.WINDOW_W - 20, L.signalY, 'RELAY OFF · NO DEVICE', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.txtSignalDetail = add.text(GAME.WINDOW_W - 20, L.signalDetailY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#5a7480', align: 'right' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.txtSignalDetail = add.text(GAME.WINDOW_W - 20, L.signalDetailY, '', { fontFamily: 'monospace', fontSize: L.rowFont, color: '#8fb8c8', align: 'right' }).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.txtHelp = add.text(20, L.helpY, 'ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL', { fontFamily: 'monospace', fontSize: L.helpFont, color: L.helpColor }).setOrigin(0, 0).setDepth(HUD_DEPTH);
 
     this.hudObjects = [
@@ -775,59 +776,35 @@ export class GameScene extends Phaser.Scene {
   }
 
   private refreshSignalHud(): void {
-    const s = this.world.signalView() as { relay: string; echoEnergy?: number; playerEnergy?: number; playerScanCD?: number; playerJamCD?: number; echoScanCD?: number; echoJamCD?: number; exitOpen: boolean; jammedUntilTick?: number } | null;
-    if (!s) {
-      if (this.txtSignal) this.txtSignal.setText('RELAY OFF · NO DEVICE');
+    const view = this.world.signalView() as FeedbackSignalView | null;
+    if (!view) {
+      if (this.txtSignal) {
+        this.txtSignal.setText(hudSignalLine(null, ''));
+        this.txtSignal.setColor('#8fb8c8');
+      }
       if (this.txtSignalDetail) {
-        this.txtSignalDetail.setText(this.world.p1Scenario ? 'NO DEVICE' : 'SIGNAL COLLABORATION OFF · ENABLE IN SETTINGS');
-        this.txtSignalDetail.setColor('#5a7480');
+        this.txtSignalDetail.setText(hudDetailLines(null));
+        this.txtSignalDetail.setColor('#8fb8c8');
       }
       return;
     }
-    const e = s.echoEnergy ?? 0, p = s.playerEnergy ?? 0;
-    const hasLink = this.world.p1Scenario !== null;
     const fireEnabled = this.world.p1LinkedFireEnabled;
-    // In the authored route room the exit condition is the ROUTE, not the old
-    // "only ACTIVE opens" gate. Every other room keeps the legacy label.
     const p1 = this.world.p1Scenario;
     const currentRoom = this.world.currentRoom();
     const p1RouteRoom = !!p1 && !!currentRoom && currentRoom.id === p1.roomId && this.world.map.rooms[currentRoom.id].cleared;
     const p1RouteTarget = this.world.p1RouteTarget;
     const exit = p1RouteRoom
-      ? (s.relay === 'JAMMED' ? 'ROUTE BLOCKED' : p1RouteTarget !== null ? (s.relay === 'ACTIVE' ? 'ROUTE A OPEN' : 'ROUTE B OPEN') : 'ROUTE UNAVAILABLE')
-      : (s.exitOpen ? 'EXIT OPEN' : 'EXIT CLOSED');
+      ? (view.relay === 'JAMMED' ? 'ROUTE BLOCKED' : p1RouteTarget !== null ? (view.relay === 'ACTIVE' ? 'ROUTE A OPEN' : 'ROUTE B OPEN') : 'ROUTE UNAVAILABLE')
+      : (view.exitOpen ? 'EXIT OPEN' : 'EXIT CLOSED');
     if (this.txtSignal) {
-      this.txtSignal.setText(`RELAY ${s.relay.toUpperCase()} · ${exit}`);
-      this.txtSignal.setColor(s.relay === 'ACTIVE' ? '#00ff77' : s.relay === 'JAMMED' ? '#ff3333' : '#8fb8c8');
+      this.txtSignal.setText(hudSignalLine(view, exit, this.world.p1JamRemainingTicks));
+      this.txtSignal.setColor(view.relay === 'ACTIVE' ? '#00ff77' : view.relay === 'JAMMED' ? '#ff3333' : '#8fb8c8');
     }
     if (this.txtSignalDetail) {
-      const lines: string[] = [];
-      if (hasLink && fireEnabled !== null) {
-        // Relay output controls NEW fire only; already-fired projectiles keep
-        // flying. Say that explicitly instead of claiming "safe".
-        lines.push(fireEnabled
-          ? 'LINK · FIRE ENABLED'
-          : 'LINK · NEW FIRE BLOCKED · OLD SHOTS STILL LIVE');
-      }
-      const remaining = this.world.p1JamRemainingTicks;
-      lines.push('KEYS · T SCAN · Y JAM · R TOGGLE');
-      // Numbers are derived from SIGNAL_TUNING (never hardcoded) and are clearly
-      // labelled: COST is energy, RANGE is tiles, JAM remaining is seconds.
-      lines.push(`COST · SCAN ${SIGNAL_TUNING.SCAN_COST} ENERGY · JAM ${SIGNAL_TUNING.JAM_COST} ENERGY`);
-      let range = `RANGE · SCAN ${SIGNAL_TUNING.SCAN_RADIUS} TILES · JAM ${SIGNAL_TUNING.JAM_RANGE} TILES`;
-      if (s.relay === 'JAMMED' && remaining > 0) {
-        range += ` · JAM ${(remaining / SIGNAL_TUNING.TICK_HZ).toFixed(1)}s`;
-      }
-      lines.push(range);
-      let energy = `PLAYER ${p} · ECHO ${e}`;
-      const feedback = this.world.lastSignalFeedback;
-      const age = feedback ? this.world.sim.tick - feedback.tick : Infinity;
-      if (feedback && age >= 0 && age < 180) {
-        energy += ` · LAST ${feedback.kind.toUpperCase()} ${feedback.ok ? 'OK' : (feedback.code ?? 'FAIL')}`;
-      }
-      lines.push(energy);
-      this.txtSignalDetail.setText(lines.join('\n'));
-      this.txtSignalDetail.setColor(feedback && !feedback.ok && age < 180 ? '#ff8a3c' : '#5a7480');
+      // Default is exactly two short lines; costs/ranges/last receipt live in
+      // Pause > ECHO / LOCAL COOPERATION, not in a long centre-crossing block.
+      this.txtSignalDetail.setText(hudDetailLines(fireEnabled));
+      this.txtSignalDetail.setColor('#8fb8c8');
     }
   }
 

@@ -1,0 +1,7 @@
+1920x1080 PASS minCss=18 contrast=8.59 outside=0 overlaps=0 detail="Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on"
+1600x900 PASS minCss=15 contrast=8.59 outside=0 overlaps=0 detail="Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on"
+1366x768 PASS minCss=12.8 contrast=8.59 outside=0 overlaps=0 detail="Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on"
+1280x720 PASS minCss=12 contrast=8.59 outside=0 overlaps=0 detail="Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on"
+1024x768 PASS minCss=12.8 contrast=8.59 outside=0 overlaps=0 detail="Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on"
+800x600 PASS minCss=10 contrast=8.59 outside=0 overlaps=0 detail="Scan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on"
+ECHO DETAIL RESULT: PASS

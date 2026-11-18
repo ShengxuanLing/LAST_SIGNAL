@@ -1,0 +1,11 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/gp01-p3v2[39m
+
+ [32m✓[39m src/ui/feedback.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 00:50:20
+[2m   Duration [22m 2.44s[2m (transform 125ms, setup 0ms, collect 229ms, tests 14ms, environment 1ms, prepare 1.32s)[22m
+
+VITEST_EXIT=0

@@ -1,0 +1,539 @@
+{
+  "stage": "GAMEPLAY-01 P3 \u2014 player-understandable ECHO/Signal presentation",
+  "date": "2026-11-17",
+  "status": "P3 DISPLAY CANDIDATE \u2014 independent review pending; not human acceptance; P2 core unchanged",
+  "branch": "feat/gameplay-01-ai-cooperation",
+  "head": "0083e20",
+  "base": {
+    "p2_candidate": "87a0fac",
+    "note": "P3 display source is uncommitted on top of actual HEAD 0083e20; the P2 candidate is 87a0fac and its 10-source manifest remains at that v3 freeze. P2 World/echo/headless/core/Owner/Save/queue/restore rules untouched. Tester's v3 fixed tree is independent and does not see these display changes."
+  },
+  "source_whitelist": [
+    {
+      "path": "src/ui/feedback.ts",
+      "status": "new",
+      "purpose": "pure local/proposal/audit/error/HUD copy; no state or World/core import",
+      "sha256": "fe023e3a900574cfc20a24934346a8a10940dd6ebc6aa828194f8e19aefc1b49",
+      "bytes": 8823
+    },
+    {
+      "path": "src/scenes/PauseScene.ts",
+      "status": "modified",
+      "purpose": "LOCAL page short copy, WAITING, VIEW AUDIT page, ECHO signal detail, readable colors",
+      "sha256": "eb0d3cdde7248724c7517cfceffac1b4f25358bd5cdc8f7f3bfcd9e247a23687",
+      "bytes": 60948
+    },
+    {
+      "path": "src/scenes/GameScene.ts",
+      "status": "modified",
+      "purpose": "2-line Signal HUD, long detail moved to Pause, readable colors",
+      "sha256": "11af218697007584f9ea336aacd26a35d1ac3d67d915b2dc3cf665999e714e75",
+      "bytes": 62760
+    },
+    {
+      "path": "src/ui/menuKit.ts",
+      "status": "modified",
+      "purpose": "dim label color only; no layout change",
+      "sha256": "3fd1258255796b345d2f81b548e605acbb699204ab1b56c8f9e3ed92103cc7ec",
+      "bytes": 12054
+    }
+  ],
+  "docs": [
+    {
+      "path": "docs/gameplay/P3_IMPLEMENTATION.md",
+      "sha256": "4859a9dbf30b1065c3193d3b58bf5e484271732055a4ae0efc8d72e828d4d622",
+      "bytes": 11573
+    },
+    {
+      "path": "docs/gameplay/AI_FEEDBACK.md",
+      "sha256": "cafbde7c3f112396161588ab601356bf1a5488e157d2390cdcec5c1141aa400b",
+      "bytes": 15219
+    }
+  ],
+  "working_tree_src": [
+    "M src/scenes/GameScene.ts",
+    " M src/scenes/PauseScene.ts",
+    " M src/ui/menuKit.ts",
+    "?? src/ui/feedback.ts"
+  ],
+  "p3_core_untouched": true,
+  "evidence": [
+    {
+      "path": "reports/gameplay-01/developer/p3/early/early.json",
+      "sha256": "0760b5bb7d65998eb3c89602dedb2e50f9c5861b81dc8eda58c24277f5b21940",
+      "bytes": 14222
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/early/early.log",
+      "sha256": "2073ec09eb919b463ec14eb18e39ebdc2d6077c3eee62baeb1ee1a6144dc396d",
+      "bytes": 2455
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/early/hud-1280x720.png",
+      "sha256": "9a9e01b85caae9d92d04e3c01fe037535d52ca04ecbcf4066d63c053bad1d534",
+      "bytes": 469101
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/early/local-audit-1280x720.png",
+      "sha256": "529d190174485a2ffe9a605608c10c14fee9ec9fa6e7e7a461dc78f5f61825bb",
+      "bytes": 211875
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/early/local-done-1280x720.png",
+      "sha256": "024833049aaa67c80c19ffa753e0f0b8e17ab090fd33402a46a057dc7fa08f40",
+      "bytes": 238766
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/early/local-proposal-1280x720.png",
+      "sha256": "8697e2c97ddc520460ab62a7aa42a484f40f72fd554fa1ef51f4118e1b046d4d",
+      "bytes": 234067
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/early/local-waiting-1280x720.png",
+      "sha256": "986158ad74ac674b2c45fce268b62132eefc16ba4e4198b997b43528744eef7d",
+      "bytes": 236761
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/before/p2v3-hud-1280x720.png",
+      "sha256": "955aa5a1a250d0875cd55b88a022f4c366ef104676c9069559b7d523af92bd87",
+      "bytes": 474602
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/before/p2v3-local-proposal-1280x720.png",
+      "sha256": "742bbb1ec0c7252db128c57dc375af0b482a23ee211f99f2bb106fa6721ec96e",
+      "bytes": 238003
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/before/p2v3.json",
+      "sha256": "f0063439d694b5cddf1817ced2cae2e7448f6c6523a9aa59cca2ea45056d9f23",
+      "bytes": 3644
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/before/p2v3.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/echo-detail.json",
+      "sha256": "332cd3cf9e1d5478b66264c6d012c1956f4c2ed651ea3f860e1cf4c73b375751",
+      "bytes": 8527
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/echo-detail.log",
+      "sha256": "aba47236f4c11be212e3f80410d046f423b2537c7ce9b4db12bace60ea48a95c",
+      "bytes": 952
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/env.json",
+      "sha256": "3ad4312fc32fcddd607fdb79dffa71a794cd005cc0bd9493a81735758d6bd149",
+      "bytes": 287
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/matrix.log",
+      "sha256": "385e54d78bbfd6cd0ceb667647ea608f179ab9ba934fbc1bdaf5106609356f9d",
+      "bytes": 376
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix/summary.json",
+      "sha256": "d5131eace57ed6fe483108d99ef17886559e2f3abb8e4a7147261c4037248a57",
+      "bytes": 29848
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/before.run.log",
+      "sha256": "86db8bf02286b3d9b450b500087d288012fa1ae8c114c5fdeddc4e095a6c288f",
+      "bytes": 1129
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/build-final.log",
+      "sha256": "5fea83931d3375a914c5a46d3fad2aafde0faa4ee8e89041493a06f11c3cc96f",
+      "bytes": 4457
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/build.log",
+      "sha256": "f2c792edfab772cb885e227ce64f1949a072c44ef3e1147778b5332745cf51d5",
+      "bytes": 4457
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5496.log",
+      "sha256": "a8293db7e73cd5f0fc9cd760d5e150a0d3d379c69358427a48ff2a539b43e326",
+      "bytes": 764
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5497-final.log",
+      "sha256": "7f5d1e0c6e31274277eaf49eedf6162dc7cb5532b1e2f535ca6ec41292eacb57",
+      "bytes": 759
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/dev-5497.log",
+      "sha256": "c4c1c2ce9aa58873cea12fd1a21efa90d243d5aea0deca8adc7ad01f336f7fcd",
+      "bytes": 760
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/early.run.log",
+      "sha256": "5efedeae2058c1b4e36352cd68e5094818baa469319cbe949d68d37e8857d5bd",
+      "bytes": 2522
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/echo-detail.run.log",
+      "sha256": "94df3d12c4784dfc01ce3689c3358d4b963ee0458e0b54a2232dfac44582db18",
+      "bytes": 977
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/matrix-final.run.log",
+      "sha256": "29d00e0bd3877342e87a62c3419671ec98f2b3726f09d8cd472e106ac2de0ea4",
+      "bytes": 430
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/matrix.run.log",
+      "sha256": "29d00e0bd3877342e87a62c3419671ec98f2b3726f09d8cd472e106ac2de0ea4",
+      "bytes": 430
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/strict-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/strict-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/strictunit-final.log",
+      "sha256": "7a62cfe76324e07e5a0d64da9375a9d7830188b4711af43bdc028a8a96483b80",
+      "bytes": 31173
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/strictunit.log",
+      "sha256": "808944d9772357390acdc6cf9796aba79043aff578d6a920dc54ea7d549d5d0e",
+      "bytes": 31509
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/surface-final.log",
+      "sha256": "976755fba323bd7261628fe367e703a4f6d8be2332d7ffef88622c07348830fc",
+      "bytes": 1704
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/logs/surface.log",
+      "sha256": "aaabcd6079f46eb594011acd73229c4857873a8c2e47c5c0d43a5b7be199400f",
+      "bytes": 1704
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/early.mjs",
+      "sha256": "8ff29f83d56518f28853837c747eae355985817a48d04e6a1d599e9c48700327",
+      "bytes": 7805
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/before.mjs",
+      "sha256": "55b01eef8658dcdba3143a81811d116e2fc88a026367b645df326e63d554fac4",
+      "bytes": 5535
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/matrix.mjs",
+      "sha256": "ee3d033582885ae4208b69c9f4b7f3b8de21232839616a530fbca530c6671c78",
+      "bytes": 13596
+    },
+    {
+      "path": "reports/gameplay-01/developer/p3/echo-detail.mjs",
+      "sha256": "887366153c803ad54455354fdea10edfc086765a5a25678d511c97b5707d48c7",
+      "bytes": 5426
+    }
+  ],
+  "copy_table": {
+    "doc": "docs/gameplay/P3_IMPLEMENTATION.md",
+    "source": "Local ECHO \u00b7 OFFLINE \u00b7 A HUMAN CONFIRMS",
+    "status": "Ready to confirm / Queued / No local suggestion \u00b7 HP \u00b7 mode \u00b7 Human owner",
+    "action": "Scan relay; Seen: relay in sight; Cost: 10 echo energy \u00b7 range 12 tiles; Ready now / Cooling down / This suggestion expired; A human must confirm; Expect; Only if still in sight and permitted",
+    "waiting": "Queued status; Waiting to resume; Queued: Scan relay \u00b7 runs after you resume; Confirm and reject are paused; core tick only in audit",
+    "audit": "RECENT ACTIONS -> LOCAL AUDIT; Recent actions: N; raw id/tick/code/target/room gen; empty No recent actions",
+    "receipt": "Queued / Done / Rejected / Cancelled / No recent actions; raw id/tick/code/target/room gen only in LOCAL AUDIT",
+    "buttons": "CONFIRM (HUMAN); REJECT; RECENT ACTIONS; BACK (localAudit new)",
+    "hud": "2 short signal lines (RELAY ... + T SCAN \u00b7 Y JAM \u00b7 R TOGGLE \u00b7 LINK ...); cost/range/seconds in Pause",
+    "colors": "#5a7480 \u2192 #8fb8c8; #48606b \u2192 #8fb8c8 in P3 paths"
+  },
+  "test_handles": {
+    "localConfirm": "P2v3 CONFIRM (HUMAN) \u00b7 LOCAL -> P3 CONFIRM (HUMAN); same field",
+    "localReject": "P2v3 REJECT LOCAL -> P3 REJECT; same field",
+    "localAudit": "new RECENT ACTIONS field; opens local-audit",
+    "localAuditText": "new raw audit text",
+    "echoSignalDetail": "new 3-layer Pause detail",
+    "page": "local-coop plus local-audit",
+    "menuButtons": "switch/confirm/reject/back plus RECENT ACTIONS",
+    "same": [
+      "localStatus",
+      "localProposalText",
+      "localNoticeText",
+      "localSwitch",
+      "btnLocalBack",
+      "echoStatus",
+      "echoModeText",
+      "echoSuggest",
+      "txtSignal",
+      "txtSignalDetail",
+      "txtEcho",
+      "txtHelp"
+    ]
+  },
+  "stable_fields": [
+    "localStatus",
+    "localProposalText",
+    "localNoticeText",
+    "localSwitch",
+    "localConfirm",
+    "localReject",
+    "btnLocalBack",
+    "btnEchoLocal",
+    "echoStatus",
+    "echoModeText",
+    "echoSuggest",
+    "btnEchoAssist",
+    "btnEchoToggle",
+    "btnEchoBack",
+    "new localAudit",
+    "new localAuditText",
+    "new echoSignalDetail"
+  ],
+  "file_whitelist": {
+    "source": [
+      "src/ui/feedback.ts",
+      "src/scenes/PauseScene.ts",
+      "src/scenes/GameScene.ts",
+      "src/ui/menuKit.ts"
+    ],
+    "docs": [
+      "docs/gameplay/P3_IMPLEMENTATION.md",
+      "docs/gameplay/AI_FEEDBACK.md"
+    ],
+    "tests": "not modified (tester-owned); no mirror copy unit tests"
+  },
+  "gate_environment": {
+    "cwd": "D:\\tmp\\gp01-p3-ui",
+    "spec": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\developer\\p3\\matrix.mjs",
+    "devroot": "D:/tmp/gp01-p3-ui",
+    "lastSignalRoot": null,
+    "shared_old_reports_written": false,
+    "c2_c3c_run": false,
+    "before_tree": "D:/tmp/gp01-p3-before (clean git archive 87a0fac)"
+  },
+  "verification": [
+    {
+      "gate": "npx tsc --noEmit",
+      "result": "PASS (0)",
+      "log": "reports/gameplay-01/developer/p3/logs/strict-typecheck-final.log"
+    },
+    {
+      "gate": "npm test original 15s/20s (strictunit)",
+      "result": "PASS 794/794 (68 files)",
+      "log": "reports/gameplay-01/developer/p3/logs/strictunit-final.log"
+    },
+    {
+      "gate": "npm run build",
+      "result": "PASS",
+      "log": "reports/gameplay-01/developer/p3/logs/build-final.log"
+    },
+    {
+      "gate": "npm run test:mcp-surface",
+      "result": "PASS 1/1",
+      "log": "reports/gameplay-01/developer/p3/logs/surface-final.log"
+    },
+    {
+      "gate": "P3 six-viewport real browser matrix",
+      "result": "PASS 6/6; all outside=0, overlaps=0, minCss>=10, contrast>=9.46",
+      "log": "reports/gameplay-01/developer/p3/matrix/summary.json (final run log logs/matrix-final.run.log)"
+    },
+    {
+      "gate": "P3 ECHO-page signal detail six viewports",
+      "result": "PASS 6/6; outside=0, overlaps=0, minCss>=10, contrast 8.59",
+      "log": "reports/gameplay-01/developer/p3/matrix/echo-detail.json"
+    },
+    {
+      "gate": "P2v3 before screenshots (clean 87a0fac tree)",
+      "result": "PASS (fixture; all-caps local page, 5-line #5a7480 HUD)",
+      "log": "reports/gameplay-01/developer/p3/before/p2v3.json"
+    },
+    {
+      "gate": "P3 early visual",
+      "result": "PASS (fixture; direction check; early shows pre-polish VIEW AUDIT/expires in 2s; final uses RECENT ACTIONS/Ready now)",
+      "log": "reports/gameplay-01/developer/p3/early/early.json"
+    }
+  ],
+  "viewport_summary": [
+    {
+      "viewport": "1920x1080",
+      "ok": true,
+      "minCss": 18,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1600x900",
+      "ok": true,
+      "minCss": 15,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1366x768",
+      "ok": true,
+      "minCss": 12.8,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "1280x720",
+      "ok": true,
+      "minCss": 12,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "focus": {
+        "before": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "focused": true
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "focused": false
+          },
+          {
+            "label": "BACK",
+            "focused": false
+          }
+        ],
+        "after": [
+          {
+            "label": "LOW-RISK COOPERATION: OFF",
+            "focused": false
+          },
+          {
+            "label": "CONFIRM (HUMAN)",
+            "focused": false
+          },
+          {
+            "label": "REJECT",
+            "focused": false
+          },
+          {
+            "label": "RECENT ACTIONS",
+            "focused": true
+          },
+          {
+            "label": "BACK",
+            "focused": false
+          }
+        ]
+      },
+      "resize": {
+        "beforeMinCss": 12,
+        "resizedMinCss": 12.8,
+        "backMinCss": 12,
+        "resizedPage": "local-coop",
+        "outside": 0
+      },
+      "repeat": {
+        "before": 17,
+        "after": 17
+      },
+      "esc": [
+        "local-coop",
+        "echo",
+        "ai",
+        "pause",
+        "pause"
+      ]
+    },
+    {
+      "viewport": "1024x768",
+      "ok": true,
+      "minCss": 12.8,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    },
+    {
+      "viewport": "800x600",
+      "ok": true,
+      "minCss": 10,
+      "minContrast": 9.46,
+      "outside": 0,
+      "overlaps": 0,
+      "focus": null,
+      "resize": null,
+      "repeat": null,
+      "esc": null
+    }
+  ],
+  "echo_detail_min": {
+    "minCss": 10,
+    "minContrast": 8.59,
+    "outside": 0,
+    "overlaps": 0
+  },
+  "before_after": {
+    "before": "reports/gameplay-01/developer/p3/before/p2v3-local-proposal-1280x720.png",
+    "before_hud": "reports/gameplay-01/developer/p3/before/p2v3-hud-1280x720.png",
+    "after": "reports/gameplay-01/developer/p3/matrix/1280x720/proposal.png",
+    "after_hud": "reports/gameplay-01/developer/p3/matrix/1280x720/hud.png",
+    "after_audit": "reports/gameplay-01/developer/p3/matrix/1280x720/audit.png",
+    "after_echo_detail": "reports/gameplay-01/developer/p3/matrix/1280x720/echo-detail.png",
+    "early": "reports/gameplay-01/developer/p3/early/local-proposal-1280x720.png"
+  },
+  "human_playtest": {
+    "executed": false,
+    "status": "HUMAN PENDING; all current screenshots are fixture/agent-driven",
+    "sessions": [
+      "HumanOnly",
+      "LocalAI",
+      "HumanEcho",
+      "Signal",
+      "Proposal confirmation"
+    ],
+    "plan": "docs/gameplay/P3_IMPLEMENTATION.md \u00a74"
+  },
+  "limitations": [
+    "No human played; not human acceptance or proof of understanding.",
+    "Audit page exercised with one real entry; 8-entry layout not independently tested. At 800 the raw line wraps (complete, no overlap) but is dense. The early screenshot is pre-polish (VIEW AUDIT/expires in 2s); the final matrix uses RECENT ACTIONS/Ready now.",
+    "Focus check skips disabled CONFIRM/REJECT while pending by design; not a full keyboard-only matrix. Pointer edge cases not run.",
+    "E_PERMISSION stays broad; precise range/LOS split is a separate P3 rule decision. E_RETRYABLE is not called cooldown.",
+    "P3 does not change P2 core/Owner/queue/restore; the fixed P2 v3 test tree does not see display changes.",
+    "P4 spawn/relay overlap, door-vs-jam layout and route Headless gap remain P4.",
+    "The #5a7480 replacement is limited to the P3 paths."
+  ],
+  "not_claimed": [
+    "human acceptance or human understanding",
+    "full Tester regression or whole-GAMEPLAY PASS",
+    "real-model ECHO chain",
+    "P4 level/route/headless work",
+    "any core/Owner/queue/restore change",
+    "every screen outside the P3 whitelist"
+  ],
+  "evidence_note": "All browser evidence is fixture/agent-driven; not human. The independent P3 gate tree has its own reports; c2/c3c were not run and shared old reports were not written. P3 stops after this freeze; no commit/push."
+}

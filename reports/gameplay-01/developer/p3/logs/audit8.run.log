@@ -1,0 +1,24 @@
+AUDIT8: entries=8 lines=21 minCss=10 outside=0 singlePending=true esc=local-coop scrollMoved=false
+TEXT:
+#1 You · Scan relay · Queued
+  id local_338_3 · tick 338 · target 8.0,45.0 · room gen 1
+#2 You · Scan relay · Done
+  id local_338_3 · tick 339 · target 8.0,45.0 · room gen 1
+#3 You · Change relay route · Rejected
+  not sent (E_USER_REJECTED)
+  id local_414_4 · tick 414 · target 8.0,45.0 · room gen 1
+#4 You · Change relay route · Rejected
+  this suggestion changed (E_STALE_ID)
+  id local_missing_0 · tick 543 · target none · room gen 1
+#5 You · Change relay route · Rejected
+  this suggestion changed (E_STALE_ID)
+  id local_missing_1 · tick 543 · target none · room gen 1
+#6 You · Change relay route · Rejected
+  this suggestion changed (E_STALE_ID)
+  id local_missing_2 · tick 543 · target none · room gen 1
+#7 You · Change relay route · Rejected
+  this suggestion changed (E_STALE_ID)
+  id local_missing_3 · tick 543 · target none · room gen 1
+#8 You · Scan relay · Queued
+  id local_557_5 · tick 557 · target 8.0,45.0 · room gen 1
+RESULT: PASS (fixture; not human)

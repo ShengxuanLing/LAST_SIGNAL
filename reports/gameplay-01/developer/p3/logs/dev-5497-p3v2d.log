@@ -1,0 +1,15 @@
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m310[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5497[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m00:15:46[22m [33m[1m[vite][22m[39m [33mwarning: [33mThis case clause will never be evaluated because it duplicates an earlier case clause[33m
+2097|            this.player.syncVisual();
+2098|            break;
+2099|          case 'enemy-spawned':
+   |               ^
+2100|            this.spawnEnemyFromCore(event as any);
+2101|            break;
+[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mD:/tmp/gp01-p3-ui/src/world/World.ts[39m

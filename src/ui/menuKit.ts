@@ -64,7 +64,7 @@ export const TONE: Record<Tone, number> = {
 
 const INK = {
   label: '#eafaff',
-  labelDim: '#5a7480',
+  labelDim: '#8fb8c8',
   body: '#cfe8ef',
   head: '#ff8a3c',
   muted: '#8fb8c8',
