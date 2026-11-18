@@ -1,0 +1,141 @@
+--- /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run10-boss-volley/before-spec/audit.spec.ts	2026-11-19 00:10:31.191430900 +0100
++++ /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run10-boss-volley/after-spec/audit.spec.ts	2026-11-19 00:10:31.245147900 +0100
+@@ -1,5 +1,5 @@
+ import { test, expect } from '@playwright/test';
+-import { mkdirSync } from 'node:fs';
++import { mkdirSync, writeFileSync } from 'node:fs';
+ import path from 'node:path';
+ import { clickLabel, resumeGame } from './uiNav';
+ 
+@@ -736,6 +736,14 @@
+   expect(lightAfter.prerenderListeners, 'no duplicate prerender listeners').toBe(1);
+ 
+   // ---- Boss bullets: normalised speed + still visible after 0.5s ----
++  // MEASUREMENT ATTRIBUTION ONLY. The old model ("every new projectile in this
++  // step is a boss bullet") is wrong: a legacy enemy can already have a
++  // `spawn-enemy-projectile` command PENDING at this point, which commits inside
++  // the measured step (developer diag: 15 boss events + 1 other-owner event in
++  // the same step). The volley is therefore attributed from the REAL event
++  // payload (`projectile-spawned.projectile.ownerId === boss._id`), every event is
++  // persisted BEFORE any assertion, other projectiles are recorded (never hidden,
++  // never cleared) and no speed/visibility/movement assertion is relaxed.
+   const bossInit = await page.evaluate(() => {
+     const g: any = (window as any).__game;
+     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
+@@ -760,24 +768,71 @@
+         break;
+       }
+     }
+-    boss.attackTimer = 999999; boss.stateTimer = 999999; // freeze auto-attacks
+-    const c0 = w.simFixture.projectiles.length;
++    boss.attackTimer = 999999; boss.stateTimer = 999999; // freeze auto-attacks (boss only)
++    const preExisting = { coreLen: w.simFixture.projectiles.length, adapterLen: w.projectiles.length };
++    const pendingBefore = (w.simFixture.pendingCommands ?? []).map((c: any) => c.type);
+     boss.phase = 2; boss.fireLaser(pl); boss.shockwave();
+     w.resetSimulationAccumulator();
+-    w.stepFrame(1000 / 60 + 1e-6, neutral);
+-    const created = w.projectiles.slice(c0);
++    const events = (w.stepFrame(1000 / 60 + 1e-6, neutral) ?? []) as any[];
++    const bossId = boss._id;
++    const spawned = events.filter((e) => e.type === 'projectile-spawned');
++    const describe = (e: any) => ({
++      id: e.projectile.id,
++      ownerId: e.projectile.ownerId,
++      kind: e.projectile.kind ?? null,
++      source: e.projectile.source ?? null,
++      pos: { x: e.projectile.pos.x, y: e.projectile.pos.y },
++      vel: { x: e.projectile.vel.x, y: e.projectile.vel.y },
++      speed: Math.hypot(e.projectile.vel.x, e.projectile.vel.y)
++    });
++    const volleyEvents = spawned.filter((e) => e.projectile.ownerId === bossId).map(describe);
++    const otherEvents = spawned.filter((e) => e.projectile.ownerId !== bossId).map(describe);
++    const volleyIds = volleyEvents.map((v: any) => v.id).sort((x: number, y: number) => x - y);
++    const byId = new Map((w.projectiles as any[]).map((q: any) => [q.data.id, q]));
+     const cam = gs.cameras.main;
+-    return {
+-      count: created.length,
+-      speeds: created.map((q: any) => Math.hypot(q.data.vel.x, q.data.vel.y)),
+-      bullets: created.map((q: any) => ({
+-        id: q.data.id, pos: { x: q.data.pos.x, y: q.data.pos.y },
+-        vel: { x: q.data.vel.x, y: q.data.vel.y }, visible: q.spr.visible,
++    const adapter = volleyIds.map((id: number) => {
++      const q: any = byId.get(id);
++      return q ? {
++        id,
++        pos: { x: q.data.pos.x, y: q.data.pos.y },
++        vel: { x: q.data.vel.x, y: q.data.vel.y },
++        visible: q.spr.visible,
+         screen: (() => { const tp = cam.matrix.transformPoint(q.spr.x - cam.scrollX, q.spr.y - cam.scrollY, { x: 0, y: 0 }); return { x: tp.x, y: tp.y }; })()
+-      }))
++      } : null;
++    });
++    return {
++      bossId,
++      spawnedTotal: spawned.length,
++      spawnedAll: spawned.map(describe),
++      volley: volleyEvents,
++      others: otherEvents,
++      volleyIds,
++      adapterMissing: adapter.filter((x) => x === null).length,
++      bullets: adapter.filter((x) => x !== null) as any[],
++      speeds: volleyEvents.map((v: any) => v.speed),
++      preExisting,
++      pendingBefore
+     };
+   });
+-  expect(bossInit.count, 'laser(3) + shockwave(12) bullets created').toBe(15);
++  // Persist the FULL attribution before asserting (nothing invented later).
++  mkdirSync(SHOT_DIR, { recursive: true });
++  writeFileSync(path.join(SHOT_DIR, 'boss-volley-events.json'), JSON.stringify({
++    note: 'P2 boss volley attribution: boss = projectile-spawned.projectile.ownerId === bossId; other owners are recorded, never hidden or cleared',
++    ...bossInit
++  }, null, 2));
++
++  expect(bossInit.spawnedTotal, 'every spawned projectile is attributed to exactly one bucket')
++    .toBe(bossInit.volley.length + bossInit.others.length);
++  expect(new Set(bossInit.volleyIds).size, 'boss volley projectile ids are distinct').toBe(bossInit.volley.length);
++  expect(bossInit.volley.length, 'laser(3) + shockwave(12) BOSS projectiles created').toBe(15);
++  expect(bossInit.others.some((o: any) => o.ownerId === bossInit.bossId), 'no boss projectile is misfiled as "other"').toBe(false);
++  // Stronger, straight from the event payload: 3 laser at 2.5 + 12 shockwave at 1.875.
++  const laserSpeeds = bossInit.volley.filter((v: any) => Math.abs(v.speed - 2.5) < 0.01).length;
++  const shockSpeeds = bossInit.volley.filter((v: any) => Math.abs(v.speed - 1.875) < 0.01).length;
++  expect([laserSpeeds, shockSpeeds], 'boss volley is 3 laser (2.5) + 12 shockwave (1.875) by event speed').toEqual([3, 12]);
++  expect(bossInit.adapterMissing, 'all 15 boss volley ids are present in the adapter').toBe(0);
++  expect(bossInit.bullets.length, 'the adapter exposes exactly the 15 boss projectiles').toBe(15);
++
+   const maxSpeed = Math.max(...bossInit.speeds);
+   const minSpeed = Math.min(...bossInit.speeds);
+   expect(minSpeed, 'Boss bullets still have velocity (phase-1 guarantee)').toBeGreaterThan(0);
+@@ -787,21 +842,26 @@
+   expect(bossInit.bullets.every((b: any) => b.visible), 'all Boss bullet sprites visible').toBe(true);
+   expect(bossInit.bullets.every((b: any) => b.screen.x > 0 && b.screen.x < 1280 && b.screen.y > 0 && b.screen.y < 720),
+     'Boss bullets spawn inside the visible viewport').toBe(true);
++
+   await page.waitForTimeout(500);
+-  const afterHalf = await page.evaluate(() => {
++  // After 0.5 s follow ONLY survivors among these 15 boss ids (natural expiry is
++  // allowed, exactly as the original >0 requirement).
++  const volleyIds = bossInit.volleyIds;
++  const afterHalf = await page.evaluate((ids: number[]) => {
+     const g: any = (window as any).__game;
+     const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
+     const w = gs.world, cam = gs.cameras.main;
++    const survivor = ((w.projectiles as any[]) ?? []).filter((q: any) => ids.includes(q.data.id));
+     return {
+-      count: w.projectiles.length,
+-      visible: w.projectiles.filter((q: any) => q.spr.visible).length,
+-      lifetimes: w.projectiles.map((q: any) => q.data.lifetime),
+-      bullets: w.projectiles.map((q: any) => ({
++      count: survivor.length,
++      visible: survivor.filter((q: any) => q.spr.visible).length,
++      lifetimes: survivor.map((q: any) => q.data.lifetime),
++      bullets: survivor.map((q: any) => ({
+         id: q.data.id, pos: { x: q.data.pos.x, y: q.data.pos.y },
+         screen: (() => { const tp = cam.matrix.transformPoint(q.spr.x - cam.scrollX, q.spr.y - cam.scrollY, { x: 0, y: 0 }); return { x: tp.x, y: tp.y }; })()
+       }))
+     };
+-  });
++  }, volleyIds);
+   expect(afterHalf.count, 'Boss bullets still exist 0.5s later').toBeGreaterThan(0);
+   expect(afterHalf.visible, 'all surviving Boss bullets still visible').toBe(afterHalf.count);
+   expect(afterHalf.lifetimes.every((l: number) => l > 0), 'bullets not expired').toBe(true);

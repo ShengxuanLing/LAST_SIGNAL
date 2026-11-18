@@ -1,0 +1,55 @@
+# run8 targeted gate attempt 1 (event-level contract, 2 consecutive runs)
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d spec=934bf2d71fb06cadf1c75460202550d479efcc50fcdd38286611a0deeb0dc726 World=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+started=2026-11-18T22:19:33Z
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+  1) [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit 
+
+    Error: the read-only recorder observed real stepFrame calls in the 2.5 s window
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      642 |       // ---- HARD GATE: per observed stepFrame call --------------------------------
+      643 |       const win = disableTrace.records.slice(disableTrace.windowStart, disableTrace.windowEnd);
+    > 644 |       expect(win.length, 'the read-only recorder observed real stepFrame calls in the 2.5 s window').toBeGreaterThan(0);
+          |                                                                                                      ^
+      645 |       expect(win.filter((r) => r.ticks > 0).length, 'at least one observed call really advanced a core tick').toBeGreaterThan(0);
+      646 |       const offenders: string[] = [];
+      647 |       for (const r of win) {
+        at D:\tmp\ls-p4-v4\tests\ai-native-world.spec.ts:644:102
+
+    Error Context: test-results\ai-native-world-AI-NATIVE--4bbd9-er-pause-death-restart-exit-chromium\error-context.md
+
+
+[2/2] [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+  2) [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit 
+
+    Error: the read-only recorder observed real stepFrame calls in the 2.5 s window
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      642 |       // ---- HARD GATE: per observed stepFrame call --------------------------------
+      643 |       const win = disableTrace.records.slice(disableTrace.windowStart, disableTrace.windowEnd);
+    > 644 |       expect(win.length, 'the read-only recorder observed real stepFrame calls in the 2.5 s window').toBeGreaterThan(0);
+          |                                                                                                      ^
+      645 |       expect(win.filter((r) => r.ticks > 0).length, 'at least one observed call really advanced a core tick').toBeGreaterThan(0);
+      646 |       const offenders: string[] = [];
+      647 |       for (const r of win) {
+        at D:\tmp\ls-p4-v4\tests\ai-native-world.spec.ts:644:102
+
+    Error Context: test-results\ai-native-world-AI-NATIVE--4bbd9-er-pause-death-restart-exit-chromium-repeat1\error-context.md
+
+
+  2 failed
+    [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit 
+    [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit 
+exit_code=1
+finished=2026-11-18T22:20:39Z

@@ -1,0 +1,788 @@
+[
+  {
+    "item": "single-pending",
+    "at": "2026-11-18T23:28:34.315Z",
+    "runner": "agent (real pause-menu clicks only)",
+    "fixtures": "none",
+    "queue": {
+      "before": [],
+      "afterFirst": [
+        "signal-scan"
+      ],
+      "afterSecond": [
+        "signal-scan"
+      ]
+    },
+    "pendingLocal": {
+      "afterFirst": {
+        "proposalId": "local_69_1",
+        "kind": "scan",
+        "target": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "acceptedTick": 69,
+        "roomGeneration": 1
+      },
+      "afterSecond": {
+        "proposalId": "local_69_1",
+        "kind": "scan",
+        "target": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "acceptedTick": 69,
+        "roomGeneration": 1
+      }
+    },
+    "auditTail": [
+      {
+        "tick": 69,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "result": "enqueued",
+        "proposalId": "local_69_1"
+      }
+    ],
+    "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p2\\shots\\p2-1-single-pending.png"
+  },
+  {
+    "item": "reject",
+    "at": "2026-11-18T23:28:46.278Z",
+    "runner": "agent (real pause-menu clicks only)",
+    "proposalBefore": {
+      "kind": "scan"
+    },
+    "pendingAfter": null,
+    "queueBefore": [],
+    "queueAfter": [],
+    "auditTail": [
+      {
+        "tick": 68,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "result": "rejected",
+        "code": "E_USER_REJECTED",
+        "proposalId": "local_68_1"
+      }
+    ],
+    "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p2\\shots\\p2-2-reject.png"
+  },
+  {
+    "item": "lowrisk-owner-gate",
+    "at": "2026-11-18T23:29:02.010Z",
+    "runner": "agent (real pause-menu switches; real AI menu to change the owner)",
+    "fixtures": "none (the AI option is the product dev entry, labelled LOCAL DETERMINISTIC DEMO)",
+    "humanOn": {
+      "flag": true,
+      "saved": true,
+      "owner": "human"
+    },
+    "nonHumanRefused": true,
+    "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p2\\shots\\p2-3-lowrisk.png"
+  },
+  {
+    "item": "restore-contract",
+    "at": "2026-11-18T23:29:02.704Z",
+    "runner": "agent (headless formal entry, no human)",
+    "fixtures": "fixture: raw sim snapshot + HeadlessWorld.fromSimulationState (the documented v3 restore seam)",
+    "saved": {
+      "kinds": [
+        "signal-scan"
+      ]
+    },
+    "restored": {
+      "busy": {
+        "proposalId": null,
+        "kind": "scan",
+        "target": null,
+        "acceptedTick": null,
+        "roomGeneration": 0,
+        "restored": true
+      },
+      "queue": [
+        "signal-scan"
+      ]
+    },
+    "contract": "restored action is busy (unknown provenance), a new local confirm is refused, unrelated commands kept, exactly one execution"
+  },
+  {
+    "item": "viewport",
+    "at": "2026-11-18T23:29:28.266Z",
+    "runner": "agent",
+    "rows": [
+      {
+        "viewport": "1920x1080",
+        "scale": 1.5,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1366x768",
+        "scale": 1.067,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1280x720",
+        "scale": 1,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1024x768",
+        "scale": 0.8,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "800x600",
+        "scale": 0.625,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      }
+    ],
+    "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p2\\shots\\p2-5-viewports.png"
+  },
+  {
+    "item": "legacy-save",
+    "at": "2026-11-18T23:29:41.642Z",
+    "clearPlay": {
+      "cleared": true,
+      "shots": 6,
+      "inputs": 6,
+      "elapsedMs": 1713,
+      "ticksAdvanced": 113,
+      "stalls": [],
+      "overlays": [],
+      "trace": [
+        {
+          "tag": "start",
+          "atMs": 1795044576082,
+          "notReady": false,
+          "tick": 72,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": 24,
+            "hpSource": "sim-drone#1@0.49",
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044576265,
+          "notReady": false,
+          "tick": 84,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": 24,
+            "hpSource": "sim-drone#1@0.49",
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044576532,
+          "notReady": false,
+          "tick": 100,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": 12,
+            "hpSource": "sim-drone#1@0.24",
+            "d": 3.980551275463987,
+            "screen": {
+              "x": 773.0682253245299,
+              "y": 345.0599202501397
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.29198742641555,
+            "y": 45.812018860376696
+          },
+          "hp": 94,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044576813,
+          "notReady": false,
+          "tick": 117,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": 12,
+            "hpSource": "sim-drone#1@0.24",
+            "d": 3.980551275463987,
+            "screen": {
+              "x": 779.0893908800809,
+              "y": 346.0910609882856
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.29198742641555,
+            "y": 45.812018860376696
+          },
+          "hp": 94,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044577145,
+          "notReady": false,
+          "tick": 136,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": "notCaptured",
+            "hpSource": "no matching sim drone",
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 578.7536153716763,
+              "y": 288.14184335885466
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044577422,
+          "notReady": false,
+          "tick": 154,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": "notCaptured",
+            "hpSource": "no matching sim drone",
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 575.2514943480885,
+              "y": 288.5602317775867
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044577691,
+          "notReady": false,
+          "tick": 170,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": "notCaptured",
+            "hpSource": "no matching sim drone",
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 576.6447101440091,
+              "y": 287.9841971622839
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044577929,
+          "notReady": false,
+          "tick": 185,
+          "cleared": true,
+          "spawned": true,
+          "enemy": null,
+          "enemiesAlive": 0,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        }
+      ]
+    },
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "fixture: remove ONLY the new optional cooperation fields from a product-written save",
+    "removedFields": [
+      "permanent.echoCooperationOptIn"
+    ],
+    "continued": true,
+    "optIn": false,
+    "echo": true,
+    "pending": null,
+    "note": "a rejection of an arbitrary invalid save would not count as compatibility; this uses a valid save",
+    "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p2\\shots\\p2-6-legacy-save.png"
+  },
+  {
+    "item": "save-reload-boundary",
+    "at": "2026-11-18T23:29:57.893Z",
+    "clearPlay": {
+      "cleared": true,
+      "shots": 6,
+      "inputs": 6,
+      "elapsedMs": 1531,
+      "ticksAdvanced": 97,
+      "stalls": [],
+      "overlays": [],
+      "trace": [
+        {
+          "tag": "start",
+          "atMs": 1795044589485,
+          "notReady": false,
+          "tick": 70,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": 24,
+            "hpSource": "sim-drone#1@0.49",
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "ACTIVE"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044589634,
+          "notReady": false,
+          "tick": 79,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": 24,
+            "hpSource": "sim-drone#1@0.49",
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044589861,
+          "notReady": false,
+          "tick": 92,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": 24,
+            "hpSource": "sim-drone#1@0.49",
+            "d": 3.6055512754639896,
+            "screen": {
+              "x": 768.0000341415399,
+              "y": 347.19999666213977
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.5,
+            "y": 45.5
+          },
+          "hp": 100,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044590116,
+          "notReady": false,
+          "tick": 105,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 10.5,
+            "y": 42.5,
+            "hp": 12,
+            "hpSource": "sim-drone#1@0.24",
+            "d": 3.980551275463987,
+            "screen": {
+              "x": 774.0546774171884,
+              "y": 347.5006991741746
+            }
+          },
+          "enemiesAlive": 2,
+          "player": {
+            "x": 8.29198742641555,
+            "y": 45.812018860376696
+          },
+          "hp": 94,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044590383,
+          "notReady": false,
+          "tick": 122,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": "notCaptured",
+            "hpSource": "no matching sim drone",
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 573.7035123759423,
+              "y": 292.90295025471335
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 94,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044590630,
+          "notReady": false,
+          "tick": 137,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": "notCaptured",
+            "hpSource": "no matching sim drone",
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 576.2262033296867,
+              "y": 289.211447139174
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 94,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044590874,
+          "notReady": false,
+          "tick": 152,
+          "cleared": false,
+          "spawned": true,
+          "enemy": {
+            "x": 4.5,
+            "y": 44.5,
+            "hp": "notCaptured",
+            "hpSource": "no matching sim drone",
+            "d": 4.351046555289924,
+            "screen": {
+              "x": 576.5535451324523,
+              "y": 288.2515339283757
+            }
+          },
+          "enemiesAlive": 1,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 94,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        },
+        {
+          "tag": "loop",
+          "atMs": 1795044591122,
+          "notReady": false,
+          "tick": 167,
+          "cleared": true,
+          "spawned": true,
+          "enemy": null,
+          "enemiesAlive": 0,
+          "player": {
+            "x": 8.553869417086137,
+            "y": 46.08042680169441
+          },
+          "hp": 94,
+          "gameOver": false,
+          "paused": false,
+          "levelUpActive": false,
+          "owner": "human",
+          "active": [
+            "GameScene"
+          ],
+          "relay": "JAMMED"
+        }
+      ]
+    },
+    "runner": "agent (real pause-menu clicks + real reload + real CONTINUE)",
+    "fixtures": "none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm",
+    "beforePause": {
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 168,
+      "echoHp": 100,
+      "energy": 83
+    },
+    "confirmed": {
+      "id": "local_170_1",
+      "kind": "scan",
+      "ok": true,
+      "provenance": "product-boundary call (real click covered by case 1)",
+      "queue": [
+        "signal-scan"
+      ],
+      "applied": false
+    },
+    "after": {
+      "active": [
+        "GameScene"
+      ],
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 222,
+      "echoHp": 100,
+      "energy": 87,
+      "relay": "JAMMED",
+      "queue": [],
+      "pending": null,
+      "appliedAudit": 0,
+      "probe": {
+        "restore": {
+          "ok": true,
+          "tick": 170,
+          "energy": 83,
+          "queue": [],
+          "appliedAudit": 0,
+          "relay": "JAMMED",
+          "savedArg": {
+            "tick": 170,
+            "queue": 0
+          }
+        },
+        "firstTickEvents": [],
+        "scanned": [],
+        "patched": true,
+        "restoreStarted": true
+      },
+      "sameWorldModule": true
+    },
+    "contract": "the confirmed-but-uncommitted local action is not persisted, not executed, no busy marker, no fake applied receipt",
+    "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p2\\shots\\p2-7-save-reload.png"
+  },
+  {
+    "item": "save-reload-instant",
+    "at": "2026-11-18T23:29:57.898Z",
+    "savedEnergy": 83,
+    "savedRelay": "JAMMED",
+    "restoreInstant": {
+      "ok": true,
+      "tick": 170,
+      "energy": 83,
+      "queue": [],
+      "appliedAudit": 0,
+      "relay": "JAMMED",
+      "savedArg": {
+        "tick": 170,
+        "queue": 0
+      }
+    },
+    "firstTickEvents": [],
+    "scannedEvents": [],
+    "laterSample": {
+      "energy": 87,
+      "relay": "JAMMED",
+      "tick": 222
+    }
+  }
+]

@@ -1,0 +1,6712 @@
+{
+  "installed": true,
+  "restored": true,
+  "windowStart": 1,
+  "windowEnd": 90,
+  "records": [
+    {
+      "seq": 0,
+      "t": 18069,
+      "tickBefore": 565,
+      "tickAfter": 567,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.72808661204911,
+        "y": 43.310738477727824
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 1,
+      "t": 18096,
+      "tickBefore": 567,
+      "tickAfter": 568,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.97761953744751,
+        "y": 43.6343031896032
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 2,
+      "t": 18122,
+      "tickBefore": 568,
+      "tickAfter": 570,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.7082059873179,
+        "y": 43.464331322247816
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 3,
+      "t": 18147,
+      "tickBefore": 570,
+      "tickAfter": 572,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.89282890625655,
+        "y": 43.58708702064719
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 4,
+      "t": 18174,
+      "tickBefore": 572,
+      "tickAfter": 573,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.85454836608956,
+        "y": 43.70167661057461
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 5,
+      "t": 18206,
+      "tickBefore": 573,
+      "tickAfter": 575,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.91747773361898,
+        "y": 43.676345317046454
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 6,
+      "t": 18237,
+      "tickBefore": 575,
+      "tickAfter": 577,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.17627705347725,
+        "y": 43.74141238926204
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 7,
+      "t": 18266,
+      "tickBefore": 577,
+      "tickAfter": 579,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.92578885321107,
+        "y": 43.627417769943534
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 8,
+      "t": 18295,
+      "tickBefore": 579,
+      "tickAfter": 580,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.96468651363395,
+        "y": 43.6224947426156
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 9,
+      "t": 18324,
+      "tickBefore": 580,
+      "tickAfter": 582,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.98827879613017,
+        "y": 43.61780868328228
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 10,
+      "t": 18352,
+      "tickBefore": 582,
+      "tickAfter": 584,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.87902215388102,
+        "y": 43.6015195240423
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 11,
+      "t": 18375,
+      "tickBefore": 584,
+      "tickAfter": 585,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.94555478046553,
+        "y": 43.65160393316185
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 12,
+      "t": 18407,
+      "tickBefore": 585,
+      "tickAfter": 587,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.01307196420707,
+        "y": 43.70360613150309
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 13,
+      "t": 18441,
+      "tickBefore": 587,
+      "tickAfter": 589,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.85711993284164,
+        "y": 43.71413385965346
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 14,
+      "t": 18467,
+      "tickBefore": 589,
+      "tickAfter": 591,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.04913412707586,
+        "y": 43.64676110675023
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 15,
+      "t": 18493,
+      "tickBefore": 591,
+      "tickAfter": 592,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.95740831532615,
+        "y": 43.66610826302011
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 16,
+      "t": 18523,
+      "tickBefore": 592,
+      "tickAfter": 594,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.95279468188743,
+        "y": 43.568507509594454
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 17,
+      "t": 18567,
+      "tickBefore": 594,
+      "tickAfter": 596,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.96064571290745,
+        "y": 43.74640585594145
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 18,
+      "t": 18625,
+      "tickBefore": 596,
+      "tickAfter": 598,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.03738225922115,
+        "y": 43.66264863214809
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 19,
+      "t": 18673,
+      "tickBefore": 598,
+      "tickAfter": 600,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.96451682518165,
+        "y": 43.67480644233598
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 20,
+      "t": 18745,
+      "tickBefore": 600,
+      "tickAfter": 602,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.98660912271956,
+        "y": 43.73354841661143
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 21,
+      "t": 18800,
+      "tickBefore": 602,
+      "tickAfter": 605,
+      "ticks": 3,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.97529687554402,
+        "y": 43.69972285205907
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 22,
+      "t": 18845,
+      "tickBefore": 605,
+      "tickAfter": 607,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.96790890645345,
+        "y": 43.67895709159386
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 23,
+      "t": 18909,
+      "tickBefore": 607,
+      "tickAfter": 610,
+      "ticks": 3,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.93318521333356,
+        "y": 43.64532609184738
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 24,
+      "t": 18940,
+      "tickBefore": 610,
+      "tickAfter": 613,
+      "ticks": 3,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.94431532680188,
+        "y": 43.634968449303685
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 25,
+      "t": 18965,
+      "tickBefore": 613,
+      "tickAfter": 616,
+      "ticks": 3,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.97022051486192,
+        "y": 43.681785642844886
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 26,
+      "t": 18994,
+      "tickBefore": 616,
+      "tickAfter": 619,
+      "ticks": 3,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.95582609522928,
+        "y": 43.66530068626746
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 27,
+      "t": 19023,
+      "tickBefore": 619,
+      "tickAfter": 621,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.95208020585666,
+        "y": 43.66920412408557
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [
+        "spawn-enemy-projectile"
+      ],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 28,
+      "t": 19053,
+      "tickBefore": 621,
+      "tickAfter": 624,
+      "ticks": 3,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.97179581126724,
+        "y": 43.683713221323075
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.69391814400416,
+      "y1": 45.40658638306795,
+      "hp1": 100,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.69391814400416,
+            "y": 45.40658638306795
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.69391814400416,
+        "y": 45.40658638306795
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 29,
+      "t": 19076,
+      "tickBefore": 624,
+      "tickAfter": 626,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.97220024179464,
+        "y": 43.684208094273885
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.69391814400416,
+      "y0": 45.40658638306795,
+      "hp0": 100,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.03333333333333,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-hurt",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          },
+          "damage": 16,
+          "blocked": false
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0.11103961388729999,
+        "y": 0.35818319914222485
+      }
+    },
+    {
+      "seq": 30,
+      "t": 19098,
+      "tickBefore": 626,
+      "tickAfter": 629,
+      "ticks": 3,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.98588089412667,
+        "y": 43.72762556572721
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.03333333333333,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.08333333333333,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 31,
+      "t": 19127,
+      "tickBefore": 629,
+      "tickAfter": 631,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.00691122870924,
+        "y": 43.73344079688562
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.08333333333333,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.11666666666666,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 32,
+      "t": 19154,
+      "tickBefore": 631,
+      "tickAfter": 632,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.0629820810218,
+        "y": 43.75487115687193
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.11666666666666,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.13333333333333,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 33,
+      "t": 19186,
+      "tickBefore": 632,
+      "tickAfter": 634,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.08423120671162,
+        "y": 43.82534788269638
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.13333333333333,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.16666666666666,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 34,
+      "t": 19209,
+      "tickBefore": 634,
+      "tickAfter": 636,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.02604137057608,
+        "y": 43.85508047777927
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.16666666666666,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.19999999999999,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 35,
+      "t": 19237,
+      "tickBefore": 636,
+      "tickAfter": 637,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.1043415624408,
+        "y": 43.85439623173178
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.19999999999999,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.21666666666665,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 36,
+      "t": 19263,
+      "tickBefore": 637,
+      "tickAfter": 639,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.04416614693767,
+        "y": 43.820558718631986
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.21666666666665,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.24999999999999,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 37,
+      "t": 19289,
+      "tickBefore": 639,
+      "tickAfter": 641,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.04734131947146,
+        "y": 43.864263778362556
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.24999999999999,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.28333333333332,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 38,
+      "t": 19311,
+      "tickBefore": 641,
+      "tickAfter": 642,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.05012542195823,
+        "y": 43.93151459714608
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.28333333333332,
+      "x1": 115.80495775789146,
+      "y1": 45.76476958221018,
+      "hp1": 84.29999999999998,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.80495775789146,
+        "y": 45.76476958221018
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 39,
+      "t": 19338,
+      "tickBefore": 642,
+      "tickAfter": 644,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.01328985042797,
+        "y": 43.95177290705219
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.80495775789146,
+      "y0": 45.76476958221018,
+      "hp0": 84.29999999999998,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.33333333333331,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.80495775789146,
+            "y": 45.76476958221018
+          }
+        },
+        {
+          "type": "player-hurt",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          },
+          "damage": 8,
+          "blocked": false
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0.10991330825736156,
+        "y": 0.3585304236294675
+      }
+    },
+    {
+      "seq": 40,
+      "t": 19363,
+      "tickBefore": 644,
+      "tickAfter": 645,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.02658896793349,
+        "y": 44.01289204317777
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.33333333333331,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.34999999999998,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 41,
+      "t": 19390,
+      "tickBefore": 645,
+      "tickAfter": 647,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.05264438161902,
+        "y": 44.06080147440639
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.34999999999998,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.38333333333331,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 42,
+      "t": 19412,
+      "tickBefore": 647,
+      "tickAfter": 648,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.09957898155298,
+        "y": 44.091553760952166
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.38333333333331,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.39999999999998,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 43,
+      "t": 19436,
+      "tickBefore": 648,
+      "tickAfter": 650,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.86006357331445,
+        "y": 44.05002653382195
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.39999999999998,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.43333333333331,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 44,
+      "t": 19462,
+      "tickBefore": 650,
+      "tickAfter": 651,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 113.96288709248331,
+        "y": 44.12804923216753
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.43333333333331,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.44999999999997,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 45,
+      "t": 19486,
+      "tickBefore": 651,
+      "tickAfter": 653,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.20506898166775,
+        "y": 44.35839020072041
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.44999999999997,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.4833333333333,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 46,
+      "t": 19511,
+      "tickBefore": 653,
+      "tickAfter": 654,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.39567428399127,
+        "y": 44.31638752413028
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.4833333333333,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.49999999999997,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 47,
+      "t": 19532,
+      "tickBefore": 654,
+      "tickAfter": 656,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.14517174370373,
+        "y": 44.239372260668844
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.49999999999997,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.5333333333333,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 48,
+      "t": 19557,
+      "tickBefore": 656,
+      "tickAfter": 657,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.27366522039542,
+        "y": 44.23466264609935
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.5333333333333,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.54999999999997,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 49,
+      "t": 19582,
+      "tickBefore": 657,
+      "tickAfter": 659,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.09016886138234,
+        "y": 44.37887324984381
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.54999999999997,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.5833333333333,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 50,
+      "t": 19607,
+      "tickBefore": 659,
+      "tickAfter": 660,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.19339161594986,
+        "y": 44.342764481585945
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.5833333333333,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.59999999999997,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 51,
+      "t": 19637,
+      "tickBefore": 660,
+      "tickAfter": 662,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.23317004571554,
+        "y": 44.285530304852145
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.59999999999997,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.6333333333333,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 52,
+      "t": 19657,
+      "tickBefore": 662,
+      "tickAfter": 663,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.16923249946574,
+        "y": 44.31738080086281
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.6333333333333,
+      "x1": 115.91487106614882,
+      "y1": 46.123300005839646,
+      "hp1": 76.64999999999996,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 115.91487106614882,
+        "y": 46.123300005839646
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 53,
+      "t": 19682,
+      "tickBefore": 663,
+      "tickAfter": 665,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.2348495916257,
+        "y": 44.42605400462699
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 115.91487106614882,
+      "y0": 46.123300005839646,
+      "hp0": 76.64999999999996,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.6833333333333,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 115.91487106614882,
+            "y": 46.123300005839646
+          }
+        },
+        {
+          "type": "player-hurt",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          },
+          "damage": 7,
+          "blocked": false
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0.1331430997439611,
+        "y": 0.35056798911276843
+      }
+    },
+    {
+      "seq": 54,
+      "t": 19707,
+      "tickBefore": 665,
+      "tickAfter": 666,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.30381076703391,
+        "y": 44.37248572356246
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.6833333333333,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.69999999999996,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 55,
+      "t": 19735,
+      "tickBefore": 666,
+      "tickAfter": 668,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.13639587580346,
+        "y": 44.380150079722085
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.69999999999996,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.73333333333329,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 56,
+      "t": 19761,
+      "tickBefore": 668,
+      "tickAfter": 669,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.22144590109556,
+        "y": 44.34137320417349
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.73333333333329,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.74999999999996,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 57,
+      "t": 19781,
+      "tickBefore": 669,
+      "tickAfter": 671,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.235227928041,
+        "y": 44.49888238789232
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.74999999999996,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.78333333333329,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 58,
+      "t": 19808,
+      "tickBefore": 671,
+      "tickAfter": 672,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.45890110510068,
+        "y": 44.57864260795971
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.78333333333329,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.79999999999995,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 59,
+      "t": 19831,
+      "tickBefore": 672,
+      "tickAfter": 674,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.24279748716899,
+        "y": 44.48927571582061
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.79999999999995,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.83333333333329,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 60,
+      "t": 19856,
+      "tickBefore": 674,
+      "tickAfter": 675,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.40846478761917,
+        "y": 44.786925884452884
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.83333333333329,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.84999999999995,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 61,
+      "t": 19875,
+      "tickBefore": 675,
+      "tickAfter": 676,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.27287023629911,
+        "y": 44.601454996007604
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.84999999999995,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.86666666666662,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 62,
+      "t": 19904,
+      "tickBefore": 676,
+      "tickAfter": 678,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.27368230685698,
+        "y": 44.651639335790236
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.86666666666662,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.89999999999995,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 63,
+      "t": 19927,
+      "tickBefore": 678,
+      "tickAfter": 679,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.27426705638935,
+        "y": 44.46488604162498
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.89999999999995,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.91666666666661,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 64,
+      "t": 19951,
+      "tickBefore": 679,
+      "tickAfter": 681,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.20199279056969,
+        "y": 44.55005291468014
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.91666666666661,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.94999999999995,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 65,
+      "t": 19974,
+      "tickBefore": 681,
+      "tickAfter": 682,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.40551530470967,
+        "y": 44.60847034021654
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.94999999999995,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.96666666666661,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 66,
+      "t": 19994,
+      "tickBefore": 682,
+      "tickAfter": 684,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.29950230530599,
+        "y": 44.67402548660584
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.96666666666661,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 69.99999999999994,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 67,
+      "t": 20018,
+      "tickBefore": 684,
+      "tickAfter": 685,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.42922804843398,
+        "y": 44.86950427011381
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 69.99999999999994,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.01666666666661,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 68,
+      "t": 20042,
+      "tickBefore": 685,
+      "tickAfter": 687,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.17264717043356,
+        "y": 44.55703099817974
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.01666666666661,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.04999999999994,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 69,
+      "t": 20065,
+      "tickBefore": 687,
+      "tickAfter": 688,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.24209970367319,
+        "y": 44.68505508817658
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.04999999999994,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.0666666666666,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 70,
+      "t": 20088,
+      "tickBefore": 688,
+      "tickAfter": 689,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.3946545084048,
+        "y": 44.62038725044256
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.0666666666666,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.08333333333327,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 71,
+      "t": 20108,
+      "tickBefore": 689,
+      "tickAfter": 691,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.31355689813132,
+        "y": 44.712323250712345
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.08333333333327,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.1166666666666,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 72,
+      "t": 20139,
+      "tickBefore": 691,
+      "tickAfter": 692,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.33795806852656,
+        "y": 44.60393302469758
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.1166666666666,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.13333333333327,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 73,
+      "t": 20169,
+      "tickBefore": 692,
+      "tickAfter": 694,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.22143170301445,
+        "y": 44.637776075991155
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.13333333333327,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.1666666666666,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 74,
+      "t": 20198,
+      "tickBefore": 694,
+      "tickAfter": 695,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.32979670253813,
+        "y": 44.64478998256213
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.1666666666666,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.18333333333327,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 75,
+      "t": 20230,
+      "tickBefore": 695,
+      "tickAfter": 697,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.36300854524934,
+        "y": 44.73016229622134
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.18333333333327,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.2166666666666,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 76,
+      "t": 20252,
+      "tickBefore": 697,
+      "tickAfter": 698,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.32097395534292,
+        "y": 44.732534203173415
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.2166666666666,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.23333333333326,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 77,
+      "t": 20283,
+      "tickBefore": 698,
+      "tickAfter": 700,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.33503520961926,
+        "y": 44.767892048451046
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.23333333333326,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.2666666666666,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 78,
+      "t": 20317,
+      "tickBefore": 700,
+      "tickAfter": 701,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.27585994919974,
+        "y": 44.80775041711183
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.2666666666666,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.28333333333326,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 79,
+      "t": 20346,
+      "tickBefore": 701,
+      "tickAfter": 703,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.3987824153256,
+        "y": 44.74825580184435
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.28333333333326,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.31666666666659,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 80,
+      "t": 20375,
+      "tickBefore": 703,
+      "tickAfter": 705,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.32429173101053,
+        "y": 44.741574905487255
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.31666666666659,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.34999999999992,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 81,
+      "t": 20402,
+      "tickBefore": 705,
+      "tickAfter": 707,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.36052474666106,
+        "y": 44.66218181059433
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.34999999999992,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.38333333333325,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 82,
+      "t": 20428,
+      "tickBefore": 707,
+      "tickAfter": 708,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.37591277876587,
+        "y": 44.688337090844556
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.38333333333325,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.39999999999992,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 83,
+      "t": 20456,
+      "tickBefore": 708,
+      "tickAfter": 710,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.34877816048316,
+        "y": 44.832851432292415
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.39999999999992,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.43333333333325,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 84,
+      "t": 20486,
+      "tickBefore": 710,
+      "tickAfter": 712,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.3262813856839,
+        "y": 44.746996572716
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.43333333333325,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.46666666666658,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 85,
+      "t": 20511,
+      "tickBefore": 712,
+      "tickAfter": 714,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.34764717304765,
+        "y": 44.808068958321144
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.46666666666658,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.49999999999991,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 86,
+      "t": 20536,
+      "tickBefore": 714,
+      "tickAfter": 715,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.28591379834423,
+        "y": 44.77208711692218
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.49999999999991,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.51666666666658,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 87,
+      "t": 20561,
+      "tickBefore": 715,
+      "tickAfter": 717,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.33288819578203,
+        "y": 44.686327393933766
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.51666666666658,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.54999999999991,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 88,
+      "t": 20583,
+      "tickBefore": 717,
+      "tickAfter": 719,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.32747457235953,
+        "y": 44.75024792139655
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.54999999999991,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.58333333333324,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 89,
+      "t": 20609,
+      "tickBefore": 719,
+      "tickAfter": 720,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.36325099223173,
+        "y": 44.76827512484341
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.58333333333324,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.59999999999991,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 90,
+      "t": 20634,
+      "tickBefore": 720,
+      "tickAfter": 722,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.27635632547826,
+        "y": 44.7556941959743
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.59999999999991,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.63333333333324,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 91,
+      "t": 20681,
+      "tickBefore": 722,
+      "tickAfter": 723,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.37748167508546,
+        "y": 44.75985573209617
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.63333333333324,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.6499999999999,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 92,
+      "t": 20708,
+      "tickBefore": 723,
+      "tickAfter": 725,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.32819012087252,
+        "y": 44.75219774011403
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.6499999999999,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.68333333333324,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 93,
+      "t": 20742,
+      "tickBefore": 725,
+      "tickAfter": 727,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.34389762201356,
+        "y": 44.76537577773861
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.68333333333324,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.71666666666657,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 94,
+      "t": 20770,
+      "tickBefore": 727,
+      "tickAfter": 728,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.3058547593416,
+        "y": 44.73399438528264
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.71666666666657,
+      "x1": 116.04801416589278,
+      "y1": 46.473867994952414,
+      "hp1": 70.73333333333323,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.04801416589278,
+        "y": 46.473867994952414
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 95,
+      "t": 20799,
+      "tickBefore": 728,
+      "tickAfter": 730,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.31530246889481,
+        "y": 44.758410180807445
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [
+        "spawn-enemy-projectile"
+      ],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.04801416589278,
+      "y0": 46.473867994952414,
+      "hp0": 70.73333333333323,
+      "x1": 116.42285612189819,
+      "y1": 46.484754133755445,
+      "hp1": 57.766666666666566,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.04801416589278,
+            "y": 46.473867994952414
+          }
+        },
+        {
+          "type": "player-hurt",
+          "position": {
+            "x": 116.42285612189819,
+            "y": 46.484754133755445
+          },
+          "damage": 13,
+          "blocked": false
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.42285612189819,
+            "y": 46.484754133755445
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.42285612189819,
+        "y": 46.484754133755445
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0.3748419560054117,
+        "y": 0.010886138803030576
+      }
+    },
+    {
+      "seq": 96,
+      "t": 20823,
+      "tickBefore": 730,
+      "tickAfter": 732,
+      "ticks": 2,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.37360026604601,
+        "y": 44.75467337398861
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.42285612189819,
+      "y0": 46.484754133755445,
+      "hp0": 57.766666666666566,
+      "x1": 116.42285612189819,
+      "y1": 46.484754133755445,
+      "hp1": 57.7999999999999,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.42285612189819,
+            "y": 46.484754133755445
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.42285612189819,
+            "y": 46.484754133755445
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.42285612189819,
+        "y": 46.484754133755445
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "seq": 97,
+      "t": 20854,
+      "tickBefore": 732,
+      "tickAfter": 733,
+      "ticks": 1,
+      "owner": "human",
+      "aiEnabled": false,
+      "ctlPaused": false,
+      "mode": "HUMAN",
+      "lastIntentOwner": "human",
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "intentPresent": true,
+      "movePresent": true,
+      "fire": false,
+      "aim": {
+        "x": 114.3188140305607,
+        "y": 44.74465060694263
+      },
+      "interact": false,
+      "dash": false,
+      "keys": {
+        "up": false,
+        "down": false,
+        "left": false,
+        "right": false
+      },
+      "pending": [],
+      "hasTeleport": false,
+      "aiActionCount": 25,
+      "takeoverCount": 1,
+      "x0": 116.42285612189819,
+      "y0": 46.484754133755445,
+      "hp0": 57.7999999999999,
+      "x1": 116.42285612189819,
+      "y1": 46.484754133755445,
+      "hp1": 57.81666666666656,
+      "scenes": [
+        "GameScene"
+      ],
+      "overlay": [],
+      "writers": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 116.42285612189819,
+            "y": 46.484754133755445
+          }
+        }
+      ],
+      "lastWriter": {
+        "x": 116.42285612189819,
+        "y": 46.484754133755445
+      },
+      "positionExplained": true,
+      "posDelta": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

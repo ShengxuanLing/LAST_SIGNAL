@@ -1,0 +1,55 @@
+# run10 — audit boss-volley measurement attribution (test-only change)
+
+tree=/d/tmp/ls-p4-v4  HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d
+
+## audit.spec.ts bytes (the ONLY test change in this round)
+
+  before (run9 carried bytes, CRLF) = fe43dc48a6164218113b84947860420b1fa3f52196a42697391e10a8b9582eff
+  after                            = 6ea30e8b1338862eb00c1cc8a54b4687d9a23f8f152cad4e605faafbdbd6dcea
+  archived_identical               = True
+  diff                              = diff-audit.spec.ts.diff (141 lines)
+
+## frozen tester specs (unchanged this round)
+
+  tests/gameplay-01.spec.ts                    a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743
+  tests/gameplay-02-echo-coop.spec.ts          4bc6288f6cbc123eb2ea7c13626141a786cc957ea353fd34f31cb28946ef6266
+  tests/gameplay-04-coop-level.spec.ts         13a834644327ef29b30e0135d44f485de1728dafcfc7626a3a05abbdf7234df2
+  tests/gameplay-04-headless-restore.spec.ts   22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55
+  tests/ai-native-world.spec.ts                855eb948d31ef48060087f70bd403fe1da1fea2a55efd7c2507d85a7b6f9538b
+
+## v4 product sources (unchanged)
+  src/world/sim/core.ts                          f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6
+  src/config/p1Scenario.ts                       76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7
+  src/ai-native/worldHeadless.ts                 7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316
+  src/world/World.ts                             349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+  src/signal/relay.ts                            6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89
+  src/signal/relayRoutes.test.ts                 097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423
+  src/ai-native/worldHeadlessDemoRoute.test.ts   11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4
+  src/config/p1ScenarioLayout.test.ts            8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6
+  src/ai-native/worldHeadlessFrameAuthored.test.ts 93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21
+  src/ai-native/worldHeadlessRestoreSafety.test.ts ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652
+
+## what changed (measurement attribution only)
+  - the measured step now captures the SimEvent[] returned by stepFrame;
+  - spawn events are partitioned by the REAL payload `projectile.ownerId === boss._id` into volley/others;
+  - EVERY spawn event is persisted (full payload: id/ownerId/kind/source/pos/vel/speed) to
+    evidence/boss-volley-events.json BEFORE any assertion, plus pendingBefore + preExisting core/adapter lengths;
+  - assertions: total === volley+others; volley ids distinct; volley === 15 (not >=15); no boss id in others;
+    event-speed histogram === [3 laser @2.5, 12 shockwave @1.875]; all 15 ids present in the adapter
+    (cross-representation lookup by ID replaces the core-length c0 slice);
+  - 0.5 s later only survivors among those 15 ids are followed (natural expiry allowed, same >0);
+  - all original speed/visibility/viewport/lifetime>0/real-movement>0.05 assertions kept;
+  - other projectiles are recorded, never hidden, never cleared; boss-only freeze unchanged.
+  - untouched: every other audit assertion (map/camera/sound/weapon), thresholds, timeouts, skip.
+
+## targeted gate (2 runs, not retry-to-green): PASS 2/2, exit 0 -> logs/targeted-2of2.log.txt
+  last-run attribution: bossId 4, spawnedTotal 15, volley 15 (all owner 4), others 0,
+  pendingBefore [], preExisting core/adapter 1/1, adapterMissing 0, ids distinct true,
+  event speeds {2.5: 3, 1.875: 12}.
+  BRANCH NOTE: the "others" bucket was NOT populated in these two runs (no legacy enemy shot was
+  pending), so the red 16/15 path is proven only by the developer diag (bossrun2: owner 1 + owner 4 x15,
+  core/adapter 16/16) and their core counterexample - not re-created here (no fixtures were injected).
+
+## history kept
+  - run9 audit bytes + failure data: run9-ai-disable-final/boss-volley-drift/ (unchanged)
+  - run9 154/155 stands; this round did not run the full suite.

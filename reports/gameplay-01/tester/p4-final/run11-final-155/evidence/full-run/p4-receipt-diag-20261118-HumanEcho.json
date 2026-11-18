@@ -1,0 +1,172 @@
+{
+  "runner": "agent",
+  "fixtures": [
+    "seed override (menu start wrapper)",
+    "autoOwner: setEchoCooperationOptIn(true) + enableEcho() (same calls as the menu ENABLE)"
+  ],
+  "audit": [
+    {
+      "tick": 992,
+      "kind": "scan",
+      "result": "enqueued",
+      "code": null,
+      "provenance": "human-local"
+    },
+    {
+      "tick": 993,
+      "kind": "scan",
+      "result": "applied",
+      "code": null,
+      "provenance": "human-local"
+    }
+  ],
+  "commit": {
+    "actorId": 1,
+    "ok": true,
+    "code": null,
+    "energy": 90,
+    "pre": 100,
+    "relay": null,
+    "batchTick": 993,
+    "energyEventsBefore": 0
+  },
+  "commitCount": 1,
+  "receiptSemantics": {
+    "batchCount": 8,
+    "firstBatchWithCommit": 1,
+    "ticksUntilCommit": 3,
+    "commitBatchTicks": 1,
+    "queueBeforeCommitOrder": [
+      "signal-scan"
+    ],
+    "queueAfterCommit": [],
+    "queueHeldMoreThanOneBatch": false,
+    "batchesWithTicks": 8,
+    "batches": [
+      {
+        "t0": 990,
+        "t1": 992,
+        "ticks": 2,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 863
+      },
+      {
+        "t0": 992,
+        "t1": 993,
+        "ticks": 1,
+        "queueBefore": [
+          "signal-scan"
+        ],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "signal-scanned#1",
+          "signal-energy#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 864
+      },
+      {
+        "t0": 993,
+        "t1": 994,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 865
+      },
+      {
+        "t0": 994,
+        "t1": 996,
+        "ticks": 2,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 866
+      },
+      {
+        "t0": 996,
+        "t1": 997,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 867
+      },
+      {
+        "t0": 997,
+        "t1": 999,
+        "ticks": 2,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 868
+      },
+      {
+        "t0": 999,
+        "t1": 1000,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 869
+      },
+      {
+        "t0": 1000,
+        "t1": 1001,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 870
+      }
+    ]
+  },
+  "beforeApplyTick": 986,
+  "afterTick": 997
+}

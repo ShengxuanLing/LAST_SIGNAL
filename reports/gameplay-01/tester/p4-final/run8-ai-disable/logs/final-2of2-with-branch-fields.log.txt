@@ -1,0 +1,11 @@
+# run8 FINAL targeted gate — the same case, 2 consecutive runs, event-level contract
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d spec=c33f16c7e48a433968c156d012c7c7dc21751f0eee5aecdaa179e2c347b8bd61 World=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+started=2026-11-18T22:23:15Z
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+[2/2] [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+  2 passed (1.5m)
+exit_code=0
+finished=2026-11-18T22:24:48Z

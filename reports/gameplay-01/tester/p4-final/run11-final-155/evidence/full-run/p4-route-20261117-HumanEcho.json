@@ -1,0 +1,900 @@
+{
+  "runner": "agent (real keys/mouse; NON-BLIND driver: reads canonical state to aim/route)",
+  "fixtures": [
+    "seed override (menu start wrapper)",
+    "autoOwner: setEchoCooperationOptIn(true) + enableEcho() (same calls as the menu ENABLE)"
+  ],
+  "seed": 20261117,
+  "mode": "HumanEcho",
+  "spawnToRelay": 4.242640687119286,
+  "doorToRelay": 1,
+  "playerToRelay": 0.5203522925727585,
+  "standOnDoor": 0.47964791354235436,
+  "spawnJam": {
+    "attempted": true,
+    "distance": 4.242640687119286,
+    "commit": {
+      "actorId": 0,
+      "ok": true,
+      "code": null,
+      "energy": 75,
+      "before": 100,
+      "relay": "JAMMED",
+      "jamExpiresAtTick": 420,
+      "regenEvents": 0,
+      "tick": 61,
+      "source": "pre-tick-energy"
+    },
+    "after": {
+      "state": "JAMMED",
+      "manual": true,
+      "powered": true,
+      "jamUntil": 420,
+      "evidence": 0
+    }
+  },
+  "cleared": {
+    "fight": {
+      "shots": 2,
+      "approaches": 0,
+      "cleared": true,
+      "died": false,
+      "firstHp": 94,
+      "minEnemies": 0,
+      "elapsedMs": 1022,
+      "flags": {
+        "spawned": true,
+        "cleared": true
+      }
+    },
+    "mapFlag": true,
+    "spawned": true,
+    "coreClearEvents": 1,
+    "liveDrones": 0
+  },
+  "headless": {
+    "strategy": "plain-fight",
+    "initial": {
+      "roomId": 0,
+      "spawned": true,
+      "cleared": false,
+      "liveDrones": 2,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": false,
+        "relay": null,
+        "target": null,
+        "portal": null,
+        "playerAtPortal": false,
+        "completed": false
+      },
+      "tick": 0
+    },
+    "final": {
+      "tick": 60,
+      "status": "running",
+      "spawned": true,
+      "cleared": true,
+      "liveDrones": 0,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": true,
+        "relay": "ACTIVE",
+        "target": 1,
+        "portal": {
+          "x": 11.5,
+          "y": 49.5
+        },
+        "playerAtPortal": false,
+        "completed": false
+      },
+      "kills": 2,
+      "shots": 6,
+      "hp": 100
+    },
+    "clearEvents": [
+      {
+        "tick": 60,
+        "event": {
+          "type": "room-cleared",
+          "roomId": 0
+        }
+      }
+    ],
+    "firstClearTick": 60,
+    "liveAtClear": 0,
+    "parity": true
+  },
+  "jam": {
+    "commit": {
+      "actorId": 0,
+      "ok": true,
+      "code": null,
+      "energy": 75,
+      "before": 100,
+      "relay": "JAMMED",
+      "jamExpiresAtTick": 957,
+      "regenEvents": 0,
+      "tick": 599,
+      "source": "pre-tick-energy"
+    },
+    "netDelta": 25,
+    "state": "JAMMED",
+    "portal": null,
+    "routeTarget": null
+  },
+  "jamInput": {
+    "pre": {
+      "ok": true,
+      "checks": {
+        "gameSceneActive": true,
+        "onlyGameScene": true,
+        "notPaused": true,
+        "notLevelUp": true,
+        "world": true,
+        "camera": true,
+        "relayActive": true,
+        "jamCDzero": true,
+        "energyEnough": true,
+        "inRange": true,
+        "lineOfSight": true
+      },
+      "distance": 0.5203522925727585,
+      "energy": 100,
+      "activeScenes": [
+        "GameScene"
+      ]
+    },
+    "stepFrames": [
+      {
+        "t0": 595,
+        "t1": 596,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 553
+      },
+      {
+        "t0": 596,
+        "t1": 597,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 554
+      },
+      {
+        "t0": 597,
+        "t1": 599,
+        "ticks": 2,
+        "queueBefore": [
+          "signal-jam"
+        ],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 75,
+        "ev": [
+          "signal-jammed#0",
+          "signal-energy#0",
+          "player-moved",
+          "echo-moved#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 555
+      },
+      {
+        "t0": 599,
+        "t1": 600,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 556
+      },
+      {
+        "t0": 600,
+        "t1": 601,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 557
+      },
+      {
+        "t0": 601,
+        "t1": 602,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 558
+      },
+      {
+        "t0": 602,
+        "t1": 604,
+        "ticks": 2,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved",
+          "echo-moved#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 559
+      },
+      {
+        "t0": 604,
+        "t1": 605,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 560
+      }
+    ],
+    "ticksBeforeEvent": 2,
+    "totalTicks": 10
+  },
+  "afterF": {
+    "room": 0,
+    "unchanged": true
+  },
+  "recovered": {
+    "relay": "ACTIVE",
+    "portal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    },
+    "routeTarget": 1,
+    "tickDelta": 352
+  },
+  "spriteToInteractionPx": 0,
+  "route": {
+    "from": 0,
+    "to": 1,
+    "distanceAtPress": 0.47964791354235436
+  },
+  "echo": {
+    "proposal": {
+      "id": "local_978_1",
+      "kind": "scan",
+      "target": {
+        "x": 11.5,
+        "y": 48.5
+      },
+      "echoReady": true
+    },
+    "accepted": true,
+    "applied": true,
+    "audit": [
+      {
+        "tick": 984,
+        "kind": "scan",
+        "result": "enqueued",
+        "code": null,
+        "provenance": "human-local"
+      },
+      {
+        "tick": 986,
+        "kind": "scan",
+        "result": "applied",
+        "code": null,
+        "provenance": "human-local"
+      }
+    ],
+    "before": {
+      "seed": 20261117,
+      "tick": 977,
+      "page": "pause",
+      "room": {
+        "id": 0,
+        "kind": "combat"
+      },
+      "roomFlags": {
+        "spawned": true,
+        "cleared": true,
+        "kind": "combat"
+      },
+      "mapCleared": true,
+      "player": {
+        "x": 11.5003207597489,
+        "y": 49.020352193710096,
+        "hp": 100
+      },
+      "portal": {
+        "x": 11.5,
+        "y": 49.5,
+        "target": 1
+      },
+      "portalSprite": {
+        "x": 3312,
+        "y": 488
+      },
+      "observedPortal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "relay": {
+        "state": "ACTIVE",
+        "manual": true,
+        "powered": true,
+        "jamUntil": 0,
+        "evidence": 0
+      },
+      "energy": {
+        "player": 100,
+        "echo": 100,
+        "jamCD": 100
+      },
+      "scenario": {
+        "id": "p1",
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "playerStart": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "drones": 2,
+        "routes": [
+          {
+            "target": 1,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 2,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "scenarioError": null,
+      "routeTarget": 1,
+      "jamRemaining": 0,
+      "linkedFire": true,
+      "liveDrones": 0,
+      "enemies": 0,
+      "echo": {
+        "exists": true,
+        "hp": 100,
+        "energy": 100
+      },
+      "proposal": null,
+      "pending": null,
+      "companionStatus": "OFF"
+    },
+    "beforeApply": {
+      "seed": 20261117,
+      "tick": 979,
+      "page": "pause",
+      "room": {
+        "id": 0,
+        "kind": "combat"
+      },
+      "roomFlags": {
+        "spawned": true,
+        "cleared": true,
+        "kind": "combat"
+      },
+      "mapCleared": true,
+      "player": {
+        "x": 11.5003207597489,
+        "y": 49.020352193710096,
+        "hp": 100
+      },
+      "portal": {
+        "x": 11.5,
+        "y": 49.5,
+        "target": 1
+      },
+      "portalSprite": {
+        "x": 3312,
+        "y": 488
+      },
+      "observedPortal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "relay": {
+        "state": "ACTIVE",
+        "manual": true,
+        "powered": true,
+        "jamUntil": 0,
+        "evidence": 0
+      },
+      "energy": {
+        "player": 100,
+        "echo": 100,
+        "jamCD": 98
+      },
+      "scenario": {
+        "id": "p1",
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "playerStart": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "drones": 2,
+        "routes": [
+          {
+            "target": 1,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 2,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "scenarioError": null,
+      "routeTarget": 1,
+      "jamRemaining": 0,
+      "linkedFire": true,
+      "liveDrones": 0,
+      "enemies": 0,
+      "echo": {
+        "exists": true,
+        "hp": 100,
+        "energy": 100
+      },
+      "proposal": {
+        "id": "local_978_1",
+        "kind": "scan"
+      },
+      "pending": null,
+      "companionStatus": "OFF"
+    },
+    "after": {
+      "seed": 20261117,
+      "tick": 990,
+      "page": "pause",
+      "room": {
+        "id": 0,
+        "kind": "combat"
+      },
+      "roomFlags": {
+        "spawned": true,
+        "cleared": true,
+        "kind": "combat"
+      },
+      "mapCleared": true,
+      "player": {
+        "x": 11.5003207597489,
+        "y": 49.020352193710096,
+        "hp": 100
+      },
+      "portal": {
+        "x": 11.5,
+        "y": 49.5,
+        "target": 1
+      },
+      "portalSprite": {
+        "x": 3312,
+        "y": 488
+      },
+      "observedPortal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "relay": {
+        "state": "ACTIVE",
+        "manual": true,
+        "powered": true,
+        "jamUntil": 0,
+        "evidence": 1
+      },
+      "energy": {
+        "player": 100,
+        "echo": 90,
+        "jamCD": 87
+      },
+      "scenario": {
+        "id": "p1",
+        "roomId": 0,
+        "startRoomId": 0,
+        "relay": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "playerStart": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "drones": 2,
+        "routes": [
+          {
+            "target": 1,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 2,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "scenarioError": null,
+      "routeTarget": 1,
+      "jamRemaining": 0,
+      "linkedFire": true,
+      "liveDrones": 0,
+      "enemies": 0,
+      "echo": {
+        "exists": true,
+        "hp": 100,
+        "energy": 90
+      },
+      "proposal": null,
+      "pending": null,
+      "companionStatus": "OFF"
+    },
+    "commit": {
+      "actorId": 1,
+      "ok": true,
+      "code": null,
+      "energy": 90,
+      "pre": 100,
+      "relay": null,
+      "batchTick": 986,
+      "energyEventsBefore": 0
+    },
+    "commitCount": 1,
+    "receiptSemantics": {
+      "batchCount": 8,
+      "firstBatchWithCommit": 1,
+      "ticksUntilCommit": 3,
+      "commitBatchTicks": 2,
+      "queueBeforeCommitOrder": [
+        "signal-scan"
+      ],
+      "queueAfterCommit": [],
+      "queueHeldMoreThanOneBatch": false,
+      "batchesWithTicks": 8,
+      "batches": [
+        {
+          "t0": 983,
+          "t1": 984,
+          "ticks": 1,
+          "queueBefore": [],
+          "queueAfter": [],
+          "energyBefore": 100,
+          "energyAfter": 100,
+          "ev": [
+            "player-moved",
+            "echo-moved#1"
+          ],
+          "loopFrame": 874
+        },
+        {
+          "t0": 984,
+          "t1": 986,
+          "ticks": 2,
+          "queueBefore": [
+            "signal-scan"
+          ],
+          "queueAfter": [],
+          "energyBefore": 100,
+          "energyAfter": 100,
+          "ev": [
+            "signal-scanned#1",
+            "signal-energy#1",
+            "player-moved",
+            "echo-moved#1",
+            "player-moved",
+            "echo-moved#1"
+          ],
+          "loopFrame": 875
+        },
+        {
+          "t0": 986,
+          "t1": 987,
+          "ticks": 1,
+          "queueBefore": [],
+          "queueAfter": [],
+          "energyBefore": 100,
+          "energyAfter": 100,
+          "ev": [
+            "player-moved",
+            "echo-moved#1"
+          ],
+          "loopFrame": 876
+        },
+        {
+          "t0": 987,
+          "t1": 988,
+          "ticks": 1,
+          "queueBefore": [],
+          "queueAfter": [],
+          "energyBefore": 100,
+          "energyAfter": 100,
+          "ev": [
+            "player-moved",
+            "echo-moved#1"
+          ],
+          "loopFrame": 877
+        },
+        {
+          "t0": 988,
+          "t1": 990,
+          "ticks": 2,
+          "queueBefore": [],
+          "queueAfter": [],
+          "energyBefore": 100,
+          "energyAfter": 100,
+          "ev": [
+            "player-moved",
+            "echo-moved#1",
+            "player-moved",
+            "echo-moved#1"
+          ],
+          "loopFrame": 878
+        },
+        {
+          "t0": 990,
+          "t1": 991,
+          "ticks": 1,
+          "queueBefore": [],
+          "queueAfter": [],
+          "energyBefore": 100,
+          "energyAfter": 100,
+          "ev": [
+            "player-moved",
+            "echo-moved#1"
+          ],
+          "loopFrame": 879
+        },
+        {
+          "t0": 991,
+          "t1": 992,
+          "ticks": 1,
+          "queueBefore": [],
+          "queueAfter": [],
+          "energyBefore": 100,
+          "energyAfter": 100,
+          "ev": [
+            "player-moved",
+            "echo-moved#1"
+          ],
+          "loopFrame": 880
+        },
+        {
+          "t0": 992,
+          "t1": 994,
+          "ticks": 2,
+          "queueBefore": [],
+          "queueAfter": [],
+          "energyBefore": 100,
+          "energyAfter": 100,
+          "ev": [
+            "player-moved",
+            "echo-moved#1",
+            "player-moved",
+            "echo-moved#1"
+          ],
+          "loopFrame": 881
+        }
+      ]
+    }
+  },
+  "echoEnergy": {
+    "confirmTick": 984,
+    "receiptTick": 986,
+    "receiptTicks": 2,
+    "commitBatchTick": 986,
+    "chargedActorId": 1,
+    "eventPreEnergy": 100,
+    "eventEnergy": 90,
+    "actualCost": 10,
+    "netPlayerDelta": 0,
+    "commitsInWindow": 1,
+    "auditEnqueuedTick": 984,
+    "auditAppliedTick": 986,
+    "commitEventBatchTick": 986,
+    "ticksUntilCommitBatchCounted": 3,
+    "commitBatchTicks": 2,
+    "firstBatchWithCommit": 1,
+    "queueBeforeCommit": [
+      "signal-scan"
+    ],
+    "queueHeldAcrossBatches": false,
+    "stepFrameBatches": [
+      {
+        "t0": 983,
+        "t1": 984,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 874
+      },
+      {
+        "t0": 984,
+        "t1": 986,
+        "ticks": 2,
+        "queueBefore": [
+          "signal-scan"
+        ],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "signal-scanned#1",
+          "signal-energy#1",
+          "player-moved",
+          "echo-moved#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 875
+      },
+      {
+        "t0": 986,
+        "t1": 987,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 876
+      },
+      {
+        "t0": 987,
+        "t1": 988,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 877
+      },
+      {
+        "t0": 988,
+        "t1": 990,
+        "ticks": 2,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 878
+      },
+      {
+        "t0": 990,
+        "t1": 991,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 879
+      },
+      {
+        "t0": 991,
+        "t1": 992,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 880
+      },
+      {
+        "t0": 992,
+        "t1": 994,
+        "ticks": 2,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved",
+          "echo-moved#1",
+          "player-moved",
+          "echo-moved#1"
+        ],
+        "loopFrame": 881
+      }
+    ]
+  },
+  "connectionSample": {
+    "companionStatus": "OFF",
+    "meaning": "no model connection in this run: a no-connection sample, never claimed as a disconnection test"
+  },
+  "shots": [
+    "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p4-final\\run1\\shots\\p4-20261117-HumanEcho-route.png",
+    "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p4-final\\run1\\shots\\p4-20261117-HumanEcho-jam-at-door.png",
+    "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p4-final\\run1\\shots\\p4-20261117-HumanEcho-expired.png"
+  ]
+}

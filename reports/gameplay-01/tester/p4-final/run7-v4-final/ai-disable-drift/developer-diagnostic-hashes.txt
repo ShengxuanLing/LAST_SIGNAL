@@ -1,0 +1,21 @@
+# Developer diagnostic hashes — all read-only; product v4 frozen (main d55e502).
+# generated 2026-11-18T23:16:51+01:00 from cwd D:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey HEAD 3819621
+ef1d2e92826d8dad98ed959b185ec251484d450764925a4781b68201516f2125 *tests/ai-native-world.spec.ts
+2a015c597c596b1901f50567b8d3f94733c6fc8cd44f63b674c09d6c7e89e9b4 *src/entities/Player.ts
+dd839b0e5cedf55a735c07515a92f0c249abca5091fbe7b82fdbef5b62f13ecb *src/ai-native/localController.ts
+349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64 *src/world/World.ts
+f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6 *src/world/sim/core.ts
+11af218697007584f9ea336aacd26a35d1ac3d67d915b2dc3cf665999e714e75 *src/scenes/GameScene.ts
+# developer diagnostic artifacts (worktree paths)
+ba80279adae8d3425d5968e987d6eb107a6ae9e28763979771c70ebe07430f05 *reports/gameplay-01/developer/p4-recovery/diag/ai-native-world.diag2.p4v4.spec.ts
+0230ebd42e0734ec37602d2ad1c50d33fe5708b902c692b0e8e68ca837bbe046 *reports/gameplay-01/developer/p4-recovery/diag/ai-native-world.diag.p4v4.spec.ts
+6453240c89348f62740f711982aab6e279f9673ac6976abadf8d48874fd34801 *reports/gameplay-01/developer/p4-recovery/diag/guard-hole.check.mts
+a1d7b67034ae1d2aea65ae42fcc12679955727e72e7675541d6af2b8f11e7d60 *reports/gameplay-01/developer/p4-recovery/diag/analyze-traces.mjs
+898eca80421bff7f6f842c199c87a20640e1fe7b5411f0b1ef14dd2ce6180c2f *reports/gameplay-01/developer/p4-recovery/diag/pw.diag2.config.ts
+# traces/logs in THIS package
+9cca777d09e7dc0fa286ef0afe9f045a96284df4a18899ca27da6793808babdb *developer-per-tick-trace-run2.json
+b64a8f037be9bdba1201b367c1dd7e739888af0eaa326751f08ce7d8f2f121b1 *developer-per-tick-trace-run3.json
+ef9b05fc361826770d1e855b1fe9720b730788e11d73f206c0adc10c26e8f954 *developer-window-analysis-run2-run3.json
+0ac92ccec0093bbdf5cf8b07ac011730b70b4fdff3e3dc52e393e91d714f4c7d *developer-diag-run2.log.txt
+d184d10b6683f28425cf072ca84c85ccf4bf2d809df1c589b5e3006ca933f79d *developer-diag-run3.log.txt
+ab430cb9a714372a53987f3e5f6dc9fdf3015309018c50259040bb7c5e83649f *DEVELOPER_DIAG.md

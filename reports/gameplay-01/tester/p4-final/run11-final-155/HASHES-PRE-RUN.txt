@@ -1,0 +1,43 @@
+
+## POST-RUN verification (same bytes as the freeze; written after all gates)
+
+  tests/audit.spec.ts                        6ea30e8b1338862eb00c1cc8a54b4687d9a23f8f152cad4e605faafbdbd6dcea  archived_identical=True
+  tests/ai-native-world.spec.ts              855eb948d31ef48060087f70bd403fe1da1fea2a55efd7c2507d85a7b6f9538b  archived_identical=True
+  tests/gameplay-01.spec.ts                  a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743  archived_identical=True
+  tests/gameplay-02-echo-coop.spec.ts        4bc6288f6cbc123eb2ea7c13626141a786cc957ea353fd34f31cb28946ef6266  archived_identical=True
+  tests/gameplay-03-feedback.spec.ts         d446a7683560236199638b3a15af92204e31ae781a239255221921bc0b3c254c  archived_identical=True
+  tests/gameplay-04-coop-level.spec.ts       13a834644327ef29b30e0135d44f485de1728dafcfc7626a3a05abbdf7234df2  archived_identical=True
+  tests/gameplay-04-headless-restore.spec.ts 22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55  archived_identical=True
+  tests/uiNav.ts                             1cc431ab756ff56f2f2dc4ca52f50a4db1a1f22615fee7322d3492b13be3dd1c  archived_identical=True
+
+  src/world/sim/core.ts                          f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6  archived_identical=True
+  src/config/p1Scenario.ts                       76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7  archived_identical=True
+  src/ai-native/worldHeadless.ts                 7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316  archived_identical=True
+  src/world/World.ts                             349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64  archived_identical=True
+  src/signal/relay.ts                            6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89  archived_identical=True
+  src/signal/relayRoutes.test.ts                 097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423  archived_identical=True
+  src/ai-native/worldHeadlessDemoRoute.test.ts   11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4  archived_identical=True
+  src/config/p1ScenarioLayout.test.ts            8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6  archived_identical=True
+  src/ai-native/worldHeadlessFrameAuthored.test.ts 93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21  archived_identical=True
+  src/ai-native/worldHeadlessRestoreSafety.test.ts ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652  archived_identical=True
+
+all_archived_identical=True
+
+## gate results (absolute logs under logs/)
+  1) npm test, DEFAULT concurrency: PASS 73 files / 859 tests, exit_code=0 (215 s) -> logs/1-unit-default.log.txt
+     note: this is the DEFAULT profile (not the bounded --maxWorkers=2 profile of run5); both exist separately.
+  2) npx tsc --noEmit (sources; tests are not in the project tsconfig): exit_code=0 -> logs/2-typecheck.log.txt
+  3) npm run test:mcp-surface: PASS 1/1 exit 0 -> logs/3a-mcp-surface.log.txt
+     npm run build: exit 0 (10.5 s) -> logs/3b-build.log.txt
+  4) FULL Playwright --workers=1, dual Vite 5199+5494: PASS 155/155, exit_code=0 (23.5 m) -> logs/4-full-playwright.log.txt
+  5) npm run test:parity (fresh export after the run): PASS 3/3 exit_code=0 -> logs/5-parity.log.txt
+
+## full-run runtime evidence captured by the tests themselves
+  boss volley (audit): spawnedTotal=16, volley=15 (all owner 4: 3x2.5 + 12x1.875), others=1
+    {id 3, ownerId 1, kind plasma, source enemy, pos (22.56,44.32), vel (2.17,1.24)},
+    adapterMissing=0, pendingBefore=["spawn-enemy-projectile"] -> the RED 16/15 path was exercised in this
+    full run and attributed by owner; nothing was hidden or cleared.
+    evidence/boss-volley-events-FULL-RUN.json
+  ai-disable window: 89 frames / 153 ticks, dash {false}, intent/move present, owner {human},
+    aiEnabled {false}, move {(0,0)}, 3 real player-hurt frames, wrapper restored:true.
+    evidence/manual-disable-step-trace.json (from this run)

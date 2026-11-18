@@ -1,0 +1,6 @@
+# Gate 2 — unfiltered typecheck (sources; project tsconfig does NOT include tests)
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d
+command=npx tsc --noEmit
+started=2026-11-18T23:18:41Z
+exit_code=0
+finished=2026-11-18T23:18:53Z

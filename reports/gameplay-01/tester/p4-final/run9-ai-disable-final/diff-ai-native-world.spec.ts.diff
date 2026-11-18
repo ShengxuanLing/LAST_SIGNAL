@@ -1,0 +1,90 @@
+--- /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run9-ai-disable-final/before-spec/ai-native-world.spec.ts	2026-11-18 23:32:56.812815900 +0100
++++ /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run9-ai-disable-final/after-spec/ai-native-world.spec.ts	2026-11-18 23:32:56.847816900 +0100
+@@ -554,7 +554,8 @@
+     type DisableRec = {
+       seq: number; t: number; tickBefore: number; tickAfter: number; ticks: number;
+       owner: string; aiEnabled: boolean; ctlPaused: boolean; mode: string; lastIntentOwner: string;
+-      move: { x: number; y: number }; fire: boolean; aim: unknown; interact: boolean; dash: boolean;
++      move: { x: number; y: number }; intentPresent: boolean; movePresent: boolean;
++      fire: boolean; aim: unknown; interact: boolean; dash: boolean;
+       keys: Record<string, boolean>; pending: string[]; hasTeleport: boolean;
+       aiActionCount: number; takeoverCount: number;
+       x0: number; y0: number; hp0: number; x1: number; y1: number; hp1: number;
+@@ -584,6 +585,9 @@
+           const tickBefore = w.sim.tick;
+           const x0 = p.wx, y0 = p.wy, hp0 = p.data.hp;
+           const keys = { ...p.input };
++          const moveRaw = (intent as any)?.move ?? null;
++          const intentPresent = !!intent;
++          const movePresent = !!(moveRaw && Number.isFinite(moveRaw.x) && Number.isFinite(moveRaw.y));
+           const pending = ((w.sim.pendingCommands ?? []) as any[]).map((c: any) => c.type);
+           const snap = ctl.snapshot?.() ?? {};
+           const ret = orig.call(this, delta, intent, ...rest); // same args, same return
+@@ -607,7 +611,8 @@
+             tickBefore, tickAfter: w.sim.tick, ticks: w.sim.tick - tickBefore,
+             owner: ctl.owner, aiEnabled: !!ctl.aiEnabled, ctlPaused: !!ctl.paused,
+             mode: snap.mode ?? '', lastIntentOwner: p.lastIntentOwner,
+-            move: { x: intent?.move?.x ?? 0, y: intent?.move?.y ?? 0 },
++            move: movePresent ? { x: moveRaw.x, y: moveRaw.y } : { x: Number.NaN, y: Number.NaN },
++            intentPresent, movePresent,
+             fire: !!intent?.fire, aim: intent?.aim ?? null, interact: !!intent?.interact, dash: !!intent?.dash,
+             keys, pending, hasTeleport: pending.includes('teleport-player'),
+             aiActionCount: snap.aiActionCount ?? -1, takeoverCount: snap.takeoverCount ?? -1,
+@@ -651,7 +656,10 @@
+         if (r.owner !== 'human') offenders.push(`#${r.seq} owner=${r.owner}`);
+         if (r.aiEnabled !== false) offenders.push(`#${r.seq} aiEnabled=${r.aiEnabled}`);
+         if (r.lastIntentOwner !== 'human') offenders.push(`#${r.seq} lastIntentOwner=${r.lastIntentOwner}`);
++        if (r.intentPresent !== true) offenders.push(`#${r.seq} intent object missing`);
++        if (r.movePresent !== true) offenders.push(`#${r.seq} move field missing or non-numeric`);
+         if (r.move.x !== NEUTRAL_X || r.move.y !== NEUTRAL_Y) offenders.push(`#${r.seq} move=${JSON.stringify(r.move)}`);
++        if (r.dash !== false) offenders.push(`#${r.seq} dash=${r.dash}`);
+         if (r.fire !== false) offenders.push(`#${r.seq} fire=${r.fire}`);
+         if (r.interact !== false) offenders.push(`#${r.seq} interact=${r.interact}`);
+         if (r.hasTeleport) offenders.push(`#${r.seq} teleport-player queued`);
+@@ -661,15 +669,43 @@
+       expect(actionCounts.length, `aiActionCount never grows in the window (saw ${JSON.stringify(actionCounts)})`).toBe(1);
+       const takeoverCounts = Array.from(new Set(win.map((r) => r.takeoverCount)));
+       expect(takeoverCounts.length, 'takeoverCount is unchanged in the window').toBe(1);
++      // The recorded counters must equal the REAL sampled fields (finite, >= 0),
++      // not merely "one distinct value".
++      expect(Number.isFinite(stationaryStart!.aiActionCount) && stationaryStart!.aiActionCount >= 0,
++        `the sampled aiActionCount is a real non-negative number (${stationaryStart!.aiActionCount})`).toBe(true);
++      expect(win.every((r) => r.aiActionCount === stationaryStart!.aiActionCount),
++        'every observed frame reports the sampled aiActionCount').toBe(true);
++      expect(Number.isFinite(stationaryStart!.takeoverCount) && stationaryStart!.takeoverCount >= 0,
++        `the sampled takeoverCount is a real non-negative number (${stationaryStart!.takeoverCount})`).toBe(true);
++      expect(win.every((r) => r.takeoverCount === stationaryStart!.takeoverCount),
++        'every observed frame reports the sampled takeoverCount').toBe(true);
+ 
+       // ---- Event-level position attribution -------------------------------------
+       // An overlay (GameOver/LevelUp) means this is NOT a human quiet window: the
+       // window is recorded as such and the position gate is not applied to it.
+       const overlaySeen = Array.from(new Set(win.flatMap((r) => r.overlay)));
+       const quiet = overlaySeen.length === 0;
+-      const unexplained = quiet ? win.filter((r) => !r.positionExplained) : [];
+-      expect(unexplained.map((r) => ({ seq: r.seq, delta: r.posDelta, writers: r.writers, x0: r.x0, y0: r.y0, x1: r.x1, y1: r.y1 })),
+-        'in a quiet window every frame-end position is fully explained by that frame\'s real events (unattributable movement fails)').toEqual([]);
++      // Same precision semantics as the original assertion: toBeCloseTo(value, 6),
++      // i.e. |diff| < 0.5e-6 (NOT the looser <= 1e-6).
++      const posOffenders: any[] = [];
++      for (const r of (quiet ? win : [])) {
++        if (r.writers.length > 0) {
++          try {
++            expect(r.x1).toBeCloseTo(r.lastWriter!.x, 6);
++            expect(r.y1).toBeCloseTo(r.lastWriter!.y, 6);
++          } catch {
++            posOffenders.push({ seq: r.seq, kind: 'writer', x1: r.x1, y1: r.y1, lastWriter: r.lastWriter, events: r.writers.map((w) => w.type) });
++          }
++        } else {
++          try {
++            expect(r.x1).toBeCloseTo(r.x0, 6);
++            expect(r.y1).toBeCloseTo(r.y0, 6);
++          } catch {
++            posOffenders.push({ seq: r.seq, kind: 'no-writer', x0: r.x0, y0: r.y0, x1: r.x1, y1: r.y1 });
++          }
++        }
++      }
++      expect(posOffenders, 'quiet window: every frame-end position matches the last real writer (or the frame start when none) at 1e-6 precision; unattributable movement fails').toEqual([]);
+       const writerFrames = quiet ? win.filter((r) => r.writers.length > 0) : [];
+       const hurtFrames = writerFrames.filter((r) => r.writers.some((w) => w.type === 'player-hurt' && !w.blocked));
+       record('manual-disable-window', {

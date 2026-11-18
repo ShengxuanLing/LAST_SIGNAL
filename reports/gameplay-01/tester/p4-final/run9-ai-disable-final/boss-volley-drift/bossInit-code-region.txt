@@ -1,0 +1,61 @@
+    const g: any = (window as any).__game;
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
+    const w = gs.world, pl = w.player;
+    for (const q of w.projectiles) q.spr.destroy();
+    w.resetProjectilesForTest();
+    if (!w.boss) w.spawnBoss(w.map.rooms[w.currentRoom()?.id ?? 0]);
+    const boss = w.boss;
+    // The player was just reset() into this room and is invulnerable, so a Boss
+    // spawned on top of the player would have all 15 bullets consumed by the
+    // player-collision check on the very first frame (no knockback while invuln).
+    // Put the Boss on a walkable tile ~9 grid units away so the barrage actually
+    // flies and stays inside the visible viewport.
+    const offsets = [[9, 0], [9, -3], [9, 3], [7, -6], [-9, 0], [0, -9]];
+    const neutral = { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false };
+    for (const [dx, dy] of offsets) {
+      const nx = pl.wx + dx, ny = pl.wy + dy;
+      if (w.isWalkable(nx, ny, 0.5) && w.tileAt(nx, ny).type !== 'wall') {
+        w.enqueueTargetMove(boss._id, nx, ny);
+        w.resetSimulationAccumulator();
+        w.stepFrame(1000 / 60 + 1e-6, neutral);
+        break;
+      }
+    }
+    boss.attackTimer = 999999; boss.stateTimer = 999999; // freeze auto-attacks
+    const c0 = w.simFixture.projectiles.length;
+    boss.phase = 2; boss.fireLaser(pl); boss.shockwave();
+    w.resetSimulationAccumulator();
+    w.stepFrame(1000 / 60 + 1e-6, neutral);
+    const created = w.projectiles.slice(c0);
+    const cam = gs.cameras.main;
+    return {
+      count: created.length,
+      speeds: created.map((q: any) => Math.hypot(q.data.vel.x, q.data.vel.y)),
+      bullets: created.map((q: any) => ({
+        id: q.data.id, pos: { x: q.data.pos.x, y: q.data.pos.y },
+        vel: { x: q.data.vel.x, y: q.data.vel.y }, visible: q.spr.visible,
+        screen: (() => { const tp = cam.matrix.transformPoint(q.spr.x - cam.scrollX, q.spr.y - cam.scrollY, { x: 0, y: 0 }); return { x: tp.x, y: tp.y }; })()
+      }))
+    };
+  });
+  expect(bossInit.count, 'laser(3) + shockwave(12) bullets created').toBe(15);
+  const maxSpeed = Math.max(...bossInit.speeds);
+  const minSpeed = Math.min(...bossInit.speeds);
+  expect(minSpeed, 'Boss bullets still have velocity (phase-1 guarantee)').toBeGreaterThan(0);
+  expect(maxSpeed, 'Boss bullet speed normalised (<= 3 tile/s, not 160)').toBeLessThanOrEqual(3);
+  expect(Math.abs(maxSpeed - 2.5), 'laser = 160/64 = 2.5 tile/s').toBeLessThan(0.01);
+  expect(Math.abs(minSpeed - 1.875), 'shockwave = 120/64 = 1.875 tile/s').toBeLessThan(0.01);
+  expect(bossInit.bullets.every((b: any) => b.visible), 'all Boss bullet sprites visible').toBe(true);
+  expect(bossInit.bullets.every((b: any) => b.screen.x > 0 && b.screen.x < 1280 && b.screen.y > 0 && b.screen.y < 720),
+    'Boss bullets spawn inside the visible viewport').toBe(true);
+  await page.waitForTimeout(500);
+  const afterHalf = await page.evaluate(() => {
+    const g: any = (window as any).__game;
+    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene');
+    const w = gs.world, cam = gs.cameras.main;
+    return {
+      count: w.projectiles.length,
+      visible: w.projectiles.filter((q: any) => q.spr.visible).length,
+      lifetimes: w.projectiles.map((q: any) => q.data.lifetime),
+      bullets: w.projectiles.map((q: any) => ({
+        id: q.data.id, pos: { x: q.data.pos.x, y: q.data.pos.y },

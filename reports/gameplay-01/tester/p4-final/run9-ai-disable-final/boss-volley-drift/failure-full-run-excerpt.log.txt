@@ -1,0 +1,21 @@
+[15/155] [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+  1) [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound 
+
+    Error: laser(3) + shockwave(12) bullets created
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 15
+    Received: 16
+
+      778 |     };
+      779 |   });
+    > 780 |   expect(bossInit.count, 'laser(3) + shockwave(12) bullets created').toBe(15);
+          |                                                                      ^
+      781 |   const maxSpeed = Math.max(...bossInit.speeds);
+      782 |   const minSpeed = Math.min(...bossInit.speeds);
+      783 |   expect(minSpeed, 'Boss bullets still have velocity (phase-1 guarantee)').toBeGreaterThan(0);
+        at D:\tmp\ls-p4-v4\tests\audit.spec.ts:780:70
+
+    Error Context: test-results\audit-P2-regression-boss-b-de17d-ked-weapons-single-UI-sound-chromium\error-context.md
+

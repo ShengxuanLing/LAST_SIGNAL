@@ -1,0 +1,194 @@
+--- /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run8-ai-disable/before-spec/ai-native-world.spec.ts	2026-11-18 23:19:31.478336700 +0100
++++ /d/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run8-ai-disable/after-spec/ai-native-world.spec.ts	2026-11-18 23:24:58.566590200 +0100
+@@ -542,18 +542,180 @@
+     await page.waitForTimeout(1500);
+     const stationaryStart = await state(page);
+     expect(stationaryStart!.owner, 'human owns control once the run settles').toBe('human');
+-    await page.waitForTimeout(2500);
+-    const stationary = await state(page);
+-    expect(stationary!.owner, 'human still owns control after disable').toBe('human');
+-    expect(stationary!.aiEnabled, 'AI stays disabled (no self-reclaim)').toBe(false);
+-    expect(stationary!.lastAiAction, 'AI action state cleared after disable').toBeNull();
+-    expect(stationary!.txtControl, 'HUD returns to HUMAN').toContain('HUMAN');
+-    if (stationaryStart!.hp === stationary!.hp) {
+-      // No enemy knockback involved: the disabled AI must not move the player.
+-      expect(stationary!.grid.x, `disabled AI does not move the player (x ${stationary!.grid.x} vs ${stationaryStart!.grid.x})`).toBeCloseTo(stationaryStart!.grid.x, 6);
+-      expect(stationary!.grid.y, `disabled AI does not move the player (y ${stationary!.grid.y} vs ${stationaryStart!.grid.y})`).toBeCloseTo(stationaryStart!.grid.y, 6);
++    // ---- READ-ONLY per-stepFrame recorder for the manual-disable window --------
++    // What it observes: the EXACT intent the World passes to the core, the
++    // ownership/AI state at that call, the core queue (types only - the spec's own
++    // 100 ms keep-alive may legally enqueue heal-player), the AI action counters and
++    // the real SimEvent[] the tick returned, so every position write can be
++    // attributed to a concrete event (player-hurt.hit.position / player-moved).
++    // It forwards delta/intent/... untouched and returns the original value: no
++    // extra tick, no teleport/heal/enemy clearing, no paused window. The trace is
++    // flushed and the original method restored in `finally`, also on timeout.
++    type DisableRec = {
++      seq: number; t: number; tickBefore: number; tickAfter: number; ticks: number;
++      owner: string; aiEnabled: boolean; ctlPaused: boolean; mode: string; lastIntentOwner: string;
++      move: { x: number; y: number }; fire: boolean; aim: unknown; interact: boolean; dash: boolean;
++      keys: Record<string, boolean>; pending: string[]; hasTeleport: boolean;
++      aiActionCount: number; takeoverCount: number;
++      x0: number; y0: number; hp0: number; x1: number; y1: number; hp1: number;
++      scenes: string[]; overlay: string[];
++      writers: Array<{ type: string; position: { x: number; y: number }; damage?: number; blocked?: boolean }>;
++      lastWriter: { x: number; y: number } | null;
++      /** true when the frame-end position is fully explained by the REAL events of
++       *  that frame (or by no-op when no writer exists). */
++      positionExplained: boolean;
++      posDelta: { x: number; y: number };
++    };
++    const disableTrace: { installed: boolean; restored: boolean; windowStart: number; windowEnd: number; records: DisableRec[] } =
++      { installed: false, restored: false, windowStart: 0, windowEnd: 0, records: [] };
++    const NEUTRAL_X = 0, NEUTRAL_Y = 0;
++    try {
++      await page.evaluate(() => {
++        const gs: any = (window as any).__game.scene.getScene('GameScene');
++        const w: any = gs.world;
++        const holder: any = {
++          installed: true, windowStart: 0, windowEnd: 0, records: [],
++          hadOwn: Object.prototype.hasOwnProperty.call(w, 'stepFrame'), orig: w.stepFrame
++        };
++        const orig = w.stepFrame;
++        w.stepFrame = function (delta: number, intent: any, ...rest: any[]) {
++          const p = w.player;
++          const ctl = p.control;
++          const tickBefore = w.sim.tick;
++          const x0 = p.wx, y0 = p.wy, hp0 = p.data.hp;
++          const keys = { ...p.input };
++          const pending = ((w.sim.pendingCommands ?? []) as any[]).map((c: any) => c.type);
++          const snap = ctl.snapshot?.() ?? {};
++          const ret = orig.call(this, delta, intent, ...rest); // same args, same return
++          const events = (Array.isArray(ret) ? ret : ((ret as any)?.events ?? [])) as any[];
++          const writers: any[] = [];
++          for (const ev of events) {
++            if (ev?.type === 'player-hurt' && ev.hit?.position) {
++              writers.push({ type: 'player-hurt', position: { x: ev.hit.position.x, y: ev.hit.position.y }, damage: ev.damage, blocked: !!ev.hit.blocked });
++            } else if (ev?.type === 'player-moved' && ev.position) {
++              writers.push({ type: 'player-moved', position: { x: ev.position.x, y: ev.position.y } });
++            }
++          }
++          const last = writers.length ? writers[writers.length - 1].position : null;
++          const x1 = p.wx, y1 = p.wy;
++          const positionExplained = last
++            ? Math.abs(x1 - last.x) <= 1e-6 && Math.abs(y1 - last.y) <= 1e-6
++            : Math.abs(x1 - x0) <= 1e-6 && Math.abs(y1 - y0) <= 1e-6;
++          const scenes = (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key);
++          holder.records.push({
++            seq: holder.records.length, t: Math.round(performance.now()),
++            tickBefore, tickAfter: w.sim.tick, ticks: w.sim.tick - tickBefore,
++            owner: ctl.owner, aiEnabled: !!ctl.aiEnabled, ctlPaused: !!ctl.paused,
++            mode: snap.mode ?? '', lastIntentOwner: p.lastIntentOwner,
++            move: { x: intent?.move?.x ?? 0, y: intent?.move?.y ?? 0 },
++            fire: !!intent?.fire, aim: intent?.aim ?? null, interact: !!intent?.interact, dash: !!intent?.dash,
++            keys, pending, hasTeleport: pending.includes('teleport-player'),
++            aiActionCount: snap.aiActionCount ?? -1, takeoverCount: snap.takeoverCount ?? -1,
++            x0, y0, hp0, x1, y1, hp1: p.data.hp,
++            scenes, overlay: scenes.filter((k: string) => k !== 'GameScene'),
++            writers, lastWriter: last, positionExplained, posDelta: { x: x1 - x0, y: y1 - y0 }
++          });
++          return ret;
++        };
++        (window as any).__aiDisableTrace = holder;
++      });
++      disableTrace.installed = true;
++      disableTrace.windowStart = await page.evaluate(() => {
++        const t: any = (window as any).__aiDisableTrace;
++        t.windowStart = t.records.length;
++        return t.windowStart as number;
++      });
++
++      await page.waitForTimeout(2500); // unchanged budget
++      const stationary = await state(page);
++      disableTrace.windowEnd = await page.evaluate(() => {
++        const t: any = (window as any).__aiDisableTrace;
++        t.windowEnd = t.records.length;
++        return t.windowEnd as number;
++      });
++
++      expect(stationary!.owner, 'human still owns control after disable').toBe('human');
++      expect(stationary!.aiEnabled, 'AI stays disabled (no self-reclaim)').toBe(false);
++      expect(stationary!.lastAiAction, 'AI action state cleared after disable (real field)').toBeNull();
++      expect(stationary!.txtControl, 'HUD returns to HUMAN').toContain('HUMAN');
++
++      // ---- HARD GATE: per observed stepFrame call --------------------------------
++      // The records live in the page; pull them once (the finally re-reads them for
++      // the flush, so a failure inside the gate still archives the full trace).
++      disableTrace.records = await page.evaluate(() => ((window as any).__aiDisableTrace?.records ?? []) as any[]);
++      const win = disableTrace.records.slice(disableTrace.windowStart, disableTrace.windowEnd);
++      expect(win.length, 'the read-only recorder observed real stepFrame calls in the 2.5 s window').toBeGreaterThan(0);
++      expect(win.filter((r) => r.ticks > 0).length, 'at least one observed call really advanced a core tick').toBeGreaterThan(0);
++      const offenders: string[] = [];
++      for (const r of win) {
++        if (r.owner !== 'human') offenders.push(`#${r.seq} owner=${r.owner}`);
++        if (r.aiEnabled !== false) offenders.push(`#${r.seq} aiEnabled=${r.aiEnabled}`);
++        if (r.lastIntentOwner !== 'human') offenders.push(`#${r.seq} lastIntentOwner=${r.lastIntentOwner}`);
++        if (r.move.x !== NEUTRAL_X || r.move.y !== NEUTRAL_Y) offenders.push(`#${r.seq} move=${JSON.stringify(r.move)}`);
++        if (r.fire !== false) offenders.push(`#${r.seq} fire=${r.fire}`);
++        if (r.interact !== false) offenders.push(`#${r.seq} interact=${r.interact}`);
++        if (r.hasTeleport) offenders.push(`#${r.seq} teleport-player queued`);
++      }
++      expect(offenders, 'every observed call is human-owned, AI-disabled and neutral (no AI-origin movement, no teleport)').toEqual([]);
++      const actionCounts = Array.from(new Set(win.map((r) => r.aiActionCount)));
++      expect(actionCounts.length, `aiActionCount never grows in the window (saw ${JSON.stringify(actionCounts)})`).toBe(1);
++      const takeoverCounts = Array.from(new Set(win.map((r) => r.takeoverCount)));
++      expect(takeoverCounts.length, 'takeoverCount is unchanged in the window').toBe(1);
++
++      // ---- Event-level position attribution -------------------------------------
++      // An overlay (GameOver/LevelUp) means this is NOT a human quiet window: the
++      // window is recorded as such and the position gate is not applied to it.
++      const overlaySeen = Array.from(new Set(win.flatMap((r) => r.overlay)));
++      const quiet = overlaySeen.length === 0;
++      const unexplained = quiet ? win.filter((r) => !r.positionExplained) : [];
++      expect(unexplained.map((r) => ({ seq: r.seq, delta: r.posDelta, writers: r.writers, x0: r.x0, y0: r.y0, x1: r.x1, y1: r.y1 })),
++        'in a quiet window every frame-end position is fully explained by that frame\'s real events (unattributable movement fails)').toEqual([]);
++      const writerFrames = quiet ? win.filter((r) => r.writers.length > 0) : [];
++      const hurtFrames = writerFrames.filter((r) => r.writers.some((w) => w.type === 'player-hurt' && !w.blocked));
++      record('manual-disable-window', {
++        observedCalls: win.length,
++        observedTicks: win.reduce((n, r) => n + r.ticks, 0),
++        framesWithTicks: win.filter((r) => r.ticks > 0).length,
++        quietWindow: quiet,
++        overlaysSeen: overlaySeen,
++        aiActionCounts: actionCounts,
++        takeoverCounts,
++        lastAiActionAtSamples: [stationaryStart!.lastAiAction, stationary!.lastAiAction],
++        positionWriterFrames: writerFrames.length,
++        hurtWriterFrames: hurtFrames.length,
++        writerTypes: Array.from(new Set(win.flatMap((r) => r.writers.map((w) => w.type)))),
++        pendingTypesSeen: Array.from(new Set(win.flatMap((r) => r.pending))),
++        frameDeltas: quiet ? win.filter((r) => r.writers.length > 0).map((r) => r.posDelta) : [],
++        damageBranch: hurtFrames.length > 0 ? 'triggered (real player-hurt writes the position)' : 'not triggered (no player-hurt in the window)',
++        hurtFrameDeltas: hurtFrames.map((r) => ({ seq: r.seq, ticks: r.ticks, delta: r.posDelta, writers: r.writers.map((w) => ({ type: w.type, damage: w.damage ?? null, blocked: w.blocked ?? null })) })),
++        noWriterBranch: (quiet ? win.filter((r) => r.writers.length === 0).length : 0) > 0
++          ? 'triggered (frames without any position event keep the strict bit-identical x/y check)'
++          : 'not triggered (every observed frame emitted a real position event)',
++        notes: 'pendingCommands is recorded by TYPE only: the spec keep-alive may legally enqueue heal-player; only teleport-player would be a position write. No HP precondition is used.',
++        x0x1: [stationaryStart!.grid.x, stationary!.grid.x],
++        y0y1: [stationaryStart!.grid.y, stationary!.grid.y],
++        hp0hp1: [stationaryStart!.hp, stationary!.hp]
++      });
++      record('manual-disable', { owner: stationary!.owner, takeoverCount: stationary!.takeoverCount, reason: disabled!.lastTakeoverReason });
++    } finally {
++      // Always flush and always restore, even when the page timed out or an
++      // assertion above threw; a restore failure is its own explicit failure.
++      const restored = await page.evaluate(() => {
++        const t: any = (window as any).__aiDisableTrace;
++        const gs: any = (window as any).__game?.scene?.getScene('GameScene');
++        const w: any = gs?.world;
++        if (!t || !w) return false;
++        if (t.hadOwn) w.stepFrame = t.orig;
++        else delete w.stepFrame;
++        return true;
++      }).catch(() => false);
++      disableTrace.restored = restored;
++      disableTrace.records = await page.evaluate(() => ((window as any).__aiDisableTrace?.records ?? []) as any[]).catch(() => []);
++      disableTrace.windowEnd = disableTrace.windowEnd || disableTrace.records.length;
++      mkdirSync(OUT, { recursive: true });
++      writeFileSync(path.join(OUT, 'manual-disable-step-trace.json'), JSON.stringify(disableTrace, null, 2));
++      if (!restored) throw new Error('stepFrame wrapper could not be restored after the manual-disable window');
+     }
+-    record('manual-disable', { owner: stationary!.owner, takeoverCount: stationary!.takeoverCount, reason: disabled!.lastTakeoverReason });
+ 
+     // Human safety takeover during live AI play.
+     await enableAiViaPause(page);

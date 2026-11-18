@@ -1,0 +1,11 @@
+# run8 targeted gate attempt 2 (event-level contract, 2 consecutive runs)
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d spec=f248400ed0a97850db7f1be8709516504ba2d1a79b5692de1abac1d944f0626c
+started=2026-11-18T22:21:15Z
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+[2/2] [chromium] › tests\ai-native-world.spec.ts:272:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+  2 passed (1.5m)
+exit_code=0
+finished=2026-11-18T22:22:47Z

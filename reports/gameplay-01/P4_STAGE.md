@@ -1,6 +1,14 @@
 # GAMEPLAY-01 P4 v3 / v4 阶段集成
 
-状态：源码与独立审查范围内通过，可本地阶段集成。Tester 的三 seed Rendered 通关与完整回归尚未交付；整体 GAMEPLAY-01 未 PASS，HUMAN ACCEPTANCE PENDING。
+当前状态：P4 源码、三 seed Rendered 通关与 run11 完整工程回归通过。以下历史阶段记录按版本保留。P5 平衡总结和最终独立验收收尾中；HUMAN ACCEPTANCE PENDING，不宣称人类体验验收。
+
+## run11 最终冻结链
+
+最终同快照默认并发单测 73 文件 / 859 条、源码 typecheck、MCP surface 1、build、完整 E2E 155/155（零跳过、零未执行）及实际新导出 parity 3 均通过。默认单测运行前已停自身 devserver，此次默认绿不等于历史高负载 B7 风险已根除。见 [TEST_REPORT.md](TEST_REPORT.md) 和 `tester/p4-final/run11-final-155/`，各门有真实退出码和完整源码/测试快照。
+
+最终 `audit.spec.ts` 为 6ea30e8b、`ai-native-world.spec.ts` 为 855eb948，其余已提交测试与 run11 冻结一致，Lead 集成后核 8/8 哈希匹配，见 `integration-run11/spec-hashes.log.txt`。AI-disable 不用净 HP 作为无位移代理，逐帧核人类控制/中性意图，并按真实位置事件归因，精度恢复原 toBeCloseTo(...,6)；Boss 仍精确 15 发与 3+12 速度分布，仅按本次 Boss 事件 ID 跟踪 sprite 和半秒后的存活者。
+
+该全量实际出现 Boss 15 + owner1 无关弹 1 的原失败形态，并完整记录两桶，不清弹造绿；AI-disable 也实际经历 3 次受击位移，真实控制意图仍为零。原 run7/run9 缺失的失败现场不可逆向重建，新事件归因不是声称还原原现场。独立测试差异结论见 [AI_DISABLE_TEST_REVIEW.md](reviewer/AI_DISABLE_TEST_REVIEW.md) 和 [BOSS_VOLLEY_TEST_REVIEW.md](reviewer/BOSS_VOLLEY_TEST_REVIEW.md)；Lead 另核最终 dash/字段存在/原精度加强差异。所有旧 150/153/154 门禁与精确版本留存，均不回填。
 
 ## run7 测试收尾（不等于完整验收）
 

@@ -1,0 +1,52 @@
+# run9 — final freeze for the last full Playwright run (AI-disable additions on top of the approved c33f16c7)
+
+tree=/d/tmp/ls-p4-v4  HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d
+
+## FINAL tester spec bytes (frozen BEFORE the full run)
+  tests/gameplay-01.spec.ts                    a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743
+  tests/gameplay-02-echo-coop.spec.ts          4bc6288f6cbc123eb2ea7c13626141a786cc957ea353fd34f31cb28946ef6266
+  tests/gameplay-04-coop-level.spec.ts         13a834644327ef29b30e0135d44f485de1728dafcfc7626a3a05abbdf7234df2
+  tests/gameplay-04-headless-restore.spec.ts   22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55
+  tests/ai-native-world.spec.ts                855eb948d31ef48060087f70bd403fe1da1fea2a55efd7c2507d85a7b6f9538b  (was c33f16c7e48a433968c156d012c7c7dc21751f0eee5aecdaa179e2c347b8bd61 = reviewer-approved green)
+  archived_identical=True
+
+## v4 product sources (unchanged, ten manifest files)
+  src/world/sim/core.ts                          f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6
+  src/config/p1Scenario.ts                       76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7
+  src/ai-native/worldHeadless.ts                 7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316
+  src/world/World.ts                             349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+  src/signal/relay.ts                            6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89
+  src/signal/relayRoutes.test.ts                 097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423
+  src/ai-native/worldHeadlessDemoRoute.test.ts   11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4
+  src/config/p1ScenarioLayout.test.ts            8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6
+  src/ai-native/worldHeadlessFrameAuthored.test.ts 93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21
+  src/ai-native/worldHeadlessRestoreSafety.test.ts ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652
+
+## additions on top of c33f16c7 (all four are coverage/precision strengthening, no relaxation)
+  1. dash === false asserted on EVERY observed frame (it was recorded but not asserted);
+  2. position attribution now uses the ORIGINAL toBeCloseTo(value, 6) semantics (|diff| < 0.5e-6),
+     not the looser <= 1e-6: writer frames compare frame-end vs last writer position, no-writer
+     frames compare frame-end vs frame-start;
+  3. aiActionCount / takeoverCount must EQUAL the real sampled fields of stationaryStart
+     (finite, >= 0) in every frame, not merely "one distinct value";
+  4. intent/move presence is asserted explicitly (intentPresent / movePresent); a missing or
+     non-numeric move is an offender instead of being defaulted to {0,0}.
+  Untouched: 1500/2500 ms budgets, quiet=false control assertions, keep-alive heal queue
+  (recorded by type, not asserted empty), GameOver/LevelUp windows marked non-quiet, finally
+  restore + trace flush, no fixtures creating a quiet window.
+
+## targeted gate on these bytes: PASS 2/2 exit 0 -> logs/targeted-2of2.log.txt
+  observed: 106 calls / 154 ticks, dash {false}, intentPresent {true}, movePresent {true},
+  aiActionCount {24}, takeoverCount {1}, pendingTypes [heal-player, spawn-enemy-projectile],
+  hurtWriterFrames 4, quietWindow true, no overlay, all frames positionExplained at 1e-6.
+
+Note: run8 HASHES-RUN8.txt already records c33f16c7 as the after-spec of that round; the 934bf…
+figure quoted in the interim chat message was an intermediate edit hash, not the archived green
+bytes. No run8 log/history was rewritten; this run9 freeze supersedes it only for the full run.
+
+## failure evidence package (read-only, no re-run)
+  boss-volley-drift/README.md — boss 15 vs 16 artifacts: exact audit.spec bytes (LF HEAD + CRLF working),
+  the bossInit code region, both failure excerpts (full run + isolated), Playwright error context,
+  and the explicit UNKNOWN list (16-bullet array, extra-bullet identity/firer, queue, c0/slice, events).
+  audit.spec is UNCHANGED (sha LF 72617cc2…, CRLF fe43dc48…, identical modulo EOL); toBe(15) and every
+  speed/visibility/0.5s assertion are untouched.

@@ -94,3 +94,25 @@ f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6 *src/world/sim/
 
 Package contents: `failure-excerpt.log.txt`, `ai-native-world.spec.ts.basesha-ef1d2e92`,
 `operation-log-control-flow-PASS-run-2256.json`, `pause-ai-off-PASS-run-2256.png`, `source-shas.txt`.
+
+
+## 7. Developer per-tick diagnosis (added; product v4 frozen, no source change)
+
+See `DEVELOPER_DIAG.md` (hashes in `developer-diagnostic-hashes.txt`; per-tick data in
+`developer-per-tick-trace-run2.json` / `-run3.json`; window analysis in
+`developer-window-analysis-run2-run3.json`; run logs `developer-diag-run2.log.txt` /
+`developer-diag-run3.log.txt`).
+
+- New independent diagnostic spec (a copy of this package's `basesha-ef1d2e92` file with a
+  read-only `stepFrame` recorder and a `try/finally` dump), run on port 5471.
+- **Assertion-level red: UNREPRODUCED** in three bounded runs — each run's two HP samples differed,
+  so the position assertion was skipped. That is recorded, not hidden.
+- **Mechanism CONFIRMED:** in the measured 2.5 s windows every player movement is a real
+  `player-hurt` knockback with the core intent `move {0,0}`, no key flags set, `owner=human`,
+  `aiEnabled=false`, no queued AI command; the only queued command is the spec's own `heal-player`
+  fixture, which restored HP inside the window (28 → 100 in run2). A deterministic core
+  counterexample (`guard-hole.check.mts`) shows equal HP endpoints **with** a 0.375-tile knockback.
+- **UNKNOWN for the run7 failure itself:** no per-tick trace, enemies, projectiles, keys or intents
+  of that run exist; the PASS-run operation log/screenshot remain pass-run evidence only.
+- **Product: no change**; the drift is physics, and the assertion's "HP equal ⇒ no contact" premise
+  is the defect. Suggested minimal test attribution is in `DEVELOPER_DIAG.md` §5.

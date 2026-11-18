@@ -1,0 +1,61 @@
+{
+  "runTag": "run2",
+  "rows": 298,
+  "marks": 2,
+  "assertOutcome": "skipped-hp-differs",
+  "thrown": null,
+  "stationaryStart": {
+    "x": {
+      "x": 115.7446988970496,
+      "y": 46.64370143404313
+    },
+    "hp": 57,
+    "owner": "human",
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "fire": false,
+      "aim": {
+        "x": 114.2416921229725,
+        "y": 44.69669249649442
+      },
+      "interact": false
+    },
+    "enemies": 6,
+    "inputFlags": {
+      "up": false,
+      "down": false,
+      "left": false,
+      "right": false
+    }
+  },
+  "stationary": {
+    "x": {
+      "x": 116.13038040315445,
+      "y": 47.64124280761161
+    },
+    "hp": 85,
+    "owner": "human",
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "fire": false,
+      "aim": {
+        "x": 114.39330712485683,
+        "y": 45.72869918970325
+      },
+      "interact": false
+    },
+    "enemies": 6,
+    "inputFlags": {
+      "up": false,
+      "down": false,
+      "left": false,
+      "right": false
+    }
+  }
+}

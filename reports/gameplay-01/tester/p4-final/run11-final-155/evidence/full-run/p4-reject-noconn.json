@@ -1,0 +1,65 @@
+{
+  "runner": "agent (real keys/mouse + real reject call)",
+  "fixtures": [
+    "autoOwner echo enable",
+    "seed override"
+  ],
+  "fight": {
+    "shots": 2,
+    "approaches": 0,
+    "cleared": true,
+    "died": false,
+    "firstHp": 100,
+    "minEnemies": 0,
+    "elapsedMs": 992,
+    "flags": {
+      "spawned": true,
+      "cleared": true
+    }
+  },
+  "energy": {
+    "beforeReject": {
+      "player": 100,
+      "echo": 100,
+      "jamCD": 0
+    },
+    "afterReject": {
+      "player": 100,
+      "echo": 100,
+      "jamCD": 0
+    }
+  },
+  "rejected": {
+    "proposed": true,
+    "id": "local_113_1",
+    "kind": "scan",
+    "rejected": true,
+    "audit": [
+      {
+        "tick": 113,
+        "kind": "scan",
+        "result": "rejected",
+        "code": "E_USER_REJECTED"
+      }
+    ]
+  },
+  "afterReject": {
+    "relay": "ACTIVE",
+    "portal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    },
+    "routeTarget": 1
+  },
+  "routeMs": 1997,
+  "connectionSample": {
+    "companionStatus": "OFF"
+  },
+  "note": "no-connection sample only (companionStatus OFF from GameScene, no signalView.modelState exists); the run never connected to a model, so this is NOT a disconnection test. P2 holds the separate model-outage evidence.",
+  "route": {
+    "from": 0,
+    "to": 1
+  },
+  "shot": "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p4-final\\run1\\shots\\p4-reject-noconn.png"
+}

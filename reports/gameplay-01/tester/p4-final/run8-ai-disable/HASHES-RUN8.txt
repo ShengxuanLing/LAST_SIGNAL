@@ -1,0 +1,63 @@
+# run8 — AI-disable window: event-level control gate (test-only, no product change)
+
+tree=/d/tmp/ls-p4-v4  HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d
+
+## bytes
+
+  before tests/ai-native-world.spec.ts = ef1d2e92826d8dad98ed959b185ec251484d450764925a4781b68201516f2125
+  after  tests/ai-native-world.spec.ts = c33f16c7e48a433968c156d012c7c7dc21751f0eee5aecdaa179e2c347b8bd61  archived_identical=True
+  other specs unchanged: P1 a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743
+                          P2 4bc6288f6cbc123eb2ea7c13626141a786cc957ea353fd34f31cb28946ef6266
+                          P4 13a834644327ef29b30e0135d44f485de1728dafcfc7626a3a05abbdf7234df2
+                          probes 22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55
+  product sources: unchanged v4 (World 349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64 = manifest 349544bf…)
+
+## contract implemented (per review AI_DISABLE_TEST_REVIEW §5.2/§5.3)
+
+  - per-frame, from the real stepFrame call: owner, aiEnabled, ctlPaused, mode, lastIntentOwner,
+    the EXACT intent passed to the core (move/fire/aim/interact/dash), key flags, core queue TYPES,
+    aiActionCount, takeoverCount, position/hp before-after, active scenes, and the real SimEvent[]
+    returned by the tick;
+  - pendingCommands is recorded by type only and NOT asserted empty (the spec keep-alive legally
+    enqueues heal-player); only `teleport-player` would be a position write and it is asserted absent;
+  - HP is NOT a precondition any more;
+  - position attribution: writers = player-hurt(hit.position) | player-moved(position) in execution order;
+    with >=1 writer the frame-end position must equal the LAST writer position (1e-6); with no writer
+    the frame-end position must equal the frame-start position (1e-6, original precision).
+    Unattributable movement fails; nothing is ignored.
+  - window-level: aiActionCount constant, takeoverCount constant, lastAiAction null at both samples;
+  - GameOver/LevelUp overlays are recorded and the window is marked NOT quiet (no stillness claim);
+  - finally: restores the original stepFrame (fail-fast if it cannot) and writes
+    OUT/manual-disable-step-trace.json even on timeout/assertion failure;
+  - unchanged: 2500 ms window, 1500 ms pre-wait, 1e-6 precision, no extra tick, no sleep added,
+    no clear/heal/teleport/freeze, no skip.
+
+## gate result (2 consecutive runs, same bytes)
+
+  PASS 2/2, exit 0 — logs/final-2of2-with-branch-fields.log.txt
+
+  observed: calls=73 ticks=153 framesWithTicks=73
+  quiet=True overlays=[]
+  aiActionCounts=[33] takeoverCounts=[1] lastAiActionAtSamples=[None, None]
+  pendingTypesSeen=['heal-player', 'spawn-enemy-projectile'] teleportQueued=false
+  writerFrames=73 hurtWriterFrames=4 writerTypes=['player-moved', 'player-hurt']  allFramesExplained=true
+  damageBranch=triggered (real player-hurt writes the position)
+  noWriterBranch=not triggered (every observed frame emitted a real position event)
+
+## branch coverage (honest)
+
+  - damage branch: TRIGGERED (4 frames with a real non-blocked player-hurt).
+  - no-writer branch: NOT TRIGGERED in these runs (every observed frame emitted player-moved),
+    so the strict bit-identical no-event check is implemented but not exercised by this sample;
+  - overlay branch (GameOver/LevelUp): NOT TRIGGERED; the code records overlays and refuses to treat
+    such a window as quiet, but no run here produced one.
+  - GameOver during the window: not triggered; the assertion would surface only as recorded state.
+
+## notes
+
+  - attempt1 (logs/attempt1-window-empty-join-bug.log.txt) failed on MY harness bug: the node-side
+    copy of the trace was only filled in `finally`, so the gate sliced an empty array. Fixed by
+    pulling records from the page before the gate; that attempt is kept, not hidden.
+  - The developer diag copy was NOT reused: it never restored stepFrame and did not model the
+    keep-alive heal; this implementation restores and models it.
+

@@ -1,0 +1,115 @@
+{
+  "before": {
+    "hasEcho": true,
+    "alive": true,
+    "owner": "human",
+    "proposal": null,
+    "pending": {
+      "id": "local_72_1",
+      "kind": "scan"
+    },
+    "queue": [
+      "signal-scan"
+    ],
+    "auditApplied": [],
+    "energy": 100,
+    "tick": 72
+  },
+  "focusOrder": [
+    "RECENT ACTIONS",
+    "BACK",
+    "LOW-RISK COOPERATION: OFF",
+    "RECENT ACTIONS",
+    "BACK",
+    "LOW-RISK COOPERATION: OFF",
+    "RECENT ACTIONS",
+    "BACK"
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "page": "local-coop",
+      "buttons": 5,
+      "focused": [
+        "RECENT ACTIONS"
+      ]
+    },
+    {
+      "round": 2,
+      "page": "local-coop",
+      "buttons": 5,
+      "focused": [
+        "BACK"
+      ]
+    },
+    {
+      "round": 3,
+      "page": "local-coop",
+      "buttons": 5,
+      "focused": [
+        "LOW-RISK COOPERATION: OFF"
+      ]
+    },
+    {
+      "round": 4,
+      "page": "local-coop",
+      "buttons": 5,
+      "focused": [
+        "RECENT ACTIONS"
+      ]
+    },
+    {
+      "round": 5,
+      "page": "local-coop",
+      "buttons": 5,
+      "focused": [
+        "BACK"
+      ]
+    },
+    {
+      "round": 6,
+      "page": "local-coop",
+      "buttons": 5,
+      "focused": [
+        "LOW-RISK COOPERATION: OFF"
+      ]
+    },
+    {
+      "round": 7,
+      "page": "local-coop",
+      "buttons": 5,
+      "focused": [
+        "RECENT ACTIONS"
+      ]
+    },
+    {
+      "round": 8,
+      "page": "local-coop",
+      "buttons": 5,
+      "focused": [
+        "BACK"
+      ]
+    }
+  ],
+  "lastFocused": [
+    "BACK"
+  ],
+  "afterEnterPage": "echo",
+  "after": {
+    "hasEcho": true,
+    "alive": true,
+    "owner": "human",
+    "proposal": null,
+    "pending": {
+      "id": "local_72_1",
+      "kind": "scan"
+    },
+    "queue": [
+      "signal-scan"
+    ],
+    "auditApplied": [],
+    "energy": 100,
+    "tick": 72
+  },
+  "pid": "local_72_1"
+}

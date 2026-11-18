@@ -1,0 +1,294 @@
+{
+  "runner": "agent (real keys/mouse; NON-BLIND driver: reads canonical state to aim/route)",
+  "fixtures": [
+    "seed override (menu start wrapper)"
+  ],
+  "seed": 20261117,
+  "mode": "HumanOnly",
+  "spawnToRelay": 4.242640687119286,
+  "doorToRelay": 1,
+  "playerToRelay": 0.783864146994445,
+  "standOnDoor": 0.33971352665119814,
+  "spawnJam": {
+    "attempted": true,
+    "distance": 4.242640687119286,
+    "commit": {
+      "actorId": 0,
+      "ok": true,
+      "code": null,
+      "energy": 75,
+      "before": 100,
+      "relay": "JAMMED",
+      "jamExpiresAtTick": 406,
+      "regenEvents": 0,
+      "tick": 47,
+      "source": "pre-tick-energy"
+    },
+    "after": {
+      "state": "JAMMED",
+      "manual": true,
+      "powered": true,
+      "jamUntil": 406,
+      "evidence": 0
+    }
+  },
+  "cleared": {
+    "fight": {
+      "shots": 3,
+      "approaches": 0,
+      "cleared": true,
+      "died": false,
+      "firstHp": 100,
+      "minEnemies": 0,
+      "elapsedMs": 1525,
+      "flags": {
+        "spawned": true,
+        "cleared": true
+      }
+    },
+    "mapFlag": true,
+    "spawned": true,
+    "coreClearEvents": 1,
+    "liveDrones": 0
+  },
+  "headless": {
+    "strategy": "plain-fight",
+    "initial": {
+      "roomId": 0,
+      "spawned": true,
+      "cleared": false,
+      "liveDrones": 2,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": false,
+        "relay": null,
+        "target": null,
+        "portal": null,
+        "playerAtPortal": false,
+        "completed": false
+      },
+      "tick": 0
+    },
+    "final": {
+      "tick": 60,
+      "status": "running",
+      "spawned": true,
+      "cleared": true,
+      "liveDrones": 0,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": true,
+        "relay": "ACTIVE",
+        "target": 1,
+        "portal": {
+          "x": 11.5,
+          "y": 49.5
+        },
+        "playerAtPortal": false,
+        "completed": false
+      },
+      "kills": 2,
+      "shots": 6,
+      "hp": 100
+    },
+    "clearEvents": [
+      {
+        "tick": 60,
+        "event": {
+          "type": "room-cleared",
+          "roomId": 0
+        }
+      }
+    ],
+    "firstClearTick": 60,
+    "liveAtClear": 0,
+    "parity": true
+  },
+  "jam": {
+    "commit": {
+      "actorId": 0,
+      "ok": true,
+      "code": null,
+      "energy": 75,
+      "before": 100,
+      "relay": "JAMMED",
+      "jamExpiresAtTick": 943,
+      "regenEvents": 0,
+      "tick": 585,
+      "source": "pre-tick-energy"
+    },
+    "netDelta": 25,
+    "state": "JAMMED",
+    "portal": null,
+    "routeTarget": null
+  },
+  "jamInput": {
+    "pre": {
+      "ok": true,
+      "checks": {
+        "gameSceneActive": true,
+        "onlyGameScene": true,
+        "notPaused": true,
+        "notLevelUp": true,
+        "world": true,
+        "camera": true,
+        "relayActive": true,
+        "jamCDzero": true,
+        "energyEnough": true,
+        "inRange": true,
+        "lineOfSight": true
+      },
+      "distance": 0.783864146994445,
+      "energy": 100,
+      "activeScenes": [
+        "GameScene"
+      ]
+    },
+    "stepFrames": [
+      {
+        "t0": 581,
+        "t1": 582,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved"
+        ],
+        "loopFrame": 543
+      },
+      {
+        "t0": 582,
+        "t1": 583,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 100,
+        "ev": [
+          "player-moved"
+        ],
+        "loopFrame": 544
+      },
+      {
+        "t0": 583,
+        "t1": 585,
+        "ticks": 2,
+        "queueBefore": [
+          "signal-jam"
+        ],
+        "queueAfter": [],
+        "energyBefore": 100,
+        "energyAfter": 75,
+        "ev": [
+          "signal-jammed#0",
+          "signal-energy#0",
+          "player-moved",
+          "player-moved"
+        ],
+        "loopFrame": 545
+      },
+      {
+        "t0": 585,
+        "t1": 586,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved"
+        ],
+        "loopFrame": 546
+      },
+      {
+        "t0": 586,
+        "t1": 587,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved"
+        ],
+        "loopFrame": 547
+      },
+      {
+        "t0": 587,
+        "t1": 589,
+        "ticks": 2,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved",
+          "player-moved"
+        ],
+        "loopFrame": 548
+      },
+      {
+        "t0": 589,
+        "t1": 590,
+        "ticks": 1,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved"
+        ],
+        "loopFrame": 549
+      },
+      {
+        "t0": 590,
+        "t1": 592,
+        "ticks": 2,
+        "queueBefore": [],
+        "queueAfter": [],
+        "energyBefore": 75,
+        "energyAfter": 75,
+        "ev": [
+          "player-moved",
+          "player-moved"
+        ],
+        "loopFrame": 550
+      }
+    ],
+    "ticksBeforeEvent": 2,
+    "totalTicks": 11
+  },
+  "afterF": {
+    "room": 0,
+    "unchanged": true
+  },
+  "recovered": {
+    "relay": "ACTIVE",
+    "portal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    },
+    "routeTarget": 1,
+    "tickDelta": 352
+  },
+  "spriteToInteractionPx": 0,
+  "route": {
+    "from": 0,
+    "to": 1,
+    "distanceAtPress": 0.33971352665119814
+  },
+  "echo": null,
+  "echoEnergy": null,
+  "connectionSample": {
+    "companionStatus": "OFF",
+    "meaning": "no model connection in this run (HumanOnly): a no-connection sample, never claimed as a disconnection test"
+  },
+  "shots": [
+    "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p4-final\\run1\\shots\\p4-20261117-HumanOnly-route.png",
+    "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p4-final\\run1\\shots\\p4-20261117-HumanOnly-jam-at-door.png",
+    "D:\\tmp\\ls-p4-v4\\reports\\gameplay-01\\tester\\p4-final\\run1\\shots\\p4-20261117-HumanOnly-expired.png"
+  ]
+}

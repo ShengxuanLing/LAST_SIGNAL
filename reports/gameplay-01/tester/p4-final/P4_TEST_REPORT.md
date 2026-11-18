@@ -240,3 +240,137 @@ intent/authority/input/collision 定性。
 
 154/155 是本轮完整结果；有界 `859/73` profile 与默认并发 `857/859` 始终分开陈述；P5 变体仅计划、
 `HUMAN ACCEPTANCE: PENDING`，因此**不产出整体 PASS**。
+
+---
+
+# run9 — AI-disable 契约强化后的最终完整 155（单次）
+
+## 冻结（完整链开始前写入 `run9-ai-disable-final/HASHES-PRE-RUN.txt`）
+
+| spec | sha256 |
+|---|---|
+| P1 | `a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743` |
+| P2 | `4bc6288f6cbc123eb2ea7c13626141a786cc957ea353fd34f31cb28946ef6266` |
+| P4 | `13a834644327ef29b30e0135d44f485de1728dafcfc7626a3a05abbdf7234df2` |
+| probes | `22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55` |
+| **ai-native-world** | **`855eb948d31ef48060087f70bd403fe1da1fea2a55efd7c2507d85a7b6f9538b`**（上一轮 reviewer 批准的绿字节是 `c33f16c7…`；本轮在其上只加 4 项覆盖/精度） |
+
+产品源未变：仍是 `manifest.v4.json` 的十个 sha（`World.ts 349544bf…`）。
+
+## 在 `c33f16c7` 之上新增的四项（都是加强原覆盖，没有放宽）
+
+1. **`dash === false` 每帧无条件断言**（此前只记录未断言）；
+2. 位置归因改回**原精度语义** `toBeCloseTo(value, 6)`（`|diff| < 0.5e-6`，不是 `<=1e-6`）：
+   有 writer 的帧比“帧末 vs 最后 writer 位置”，无 writer 的帧比“帧末 vs 帧首”；
+3. `aiActionCount` / `takeoverCount` 必须**等于 `stationaryStart` 的真实字段**（有限、≥0），
+   不再只查“集合 size 为 1”；
+4. `intent` / `move` **存在性显式断言**（`intentPresent` / `movePresent`），缺失或非数字直接算违规，
+   不再用 `?? 0` 伪造 neutral。
+
+保持不变：1500/2500 ms 预算、`quiet=false` 时控制属性仍无条件断言、keep-alive 的 `heal-player`
+只按类型记录（**不判空**）、GameOver/LevelUp 窗口记 `quietWindow:false` 不作静止结论、
+`finally` 恢复原方法并落盘 trace（失败也落）、不清敌/不冻结/不瞬移/不回血造静窗。
+
+## Gate（命令 → 结果 → 绝对日志）
+
+| gate | 结果 | 日志 |
+|---|---|---|
+| 该病例 targeted（新字节，2 次） | **PASS 2/2, exit 0** | `run9-ai-disable-final/logs/targeted-2of2.log.txt` |
+| unfiltered typecheck（source gate；项目 tsconfig 不含 tests） | **exit 0, 0 字节** | 同目录 `HASHES-PRE-RUN.txt` 记录的 source gate |
+| **完整 Playwright（155 全执行，一次）** | **FAIL 154/155, exit 1** | `run9-ai-disable-final/logs/full-e2e-155.log.txt` |
+| 失败用例孤立复跑（同字节） | **FAIL 1/1**（可复现） | `run9-ai-disable-final/logs/diag-audit-boss-bullets-isolated.log.txt` |
+| fresh parity（完整跑之后） | **PASS 3/3, exit 0** | `run9-ai-disable-final/logs/parity-final.log.txt` |
+
+本轮唯一失败：`tests/audit.spec.ts:575`（legacy，未被我改动）
+`Error: laser(3) + shockwave(12) bullets created` → `Expected 15, Received 16`。
+**同字节孤立复跑同样红**（不是负载偶发），而上一轮 run7 的同一用例是绿的 ⇒ 这是该 legacy 断言对
+Boss 弹幕时序的**非确定性**（多一次 volley），不是本 diff 或产品源改动引起（`audit.spec.ts` 与 v4 源
+本轮都没动）。**未改字节、未重跑求绿**，如实保留。
+
+`ai-native-world` 在本次完整运行中**通过**，其窗口 trace 也落盘：
+`evidence/manual-disable-step-trace-FULL-RUN.json` —— 88 帧 / 153 tick、`dash {false}`、
+`intentPresent {true}`、`movePresent {true}`、`owner {human}`、`aiEnabled {false}`、`move {(0,0)}`、
+`pending [heal-player, spawn-enemy-projectile]`、4 个真实 `player-hurt` 帧、wrapper `restored:true`。
+
+## 版本与口径（不回填）
+
+| 全量 | 字节 | 结果 |
+|---|---|---|
+| run3 | P4 `17fe4a09` | 150/155 |
+| run5 | P4 `8ccc3b29` / P2 `53690495` | 153/155 |
+| run7 | P4 `13a83464` / P2 `4bc6288f`（ai-native-world `ef1d2e92`） | 154/155（ai-native-world 红） |
+| **run9** | **ai-native-world `855eb948`** + 同 P1/P2/P4/probes | **154/155**（legacy `audit.spec.ts:575` 红，可复现） |
+
+- 有界单元 `859/73` profile（run5）仍独立有效，本轮未重跑；**默认并发 `857/859` 仍单独成立**。
+- `surface`/`build` 未重测：v4 同源（`World 349544bf…`）已有绿记录（`run4-v4-final/logs/`），属引用而非新证据。
+- P5 变体 plan-only；`HUMAN ACCEPTANCE: PENDING`；B7 默认并发负载风险仍在 ⇒ **整体仍非 PASS**。
+
+
+### boss 15 vs 16 的证据包（只读、未重跑、未改字节）
+
+`run9-ai-disable-final/boss-volley-drift/`：`audit.spec.ts.lf-head`（`72617cc2…`）与
+`audit.spec.ts.crlf`（`fe43dc48…`，两者只差换行；`git diff HEAD -- tests/audit.spec.ts` 为空）、
+`bossInit-code-region.txt`、full-run 与 isolated 两段失败 excerpt、Playwright error-context。
+
+**明确 UNKNOWN（未持久化，不得推断）**：`bossInit` 是 `page.evaluate` 内的局部对象，断言在写盘前抛出，
+测试也没有该对象的 record/flush ⇒ 16 发弹的实际数组、哪一发是第 16 发、由谁发射、当时的待提交 queue、
+`simFixture.projectiles.length`（c0）与 adapter slice 边界、该 stepFrame 的弹道事件，全部未知。
+
+`toBe(15)`、3 laser + 12 shockwave、速度/可见/0.5 s 等原断言一字未改；只把该现象的证据交 developer
+做逐事件/ID 归因，不能用 clear 或“过滤第 16 发”改绿。run9 的 154/155（isolated 也红）原样保留。
+
+---
+
+# run11 — 最终冻结全链（一次）：**155/155 PASS，exit 0**
+
+冻结在 `run11-final-155/HASHES-PRE-RUN.txt`（链前写入，链后逐文件复核 `archived_identical=True`）：
+
+| spec | sha256 |
+|---|---|
+| audit | `6ea30e8b1338862eb00c1cc8a54b4687d9a23f8f152cad4e605faafbdbd6dcea` |
+| ai-native-world | `855eb948d31ef48060087f70bd403fe1da1fea2a55efd7c2507d85a7b6f9538b` |
+| P1 | `a7db18857d49db266db7acf8a95d42c5e15b9f5f9a25f6583799cf95902a3743` |
+| P2 | `4bc6288f6cbc123eb2ea7c13626141a786cc957ea353fd34f31cb28946ef6266` |
+| P3 | `d446a7683560236199638b3a15af92204e31ae781a239255221921bc0b3c254c` |
+| P4 | `13a834644327ef29b30e0135d44f485de1728dafcfc7626a3a05abbdf7234df2` |
+| probes | `22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55` |
+
+产品源仍为 `manifest.v4.json` 十文件（`World.ts 349544bf…`）。运行条件：`listeners_5199_5494=0`、
+host CPU 27%、node 进程 3（只停了我自己树里的 dev server，没有触碰用户应用）。
+
+## Gate（命令 → 真实结果 → 绝对日志，`run11-final-155/logs/`）
+
+| # | gate | 结果 | 日志 |
+|---|---|---|---|
+| 1 | `npm test`（**默认并发**，20s/15s 原预算，**不是** bounded profile） | **PASS 73 files / 859 tests，exit 0**（215 s） | `1-unit-default.log.txt` |
+| 2 | `npx tsc --noEmit`（源；项目 tsconfig 不含 tests） | **exit 0** | `2-typecheck.log.txt` |
+| 3a | `npm run test:mcp-surface`（本轮现测） | **PASS 1/1，exit 0** | `3a-mcp-surface.log.txt` |
+| 3b | `npm run build`（本轮现测） | **exit 0**（10.5 s） | `3b-build.log.txt` |
+| 4 | **完整 Playwright** `--workers=1`，dual Vite 5199+5494，155 条一次执行 | **PASS 155/155，exit 0**（23.5 m，0 skip，0 did-not-run） | `4-full-playwright.log.txt` |
+| 5 | `npm run test:parity`（完整跑之后 fresh export） | **PASS 3/3，exit 0** | `5-parity.log.txt` |
+
+## 本轮全量里被测用例自己抓到的现场（关键）
+
+- **boss volley（audit）**：`spawnedTotal=16`、`volley=15`（全为 owner 4，3×2.5 + 12×1.875）、
+  `others=1`（`{id 3, ownerId 1, kind plasma, source enemy, pos (22.56,44.32), vel (2.17,1.24)}`）、
+  `adapterMissing=0`、`pendingBefore=["spawn-enemy-projectile"]`。
+  ⇒ 这次全量**真的走了 16/15 的红路径**，按 `ownerId` 归因后断言 15 成立；没有隐藏/清掉第 16 发。
+  证据：`evidence/boss-volley-events-FULL-RUN.json`。
+- **AI-disable 窗口**：89 帧 / 153 tick、`dash {false}`、intent/move 存在、`owner {human}`、
+  `aiEnabled {false}`、`move {(0,0)}`、3 个真实 `player-hurt` 帧、wrapper `restored:true`；
+  `noWriter` 与 `overlay/GameOver` 分支本轮**未触发**（如实记录）。
+
+## 历史与口径（不回填）
+
+| 全量 | 字节（关键） | 结果 |
+|---|---|---|
+| run3 | P4 `17fe4a09` | 150/155 |
+| run5 | P4 `8ccc3b29` / P2 `53690495` | 153/155 |
+| run7 | ai-native-world `ef1d2e92` | 154/155（ai-native-world 红） |
+| run9 | ai-native-world `855eb948` | 154/155（legacy audit 红） |
+| **run11** | **audit `6ea30e8b` + ai-native-world `855eb948` + P1/P2/P3/P4/probes 冻结集** | **155/155，exit 0** |
+
+- 默认并发单元本轮为 **859/859 exit 0**（本轮无双 Vite 干扰）；run5 的 **bounded `--maxWorkers=2` profile 859/73**
+  仍是独立 profile，两者不互相替代；早期默认并发 `857/859`（B7 负载超时）作为历史风险保留。
+- 仍是 **agent（non-blind driver）+ 已标注 `autoOwner`/seed fixture**，不是真人；P5 变体仍 **plan-only 未实现**；
+  `HUMAN ACCEPTANCE: PENDING`；B7 默认并发在“双 Vite 运行”下的负载风险作为已知风险记录，不宣称已消除。

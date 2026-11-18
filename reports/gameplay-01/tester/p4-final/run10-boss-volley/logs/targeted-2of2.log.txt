@@ -1,0 +1,11 @@
+# run10 targeted: P2 audit boss-volley attribution (2 runs, not retry-to-green)
+workdir=/d/tmp/ls-p4-v4 HEAD=3819621c5faab56b114b6e5a560f8fe78c17709d audit=6ea30e8b1338862eb00c1cc8a54b4687d9a23f8f152cad4e605faafbdbd6dcea World=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+started=2026-11-18T23:10:32Z
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+[2/2] [chromium] › tests\audit.spec.ts:575:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+  2 passed (18.6s)
+exit_code=0
+finished=2026-11-18T23:10:53Z

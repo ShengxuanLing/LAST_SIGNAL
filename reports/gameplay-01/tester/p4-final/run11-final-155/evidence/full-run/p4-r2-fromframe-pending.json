@@ -1,0 +1,48 @@
+{
+  "entry": "fromFrame(frame) seed 20261119",
+  "row": {
+    "entry": "fromFrame(frame) seed 20261119",
+    "frameQueue": [
+      "signal-scan"
+    ],
+    "pendingAfter": {
+      "kind": "scan",
+      "restored": true,
+      "proposalId": null
+    },
+    "proposeAfter": null,
+    "directConfirmAccepted": false,
+    "queueAfterQueue": [
+      "signal-scan"
+    ],
+    "audit": [
+      {
+        "kind": "local-confirm",
+        "result": "rejected",
+        "code": "E_ALREADY_PENDING",
+        "proposalId": "probe_second_confirm_never_real",
+        "provenance": "human-local"
+      }
+    ],
+    "beforeEnergy": {
+      "player": 100,
+      "echo": 100
+    },
+    "afterEnergy": {
+      "player": 100,
+      "echo": 90
+    },
+    "commits": [
+      {
+        "type": "signal-scanned",
+        "actorId": 1,
+        "ok": true,
+        "energy": 90,
+        "code": null
+      }
+    ],
+    "toggles": [],
+    "pendingAfterCommit": null,
+    "appliedHumanLocalRows": 0
+  }
+}

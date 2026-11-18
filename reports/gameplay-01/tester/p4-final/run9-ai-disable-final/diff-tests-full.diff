@@ -1,0 +1,2231 @@
+diff --git a/tests/ai-native-world.spec.ts b/tests/ai-native-world.spec.ts
+index c5a864e..964fbe7 100644
+--- a/tests/ai-native-world.spec.ts
++++ b/tests/ai-native-world.spec.ts
+@@ -542,18 +542,216 @@ test.describe('AI-NATIVE-02 P1 real World', () => {
+     await page.waitForTimeout(1500);
+     const stationaryStart = await state(page);
+     expect(stationaryStart!.owner, 'human owns control once the run settles').toBe('human');
+-    await page.waitForTimeout(2500);
+-    const stationary = await state(page);
+-    expect(stationary!.owner, 'human still owns control after disable').toBe('human');
+-    expect(stationary!.aiEnabled, 'AI stays disabled (no self-reclaim)').toBe(false);
+-    expect(stationary!.lastAiAction, 'AI action state cleared after disable').toBeNull();
+-    expect(stationary!.txtControl, 'HUD returns to HUMAN').toContain('HUMAN');
+-    if (stationaryStart!.hp === stationary!.hp) {
+-      // No enemy knockback involved: the disabled AI must not move the player.
+-      expect(stationary!.grid.x, `disabled AI does not move the player (x ${stationary!.grid.x} vs ${stationaryStart!.grid.x})`).toBeCloseTo(stationaryStart!.grid.x, 6);
+-      expect(stationary!.grid.y, `disabled AI does not move the player (y ${stationary!.grid.y} vs ${stationaryStart!.grid.y})`).toBeCloseTo(stationaryStart!.grid.y, 6);
++    // ---- READ-ONLY per-stepFrame recorder for the manual-disable window --------
++    // What it observes: the EXACT intent the World passes to the core, the
++    // ownership/AI state at that call, the core queue (types only - the spec's own
++    // 100 ms keep-alive may legally enqueue heal-player), the AI action counters and
++    // the real SimEvent[] the tick returned, so every position write can be
++    // attributed to a concrete event (player-hurt.hit.position / player-moved).
++    // It forwards delta/intent/... untouched and returns the original value: no
++    // extra tick, no teleport/heal/enemy clearing, no paused window. The trace is
++    // flushed and the original method restored in `finally`, also on timeout.
++    type DisableRec = {
++      seq: number; t: number; tickBefore: number; tickAfter: number; ticks: number;
++      owner: string; aiEnabled: boolean; ctlPaused: boolean; mode: string; lastIntentOwner: string;
++      move: { x: number; y: number }; intentPresent: boolean; movePresent: boolean;
++      fire: boolean; aim: unknown; interact: boolean; dash: boolean;
++      keys: Record<string, boolean>; pending: string[]; hasTeleport: boolean;
++      aiActionCount: number; takeoverCount: number;
++      x0: number; y0: number; hp0: number; x1: number; y1: number; hp1: number;
++      scenes: string[]; overlay: string[];
++      writers: Array<{ type: string; position: { x: number; y: number }; damage?: number; blocked?: boolean }>;
++      lastWriter: { x: number; y: number } | null;
++      /** true when the frame-end position is fully explained by the REAL events of
++       *  that frame (or by no-op when no writer exists). */
++      positionExplained: boolean;
++      posDelta: { x: number; y: number };
++    };
++    const disableTrace: { installed: boolean; restored: boolean; windowStart: number; windowEnd: number; records: DisableRec[] } =
++      { installed: false, restored: false, windowStart: 0, windowEnd: 0, records: [] };
++    const NEUTRAL_X = 0, NEUTRAL_Y = 0;
++    try {
++      await page.evaluate(() => {
++        const gs: any = (window as any).__game.scene.getScene('GameScene');
++        const w: any = gs.world;
++        const holder: any = {
++          installed: true, windowStart: 0, windowEnd: 0, records: [],
++          hadOwn: Object.prototype.hasOwnProperty.call(w, 'stepFrame'), orig: w.stepFrame
++        };
++        const orig = w.stepFrame;
++        w.stepFrame = function (delta: number, intent: any, ...rest: any[]) {
++          const p = w.player;
++          const ctl = p.control;
++          const tickBefore = w.sim.tick;
++          const x0 = p.wx, y0 = p.wy, hp0 = p.data.hp;
++          const keys = { ...p.input };
++          const moveRaw = (intent as any)?.move ?? null;
++          const intentPresent = !!intent;
++          const movePresent = !!(moveRaw && Number.isFinite(moveRaw.x) && Number.isFinite(moveRaw.y));
++          const pending = ((w.sim.pendingCommands ?? []) as any[]).map((c: any) => c.type);
++          const snap = ctl.snapshot?.() ?? {};
++          const ret = orig.call(this, delta, intent, ...rest); // same args, same return
++          const events = (Array.isArray(ret) ? ret : ((ret as any)?.events ?? [])) as any[];
++          const writers: any[] = [];
++          for (const ev of events) {
++            if (ev?.type === 'player-hurt' && ev.hit?.position) {
++              writers.push({ type: 'player-hurt', position: { x: ev.hit.position.x, y: ev.hit.position.y }, damage: ev.damage, blocked: !!ev.hit.blocked });
++            } else if (ev?.type === 'player-moved' && ev.position) {
++              writers.push({ type: 'player-moved', position: { x: ev.position.x, y: ev.position.y } });
++            }
++          }
++          const last = writers.length ? writers[writers.length - 1].position : null;
++          const x1 = p.wx, y1 = p.wy;
++          const positionExplained = last
++            ? Math.abs(x1 - last.x) <= 1e-6 && Math.abs(y1 - last.y) <= 1e-6
++            : Math.abs(x1 - x0) <= 1e-6 && Math.abs(y1 - y0) <= 1e-6;
++          const scenes = (window as any).__game.scene.getScenes(true).map((s: any) => s.sys.settings.key);
++          holder.records.push({
++            seq: holder.records.length, t: Math.round(performance.now()),
++            tickBefore, tickAfter: w.sim.tick, ticks: w.sim.tick - tickBefore,
++            owner: ctl.owner, aiEnabled: !!ctl.aiEnabled, ctlPaused: !!ctl.paused,
++            mode: snap.mode ?? '', lastIntentOwner: p.lastIntentOwner,
++            move: movePresent ? { x: moveRaw.x, y: moveRaw.y } : { x: Number.NaN, y: Number.NaN },
++            intentPresent, movePresent,
++            fire: !!intent?.fire, aim: intent?.aim ?? null, interact: !!intent?.interact, dash: !!intent?.dash,
++            keys, pending, hasTeleport: pending.includes('teleport-player'),
++            aiActionCount: snap.aiActionCount ?? -1, takeoverCount: snap.takeoverCount ?? -1,
++            x0, y0, hp0, x1, y1, hp1: p.data.hp,
++            scenes, overlay: scenes.filter((k: string) => k !== 'GameScene'),
++            writers, lastWriter: last, positionExplained, posDelta: { x: x1 - x0, y: y1 - y0 }
++          });
++          return ret;
++        };
++        (window as any).__aiDisableTrace = holder;
++      });
++      disableTrace.installed = true;
++      disableTrace.windowStart = await page.evaluate(() => {
++        const t: any = (window as any).__aiDisableTrace;
++        t.windowStart = t.records.length;
++        return t.windowStart as number;
++      });
++
++      await page.waitForTimeout(2500); // unchanged budget
++      const stationary = await state(page);
++      disableTrace.windowEnd = await page.evaluate(() => {
++        const t: any = (window as any).__aiDisableTrace;
++        t.windowEnd = t.records.length;
++        return t.windowEnd as number;
++      });
++
++      expect(stationary!.owner, 'human still owns control after disable').toBe('human');
++      expect(stationary!.aiEnabled, 'AI stays disabled (no self-reclaim)').toBe(false);
++      expect(stationary!.lastAiAction, 'AI action state cleared after disable (real field)').toBeNull();
++      expect(stationary!.txtControl, 'HUD returns to HUMAN').toContain('HUMAN');
++
++      // ---- HARD GATE: per observed stepFrame call --------------------------------
++      // The records live in the page; pull them once (the finally re-reads them for
++      // the flush, so a failure inside the gate still archives the full trace).
++      disableTrace.records = await page.evaluate(() => ((window as any).__aiDisableTrace?.records ?? []) as any[]);
++      const win = disableTrace.records.slice(disableTrace.windowStart, disableTrace.windowEnd);
++      expect(win.length, 'the read-only recorder observed real stepFrame calls in the 2.5 s window').toBeGreaterThan(0);
++      expect(win.filter((r) => r.ticks > 0).length, 'at least one observed call really advanced a core tick').toBeGreaterThan(0);
++      const offenders: string[] = [];
++      for (const r of win) {
++        if (r.owner !== 'human') offenders.push(`#${r.seq} owner=${r.owner}`);
++        if (r.aiEnabled !== false) offenders.push(`#${r.seq} aiEnabled=${r.aiEnabled}`);
++        if (r.lastIntentOwner !== 'human') offenders.push(`#${r.seq} lastIntentOwner=${r.lastIntentOwner}`);
++        if (r.intentPresent !== true) offenders.push(`#${r.seq} intent object missing`);
++        if (r.movePresent !== true) offenders.push(`#${r.seq} move field missing or non-numeric`);
++        if (r.move.x !== NEUTRAL_X || r.move.y !== NEUTRAL_Y) offenders.push(`#${r.seq} move=${JSON.stringify(r.move)}`);
++        if (r.dash !== false) offenders.push(`#${r.seq} dash=${r.dash}`);
++        if (r.fire !== false) offenders.push(`#${r.seq} fire=${r.fire}`);
++        if (r.interact !== false) offenders.push(`#${r.seq} interact=${r.interact}`);
++        if (r.hasTeleport) offenders.push(`#${r.seq} teleport-player queued`);
++      }
++      expect(offenders, 'every observed call is human-owned, AI-disabled and neutral (no AI-origin movement, no teleport)').toEqual([]);
++      const actionCounts = Array.from(new Set(win.map((r) => r.aiActionCount)));
++      expect(actionCounts.length, `aiActionCount never grows in the window (saw ${JSON.stringify(actionCounts)})`).toBe(1);
++      const takeoverCounts = Array.from(new Set(win.map((r) => r.takeoverCount)));
++      expect(takeoverCounts.length, 'takeoverCount is unchanged in the window').toBe(1);
++      // The recorded counters must equal the REAL sampled fields (finite, >= 0),
++      // not merely "one distinct value".
++      expect(Number.isFinite(stationaryStart!.aiActionCount) && stationaryStart!.aiActionCount >= 0,
++        `the sampled aiActionCount is a real non-negative number (${stationaryStart!.aiActionCount})`).toBe(true);
++      expect(win.every((r) => r.aiActionCount === stationaryStart!.aiActionCount),
++        'every observed frame reports the sampled aiActionCount').toBe(true);
++      expect(Number.isFinite(stationaryStart!.takeoverCount) && stationaryStart!.takeoverCount >= 0,
++        `the sampled takeoverCount is a real non-negative number (${stationaryStart!.takeoverCount})`).toBe(true);
++      expect(win.every((r) => r.takeoverCount === stationaryStart!.takeoverCount),
++        'every observed frame reports the sampled takeoverCount').toBe(true);
++
++      // ---- Event-level position attribution -------------------------------------
++      // An overlay (GameOver/LevelUp) means this is NOT a human quiet window: the
++      // window is recorded as such and the position gate is not applied to it.
++      const overlaySeen = Array.from(new Set(win.flatMap((r) => r.overlay)));
++      const quiet = overlaySeen.length === 0;
++      // Same precision semantics as the original assertion: toBeCloseTo(value, 6),
++      // i.e. |diff| < 0.5e-6 (NOT the looser <= 1e-6).
++      const posOffenders: any[] = [];
++      for (const r of (quiet ? win : [])) {
++        if (r.writers.length > 0) {
++          try {
++            expect(r.x1).toBeCloseTo(r.lastWriter!.x, 6);
++            expect(r.y1).toBeCloseTo(r.lastWriter!.y, 6);
++          } catch {
++            posOffenders.push({ seq: r.seq, kind: 'writer', x1: r.x1, y1: r.y1, lastWriter: r.lastWriter, events: r.writers.map((w) => w.type) });
++          }
++        } else {
++          try {
++            expect(r.x1).toBeCloseTo(r.x0, 6);
++            expect(r.y1).toBeCloseTo(r.y0, 6);
++          } catch {
++            posOffenders.push({ seq: r.seq, kind: 'no-writer', x0: r.x0, y0: r.y0, x1: r.x1, y1: r.y1 });
++          }
++        }
++      }
++      expect(posOffenders, 'quiet window: every frame-end position matches the last real writer (or the frame start when none) at 1e-6 precision; unattributable movement fails').toEqual([]);
++      const writerFrames = quiet ? win.filter((r) => r.writers.length > 0) : [];
++      const hurtFrames = writerFrames.filter((r) => r.writers.some((w) => w.type === 'player-hurt' && !w.blocked));
++      record('manual-disable-window', {
++        observedCalls: win.length,
++        observedTicks: win.reduce((n, r) => n + r.ticks, 0),
++        framesWithTicks: win.filter((r) => r.ticks > 0).length,
++        quietWindow: quiet,
++        overlaysSeen: overlaySeen,
++        aiActionCounts: actionCounts,
++        takeoverCounts,
++        lastAiActionAtSamples: [stationaryStart!.lastAiAction, stationary!.lastAiAction],
++        positionWriterFrames: writerFrames.length,
++        hurtWriterFrames: hurtFrames.length,
++        writerTypes: Array.from(new Set(win.flatMap((r) => r.writers.map((w) => w.type)))),
++        pendingTypesSeen: Array.from(new Set(win.flatMap((r) => r.pending))),
++        frameDeltas: quiet ? win.filter((r) => r.writers.length > 0).map((r) => r.posDelta) : [],
++        damageBranch: hurtFrames.length > 0 ? 'triggered (real player-hurt writes the position)' : 'not triggered (no player-hurt in the window)',
++        hurtFrameDeltas: hurtFrames.map((r) => ({ seq: r.seq, ticks: r.ticks, delta: r.posDelta, writers: r.writers.map((w) => ({ type: w.type, damage: w.damage ?? null, blocked: w.blocked ?? null })) })),
++        noWriterBranch: (quiet ? win.filter((r) => r.writers.length === 0).length : 0) > 0
++          ? 'triggered (frames without any position event keep the strict bit-identical x/y check)'
++          : 'not triggered (every observed frame emitted a real position event)',
++        notes: 'pendingCommands is recorded by TYPE only: the spec keep-alive may legally enqueue heal-player; only teleport-player would be a position write. No HP precondition is used.',
++        x0x1: [stationaryStart!.grid.x, stationary!.grid.x],
++        y0y1: [stationaryStart!.grid.y, stationary!.grid.y],
++        hp0hp1: [stationaryStart!.hp, stationary!.hp]
++      });
++      record('manual-disable', { owner: stationary!.owner, takeoverCount: stationary!.takeoverCount, reason: disabled!.lastTakeoverReason });
++    } finally {
++      // Always flush and always restore, even when the page timed out or an
++      // assertion above threw; a restore failure is its own explicit failure.
++      const restored = await page.evaluate(() => {
++        const t: any = (window as any).__aiDisableTrace;
++        const gs: any = (window as any).__game?.scene?.getScene('GameScene');
++        const w: any = gs?.world;
++        if (!t || !w) return false;
++        if (t.hadOwn) w.stepFrame = t.orig;
++        else delete w.stepFrame;
++        return true;
++      }).catch(() => false);
++      disableTrace.restored = restored;
++      disableTrace.records = await page.evaluate(() => ((window as any).__aiDisableTrace?.records ?? []) as any[]).catch(() => []);
++      disableTrace.windowEnd = disableTrace.windowEnd || disableTrace.records.length;
++      mkdirSync(OUT, { recursive: true });
++      writeFileSync(path.join(OUT, 'manual-disable-step-trace.json'), JSON.stringify(disableTrace, null, 2));
++      if (!restored) throw new Error('stepFrame wrapper could not be restored after the manual-disable window');
+     }
+-    record('manual-disable', { owner: stationary!.owner, takeoverCount: stationary!.takeoverCount, reason: disabled!.lastTakeoverReason });
+ 
+     // Human safety takeover during live AI play.
+     await enableAiViaPause(page);
+diff --git a/tests/gameplay-01.spec.ts b/tests/gameplay-01.spec.ts
+index e86efb8..ec29abd 100644
+--- a/tests/gameplay-01.spec.ts
++++ b/tests/gameplay-01.spec.ts
+@@ -45,6 +45,21 @@ async function shot(page: Page, name: string): Promise<string> {
+   await page.screenshot({ path: file });
+   return file;
+ }
++/**
++ * One real frame edge for a single-frame key (T/Y/R/F): keydown -> at least one
++ * real game frame -> keyup. Phaser's `press()` can lose `JustDown` at a frame
++ * boundary, which made the same assertion fail in a full-suite run and pass in
++ * isolation (diagnosed 2026-11-18). Input-driver fix only: no result threshold,
++ * timeout or assertion is relaxed.
++ */
++async function tapKey(page: Page, code: string): Promise<void> {
++  const t0 = await page.evaluate(() => (window as any).__game?.loop?.frame ?? -1);
++  await page.keyboard.down(code);
++  await page.waitForFunction((f: number) => ((window as any).__game?.loop?.frame ?? f) > f, t0, { timeout: 4000 });
++  await page.keyboard.up(code);
++  await page.waitForTimeout(120);
++}
++
+ async function canvasBox(page: Page) {
+   const box = await page.evaluate(() => {
+     const c = document.querySelector('canvas');
+@@ -114,7 +129,14 @@ async function bootDemo(page: Page, seed?: number): Promise<void> {
+   }
+   await clickLabel(page, 'MainMenuScene', 'DEMO 01');
+   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
+-  await page.waitForTimeout(900);
++  // Readiness by real state, not by a fixed sleep: the scene can be "active"
++  // while create() is still running (world/cameras not built yet), and a key
++  // pressed in that window is lost. No assertion is relaxed by this wait.
++  await page.waitForFunction(() => {
++    const gs: any = (window as any).__game?.scene.getScene('GameScene');
++    return !!gs?.world && gs.world.sim.tick > 0 && !!gs.cameras?.main && gs.world.p1Scenario !== undefined;
++  }, undefined, { timeout: 30000 });
++  await page.waitForTimeout(400);
+ }
+ 
+ async function snap(page: Page) {
+@@ -163,7 +185,7 @@ async function snap(page: Page) {
+ async function jamFromStart(page: Page): Promise<{ relay: string | null; jamLeft: number | null; energy: number | null }> {
+   const before = await snap(page);
+   expect(before!.relay!.state, 'relay is ACTIVE before the jam').toBe('ACTIVE');
+-  await page.keyboard.press('KeyY');
++  await tapKey(page, 'KeyY');
+   await page.waitForTimeout(450);
+   const after = await snap(page);
+   return { relay: after!.relay!.state, jamLeft: after!.jamRemaining, energy: after!.energy!.playerEnergy };
+@@ -294,7 +316,7 @@ async function walkToPortalAndEnter(page: Page, maxMs = 30000) {
+     const dx = info.portal.x - info.player.x;
+     const dy = info.portal.y - info.player.y;
+     if (Math.hypot(dx, dy) < 1.0) {
+-      await page.keyboard.press('KeyF');
++      await tapKey(page, 'KeyF');
+       await page.waitForTimeout(900);
+       const after = await snap(page);
+       return { entered: (after?.room?.id ?? null) !== before?.room?.id, reason: 'interact', before, after };
+@@ -350,7 +372,7 @@ test.describe('GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance', () => {
+     });
+ 
+     // Real key input: T = scan.
+-    await page.keyboard.press('KeyT');
++    await tapKey(page, 'KeyT');
+     // Wait for the committed scan (cooldown starts) instead of a fixed delay.
+     await page.waitForFunction(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+@@ -391,7 +413,7 @@ test.describe('GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance', () => {
+     expect(scanned!.energy!.scanCD, 'scan cooldown is running').toBeGreaterThan(0);
+ 
+     // Real key input: Y = jam.
+-    await page.keyboard.press('KeyY');
++    await tapKey(page, 'KeyY');
+     await page.waitForFunction(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+       const v = w.signalView();
+@@ -506,7 +528,7 @@ test.describe('GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance', () => {
+     await bootDemo(page);
+     // Real key input: R = manual relay toggle (human control, not a jam). Doing
+     // it first also stops the linked sentries from firing during the fight.
+-    await page.keyboard.press('KeyR');
++    await tapKey(page, 'KeyR');
+     await page.waitForTimeout(600);
+     const afterToggle = await snap(page);
+     expect(afterToggle!.relay!.manual, 'manual relay control is off before the fight').toBe(false);
+@@ -532,124 +554,230 @@ test.describe('GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance', () => {
+     });
+   });
+ 
+-  test('4) standing at the door: natural Y is range-rejected, fixture jam cannot pass', async ({ page }) => {
++  test('4) the door is naturally jam-usable (exact cost) and a JAMMED route cannot be passed', async ({ page }) => {
+     await bootDemo(page);
+-    // Suppress linked fire with a real jam so the walk/fight is survivable; the
+-    // script later needs route A, which returns when the jam expires.
+-    await jamFromStart(page);
++    // Real strategy: jam the relay from the spawn tile (legitimately in range) so
++    // the linked sentries stop firing during the fight.
++    const jam = await jamFromStart(page);
++    expect(jam.relay, 'the spawn jam is committed before the fight').toBe('JAMMED');
+     const fight = await fightUntilCleared(page, 120000);
+     expect(fight.cleared, 'room cleared by real play').toBe(true);
+-    await page.waitForFunction(() => ((window as any).__game.scene.getScene('GameScene').world.signalView()?.relay ?? null) === 'ACTIVE', undefined, { timeout: 20000 });
+-    // Walk to the door with real keys but stop just outside (do not press F).
+-    const walker = await page.evaluate(() => {
++    // A real capability wait: the spawn jam's cooldown must clear on real ticks,
++    // otherwise the out-of-range attempt would be refused by COOLDOWN and would
++    // prove nothing about range.
++    await page.waitForFunction(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+-      return { player: { x: w.player.wx, y: w.player.wy }, portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null, relay: w.p1Scenario?.relay ?? null };
++      const v = w.signalView();
++      return !!v && v.relay === 'ACTIVE' && v.playerJamCD === 0;
++    }, undefined, { timeout: 40000 });
++
++    // --- branch 1: a real position OUTSIDE jam range is still rejected ---
++    // The authored relay now sits next to the door, so the out-of-range attempt
++    // has to be made from a genuinely distant, walkable cell (real walking).
++    const awayTarget = await page.evaluate(() => {
++      const w = (window as any).__game.scene.getScene('GameScene').world;
++      const room = w.currentRoom();
++      const relay = w.p1Scenario.relay;
++      let best: { x: number; y: number; d: number } | null = null;
++      for (const row of w.map.tiles) {
++        for (const t of row) {
++          if (t.x < room.gx || t.x >= room.gx + room.w) continue;
++          if (t.y < room.gy || t.y >= room.gy + room.h) continue;
++          if (!w.isWalkable(t.x + 0.5, t.y + 0.5, 0.5)) continue;
++          const d = Math.hypot(t.x + 0.5 - relay.x, t.y + 0.5 - relay.y);
++          if (!best || d > best.d) best = { x: t.x + 0.5, y: t.y + 0.5, d };
++        }
++      }
++      return { target: best, relay };
+     });
+-    expect(walker.portal, 'portal exists').not.toBeNull();
+-    for (let i = 0; i < 90; i++) {
+-      const info = await page.evaluate(() => {
++    expect(awayTarget.target, 'the room has a walkable cell away from the device').not.toBeNull();
++    for (let i = 0; i < 160; i++) {
++      const p = await page.evaluate(() => {
+         const w = (window as any).__game.scene.getScene('GameScene').world;
+-        return { player: { x: w.player.wx, y: w.player.wy }, portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null };
++        return { x: w.player.wx, y: w.player.wy };
+       });
+-      if (!info.portal) break;
+-      const dx = info.portal.x - info.player.x, dy = info.portal.y - info.player.y;
+-      if (Math.hypot(dx, dy) < 1.6) break;
++      const dx = awayTarget.target!.x - p.x, dy = awayTarget.target!.y - p.y;
++      if (Math.hypot(dx, dy) < 1.0) break;
+       const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
+       await page.keyboard.down(key);
+-      await page.waitForTimeout(80);
++      await page.waitForTimeout(90);
+       await page.keyboard.up(key);
+       await page.waitForTimeout(30);
+     }
+-    const atDoor = await page.evaluate(() => {
++    const farAway = await page.evaluate(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+       const sig = w.signalView();
+-      const relay = w.p1Scenario?.relay;
++      const relay = w.p1Scenario.relay;
+       return {
+         player: { x: w.player.wx, y: w.player.wy },
+-        portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null,
+-        relay,
+-        distanceRelayDoor: w.portal && relay ? Math.hypot(w.portal.wx - relay.x, w.portal.wy - relay.y) : null,
+-        distanceRelayPlayer: relay ? Math.hypot(w.player.wx - relay.x, w.player.wy - relay.y) : null,
++        distanceRelayPlayer: Math.hypot(w.player.wx - relay.x, w.player.wy - relay.y),
+         energy: sig?.playerEnergy ?? null,
+-        relayState: sig?.relay ?? null
++        relayState: sig?.relay ?? null,
++        jamCD: sig?.playerJamCD ?? null
+       };
+     });
+-    // The authored door is intentionally outside jam range (6 tiles).
+-    expect(atDoor.distanceRelayDoor, 'authored door is farther than JAM_RANGE from the relay').toBeGreaterThan(TUNE.JAM_RANGE);
+-    await page.keyboard.press('KeyY');
++    expect(farAway.distanceRelayPlayer, 'the player really walked outside JAM_RANGE').toBeGreaterThan(TUNE.JAM_RANGE);
++    expect(farAway.jamCD, 'the jam cooldown had already cleared (range, not cooldown)').toBe(0);
++    await tapKey(page, 'KeyY');
+     await page.waitForTimeout(500);
+-    const afterNaturalY = await page.evaluate(() => {
++    const afterFarY = await page.evaluate(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+       const sig = w.signalView();
+-      return { energy: sig?.playerEnergy ?? null, relayState: sig?.relay ?? null, jamCD: sig?.playerJamCD ?? null, room: w.currentRoom()?.id ?? null };
+-    });
+-    // Natural range rejection: no energy spent, relay unchanged.
+-    expect(afterNaturalY.relayState, 'a door-distance jam is rejected by range (relay unchanged)').toBe('ACTIVE');
+-    expect(afterNaturalY.energy, 'a rejected jam does not spend energy').toBe(atDoor.energy);
+-    record('p1-jam-range', {
+-      runner: 'agent (real walking + real Y)',
+-      fixtures: 'none for the natural rejection',
+-      distanceRelayDoor: atDoor.distanceRelayDoor,
+-      distanceRelayPlayer: atDoor.distanceRelayPlayer,
+-      jamRange: TUNE.JAM_RANGE,
+-      before: { energy: atDoor.energy, relay: atDoor.relayState },
+-      after: afterNaturalY,
+-      shot: await shot(page, '4-door-range-reject')
++      return { energy: sig?.playerEnergy ?? null, relayState: sig?.relay ?? null, jamCD: sig?.playerJamCD ?? null };
+     });
++    expect(afterFarY.relayState, 'an out-of-range jam is rejected (relay unchanged)').toBe('ACTIVE');
++    expect(afterFarY.jamCD, 'a rejected jam starts no cooldown').toBe(0);
++    expect(afterFarY.energy, 'a rejected jam does not spend energy').toBe(farAway.energy);
+ 
+-    // FIXTURE (labelled): the jam itself must be launched from inside JAM_RANGE
+-    // (the natural door-distance attempt above was correctly refused). Reposition
+-    // to the relay with the dev seam, then jam with a REAL key press, and walk
+-    // back to the door with REAL keys: the question here is only "does a JAMMED
+-    // relay let the door be passed?".
+-    await page.evaluate(() => {
++    // --- branch 2: the authored door IS inside jam range (P4 layout) ---
++    const door = await page.evaluate(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+-      w.setPlayerPositionForTest(w.p1Scenario.relay.x, w.p1Scenario.relay.y);
++      const relay = w.p1Scenario.relay;
++      return {
++        portal: w.portal ? { x: w.portal.wx, y: w.portal.wy, target: w.portal.targetRoom } : null,
++        doorToRelay: w.portal ? Math.hypot(w.portal.wx - relay.x, w.portal.wy - relay.y) : null
++      };
+     });
+-    await page.waitForTimeout(400);
+-    await page.keyboard.press('KeyY');
+-    await page.waitForTimeout(600);
+-    // Walk back to the door with real keys (no teleport for the approach).
+-    for (let i = 0; i < 120; i++) {
+-      const info = await page.evaluate(() => {
++    expect(door.portal, 'the authored route portal exists once the room is cleared').not.toBeNull();
++    expect(door.doorToRelay, 'authored door is inside JAM_RANGE (P4 natural layout)').toBeLessThanOrEqual(TUNE.JAM_RANGE);
++    for (let i = 0; i < 200; i++) {
++      const p = await page.evaluate(() => {
+         const w = (window as any).__game.scene.getScene('GameScene').world;
+-        return { player: { x: w.player.wx, y: w.player.wy }, portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null };
++        return { x: w.player.wx, y: w.player.wy };
+       });
+-      if (!info.portal) break;
+-      const dx = info.portal.x - info.player.x, dy = info.portal.y - info.player.y;
+-      if (Math.hypot(dx, dy) < 1.4) break;
++      const dx = door.portal!.x - p.x, dy = door.portal!.y - p.y;
++      if (Math.hypot(dx, dy) < 1.0) break;
+       const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
+       await page.keyboard.down(key);
+-      await page.waitForTimeout(80);
++      await page.waitForTimeout(90);
+       await page.keyboard.up(key);
+       await page.waitForTimeout(30);
+     }
++    const atDoor = await page.evaluate(() => {
++      const w = (window as any).__game.scene.getScene('GameScene').world;
++      const sig = w.signalView();
++      const relay = w.p1Scenario.relay;
++      return {
++        player: { x: w.player.wx, y: w.player.wy },
++        portal: w.portal ? { x: w.portal.wx, y: w.portal.wy } : null,
++        distanceRelayDoor: w.portal && relay ? Math.hypot(w.portal.wx - relay.x, w.portal.wy - relay.y) : null,
++        distanceRelayPlayer: relay ? Math.hypot(w.player.wx - relay.x, w.player.wy - relay.y) : null,
++        energy: sig?.playerEnergy ?? null,
++        relayState: sig?.relay ?? null
++      };
++    });
++    expect(atDoor.distanceRelayPlayer, 'the player standing on the door is inside JAM_RANGE').toBeLessThanOrEqual(TUNE.JAM_RANGE);
++
++    // Exact cost from the committed core event (regen makes the net delta smaller).
++    await page.evaluate(() => {
++      const w = (window as any).__game.scene.getScene('GameScene').world;
++      (window as any).__p1DoorBatches = [];
++      const orig = w.stepFrame.bind(w);
++      w.stepFrame = (dt: number, intent: any, echoIntent?: any) => {
++        const pre = w.signalView()?.playerEnergy ?? null;
++        const ev = orig(dt, intent, echoIntent) ?? [];
++        if (ev.length) (window as any).__p1DoorBatches.push({ pre, ev });
++        return ev;
++      };
++    });
++    await tapKey(page, 'KeyY');
++    await page.waitForFunction(() => {
++      const w = (window as any).__game.scene.getScene('GameScene').world;
++      return (w.signalView()?.relay ?? '') === 'JAMMED';
++    }, undefined, { timeout: 8000 });
++    const jamCommit = await page.evaluate(() => {
++      const batches = ((window as any).__p1DoorBatches ?? []) as any[];
++      for (const b of batches) {
++        const i = (b.ev as any[]).findIndex((e) => e.type === 'signal-jammed');
++        if (i < 0) continue;
++        let before: number | null = null;
++        for (let k = i - 1; k >= 0; k--) {
++          if (typeof b.ev[k].energy === 'number') { before = b.ev[k].energy; break; }
++        }
++        const regen = (b.ev as any[]).slice(0, i).filter((e) => e.type === 'signal-energy').length;
++        if (before === null) before = b.pre;
++        return {
++          actorId: b.ev[i].actorId, ok: b.ev[i].ok !== false, energy: b.ev[i].energy, before,
++          relay: b.ev[i].relay, regenEvents: regen,
++          source: regen > 0 ? 'energy-event-in-batch' : 'pre-tick-energy'
++        };
++      }
++      return null;
++    });
+     const jammedAtDoor = await page.evaluate(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+       const sig = w.signalView();
+-      return { relay: sig?.relay ?? null, portal: w.portal ? { target: w.portal.targetRoom } : null, routeTarget: w.p1RouteTarget ?? null, room: w.currentRoom()?.id ?? null };
++      return {
++        relay: sig?.relay ?? null, energy: sig?.playerEnergy ?? null,
++        portal: w.portal ? { target: w.portal.targetRoom } : null,
++        routeTarget: w.p1RouteTarget ?? null, room: w.currentRoom()?.id ?? null
++      };
+     });
+-    expect(jammedAtDoor.relay, 'fixture jam is committed by the core').toBe('JAMMED');
++    expect(jamCommit, 'the door jam committed a signal-jammed core event').not.toBeNull();
++    expect(jamCommit!.ok, 'the core accepted the door jam (range + LOS)').toBe(true);
++    expect(jamCommit!.actorId, 'the jam was committed by the PLAYER actor').toBe(0);
++    expect(jamCommit!.before! - jamCommit!.energy!, `jam deducts exactly ${TUNE.JAM_COST} (event payload)`).toBe(TUNE.JAM_COST);
++    const netJamDelta = atDoor.energy! - jammedAtDoor.energy!;
++    expect(jammedAtDoor.relay, 'fixture-free jam from the real door is committed').toBe('JAMMED');
+     expect(jammedAtDoor.portal, 'no authored route portal exists while JAMMED').toBeNull();
+-    await page.keyboard.press('KeyF');
++    expect(jammedAtDoor.routeTarget, 'JAMMED matches neither authored route').toBeNull();
++    await tapKey(page, 'KeyF');
+     await page.waitForTimeout(700);
+     const afterF = await page.evaluate(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+       return { room: w.currentRoom()?.id ?? null };
+     });
+-    expect(afterF.room, 'F at the door while JAMMED does not change rooms').toBe(atDoor.portal ? jammedAtDoor.room : afterF.room);
+-    record('p1-jam-door-fixture', {
+-      runner: 'agent (real F)',
+-      fixtures: 'FIXTURE: setPlayerPositionForTest(relay) so the real-key jam is in range; the door approach is real walking',
+-      jammed: jammedAtDoor, roomAfterF: afterF.room, roomBefore: jammedAtDoor.room,
+-      proves: 'a JAMMED relay closes the authored route portal and F cannot pass',
+-      cannotProve: 'that a player can jam from the door (natural attempt above was range-rejected)'
++    expect(afterF.room, 'F at the door while JAMMED does not change rooms').toBe(jammedAtDoor.room);
++
++    // --- expiry through REAL ticks restores a selectable route, no fixture ---
++    await page.waitForFunction(() => {
++      const w = (window as any).__game.scene.getScene('GameScene').world;
++      return (w.signalView()?.relay ?? '') !== 'JAMMED';
++    }, undefined, { timeout: 60000 });
++    const recovered = await page.evaluate(() => {
++      const w = (window as any).__game.scene.getScene('GameScene').world;
++      const sig = w.signalView();
++      return {
++        relay: sig?.relay ?? null,
++        portal: w.portal ? { target: w.portal.targetRoom } : null,
++        routeTarget: w.p1RouteTarget ?? null
++      };
++    });
++    expect(recovered.relay, 'the relay recovers after the jam expires').toBe('ACTIVE');
++    expect(recovered.portal, 'the route portal is selectable again after expiry').not.toBeNull();
++    expect(recovered.routeTarget, 'route A is selectable again').toBe(1);
++    await page.evaluate(() => {
++      const w = (window as any).__game.scene.getScene('GameScene').world;
++      delete (w as any).stepFrame;
++    });
++    record('p1-jam-range-door', {
++      runner: 'agent (real walking + real Y, real F)',
++      fixtures: 'none for either jam (both positions are real)',
++      fight,
++      outOfRange: {
++        distanceRelayPlayer: farAway.distanceRelayPlayer,
++        targetCell: awayTarget.target,
++        before: { energy: farAway.energy, relay: farAway.relayState, jamCD: farAway.jamCD },
++        after: afterFarY,
++        proves: 'a legal Y outside JAM_RANGE spends nothing and changes nothing'
++      },
++      atDoor: {
++        distanceRelayDoor: atDoor.distanceRelayDoor,
++        distanceRelayPlayer: atDoor.distanceRelayPlayer,
++        before: { energy: atDoor.energy, relay: atDoor.relayState },
++        commit: jamCommit, netDelta: netJamDelta,
++        note: 'exact 25 comes from the committed signal-jammed event; the net view delta is smaller because of regen',
++        jammed: jammedAtDoor, roomAfterF: afterF.room,
++        proves: 'the authored door is naturally jam-usable and a JAMMED relay closes the authored route portal (F cannot pass)'
++      },
++      recovered,
++      shot: await shot(page, '4-door-range-jam')
+     });
+   });
+ 
+   test('5) save -> page reload -> CONTINUE restores room, relay and route target', async ({ page }) => {
+     await bootDemo(page);
+-    await page.keyboard.press('KeyR'); // manual OFF first: stops linked fire AND gives a non-default route
++    await tapKey(page, 'KeyR'); // manual OFF first: stops linked fire AND gives a non-default route
+     await page.waitForTimeout(500);
+     const fight = await fightUntilCleared(page, 120000);
+     expect(fight.cleared, 'room cleared by real play').toBe(true);
+diff --git a/tests/gameplay-02-echo-coop.spec.ts b/tests/gameplay-02-echo-coop.spec.ts
+index 844f20c..d79d424 100644
+--- a/tests/gameplay-02-echo-coop.spec.ts
++++ b/tests/gameplay-02-echo-coop.spec.ts
+@@ -216,37 +216,82 @@ async function waitForLocalProposal(page: Page, timeout = 20000): Promise<boolea
+  * then fight with real mouse aim + real movement keys. No enemy clearing, no
+  * teleport, no heal.
+  */
+-async function clearRoomByRealPlay(page: Page, maxMs = 120000): Promise<{ cleared: boolean; shots: number }> {
+-  const before = await page.evaluate(() => {
+-    const w = (window as any).__game.scene.getScene('GameScene').world;
+-    return { relay: w.signalView()?.relay ?? null, energy: w.signalView()?.playerEnergy ?? null };
+-  });
+-  if (before.relay === 'ACTIVE') {
+-    await page.keyboard.press('KeyY'); // real jam (in range from the start tile)
+-    // The jam may be refused (range/cooldown); the strategy then continues with
+-    // the un-jammed relay, so this is a measurement, not a hard requirement.
+-    await page.waitForFunction(() => {
+-      const w = (window as any).__game.scene.getScene('GameScene').world;
+-      const relay = w.signalView()?.relay ?? null;
+-      return relay === 'JAMMED' || relay === 'INACTIVE';
+-    }, undefined, { timeout: 6000 }).catch(() => undefined);
+-  }
+-  const started = Date.now();
+-  let shots = 0;
+-  while (Date.now() - started < maxMs) {
++async function clearRoomByRealPlay(page: Page, maxMs = 120000): Promise<any> {
++  // The scene can be "active" while create() still builds the world/cameras.
++  await page.waitForFunction(() => {
++    const gs: any = (window as any).__game?.scene.getScene('GameScene');
++    return !!gs?.world && gs.world.sim.tick > 0 && !!gs.cameras?.main;
++  }, undefined, { timeout: 30000 });
++
++  /** Wait until the fixed-tick simulation has consumed at least `n` ticks.
++   *  Bounded: the harness never waits on wall-clock as if it were a game tick. */
++  const tickAdvance = async (from: number, n = 1, timeoutMs = 1500): Promise<number> => {
++    const okWait = await page.waitForFunction(({ t, k }: any) => {
++      const w = (window as any).__game?.scene.getScene('GameScene')?.world;
++      return !!w && w.sim.tick >= t + k;
++    }, { t: from, k: n }, { timeout: timeoutMs }).then(() => true).catch(() => false);
++    void okWait;
++    return page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.sim.tick);
++  };
++  const tick = async (): Promise<number> => page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.sim.tick);
++
++  /** A real overlay (level-up card etc.) owns input: clear it by a real click on
++   *  the overlay's own card/button, never by closing a scene programmatically. */
++  /** Only the REAL level-up card is cleared, with a real click on the card.
++   *  Any other overlay (GameOver, Pause, unknown) is reported, never clicked:
++   *  clicking those would restart/leave the run and turn a failure into a hang. */
++  const clearOverlay = async (): Promise<{ cleared: string | null; bail: string | null }> => {
++    const overlay = await page.evaluate(() => {
++      const g: any = (window as any).__game;
++      const active = g.scene.getScenes(true).map((s: any) => s.sys.settings.key);
++      const extra = active.filter((k: string) => k !== 'GameScene');
++      if (extra.length === 0) return null;
++      const key = extra[0];
++      if (key !== 'LevelUpScene') return { key, allowed: false, x: null, y: null };
++      const s: any = g.scene.getScene(key);
++      const flat: any[] = [];
++      const walk = (l: any[]) => { for (const c of l) { if (c?.type === 'Container' && c.list) walk(c.list); else flat.push(c); } };
++      walk(s.children.list);
++      const hit = flat.find((c) => c.input && c.input.enabled !== false && c.visible !== false);
++      const b = hit?.getBounds ? hit.getBounds() : null;
++      return { key, allowed: true, x: b ? b.x + b.width / 2 : null, y: b ? b.y + b.height / 2 : null };
++    });
++    if (!overlay) return { cleared: null, bail: null };
++    if (!overlay.allowed) return { cleared: null, bail: `unexpected overlay "${overlay.key}" active; not clicked (only LevelUpScene is whitelisted)` };
++    if (overlay.x === null) return { cleared: null, bail: 'LevelUpScene active with no clickable card (real click impossible)' };
++    await clickLogical(page, overlay.x as number, overlay.y as number);
++    await page.waitForTimeout(250);
++    return { cleared: `LevelUpScene card clicked (real click)`, bail: null };
++  };
++
++  const events: any[] = [];
++  const sample = async (tag: string) => {
+     const info = await page.evaluate(() => {
+-      const g = (window as any).__game;
++      const g: any = (window as any).__game;
+       const gs: any = g.scene.getScene('GameScene');
+-      const w = gs.world;
++      const w: any = gs?.world;
++      if (!w || !gs.cameras?.main) return { notReady: true };
+       const room = w.currentRoom();
+-      const cleared = !!(room && w.map.rooms[room.id] && w.map.rooms[room.id].cleared);
++      const rec = room ? w.map.rooms[room.id] : null;
++      // Enemy HP is read from the canonical sim drone that matches the sprite
++      // position (same id space, read-only). When no sim drone matches, the
++      // sample records `notCaptured` instead of fabricating a null curve.
++      const simDrones = ((w.sim?.drones as any[]) ?? []).filter((d: any) => d.hp > 0)
++        .map((d: any) => ({ id: d.id, x: d.x, y: d.y, hp: d.hp }));
+       const list = ((w.enemies as any[]) ?? []).map((e: any) => {
+         const x = typeof e._wx === 'number' ? e._wx : (e.wx ?? e.x);
+         const y = typeof e._wy === 'number' ? e._wy : (e.wy ?? e.y);
+-        return { x, y, d: Math.hypot(x - w.player.wx, y - w.player.wy) };
++        let near: any = null;
++        let nd = Infinity;
++        for (const d of simDrones) {
++          const dd = Math.hypot(d.x - x, d.y - y);
++          if (dd < nd) { nd = dd; near = d; }
++        }
++        const hp = near && nd <= 0.75 ? near.hp : 'notCaptured';
++        return { x, y, hp, hpSource: near && nd <= 0.75 ? `sim-drone#${near.id}@${nd.toFixed(2)}` : 'no matching sim drone', d: Math.hypot(x - w.player.wx, y - w.player.wy) };
+       }).sort((a, b) => a.d - b.d);
+       const pick = list[0];
+-      let screen = null;
++      let screen: { x: number; y: number } | null = null;
+       if (pick) {
+         const cam = gs.cameras.main;
+         const d = w.worldToScreen(pick.x, pick.y);
+@@ -257,32 +302,86 @@ async function clearRoomByRealPlay(page: Page, maxMs = 120000): Promise<{ cleare
+         const ay = (py.y - p0.y) / 100, by = p0.y;
+         screen = { x: (d.x - bx) / ax, y: (d.y - by) / ay };
+       }
+-      return { cleared, enemy: pick ? { ...pick, screen } : null, player: { x: w.player.wx, y: w.player.wy }, hp: w.player.data.hp };
++      return {
++        notReady: false,
++        tick: w.sim.tick,
++        cleared: !!(rec && rec.cleared),
++        spawned: !!(rec && rec.spawned),
++        enemy: pick ? { ...pick, screen } : null,
++        enemiesAlive: list.length,
++        player: { x: w.player.wx, y: w.player.wy },
++        hp: w.player.data.hp,
++        gameOver: g.scene.isActive('GameOverScene'),
++        paused: !!gs.paused,
++        levelUpActive: !!gs.levelUpActive,
++        owner: w.player.control?.owner ?? null,
++        active: g.scene.getScenes(true).map((s: any) => s.sys.settings.key),
++        relay: w.signalView?.()?.relay ?? null
++      };
+     });
+-    if (info.cleared) return { cleared: true, shots };
++    events.push({ tag, atMs: Date.now(), ...(info as any) });
++    return info as any;
++  };
++
++  const t0Tick = await tick();
++  if ((await sample('start')).relay === 'ACTIVE') {
++    await page.keyboard.press('KeyY'); // real jam attempt (may be refused; measured)
++    await tickAdvance(t0Tick, 2, 3000);
++  }
++
++  const started = Date.now();
++  let shots = 0;
++  let inputs = 0;
++  while (Date.now() - started < maxMs) {
++    const overlay = await clearOverlay();
++    if (overlay.cleared) events.push({ tag: 'overlay', note: overlay.cleared, atMs: Date.now() });
++    if (overlay.bail) events.push({ tag: 'bail', note: overlay.bail, atMs: Date.now() });
++    const info = await sample('loop');
++    if (info.notReady) { await page.waitForTimeout(200); continue; }
++    if (info.cleared) return { cleared: true, shots, inputs, events, elapsedMs: Date.now() - started };
++    // Death is a distinct outcome, never "the room did not clear": report it and
++    // stop driving (no restart, no menu click, no heal).
++    if ((info.hp ?? 0) <= 0 || info.gameOver) {
++      events.push({ tag: 'death', note: `hp=${info.hp} gameOver=${info.gameOver}`, atMs: Date.now() });
++      return { cleared: false, died: true, hp: info.hp, gameOver: info.gameOver, shots, inputs, events, elapsedMs: Date.now() - started };
++    }
++    // An overlay we are not allowed to touch means the driver cannot make
++    // progress: bail out with the reason instead of clicking through it.
++    if ((events[events.length - 1]?.tag === 'bail') && overlay.bail) {
++      return { cleared: false, died: false, blocked: overlay.bail, shots, inputs, events, elapsedMs: Date.now() - started };
++    }
++
++    const before = info.tick;
+     if (!info.enemy || !info.enemy.screen) {
+       await page.keyboard.down('KeyD');
+-      await page.waitForTimeout(200);
++      const after = await tickAdvance(before, 2);
+       await page.keyboard.up('KeyD');
++      if (after === before) { events.push({ tag: 'stall', note: 'no tick advanced while KeyD held', atMs: Date.now() }); }
++      inputs += 1;
+       continue;
+     }
+     if (info.enemy.d > 4.5) {
+       const dx = info.enemy.x - info.player.x, dy = info.enemy.y - info.player.y;
+       const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
+       await page.keyboard.down(key);
+-      await page.waitForTimeout(300);
++      const after = await tickAdvance(before, 2);
+       await page.keyboard.up(key);
++      if (after === before) events.push({ tag: 'stall', note: `no tick advanced while ${key} held`, atMs: Date.now() });
++      inputs += 1;
+       continue;
+     }
+     const box = await canvasBox(page);
+     await page.mouse.move(box.x + (info.enemy.screen.x * box.w) / LOCAL_W, box.y + (info.enemy.screen.y * box.h) / LOCAL_H);
+     await page.mouse.down();
+-    await page.waitForTimeout(360);
++    const after = await tickAdvance(before, 3);
+     await page.mouse.up();
+-    shots++;
+-    await page.waitForTimeout(70);
++    if (after === before) events.push({ tag: 'stall', note: 'no tick advanced while firing', atMs: Date.now() });
++    shots += 1;
++    inputs += 1;
++    await page.waitForTimeout(40);
+   }
+-  return { cleared: false, shots };
++  const fin = await sample('timeout');
++  return { cleared: false, shots, inputs, events, elapsedMs: Date.now() - started, final: fin };
+ }
+ 
+ test.describe('GAMEPLAY-01 P2 · ECHO local cooperation', () => {
+@@ -526,6 +625,8 @@ test.describe('GAMEPLAY-01 P2 · ECHO local cooperation', () => {
+     // A checkpoint can only be captured in a CLEARED room (product rule), so the
+     // room is cleared by real play first (no enemy clearing / teleport / heal).
+     const cleared = await clearRoomByRealPlay(page);
++    expect(cleared.died ?? false,
++      `the player must not die during the real clear (hp=${cleared.hp}, gameOver=${cleared.gameOver})`).toBe(false);
+     expect(cleared.cleared, 'the authored room was cleared by real play').toBe(true);
+     // Let the product persist a valid save (pause tick -> checkpoint write).
+     await page.keyboard.press('Escape');
+@@ -566,7 +667,17 @@ test.describe('GAMEPLAY-01 P2 · ECHO local cooperation', () => {
+       const w = g.scene.getScene('GameScene').world;
+       return { active: g.scene.getScenes(true).map((s: any) => s.sys.settings.key), optIn: w.echoCooperation, echo: !!w.echoActor, pending: w.echoPendingLocal ? { ...w.echoPendingLocal } : null };
+     });
++    const clearSummary = {
++      cleared: cleared.cleared, shots: cleared.shots, inputs: cleared.inputs, elapsedMs: cleared.elapsedMs,
++      ticksAdvanced: cleared.events?.length
++        ? (cleared.events[cleared.events.length - 1]?.tick ?? 0) - (cleared.events[0]?.tick ?? 0)
++        : null,
++      stalls: (cleared.events ?? []).filter((e: any) => e.tag === 'stall'),
++      overlays: (cleared.events ?? []).filter((e: any) => e.tag === 'overlay'),
++      trace: (cleared.events ?? []).slice(0, 12)
++    };
+     record('legacy-save', {
++      clearPlay: clearSummary,
+       runner: 'agent (real reload + CONTINUE click)',
+       fixtures: 'fixture: remove ONLY the new optional cooperation fields from a product-written save',
+       removedFields: ['permanent.echoCooperationOptIn'],
+@@ -593,7 +704,18 @@ test.describe('GAMEPLAY-01 P2 · ECHO local cooperation', () => {
+     // Precondition (product rule): a checkpoint is only captured in a cleared
+     // room, so the room is cleared by real play first.
+     const cleared = await clearRoomByRealPlay(page);
++    expect(cleared.died ?? false,
++      `the player must not die during the real clear (hp=${cleared.hp}, gameOver=${cleared.gameOver})`).toBe(false);
+     expect(cleared.cleared, 'the authored room was cleared by real play').toBe(true);
++    const clearSummary = {
++      cleared: cleared.cleared, shots: cleared.shots, inputs: cleared.inputs, elapsedMs: cleared.elapsedMs,
++      ticksAdvanced: cleared.events?.length
++        ? (cleared.events[cleared.events.length - 1]?.tick ?? 0) - (cleared.events[0]?.tick ?? 0)
++        : null,
++      stalls: (cleared.events ?? []).filter((e: any) => e.tag === 'stall'),
++      overlays: (cleared.events ?? []).filter((e: any) => e.tag === 'overlay'),
++      trace: (cleared.events ?? []).slice(0, 12)
++    };
+     const beforePause = await page.evaluate(() => {
+       const w = (window as any).__game.scene.getScene('GameScene').world;
+       return { roomId: w.currentRoom()?.id ?? null, demo: w.p1Scenario?.id ?? null, tick: w.sim.tick, echoHp: w.echoActor?.data.hp ?? null, energy: w.signalView()?.playerEnergy ?? 0 };
+@@ -722,6 +844,7 @@ test.describe('GAMEPLAY-01 P2 · ECHO local cooperation', () => {
+       }
+     }).catch(() => undefined);
+     record('save-reload-boundary', {
++      clearPlay: clearSummary,
+       runner: 'agent (real pause-menu clicks + real reload + real CONTINUE)',
+       fixtures: 'none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm',
+       beforePause, confirmed, after,
+diff --git a/tests/gameplay-04-coop-level.spec.ts b/tests/gameplay-04-coop-level.spec.ts
+new file mode 100644
+index 0000000..843a93f
+--- /dev/null
++++ b/tests/gameplay-04-coop-level.spec.ts
+@@ -0,0 +1,1178 @@
++// GAMEPLAY-01 · P4 — Demo-01 entry, Demo-03 authored cooperation level.
++//
++// Runner labels (used in every record):
++//   agent     — Agent-driven real mouse/keyboard (NOT a human)
++//   fixture   — a labelled dev/test seam did something (Owner auto-confirm, seed
++//               override, event tap); never a clearEnemies / teleport / heal and
++//               never a fabricated `cleared`
++//   autoOwner — an automated Owner confirmation (never a human click)
++//   human     — an actual person: none here → HUMAN ACCEPTANCE PENDING
++//
++// Rules encoded here (tester owns tests/**; product source untouched):
++//  - play is real keyboard/mouse. The driver is NON-BLIND (it reads canonical
++//    state to aim and to route); it is not a human blind playtest.
++//  - completion is read from the AUTHORITATIVE flag `map.rooms[id].cleared`
++//    (plus the core `room-cleared` commit event). "0 drones alive" is recorded
++//    but is never the gate (reviewer M1).
++//  - the Headless model must answer the SAME state for the same seed; its
++//    `routeState.roomCleared` is checked against its own `map.rooms[id].cleared`
++//    and against the commit event, never against a live-drone count.
++//  - jam cost is taken from the committed core event (`signal-jammed.energy`),
++//    not from a post-sample net delta (regen makes the net smaller).
++//  - same seed runs HumanOnly and HumanEcho; nothing asserts ECHO is better.
++//  - archive, checkpoint reload and raw headless replay are three different
++//    things and are asserted separately.
++
++import { test, expect, type Page } from '@playwright/test';
++import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
++import path from 'node:path';
++import { HeadlessWorld } from '../src/ai-native/worldHeadless';
++
++const PORT = Number(process.env.PORT ?? 5492);
++const BASE = path.resolve(process.env.LS_P4_DIR ?? 'reports/gameplay-01/tester/p4-final/run1');
++const SAVE_KEY = 'last_signal_save_v1';
++const LOCAL_W = 1280;
++const LOCAL_H = 720;
++const SEEDS = [20261117, 20261118, 20261119] as const;
++/** Real tuning (src/signal/signalTuning.ts) — expectations, not knobs. */
++const TUNE = { SCAN_COST: 10, JAM_COST: 25, JAM_RANGE: 6, ENERGY_MAX: 100, JAM_DURATION_TICKS: 360 };
++
++type Mode = 'HumanOnly' | 'HumanEcho';
++
++function outDir(kind: 'evidence' | 'shots'): string {
++  const dir = path.join(BASE, kind);
++  mkdirSync(dir, { recursive: true });
++  return dir;
++}
++function rec(name: string, data: unknown): void {
++  writeFileSync(path.join(outDir('evidence'), `${name}.json`), JSON.stringify(data, null, 2));
++}
++async function shot(page: Page, name: string): Promise<string> {
++  const file = path.join(outDir('shots'), `${name}.png`);
++  await page.screenshot({ path: file });
++  return file;
++}
++
++// ---------------------------------------------------------------------------
++// input + menu (proven helpers, same shape as the P1 acceptance spec)
++// ---------------------------------------------------------------------------
++
++/** One real frame edge: keydown -> at least one real game frame -> keyup. */
++async function tapKey(page: Page, code: string): Promise<void> {
++  const t0 = await page.evaluate(() => (window as any).__game?.loop?.frame ?? -1);
++  await page.keyboard.down(code);
++  await page.waitForFunction((f: number) => ((window as any).__game?.loop?.frame ?? f) > f, t0, { timeout: 4000 });
++  await page.keyboard.up(code);
++  await page.waitForTimeout(120);
++}
++
++async function canvasBox(page: Page) {
++  const box = await page.evaluate(() => {
++    const c = document.querySelector('canvas');
++    if (!c) return null;
++    const r = c.getBoundingClientRect();
++    return { x: r.x, y: r.y, w: r.width, h: r.height };
++  });
++  if (!box) throw new Error('no canvas');
++  return box;
++}
++async function clickLogical(page: Page, lx: number, ly: number): Promise<void> {
++  const box = await canvasBox(page);
++  await page.mouse.click(box.x + (lx * box.w) / LOCAL_W, box.y + (ly * box.h) / LOCAL_H);
++}
++async function clickLabel(page: Page, sceneKey: string, label: string): Promise<void> {
++  const logical = await page.evaluate(({ key, label }) => {
++    const g = (window as any).__game;
++    const s = g.scene.getScene(key);
++    if (!s || !g.scene.isActive(key)) return null;
++    const flat: any[] = [];
++    const walk = (list: any[]) => {
++      for (const c of list) {
++        if (c.type === 'Container' && Array.isArray(c.list)) { walk(c.list); continue; }
++        flat.push(c);
++      }
++    };
++    walk(s.children.list);
++    const centre = (c: any) => {
++      const b = c.getBounds ? c.getBounds() : null;
++      return b ? { x: b.x + b.width / 2, y: b.y + b.height / 2 } : null;
++    };
++    const matches = flat.filter((c) => c.type === 'Text' && c.visible !== false && c.text && String(c.text).includes(label));
++    if (!matches.length) return null;
++    const interactive = flat.filter((c) => c.input && c.input.enabled !== false && c.visible !== false);
++    const pick = matches.find((m) => {
++      const c = centre(m);
++      if (!c) return false;
++      if (m.input) return true;
++      return interactive.some((o) => {
++        const oc = centre(o);
++        return !!oc && Math.abs(oc.x - c.x) <= 4 && Math.abs(oc.y - c.y) <= 4;
++      });
++    }) ?? matches[0];
++    return centre(pick);
++  }, { key: sceneKey, label });
++  expect(logical, `label "${label}" visible in ${sceneKey}`).not.toBeNull();
++  await clickLogical(page, logical!.x, logical!.y);
++  await page.waitForTimeout(250);
++}
++
++/** Real menu entry: the ORDINARY DEMO 01 entry (which shows the Demo-03 level). */
++async function bootDemo(page: Page, seed?: number): Promise<void> {
++  await page.goto(`http://localhost:${PORT}/`);
++  await page.evaluate((key) => localStorage.removeItem(key), SAVE_KEY);
++  await page.reload();
++  await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'), { timeout: 30000 });
++  await page.waitForTimeout(400);
++  if (seed !== undefined) {
++    await page.evaluate((s) => {
++      const menu: any = (window as any).__game.scene.getScene('MainMenuScene');
++      const orig = menu.scene.start.bind(menu.scene);
++      menu.scene.start = (key: string, data?: any) =>
++        key === 'GameScene' ? orig(key, { ...(data ?? {}), seed: s }) : orig(key, data);
++    }, seed);
++  }
++  await clickLabel(page, 'MainMenuScene', 'DEMO 01');
++  await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 30000 });
++  await page.waitForTimeout(900);
++}
++
++// ---------------------------------------------------------------------------
++// read-only state probe
++// ---------------------------------------------------------------------------
++
++async function snap(page: Page) {
++  return page.evaluate(() => {
++    const g = (window as any).__game;
++    const gs: any = g.scene.getScene('GameScene');
++    const w: any = gs.world;
++    if (!w) return null;
++    const sig: any = w.signalView ? w.signalView() : null;
++    const room = w.currentRoom();
++    const roomRec = room ? w.map.rooms[room.id] : null;
++    const sc: any = w.p1Scenario;
++    const obs: any = w.observationView ? w.observationView() : null;
++    const portal = w.portal;
++    const spr = portal?.spr ?? null;
++    return {
++      seed: gs.seed ?? null,
++      tick: w.sim.tick,
++      page: g.scene.getScene('PauseScene')?.currentPage ?? 'game',
++      room: room ? { id: room.id, kind: room.kind } : null,
++      roomFlags: roomRec ? { spawned: !!roomRec.spawned, cleared: !!roomRec.cleared, kind: roomRec.kind } : null,
++      mapCleared: roomRec ? !!roomRec.cleared : null,
++      player: { x: w.player.wx, y: w.player.wy, hp: w.player.data.hp },
++      portal: portal ? { x: portal.wx, y: portal.wy, target: portal.targetRoom } : null,
++      portalSprite: spr ? { x: spr.x, y: spr.y } : null,
++      observedPortal: obs?.portal ?? null,
++      relay: sig ? { state: sig.relay, manual: sig.manualEnabled, powered: sig.powered, jamUntil: sig.jammedUntilTick, evidence: sig.evidence } : null,
++      energy: sig ? { player: sig.playerEnergy, echo: sig.echoEnergy, jamCD: sig.playerJamCD } : null,
++      scenario: sc ? {
++        id: sc.id, roomId: sc.roomId, startRoomId: sc.startRoomId,
++        relay: sc.relay, playerStart: sc.playerStart, drones: sc.drones.length,
++        routes: sc.routes.map((r: any) => ({ target: r.target, when: r.when, portal: r.portal ?? null }))
++      } : null,
++      scenarioError: w.p1ScenarioError ?? null,
++      routeTarget: w.p1RouteTarget ?? null,
++      jamRemaining: w.p1JamRemainingTicks ?? null,
++      linkedFire: w.p1LinkedFireEnabled ?? null,
++      liveDrones: (w.sim.drones ?? []).filter((d: any) => d.hp > 0).length,
++      enemies: (w.enemies ?? []).length,
++      echo: w.echoActor ? { exists: true, hp: w.echoActor.data?.hp ?? 0, energy: sig?.echoEnergy ?? null } : { exists: false, hp: 0, energy: null },
++      proposal: w.echoLocalProposal ? { id: w.echoLocalProposal.id, kind: w.echoLocalProposal.kind } : null,
++      pending: w.echoPendingLocal ?? null,
++      companionStatus: gs.companionStatus ?? null
++    };
++  });
++}
++
++type Snap = Awaited<ReturnType<typeof snap>>;
++
++/** Read-only capture of committed core events: wraps the EXISTING stepFrame with an
++ *  own property (no extra step, no input change). `pre` is the energy reading taken
++ *  before the batch, used only when no energy event precedes the commit. */
++async function installEventTap(page: Page): Promise<void> {
++  await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    (window as any).__p4Batches = [];
++    if ((w as any).__p4tapped) return;
++    const orig = w.stepFrame.bind(w);
++    w.stepFrame = (dt: number, intent: any, echoIntent?: any) => {
++      const pre = w.signalView()?.playerEnergy ?? null;
++      const ev = orig(dt, intent, echoIntent) ?? [];
++      if (ev.length) (window as any).__p4Batches.push({ pre, ev, tick: w.sim.tick });
++      return ev;
++    };
++    (w as any).__p4tapped = true;
++  });
++}
++async function dropEventTap(page: Page): Promise<void> {
++  await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    if ((w as any).__p4tapped) { delete w.stepFrame; delete w.__p4tapped; }
++  });
++}
++
++/** Exact energy cost of the first committed `signal-jammed`/`signal-scanned`
++ *  event of the given actor, derived from the event payload (never a net delta). */
++async function signalCommit(page: Page, type: 'signal-jammed' | 'signal-scanned', actorId = 0) {
++  return page.evaluate(({ type, actorId }) => {
++    const batches = ((window as any).__p4Batches ?? []) as any[];
++    for (const b of batches) {
++      const i = (b.ev as any[]).findIndex((e) => e.type === type && e.actorId === actorId);
++      if (i < 0) continue;
++      let before: number | null = null;
++      for (let k = i - 1; k >= 0; k--) {
++        if (typeof b.ev[k].energy === 'number') { before = b.ev[k].energy; break; }
++      }
++      const regenInBatch = (b.ev as any[]).slice(0, i).filter((e) => e.type === 'signal-energy').length;
++      if (before === null) before = b.pre;
++      return {
++        actorId: b.ev[i].actorId, ok: b.ev[i].ok !== false, code: b.ev[i].code ?? null,
++        energy: b.ev[i].energy ?? null, before,
++        relay: b.ev[i].relay ?? null, jamExpiresAtTick: b.ev[i].jamExpiresAtTick ?? null,
++        regenEvents: regenInBatch, tick: b.tick,
++        source: regenInBatch > 0 ? 'energy-event-in-batch' : 'pre-tick-energy'
++      };
++    }
++    return null;
++  }, { type, actorId });
++}
++
++/** First committed signal event of a type since the last batches reset, whatever
++ *  actor the product charged. Returns the event plus the pre-tick energy of its
++ *  batch, so the exact cost comes from the payload (never a regen net delta). */
++async function signalCommitAny(page: Page, type: 'signal-jammed' | 'signal-scanned') {
++  return page.evaluate((t: string) => {
++    const batches = ((window as any).__p4Batches ?? []) as any[];
++    for (const b of batches) {
++      const i = (b.ev as any[]).findIndex((e) => e.type === t);
++      if (i < 0) continue;
++      return {
++        actorId: b.ev[i].actorId, ok: b.ev[i].ok !== false, code: b.ev[i].code ?? null,
++        energy: b.ev[i].energy ?? null, pre: b.pre ?? null,
++        relay: b.ev[i].relay ?? null, batchTick: b.tick,
++        energyEventsBefore: (b.ev as any[]).slice(0, i).filter((e) => e.type === 'signal-energy').length
++      };
++    }
++    return null;
++  }, type);
++}
++
++/** Did the core commit a room clear for this room? (authoritative commit event) */
++async function roomClearedEvents(page: Page, roomId: number) {
++  return page.evaluate((rid: number) => {
++    const out: any[] = [];
++    for (const b of (((window as any).__p4Batches ?? []) as any[])) {
++      for (const e of b.ev as any[]) {
++        if (e.type === 'room-cleared' && e.roomId === rid) out.push({ tick: b.tick, event: e });
++      }
++    }
++    return out;
++  }, roomId);
++}
++
++// ---------------------------------------------------------------------------
++// input-consumption diagnostics (read-only): which stepFrame actually processed
++// the ticks, so a key edge can be judged by simulation progress, not by sleep.
++// ---------------------------------------------------------------------------
++
++/** Per-stepFrame trace: ticks processed, queue before/after, signal events emitted. */
++async function installStepTrace(page: Page): Promise<void> {
++  await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    if ((w as any).__p4sfTap) return;
++    (window as any).__p4sf = [];
++    const orig = w.stepFrame.bind(w);
++    w.stepFrame = (dt: number, intent: any, echoIntent?: any) => {
++      const t0 = w.sim.tick;
++      const queueBefore = (w.sim.pendingCommands ?? []).map((c: any) => c.type);
++      const energyBefore = w.signalView?.()?.playerEnergy ?? null;
++      const ev = orig(dt, intent, echoIntent) ?? [];
++      const t1 = w.sim.tick;
++      (window as any).__p4sf.push({
++        t0, t1, ticks: t1 - t0, queueBefore,
++        queueAfter: (w.sim.pendingCommands ?? []).map((c: any) => c.type),
++        energyBefore, energyAfter: w.signalView?.()?.playerEnergy ?? null,
++        ev: ev.map((e: any) => `${e.type}${e.actorId !== undefined ? '#' + e.actorId : ''}`),
++        loopFrame: (window as any).__game?.loop?.frame ?? null
++      });
++      return ev;
++    };
++    (w as any).__p4sfTap = true;
++  });
++}
++
++/** Everything the core checks for a HUMAN jam, read from the real world state. */
++async function jamPreconditions(page: Page) {
++  return page.evaluate(() => {
++    const g: any = (window as any).__game;
++    const gs: any = g.scene.getScene('GameScene');
++    const w: any = gs?.world;
++    if (!w) return { ok: false, checks: { world: false } };
++    const sv: any = w.signalView?.() ?? null;
++    const sc: any = w.p1Scenario;
++    const relay = sc?.relay;
++    const dist = relay ? Math.hypot(w.player.wx - relay.x, w.player.wy - relay.y) : null;
++    // LOS exactly like the core: sample the segment at 0.25 with radius 0.5.
++    let los = false;
++    if (relay) {
++      const samples = Math.max(1, Math.ceil(dist! / 0.25));
++      los = true;
++      for (let i = 1; i <= samples; i += 1) {
++        const t = i / samples;
++        if (!w.isWalkable(w.player.wx + (relay.x - w.player.wx) * t, w.player.wy + (relay.y - w.player.wy) * t, 0.5)) { los = false; break; }
++      }
++    }
++    const activeScenes = g.scene.getScenes(true).map((s: any) => s.sys.settings.key);
++    const checks = {
++      gameSceneActive: g.scene.isActive('GameScene'),
++      onlyGameScene: activeScenes.length === 1 && activeScenes[0] === 'GameScene',
++      notPaused: gs.paused === false,
++      notLevelUp: gs.levelUpActive === false,
++      world: !!w,
++      camera: !!gs.cameras?.main,
++      relayActive: sv?.relay === 'ACTIVE',
++      jamCDzero: sv?.playerJamCD === 0,
++      energyEnough: (sv?.playerEnergy ?? 0) >= 25,
++      inRange: dist !== null && dist <= 6,
++      lineOfSight: los
++    };
++    return { ok: Object.values(checks).every(Boolean), checks, distance: dist, energy: sv?.playerEnergy ?? null, activeScenes };
++  });
++}
++
++// ---------------------------------------------------------------------------
++// real play
++// ---------------------------------------------------------------------------
++
++/** Real combat driver — NON-BLIND (aim/approach read canonical state; every
++ *  move/fire is a real key/mouse event). No clearEnemies, no teleport, no heal. */
++async function fightUntilCleared(page: Page, maxMs: number) {
++  const started = Date.now();
++  let shots = 0;
++  let approaches = 0;
++  let minEnemies = Number.POSITIVE_INFINITY;
++  let firstHp: number | null = null;
++  while (Date.now() - started < maxMs) {
++    const info = await page.evaluate(() => {
++      const g = (window as any).__game;
++      const active = g.scene.getScenes(true).map((s: any) => s.sys.settings.key);
++      const gs: any = g.scene.getScene('GameScene');
++      if (!gs || !g.scene.isActive('GameScene') || !gs.world || !gs.cameras?.main) {
++        return { enemy: null, cleared: false, hp: null, player: null, enemies: 0, active, flags: null };
++      }
++      const w: any = gs.world;
++      const room = w.currentRoom();
++      const list = ((w.enemies as any[]) ?? []).map((e: any) => {
++        const x = typeof e._wx === 'number' ? e._wx : (e.wx ?? e.x);
++        const y = typeof e._wy === 'number' ? e._wy : (e.wy ?? e.y);
++        const hp = e._data?.hp ?? e.data?.hp ?? null;
++        return { x, y, hp, d: Math.hypot(x - w.player.wx, y - w.player.wy) };
++      }).sort((a, b) => a.d - b.d);
++      const pick = list[0] ?? null;
++      let screen: { x: number; y: number } | null = null;
++      if (pick) {
++        const cam = gs.cameras.main;
++        const d = w.worldToScreen(pick.x, pick.y);
++        const p0 = cam.getWorldPoint(0, 0);
++        const px = cam.getWorldPoint(100, 0);
++        const py = cam.getWorldPoint(0, 100);
++        const ax = (px.x - p0.x) / 100, bx = p0.x;
++        const ay = (py.y - p0.y) / 100, by = p0.y;
++        screen = { x: (d.x - bx) / ax, y: (d.y - by) / ay };
++      }
++      const rec = room ? w.map.rooms[room.id] : null;
++      return {
++        enemy: pick ? { ...pick, screen } : null,
++        cleared: !!(rec && rec.cleared),
++        flags: rec ? { spawned: !!rec.spawned, cleared: !!rec.cleared } : null,
++        hp: w.player.data.hp,
++        player: { x: w.player.wx, y: w.player.wy },
++        enemies: list.length,
++        projectiles: (w.projectiles ?? []).length,
++        active
++      };
++    });
++    if (firstHp === null) firstHp = info.hp;
++    minEnemies = Math.min(minEnemies, info.enemies);
++    if (info.active.includes('GameOverScene') || !info.player) {
++      return { shots, approaches, cleared: false, died: true, firstHp, minEnemies, elapsedMs: Date.now() - started };
++    }
++    if (info.cleared) {
++      return { shots, approaches, cleared: true, died: false, firstHp, minEnemies, elapsedMs: Date.now() - started, flags: info.flags };
++    }
++    const target = info.enemy;
++    if (!target) {
++      await page.keyboard.down('KeyD');
++      await page.waitForTimeout(160);
++      await page.keyboard.up('KeyD');
++      continue;
++    }
++    if (target.d > 4.5) {
++      const dx = target.x - info.player.x, dy = target.y - info.player.y;
++      const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
++      await page.keyboard.down(key);
++      await page.waitForTimeout(220);
++      await page.keyboard.up(key);
++      approaches++;
++      continue;
++    }
++    if (!target.screen) continue;
++    const box = await canvasBox(page);
++    await page.mouse.move(box.x + (target.screen.x * box.w) / LOCAL_W, box.y + (target.screen.y * box.h) / LOCAL_H);
++    await page.mouse.down();
++    await page.waitForTimeout(320);
++    await page.mouse.up();
++    shots++;
++    await page.waitForTimeout(60);
++  }
++  const fin = await snap(page);
++  return { shots, approaches, cleared: !!fin?.mapCleared, died: false, firstHp, minEnemies, elapsedMs: Date.now() - started };
++}
++
++/** Walk to a world point with real keys. Returns the final distance. */
++async function walkTo(page: Page, target: { x: number; y: number }, tolerance = 0.8, maxSteps = 200): Promise<number> {
++  for (let i = 0; i < maxSteps; i++) {
++    const p = await page.evaluate(() => {
++      const w: any = (window as any).__game.scene.getScene('GameScene').world;
++      return { x: w.player.wx, y: w.player.wy };
++    });
++    const dx = target.x - p.x, dy = target.y - p.y;
++    const d = Math.hypot(dx, dy);
++    if (d <= tolerance) return d;
++    const key = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'KeyD' : 'KeyA') : (dy > 0 ? 'KeyS' : 'KeyW');
++    await page.keyboard.down(key);
++    await page.waitForTimeout(80);
++    await page.keyboard.up(key);
++    await page.waitForTimeout(25);
++  }
++  const p = await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    return { x: w.player.wx, y: w.player.wy };
++  });
++  return Math.hypot(target.x - p.x, target.y - p.y);
++}
++
++/** Walk with real keys to the farthest walkable cell of the current room from `from`.
++ *  Used to put the player genuinely OUT of jam range (no teleport). */
++async function walkOutOfRange(page: Page, from: { x: number; y: number }) {
++  const target = await page.evaluate((relay: { x: number; y: number }) => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    const room = w.currentRoom();
++    if (!room) return null;
++    let best: { x: number; y: number; d: number } | null = null;
++    for (const row of w.map.tiles) {
++      for (const t of row) {
++        if (t.x < room.gx || t.x >= room.gx + room.w) continue;
++        if (t.y < room.gy || t.y >= room.gy + room.h) continue;
++        if (!w.isWalkable(t.x + 0.5, t.y + 0.5, 0.5)) continue;
++        const d = Math.hypot(t.x + 0.5 - relay.x, t.y + 0.5 - relay.y);
++        if (!best || d > best.d) best = { x: t.x + 0.5, y: t.y + 0.5, d };
++      }
++    }
++    return best;
++  }, from);
++  expect(target, 'the room has a walkable cell away from the relay').not.toBeNull();
++  let best = 0;
++  // Try the farthest cell, then a couple of alternatives if walls block the path.
++  const candidates: Array<{ x: number; y: number }> = [target!];
++  for (const c of candidates) {
++    const d = await walkTo(page, c, 1.0, 140);
++    const now = await page.evaluate((relay: { x: number; y: number }) => {
++      const w: any = (window as any).__game.scene.getScene('GameScene').world;
++      return Math.hypot(w.player.wx - relay.x, w.player.wy - relay.y);
++    }, from);
++    best = Math.max(best, now);
++    void d;
++  }
++  return best;
++}
++
++/** Real F press at the current portal. Returns the room change. */
++async function takeRoute(page: Page) {
++  const before = await snap(page);
++  expect(before!.portal, 'a route portal exists before F').not.toBeNull();
++  const dist = await walkTo(page, { x: before!.portal!.x, y: before!.portal!.y }, 1.0, 220);
++  const at = await snap(page);
++  await tapKey(page, 'KeyF');
++  await page.waitForTimeout(900);
++  const after = await snap(page);
++  return { before, at, after, dist, changed: before!.room!.id !== after!.room!.id };
++}
++
++/** HumanEcho setup — labelled FIXTURE: the same calls the menu's ENABLE issues
++ *  (human opt-in + spawn next to the protagonist). No proposal is fabricated. */
++async function enableEchoMode(page: Page): Promise<void> {
++  await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    w.setEchoCooperationOptIn(true);
++    w.enableEcho();
++  });
++  await page.waitForFunction(() => !!(window as any).__game.scene.getScene('GameScene').world.echoActor, undefined, { timeout: 15000 });
++  const s = await snap(page);
++  expect(s!.echo.exists, 'the real ECHO actor exists in HumanEcho mode').toBe(true);
++}
++
++/** One real local proposal -> Owner auto-confirm (FIXTURE) -> next-tick commit.
++ *  Returns measured facts; never asserts that cooperation is better. */
++async function echoCycle(page: Page) {
++  const before = await snap(page);
++  const proposal = await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    let p = w.echoLocalProposal;
++    if (!p) { w.proposeLocalEcho(); p = w.echoLocalProposal; }
++    return p ? { id: p.id, kind: p.kind, target: p.target ?? null, echoReady: !!w.echoActor } : null;
++  });
++  const beforeApply = await snap(page);
++  if (!proposal) return { proposal: null, accepted: false, applied: false, before, beforeApply, commit: null, audit: [] as any[] };
++  // Only the events produced by THIS confirmation are considered.
++  await page.evaluate(() => { (window as any).__p4Batches = []; });
++  await installStepTrace(page);
++  const sf0 = await page.evaluate(() => ((window as any).__p4sf ?? []).length);
++  const accepted = await page.evaluate((id: string) => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    return !!w.confirmLocalEchoProposal(id);
++  }, proposal.id);
++  const applied = await page.waitForFunction((id: string) => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    return w.echoAudit.recent(32).some((e: any) => e.proposalId === id && e.result === 'applied');
++  }, proposal.id, { timeout: 15000 }).then(() => true).catch(() => false);
++  const audit = await page.evaluate((id: string) => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    return w.echoAudit.recent(32).filter((e: any) => e.proposalId === id)
++      .map((e: any) => ({ tick: e.tick, kind: e.action, result: e.result, code: e.code ?? null, provenance: e.provenance }));
++  }, proposal.id);
++  const after = await snap(page);
++  // The committed event is read from the payload whatever actor the product
++  // charges (the rendered confirm currently reports actorId 1), and a regen net
++  // delta is never used as the cost.
++  const commit = proposal.kind === 'scan' ? await signalCommitAny(page, 'signal-scanned')
++    : await signalCommitAny(page, 'signal-jammed');
++  // Receipt semantics: WHICH stepFrame processed the consuming tick, how many
++  // ticks each batch advanced, and what the core queue looked like around it.
++  // This separates "core executed late" from "UI/audit stamped late".
++  const sfTrace = await page.evaluate((from: number) => ((window as any).__p4sf ?? []).slice(from), sf0);
++  const receiptSemantics = await page.evaluate(({ from, type }: any) => {
++    const sf = ((window as any).__p4sf ?? []).slice(from) as any[];
++    const idx = sf.findIndex((b) => b.ev.some((e: string) => e.startsWith(type)));
++    const ticksUntil = idx < 0 ? null : sf.slice(0, idx + 1).reduce((n: number, b: any) => n + b.ticks, 0);
++    const queueBeforeCommit = idx < 0 ? null : sf[idx].queueBefore;
++    const queueAfterCommit = idx < 0 ? null : sf[idx].queueAfter;
++    return {
++      batchCount: sf.length,
++      firstBatchWithCommit: idx,
++      ticksUntilCommit: ticksUntil,
++      // ticks advanced in the batch that actually drained the queue: this is the
++      // "next processed core tick" evidence (the pre-confirm batch is not part of it)
++      commitBatchTicks: idx < 0 ? null : sf[idx].ticks,
++      queueBeforeCommitOrder: queueBeforeCommit,
++      queueAfterCommit,
++      // Only a batch that actually PROCESSED a tick can drain the queue; a 0-tick
++      // frame legitimately keeps the command queued, so it must not count.
++      queueHeldMoreThanOneBatch: idx >= 0 && sf.slice(0, idx).some((b: any) => b.ticks > 0 && (b.queueBefore ?? []).length > 0),
++      batchesWithTicks: sf.filter((b: any) => b.ticks > 0).length,
++      batches: sf
++    };
++  }, { from: sf0, type: proposal.kind === 'scan' ? 'signal-scanned' : 'signal-jammed' });
++  const commitCount = await page.evaluate((t: string) => {
++    const batches = ((window as any).__p4Batches ?? []) as any[];
++    let n = 0;
++    for (const b of batches) for (const e of b.ev as any[]) if (e.type === t) n += 1;
++    return n;
++  }, proposal.kind === 'scan' ? 'signal-scanned' : 'signal-jammed');
++  return { proposal, accepted, applied, audit, before, beforeApply, after, commit, commitCount, receiptSemantics };
++}
++
++// ---------------------------------------------------------------------------
++// headless counterpart (same seed, same authored scenario, same rule)
++// ---------------------------------------------------------------------------
++
++/** Drive the formal Headless model to a REAL clear with core ticks only: no state
++ *  writes, no kill/teleport fixtures. Two legal strategies are tried in order. */
++function headlessClear(seed: number) {
++  const strategies: string[] = [];
++  for (const strategy of ['plain-fight', 'jam-first'] as const) {
++    const hw = new HeadlessWorld({ seed, demo: true, echoAutonomy: false });
++    const scenario = hw.demoScenario;
++    if (!scenario) throw new Error('P4 demo scenario unavailable in Headless');
++    const roomId = scenario.roomId;
++    const room0 = hw.state.map.rooms[roomId];
++    const initial = {
++      roomId, spawned: !!room0.spawned, cleared: !!room0.cleared,
++      liveDrones: hw.liveDrones, routeState: hw.routeState, tick: hw.tick
++    };
++    if (strategy === 'jam-first') hw.enqueueSignalCommand({ type: 'signal-jam', actor: 'player' });
++    let guard = 0;
++    let firstClearTick: number | null = null;
++    let liveAtClear: number | null = null;
++    const clearEvents: any[] = [];
++    while (!hw.routeState?.roomCleared && guard < 400 && hw.runStatus === 'running') {
++      const st = hw.state;
++      const live = st.drones.filter((d) => d.hp > 0);
++      if (!live.length) break;
++      const p = st.player;
++      const near = live.reduce((a, b) => (Math.hypot(b.x - p.x, b.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? b : a));
++      const dist = Math.hypot(near.x - p.x, near.y - p.y);
++      const mv = dist > 4 ? { x: (near.x - p.x) / dist, y: (near.y - p.y) / dist } : { x: 0, y: 0 };
++      const evs = hw.runSteps([{
++        ticks: 4,
++        intent: { move: mv, dash: false, fire: dist <= 12, aim: { x: near.x, y: near.y }, interact: false }
++      }]);
++      for (const e of evs) {
++        if (e.type === 'room-cleared' && (e as any).roomId === roomId) {
++          if (firstClearTick === null) firstClearTick = hw.tick;
++          liveAtClear = hw.liveDrones;
++          clearEvents.push({ tick: hw.tick, event: e });
++        }
++      }
++      guard += 1;
++    }
++    const done = hw.routeState;
++    const room1 = hw.state.map.rooms[roomId];
++    const result = {
++      strategy,
++      initial,
++      final: {
++        tick: hw.tick, status: hw.runStatus, spawned: !!room1.spawned, cleared: !!room1.cleared,
++        liveDrones: hw.liveDrones, routeState: done, kills: hw.killCount, shots: hw.shotCount, hp: hw.playerHp
++      },
++      clearEvents, firstClearTick, liveAtClear,
++      parity: done !== null && done.roomCleared === !!room1.cleared && !!room1.cleared
++    };
++    strategies.push(strategy);
++    if (done?.roomCleared) return { cleared: true, tried: strategies, result, world: hw };
++  }
++  return { cleared: false, tried: strategies, result: null as any, world: null as any };
++}
++
++/** Layout summary of the authored scene for a seed, from the Headless builder
++ *  (same table the rendered World uses). */
++function headlessLayout(seed: number) {
++  const hw = new HeadlessWorld({ seed, demo: true, echoAutonomy: false });
++  // The core-authored projection carries the ROUTE identity (target/when/portal);
++  // the device cell lives in the committed signal state, the spawn in the player.
++  // One neutral core tick commits the constructor's spawn/link commands.
++  hw.runSteps([{ ticks: 1, intent: null }]);
++  const sc: any = (hw as any).demoScenario;
++  const st = hw.state;
++  const routes = sc.routes.map((r: any) => ({ target: r.target, when: r.when, portal: r.portal ?? null }));
++  const relay = st.signal ? { x: st.signal.x, y: st.signal.y, deviceId: st.signal.deviceId, roomId: st.signal.roomId, relay: st.signal.relay } : null;
++  const playerStart = { x: st.player.x, y: st.player.y };
++  const relayToPortal = relay ? routes.map((r: any) => (r.portal ? Math.hypot(r.portal.x - relay.x, r.portal.y - relay.y) : null)) : [];
++  return {
++    seed, roomId: sc.roomId, startRoomId: sc.startRoomId, relay, playerStart,
++    drones: st.drones.length, routes, relayToPortal,
++    spawnToRelay: relay ? Math.hypot(playerStart.x - relay.x, playerStart.y - relay.y) : null,
++    routeSeparation: routes[0].portal && routes[1].portal
++      ? Math.hypot(routes[0].portal.x - routes[1].portal.x, routes[0].portal.y - routes[1].portal.y) : null
++  };
++}
++
++// ---------------------------------------------------------------------------
++// 6 route tests: 3 seeds x {HumanOnly, HumanEcho}
++// ---------------------------------------------------------------------------
++
++for (const seed of SEEDS) {
++  for (const mode of ['HumanOnly', 'HumanEcho'] as Mode[]) {
++    test(`P4 route · seed ${seed} · ${mode}: real clear, natural door jam (exact cost), F blocked, expiry, route taken`, async ({ page }) => {
++      test.setTimeout(300000);
++      await page.setViewportSize({ width: LOCAL_W, height: LOCAL_H });
++      await bootDemo(page, seed);
++      const start = await snap(page);
++      expect(start, 'the world exists on the DEMO 01 entry').not.toBeNull();
++      expect(start!.seed, 'the run uses the requested seed').toBe(seed);
++      expect(start!.scenario, 'the Demo-03 authored scenario is active (no error notice)').not.toBeNull();
++      expect(start!.scenarioError, 'the authored scene did not fail to build').toBeNull();
++      expect(start!.scenario!.drones, 'two authored sentries are placed').toBe(2);
++      const spawnToRelay = Math.hypot(start!.scenario!.playerStart!.x - start!.scenario!.relay.x, start!.scenario!.playerStart!.y - start!.scenario!.relay.y);
++      expect(spawnToRelay, 'spawn and device are distinct cells (M5)').toBeGreaterThan(0.5);
++
++      const fixtures: string[] = ['seed override (menu start wrapper)'];
++      if (mode === 'HumanEcho') {
++        await enableEchoMode(page);
++        fixtures.push('autoOwner: setEchoCooperationOptIn(true) + enableEcho() (same calls as the menu ENABLE)');
++      }
++      await installEventTap(page);
++
++      // A real, player-reachable strategy: jam the linked sentries from the spawn
++      // tile when it is legitimately in range, then fight with real input.
++      const spawnJam = await page.evaluate(() => {
++        const w: any = (window as any).__game.scene.getScene('GameScene').world;
++        const sc = w.p1Scenario;
++        return Math.hypot(w.player.wx - sc.relay.x, w.player.wy - sc.relay.y);
++      });
++      let spawnJamResult: any = { attempted: false, distance: spawnJam };
++      if (spawnJam <= TUNE.JAM_RANGE) {
++        await tapKey(page, 'KeyY');
++        await page.waitForTimeout(400);
++        spawnJamResult = { ...spawnJamResult, attempted: true, commit: await signalCommit(page, 'signal-jammed', 0), after: (await snap(page))!.relay };
++      }
++
++      const fight = await fightUntilCleared(page, 150000);
++      const afterFight = await snap(page);
++      const roomId = afterFight!.scenario!.roomId;
++      expect(afterFight!.room, 'the fight happened in the authored room').not.toBeNull();
++      expect(afterFight!.room!.id, 'still the authored room').toBe(roomId);
++      // AUTHORITATIVE clear: the map flag + the core commit event.
++      expect(afterFight!.roomFlags!.spawned, 'the room generation committed (spawned)').toBe(true);
++      expect(afterFight!.mapCleared, 'the room is cleared by real play (map flag)').toBe(true);
++      const clearEvents = await roomClearedEvents(page, roomId);
++      expect(clearEvents.length, 'the core emitted exactly ONE room-cleared commit for this room').toBe(1);
++      expect(afterFight!.liveDrones, 'no live drone remains (recorded, never the gate)').toBe(0);
++
++      // Headless parity for the same seed: the SAME rule, driven by real core ticks.
++      const hl = headlessClear(seed);
++      expect(hl.cleared, `Headless reaches its own clear for seed ${seed} (${hl.tried.join(' -> ')})`).toBe(true);
++      expect(hl.result.initial.routeState.roomCleared, 'a fresh Headless room is not cleared').toBe(false);
++      expect(hl.result.initial.liveDrones, 'the fresh Headless room has live drones').toBeGreaterThan(0);
++      expect(hl.result.initial.routeState.portal, 'no portal before the committed clear').toBeNull();
++      expect(hl.result.final.routeState.roomCleared, 'Headless roomCleared is true after its own clear').toBe(true);
++      expect(hl.result.final.cleared, 'Headless map.rooms[id].cleared agrees with roomCleared (M1)').toBe(true);
++      expect(hl.result.clearEvents.length, 'Headless also commits via a room-cleared core event').toBeGreaterThan(0);
++
++      // The spawn jam (if any) must end first: a JAMMED relay intentionally has no
++      // portal, and the next door jam needs a clear jam cooldown. Real ticks only.
++      // Wait for a non-JAMMED relay so the next jam is legal (the spawn jam may still run).
++      await page.waitForFunction(() => {
++        const w: any = (window as any).__game.scene.getScene('GameScene').world;
++        const v = w.signalView();
++        return !!v && v.relay !== 'JAMMED' && v.playerJamCD === 0;
++      }, undefined, { timeout: 40000 });
++      const routeReady = await snap(page);
++      expect(routeReady!.relay!.state, 'the relay is back to ACTIVE before the door phase').toBe('ACTIVE');
++
++      // --- natural door jam: the authored layout puts the door inside range ---
++      expect(routeReady!.portal, 'a route portal exists once the room is cleared').not.toBeNull();
++      const doorToRelay = Math.hypot(routeReady!.portal!.x - routeReady!.scenario!.relay.x, routeReady!.portal!.y - routeReady!.scenario!.relay.y);
++      expect(doorToRelay, 'the authored door is inside JAM_RANGE (real layout fact)').toBeLessThanOrEqual(TUNE.JAM_RANGE);
++      const standOnDoor = await walkTo(page, { x: routeReady!.portal!.x, y: routeReady!.portal!.y }, 1.0, 220);
++      const atDoor = await snap(page);
++      const playerToRelay = Math.hypot(atDoor!.player.x - atDoor!.scenario!.relay.x, atDoor!.player.y - atDoor!.scenario!.relay.y);
++      expect(playerToRelay, 'the player standing on the door is in jam range').toBeLessThanOrEqual(TUNE.JAM_RANGE);
++      await page.evaluate(() => { (window as any).__p4Batches = []; }); // only this jam
++
++      // --- real Y edge, judged by SIMULATION CONSUMPTION, not by a sleep ---
++      // Preconditions first: everything the core will check (scene/pause/overlay,
++      // range, LOS, cooldown, energy). Then ONE keydown held until the stepFrame
++      // trace shows the tick ran and the jam event committed; keyup happens only
++      // after a further real frame so the two edges never share a Phaser frame.
++      const jamPre = await jamPreconditions(page);
++      expect(jamPre.ok, `jam preconditions must hold before pressing Y: ${JSON.stringify(jamPre.checks)}`).toBe(true);
++      await installStepTrace(page);
++      const sf0 = await page.evaluate(() => ((window as any).__p4sf ?? []).length);
++      let consumed: any = null;
++      await page.keyboard.down('KeyY');
++      try {
++        await page.waitForFunction((from: number) => {
++          const sf = ((window as any).__p4sf ?? []).slice(from) as any[];
++          const jamJams = sf.reduce((n: number, b: any) => n + b.ev.filter((e: string) => e.startsWith('signal-jammed')).length, 0);
++          // ONE committed jam, in a batch that actually processed a tick AND whose
++          // queue already held the player's signal-jam command (same-batch drain).
++          const sameBatch = sf.some((b: any) => b.ev.some((e: string) => e.startsWith('signal-jammed'))
++            && b.ticks > 0 && (b.queueBefore ?? []).includes('signal-jam'));
++          return jamJams === 1 && sameBatch;
++        }, sf0, { timeout: 5000 });
++      } catch (e: any) {
++        const trace = await page.evaluate((from: number) => ((window as any).__p4sf ?? []).slice(from), sf0);
++        rec(`p4-jam-input-timeout-${seed}-${mode}`, { pre: jamPre, trace, snapshot: await snap(page) });
++        throw new Error(`Y was not consumed by the simulation within the bounded wait: ${e?.message}; trace=${JSON.stringify(trace)}`);
++      } finally {
++        const f0 = await page.evaluate(() => (window as any).__game?.loop?.frame ?? -1);
++        await page.waitForFunction((f: number) => ((window as any).__game?.loop?.frame ?? f) > f, f0, { timeout: 4000 });
++        await page.keyboard.up('KeyY');
++      }
++      const sfTrace = await page.evaluate((from: number) => ((window as any).__p4sf ?? []).slice(from), sf0);
++      const jammed = await snap(page);
++      const jamCommit = await signalCommit(page, 'signal-jammed', 0);
++      consumed = {
++        pre: jamPre,
++        stepFrames: sfTrace,
++        ticksBeforeEvent: sfTrace.findIndex((b: any) => b.ev.some((x: string) => x.startsWith('signal-jammed'))),
++        totalTicks: sfTrace.reduce((n: number, b: any) => n + b.ticks, 0)
++      };
++      expect(jamCommit, 'the door jam committed a signal-jammed event').not.toBeNull();
++      expect(jamCommit!.ok, 'the core accepted the door jam (range + LOS)').toBe(true);
++      expect(jamCommit!.before! - jamCommit!.energy!, `the jam deducts exactly ${TUNE.JAM_COST} (event payload)`).toBe(TUNE.JAM_COST);
++      expect(jammed!.relay!.state, 'the relay is JAMMED from the real door position').toBe('JAMMED');
++      expect(jammed!.portal, 'a JAMMED relay leaves no route portal').toBeNull();
++      expect(jammed!.routeTarget, 'a JAMMED relay has no selectable route').toBeNull();
++      const netJamDelta = atDoor!.energy!.player - jammed!.energy!.player;
++      await shot(page, `p4-${seed}-${mode}-jam-at-door`);
++
++      await tapKey(page, 'KeyF');
++      await page.waitForTimeout(700);
++      const afterF = await snap(page);
++      expect(afterF!.room!.id, 'F at a JAMMED door does not change rooms').toBe(jammed!.room!.id);
++
++      // --- expiry restores the route without any fixture ---
++      const tickAtJam = jammed!.tick;
++      await page.waitForFunction((t0: number) => {
++        const w: any = (window as any).__game.scene.getScene('GameScene').world;
++        return w.sim.tick > t0 + 20 && (w.signalView()?.relay ?? '') !== 'JAMMED';
++      }, tickAtJam, { timeout: 60000 });
++      const recovered = await snap(page);
++      expect(recovered!.relay!.state, 'the relay recovers after the jam window').toBe('ACTIVE');
++      expect(recovered!.portal, 'the route portal is selectable again').not.toBeNull();
++      expect(recovered!.routeTarget, 'the ACTIVE route is selectable again').toBe(recovered!.scenario!.routes[0].target);
++      await shot(page, `p4-${seed}-${mode}-expired`);
++
++      // --- ECHO: real local proposal -> Owner auto-confirm -> next-tick commit ---
++      // Done before leaving the room: the relay/device lives here.
++      const echo = mode === 'HumanEcho' ? await echoCycle(page) : null;
++      let echoEnergyFacts: any = null;
++      if (echo) {
++        expect(echo.proposal, 'the product generated a real local proposal').not.toBeNull();
++        expect(echo.accepted, 'the Owner confirmation was accepted by the real boundary').toBe(true);
++        expect(echo.applied, 'the proposal reached the applied audit on a real tick').toBe(true);
++        // Same proposalId: confirmation ("enqueued") -> real receipt ("applied") on
++        // the NEXT tick, i.e. the commit is the very next core tick.
++        const enqueuedRow = echo.audit!.find((a: any) => a.result === 'enqueued');
++        const appliedRow = echo.audit!.find((a: any) => a.result === 'applied');
++        const receiptTicks = enqueuedRow && appliedRow ? appliedRow.tick - enqueuedRow.tick : null;
++        rec(`p4-receipt-diag-${seed}-${mode}`, {
++          runner: 'agent', fixtures,
++          audit: echo.audit, commit: echo.commit, commitCount: echo.commitCount,
++          receiptSemantics: echo.receiptSemantics, beforeApplyTick: echo.beforeApply!.tick, afterTick: echo.after!.tick
++        });
++        echoEnergyFacts = {
++          confirmTick: enqueuedRow ? enqueuedRow.tick : null,
++          receiptTick: appliedRow ? appliedRow.tick : null,
++          receiptTicks,
++          commitBatchTick: echo.commit ? echo.commit.batchTick : null,
++          chargedActorId: echo.commit ? echo.commit.actorId : null,
++          eventPreEnergy: echo.commit ? echo.commit.pre : null,
++          eventEnergy: echo.commit ? echo.commit.energy : null,
++          actualCost: echo.commit ? (echo.commit.pre! - echo.commit.energy!) : null,
++          netPlayerDelta: echo.beforeApply!.energy!.player - echo.after!.energy!.player,
++          commitsInWindow: echo.commitCount,
++          auditEnqueuedTick: enqueuedRow ? enqueuedRow.tick : null,
++          auditAppliedTick: appliedRow ? appliedRow.tick : null,
++          commitEventBatchTick: echo.commit ? echo.commit.batchTick : null,
++          ticksUntilCommitBatchCounted: echo.receiptSemantics ? echo.receiptSemantics.ticksUntilCommit : null,
++          commitBatchTicks: echo.receiptSemantics ? echo.receiptSemantics.commitBatchTicks : null,
++          firstBatchWithCommit: echo.receiptSemantics ? echo.receiptSemantics.firstBatchWithCommit : null,
++          queueBeforeCommit: echo.receiptSemantics ? echo.receiptSemantics.queueBeforeCommitOrder : null,
++          queueHeldAcrossBatches: echo.receiptSemantics ? echo.receiptSemantics.queueHeldMoreThanOneBatch : null,
++          stepFrameBatches: echo.receiptSemantics ? echo.receiptSemantics.batches : null
++        };
++        expect(enqueuedRow, 'the confirmation itself is recorded for this proposal').toBeTruthy();
++        expect(appliedRow, 'the receipt is recorded for the same proposal').toBeTruthy();
++        // The receipt must land AFTER the confirmation and inside the very next
++        // processed queue turn, with exactly one commit and no extra input. The
++        // exact tick gap is a frame-phase measurement (1, 2 and 3 observed on this
++        // build, larger under host load because one frame can step several fixed
++        // ticks), so the measured value is recorded and the invariant asserted is
++        // ordering + single commit, never a hard-coded gap.
++        // EVIDENCE-BASED next-core-tick semantics (not "any later"): the command
++        // is drained by the FIRST stepFrame that advances a simulation tick after
++        // the confirmation (the raw trace shows the queue in that batch), and the
++        // audit "applied" row is stamped after the "enqueued" row. The sim.tick
++        // gap can exceed 1 only because one frame may advance several fixed ticks.
++        expect(receiptTicks!, `the receipt is after the confirmation (measured ${receiptTicks} tick(s))`).toBeGreaterThanOrEqual(1);
++        // EVIDENCE-BASED next-core-tick identity (review P4_TEST_REVIEW §8.3):
++        // the audit `enqueued` tick is the START of the draining batch (World.ts
++        // 797-800), processCommands drains the whole queue on that batch's first
++        // tick (core.ts 518-521, 1371), and the audit `applied` row is stamped at
++        // the batch END (World.ts 1899, 2021-2026). Therefore:
++        //   firstBatchWithCommit === the first batch that processed a tick after
++        //   the confirmation, and receiptTicks === that batch's tick count.
++        expect(echo.receiptSemantics, 'the stepFrame trace around the confirmation exists').not.toBeNull();
++        const enq = enqueuedRow!.tick;
++        const firstProcessing = echo.receiptSemantics!.batches.findIndex(
++          (b: any) => b.ticks > 0 && b.t0 >= enq);
++        expect(firstProcessing, 'a stepFrame processed a tick after the confirmation').toBeGreaterThanOrEqual(0);
++        expect(echo.receiptSemantics!.firstBatchWithCommit,
++          'the command is drained by the FIRST batch that processes a tick after the confirmation')
++          .toBe(firstProcessing);
++        expect(receiptTicks, 'the applied row is stamped at the END of the draining batch (batch tick count)')
++          .toBe(echo.receiptSemantics!.commitBatchTicks);
++        expect(echo.receiptSemantics!.commitBatchTicks,
++          'the committing stepFrame processed at least one tick (the command was drained, not deferred)').toBeGreaterThanOrEqual(1);
++        // Architectural bound: one frame can never advance more ticks than the
++        // core catch-up cap (src/world/sim/core.ts SIM_TUNING.MAX_TICKS_PER_FRAME = 15).
++        expect(echo.receiptSemantics!.commitBatchTicks!, 'the draining batch respects the core catch-up cap (<= 15)').toBeLessThanOrEqual(15);
++        expect(echo.receiptSemantics!.queueHeldMoreThanOneBatch,
++          'the queued command never survives a PROCESSING batch before committing (0-tick frames excluded)').toBe(false);
++        expect(echo.receiptSemantics!.queueBeforeCommitOrder,
++          'the trace shows the core queue holding exactly this command in the committing batch').toEqual([echo.proposal!.kind === 'scan' ? 'signal-scan' : 'signal-jam']);
++        // The action's OWN event: exactly one commit, exact cost from the payload.
++        expect(echo.proposal!.kind, 'the proposal in this state is a scan (observed on all three seeds)').toBe('scan');
++        expect(echo.commit, 'the confirmed scan produced its own signal-scanned event').not.toBeNull();
++        expect(echo.commitCount, 'exactly ONE commit event for this confirmation (no retry/duplicate)').toBe(1);
++        expect(echo.commit!.ok, 'the scan commit was accepted by the core').toBe(true);
++        expect(echo.commit!.pre! - echo.commit!.energy!,
++          `the action's own event shows exactly ${TUNE.SCAN_COST} energy (never a regen net delta)`).toBe(TUNE.SCAN_COST);
++        const changedByKind =
++          echo.proposal!.kind === 'scan' ? echo.after!.relay!.evidence > echo.beforeApply!.relay!.evidence
++            : echo.proposal!.kind === 'toggle-relay' ? echo.after!.relay!.manual !== echo.beforeApply!.relay!.manual
++              : echo.after!.relay!.state === 'JAMMED';
++        expect(changedByKind, `the confirmed ${echo.proposal!.kind} produced a real non-combat state change`).toBe(true);
++      }
++      // If ECHO jammed the relay, wait for the route to come back before travelling.
++      await page.waitForFunction(() => {
++        const w: any = (window as any).__game.scene.getScene('GameScene').world;
++        return (w.signalView()?.relay ?? '') === 'ACTIVE' && !!w.portal;
++      }, undefined, { timeout: 60000 });
++
++      // --- take the route for real ---
++      const route = await takeRoute(page);
++      expect(route.changed, 'a real F press takes the authored route').toBe(true);
++      expect(route.after!.room!.id, 'the run is now in the route A room').toBe(recovered!.scenario!.routes[0].target);
++
++      // --- M7: portal art sits on the interaction point (measured at the door) ---
++      const spriteOff = recovered!.portalSprite && recovered!.portal
++        ? await page.evaluate(({ px, py, sx, sy }: { px: number; py: number; sx: number; sy: number }) => {
++          const w: any = (window as any).__game.scene.getScene('GameScene').world;
++          const d = w.worldToScreen(px, py);
++          return Math.hypot(sx - d.x, sy - d.y);
++        }, { px: recovered!.portal!.x, py: recovered!.portal!.y, sx: recovered!.portalSprite!.x, sy: recovered!.portalSprite!.y })
++        : null;
++      expect(spriteOff, 'the portal sprite is drawn exactly on the interaction point (M7)').not.toBeNull();
++      expect(spriteOff!, 'portal art and interaction point agree within 0.5 px').toBeLessThanOrEqual(0.5);
++      // The AI observation contract carries the portal POSITION only (it is
++      // perceivable-gated by design); it must agree with the interaction point.
++      expect(recovered!.observedPortal, 'the observation view exposes the portal').not.toBeNull();
++      expect(Math.hypot(
++        recovered!.observedPortal!.x - recovered!.portal!.x,
++        recovered!.observedPortal!.y - recovered!.portal!.y
++      ), 'the observation portal equals the interaction point').toBeLessThanOrEqual(0.5);
++
++      await dropEventTap(page);
++      rec(`p4-route-${seed}-${mode}`, {
++        runner: 'agent (real keys/mouse; NON-BLIND driver: reads canonical state to aim/route)',
++        fixtures,
++        seed, mode, spawnToRelay, doorToRelay, playerToRelay, standOnDoor,
++        spawnJam: spawnJamResult,
++        cleared: { fight, mapFlag: afterFight!.mapCleared, spawned: afterFight!.roomFlags!.spawned, coreClearEvents: clearEvents.length, liveDrones: afterFight!.liveDrones },
++        headless: hl.result,
++        jam: { commit: jamCommit, netDelta: netJamDelta, state: jammed!.relay!.state, portal: jammed!.portal, routeTarget: jammed!.routeTarget },
++        jamInput: consumed,
++        afterF: { room: afterF!.room!.id, unchanged: afterF!.room!.id === jammed!.room!.id },
++        recovered: { relay: recovered!.relay!.state, portal: recovered!.portal, routeTarget: recovered!.routeTarget, tickDelta: recovered!.tick - tickAtJam },
++        spriteToInteractionPx: spriteOff,
++        route: { from: route.before!.room!.id, to: route.after!.room!.id, distanceAtPress: route.dist },
++        echo,
++        echoEnergy: echoEnergyFacts,
++        connectionSample: {
++          companionStatus: afterFight!.companionStatus,
++          meaning: mode === 'HumanOnly'
++            ? 'no model connection in this run (HumanOnly): a no-connection sample, never claimed as a disconnection test'
++            : 'no model connection in this run: a no-connection sample, never claimed as a disconnection test'
++        },
++        shots: [
++          await shot(page, `p4-${seed}-${mode}-route`),
++          path.join(outDir('shots'), `p4-${seed}-${mode}-jam-at-door.png`),
++          path.join(outDir('shots'), `p4-${seed}-${mode}-expired.png`)
++        ]
++      });
++    });
++  }
++}
++
++// ---------------------------------------------------------------------------
++// reject + no-connection sample: the route stays legal
++// ---------------------------------------------------------------------------
++
++test('P4 · rejected proposal and a no-connection sample still leave a legal route', async ({ page }) => {
++  test.setTimeout(300000);
++  await page.setViewportSize({ width: LOCAL_W, height: LOCAL_H });
++  await bootDemo(page, SEEDS[0]);
++  await enableEchoMode(page);
++  await installEventTap(page);
++  const fight = await fightUntilCleared(page, 150000);
++  const afterFight = await snap(page);
++  expect(afterFight!.mapCleared, 'the room is cleared by real play before the reject case').toBe(true);
++
++  const rejected = await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    let p = w.echoLocalProposal;
++    if (!p) { w.proposeLocalEcho(); p = w.echoLocalProposal; }
++    if (!p) return { proposed: false };
++    const ok = w.rejectLocalEchoProposal(p.id);
++    const audit = w.echoAudit.recent(32).filter((e: any) => e.proposalId === p.id)
++      .map((e: any) => ({ tick: e.tick, kind: e.action, result: e.result, code: e.code ?? null }));
++    return { proposed: true, id: p.id, kind: p.kind, rejected: ok, audit };
++  });
++  const afterReject = await snap(page);
++  expect(rejected.proposed, 'a real proposal existed to reject').toBe(true);
++  expect(rejected.rejected, 'the real reject boundary accepted the rejection').toBe(true);
++  expect((rejected.audit ?? []).some((a: any) => a.result === 'rejected' && a.code === 'E_USER_REJECTED'),
++    'the rejection is recorded in the audit with its real code').toBe(true);
++  expect(afterReject!.relay!.state, 'a rejected proposal does not jam or disable the relay').not.toBe('JAMMED');
++  expect(afterReject!.portal, 'a rejected proposal leaves the route portal in place').not.toBeNull();
++
++  // No-connection SAMPLE (not a disconnection test: the run never had a model
++  // connection; the P2 model-outage evidence is a separate, earlier record).
++  // The real status the page renders (GameScene.companionStatus). `signalView()`
++  // has no modelState field, so none is read or invented here.
++  const conn = { companionStatus: afterReject!.companionStatus };
++  expect(typeof conn.companionStatus, 'the rendered companion status is a real value').toBe('string');
++  expect(conn.companionStatus, 'this run has no model connection (OFF)').toBe('OFF');
++
++  const routeT0 = Date.now();
++  const route = await takeRoute(page);
++  const routeMs = Date.now() - routeT0;
++  expect(route.changed, 'the route is still legally traversable after reject + no connection').toBe(true);
++  await dropEventTap(page);
++  rec('p4-reject-noconn', {
++    runner: 'agent (real keys/mouse + real reject call)',
++    fixtures: ['autoOwner echo enable', 'seed override'],
++    fight: { ...fight, cleared: afterFight!.mapCleared },
++    energy: { beforeReject: afterFight!.energy, afterReject: afterReject!.energy },
++    rejected, afterReject: { relay: afterReject!.relay!.state, portal: afterReject!.portal, routeTarget: afterReject!.routeTarget },
++    routeMs,
++    connectionSample: conn,
++    note: 'no-connection sample only (companionStatus OFF from GameScene, no signalView.modelState exists); the run never connected to a model, so this is NOT a disconnection test. P2 holds the separate model-outage evidence.',
++    route: { from: route.before!.room!.id, to: route.after!.room!.id },
++    shot: await shot(page, 'p4-reject-noconn')
++  });
++});
++
++// ---------------------------------------------------------------------------
++// archive vs checkpoint reload vs raw headless replay (three different things)
++// ---------------------------------------------------------------------------
++
++test('P4 · checkpoint reload re-derives the route; raw frame replay keeps authored identity', async ({ page }) => {
++  test.setTimeout(300000);
++  await page.setViewportSize({ width: LOCAL_W, height: LOCAL_H });
++  await bootDemo(page, SEEDS[0]);
++  await installEventTap(page);
++  const fight = await fightUntilCleared(page, 150000);
++  void fight;
++  const cleared = await snap(page);
++  expect(cleared!.mapCleared, 'the room is cleared by real play before the archive case').toBe(true);
++  // A non-default relay state makes the route choice observable across the reload.
++  await tapKey(page, 'KeyR');
++  await page.waitForTimeout(500);
++  const atRoute = await snap(page);
++  expect(atRoute!.routeTarget, 'a real route target is selected before the reload').not.toBeNull();
++
++  // 0) SAFE POINT: the product only checkpoints at an action boundary, so there
++  // is no in-flight local ECHO command here - the queue-drop on resume is a
++  // different path from a headless mid-execution restore (see the R1/R2 probes).
++  const atSafePoint = await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    return { pendingLocal: w.echoPendingLocal, queue: w.sim.pendingCommands.map((c: any) => c.type) };
++  });
++  expect(atSafePoint.pendingLocal, 'no in-flight local ECHO action at the checkpoint').toBeNull();
++  expect(atSafePoint.queue.length <= 1, 'at most one core command is in flight at a safe point').toBe(true);
++
++  // 1) ARCHIVE: capture the real checkpoint the product writes and hash its bytes.
++  const checkpoint = await page.evaluate(() => {
++    const gs: any = (window as any).__game.scene.getScene('GameScene');
++    const cp = gs.world.captureCheckpoint(gs.runId, gs.seed, gs.runStats());
++    return cp ? JSON.parse(JSON.stringify(cp)) : null;
++  });
++  expect(checkpoint, 'a real checkpoint was captured').not.toBeNull();
++  const archivedBytes = JSON.stringify(checkpoint);
++  const archivedSha = await page.evaluate(async (s: string) => {
++    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
++    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
++  }, archivedBytes);
++
++  // 2) RELOAD: a real page reload + the product's own CONTINUE path.
++  await page.waitForTimeout(1500);
++  await page.reload();
++  await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'), { timeout: 30000 });
++  await page.waitForTimeout(600);
++  await clickLabel(page, 'MainMenuScene', 'CONTINUE');
++  await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 30000 });
++  await page.waitForTimeout(1200);
++  const reloaded = await snap(page);
++  expect(reloaded!.room!.id, 'CONTINUE returns to the authored room').toBe(cleared!.room!.id);
++  expect(reloaded!.mapCleared, 'the resumed run keeps the cleared room').toBe(true);
++  expect(reloaded!.scenario, 'the authored scenario is re-attached on restore (M2)').not.toBeNull();
++  expect(reloaded!.routeTarget, 'the route target survives the reload').toBe(atRoute!.routeTarget);
++  expect(reloaded!.portal, 'the reloaded presenter re-derives the portal').not.toBeNull();
++  expect(reloaded!.portal!.target, 'the re-derived portal points at the same room').toBe(atRoute!.portal!.target);
++  const afterReloadQueue = await page.evaluate(() => {
++    const w: any = (window as any).__game.scene.getScene('GameScene').world;
++    return { queue: w.sim.pendingCommands.map((c: any) => c.type), pendingLocal: w.echoPendingLocal };
++  });
++  expect(afterReloadQueue.queue, 'the resumed run starts with an empty command queue').toEqual([]);
++  expect(afterReloadQueue.pendingLocal, 'no stale local ECHO pending after the resume').toBeNull();
++  await shot(page, 'p4-reload-vs-replay');
++
++  // 3) RAW HEADLESS REPLAY: snapshot -> fromFrame -> replay, all in the same model.
++  const hl = headlessClear(SEEDS[0]);
++  expect(hl.cleared, 'the Headless counterpart reaches its own clear').toBe(true);
++  const frame = hl.world.snapshot();
++  const restored = HeadlessWorld.fromFrame(frame);
++  const step = [{ ticks: 2, intent: { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false } }];
++  // `replay` compares the re-run against THIS session's real state for the same
++  // interval, so the live model must advance by the steps too (otherwise the
++  // comparison is meaningless by construction).
++  hl.world.runSteps(step);
++  const replayResult = hl.world.replay(frame, step);
++  rec('p4-reload-vs-replay', {
++    runner: 'agent (real reload + CONTINUE) + node headless model',
++    archived: { routeTarget: atRoute!.routeTarget, portal: atRoute!.portal, room: atRoute!.room, cleared: atRoute!.mapCleared, checkpointSha256: archivedSha, checkpointBytes: archivedBytes.length },
++    safePoint: atSafePoint,
++    reloaded: { routeTarget: reloaded!.routeTarget, portal: reloaded!.portal, room: reloaded!.room, cleared: reloaded!.mapCleared, relay: reloaded!.relay!.state, queueAfterResume: afterReloadQueue },
++    headless: {
++      frameEpoch: frame.epoch,
++      fromFrameAuthored: (restored as any).demoScenario ?? (restored as any).state?.authored ?? null,
++      fromFrameRoute: restored.routeState,
++      replayKeys: Object.keys(replayResult ?? {}),
++      replayResult
++    },
++    note: 'the checkpoint archive, the rendered reload and the headless frame replay are three separate facts'
++  });
++  // The replay path is a REAL model comparison, not just a call that returned.
++  expect(replayResult.ok, 'replay accepted the frame and steps').toBe(true);
++  expect(replayResult.sameState, 'replay reproduces the same canonical state').toBe(true);
++  expect(replayResult.sameEvents, 'replay reproduces the same canonical events').toBe(true);
++  expect(restored.routeState, 'a raw frame keeps the authored route identity (M2)').not.toBeNull();
++  expect(restored.routeState!.roomCleared, 'the raw frame keeps the committed clear').toBe(true);
++  expect(restored.routeState!.target, 'the raw frame keeps the same route target').toBe(hl.world.routeState.target);
++  expect(restored.routeState!.portal, 'the raw frame re-derives the portal').toEqual(hl.world.routeState.portal);
++});
++
++// ---------------------------------------------------------------------------
++// 3-seed authored layout validity (static: no clear needed) + identity parity
++// ---------------------------------------------------------------------------
++
++test('P4 · three seeds produce valid, distinct authored layouts (World and Headless agree)', async ({ page }) => {
++  test.setTimeout(180000);
++  await page.setViewportSize({ width: LOCAL_W, height: LOCAL_H });
++  const rows: any[] = [];
++  for (const seed of SEEDS) {
++    await bootDemo(page, seed);
++    const s = await snap(page);
++    expect(s!.seed, `seed ${seed} is the run seed`).toBe(seed);
++    expect(s!.scenario, `seed ${seed}: the authored scene exists`).not.toBeNull();
++    expect(s!.scenarioError, `seed ${seed}: no layout failure notice`).toBeNull();
++    const sc = s!.scenario!;
++    expect(sc.startRoomId, `seed ${seed}: the authored start room identity is captured`).not.toBeNull();
++    expect(new Set(sc.routes.map((r) => r.target)).size, `seed ${seed}: two distinct route targets`).toBe(2);
++    expect(sc.routes[0].when, `seed ${seed}: route A is RELAY_ACTIVE`).toBe('RELAY_ACTIVE');
++    expect(sc.routes[1].when, `seed ${seed}: route B is RELAY_INACTIVE`).toBe('RELAY_INACTIVE');
++    const sep = Math.hypot(sc.routes[0].portal!.x - sc.routes[1].portal!.x, sc.routes[0].portal!.y - sc.routes[1].portal!.y);
++    expect(sep, `seed ${seed}: the two route cells are separated`).toBeGreaterThan(1.0);
++    const spawnRelay = Math.hypot(sc.playerStart!.x - sc.relay.x, sc.playerStart!.y - sc.relay.y);
++    expect(spawnRelay, `seed ${seed}: spawn != device`).toBeGreaterThan(0.5);
++    const relayToA = Math.hypot(sc.routes[0].portal!.x - sc.relay.x, sc.routes[0].portal!.y - sc.relay.y);
++    const relayToB = Math.hypot(sc.routes[1].portal!.x - sc.relay.x, sc.routes[1].portal!.y - sc.relay.y);
++    expect(Math.max(relayToA, relayToB), `seed ${seed}: both doors are inside JAM_RANGE from the device`).toBeLessThanOrEqual(TUNE.JAM_RANGE);
++    expect(sc.drones, `seed ${seed}: two authored sentries`).toBe(2);
++    const hl = headlessLayout(seed);
++    expect(hl.roomId, `seed ${seed}: Headless authored room matches the World`).toBe(sc.roomId);
++    expect(hl.startRoomId, `seed ${seed}: Headless start room identity matches`).toBe(sc.startRoomId);
++    expect(hl.relay ? { x: hl.relay.x, y: hl.relay.y } : null, `seed ${seed}: Headless relay cell matches`).toEqual(sc.relay);
++    expect(hl.routes.map((r: any) => r.portal), `seed ${seed}: Headless route cells match`).toEqual(sc.routes.map((r) => r.portal));
++    rows.push({
++      seed, roomId: sc.roomId, startRoomId: sc.startRoomId, relay: sc.relay, playerStart: sc.playerStart,
++      routes: sc.routes, spawnRelay, relayToA, relayToB, routeSeparation: sep, drones: sc.drones,
++      headless: { roomId: hl.roomId, startRoomId: hl.startRoomId, relay: hl.relay, routes: hl.routes }
++    });
++  }
++  const shapes = new Set(rows.map((r) => JSON.stringify({ p: r.playerStart, a: r.routes[0].portal, b: r.routes[1].portal })));
++  expect(shapes.size, 'the three seeds produce genuinely different layouts').toBeGreaterThan(1);
++  rec('p4-layout-3seeds', {
++    runner: 'agent (real menu entry per seed)',
++    fixtures: ['seed override (menu start wrapper)'],
++    jamRange: TUNE.JAM_RANGE, rows,
++    parity: 'Headless demo scenario cells/identity equal the rendered ones for every seed',
++    shot: await shot(page, 'p4-layout-3seeds')
++  });
++});
+diff --git a/tests/gameplay-04-headless-restore.spec.ts b/tests/gameplay-04-headless-restore.spec.ts
+new file mode 100644
+index 0000000..6e0b8fd
+--- /dev/null
++++ b/tests/gameplay-04-headless-restore.spec.ts
+@@ -0,0 +1,162 @@
++// GAMEPLAY-01 · P4 — headless restore / raw-frame probes for the review's R1/R2.
++//
++// NODE-side model tests (no browser, no product source change). They assert the
++// CONTRACT the owner surface needs (docs/gameplay/P4_RESTORE_CONTRACT.V3.md §2):
++//
++//   for a queued echo scan/jam or an unknown-provenance toggle-relay, EVERY
++//   owner-restore entry point must produce the same conservative busy guard:
++//     echoPendingLocal = { restored: true, proposalId: null, kind }
++//     proposeLocalEcho() === null
++//     confirmLocalEchoProposal(anyId, true) === false  + a rejected
++//     E_ALREADY_PENDING audit row (never applied/enqueued human-local)
++//     the core queue stays byte-exact,
++//     the original command commits exactly once on the next real tick,
++//     then the guard clears by its real receipt (no deadlock).
++//
++// Entry points: fromSimulationState, restore(frame), fromFrame(frame), replay().
++// A RunCheckpoint is a DIFFERENT contract (it intentionally drops uncommitted
++// commands at a safe point) and is asserted in the rendered P4 spec instead.
++
++import { test, expect } from '@playwright/test';
++import { mkdirSync, writeFileSync } from 'node:fs';
++import path from 'node:path';
++import { HeadlessWorld } from '../src/ai-native/worldHeadless';
++
++const BASE = path.resolve(process.env.LS_P4_DIR ?? 'reports/gameplay-01/tester/p4-final/run1');
++const SEEDS = [20261117, 20261118, 20261119] as const;
++const COST: Record<string, number> = { scan: 10, jam: 25 };
++
++function rec(name: string, data: unknown): void {
++  const dir = path.join(BASE, 'evidence');
++  mkdirSync(dir, { recursive: true });
++  writeFileSync(path.join(dir, `${name}.json`), JSON.stringify(data, null, 2));
++}
++
++/** Real session with exactly one confirmed local Signal command in flight. */
++function sessionWithPending(seed: number) {
++  const hw = new HeadlessWorld({ seed, demo: true, echoAutonomy: false });
++  hw.enableEcho();
++  hw.runSteps([{ ticks: 1, intent: null }]);
++  let proposal = hw.proposeLocalEcho();
++  if (!proposal) proposal = hw.proposeLocalEcho();
++  if (!proposal) return { hw, proposal: null, accepted: false, queue: [] as string[] };
++  const accepted = hw.confirmLocalEchoProposal(proposal.id);
++  const queue = hw.state.pendingCommands.map((c) => c.type);
++  return { hw, proposal, accepted, queue };
++}
++
++/** The shared contract check for one restored world and one frame. */
++function checkContract(world: HeadlessWorld, label: string, frameQueue: string[], rows: any[], recName?: string) {
++  const pending = world.echoPendingLocal;
++  const propose = world.proposeLocalEcho();
++  const directConfirm = world.confirmLocalEchoProposal('probe_second_confirm_never_real', true);
++  const queueAfter = world.state.pendingCommands.map((c) => c.type);
++  const audit = world.echoAudit.recent(32).map((e) => ({
++    kind: e.action, result: e.result, code: e.code ?? null, proposalId: e.proposalId, provenance: e.provenance
++  }));
++  const before = world.signalView();
++  const beforeEnergy = { player: (before as any)?.playerEnergy ?? null, echo: (before as any)?.echoEnergy ?? null };
++  const events = world.runSteps([{ ticks: 4, intent: null }]);
++  const after = world.signalView();
++  const afterEnergy = { player: (after as any)?.playerEnergy ?? null, echo: (after as any)?.echoEnergy ?? null };
++  const commits = events.filter((e) => e.type === 'signal-scanned' || e.type === 'signal-jammed');
++  const toggles = events.filter((e) => e.type === 'signal-relay-changed');
++  const kind = pending?.kind ?? null;
++  const row = {
++    entry: label,
++    frameQueue,
++    pendingAfter: pending && { kind: pending.kind, restored: pending.restored, proposalId: pending.proposalId ?? null },
++    proposeAfter: propose && { id: propose.id, kind: propose.kind },
++    directConfirmAccepted: directConfirm,
++    queueAfterQueue: queueAfter,
++    audit,
++    beforeEnergy, afterEnergy,
++    commits: commits.map((e: any) => ({ type: e.type, actorId: e.actorId, ok: e.ok !== false, energy: e.energy ?? null, code: e.code ?? null })),
++    toggles: toggles.map((e: any) => ({ relay: e.relay, manualEnabled: e.manualEnabled })),
++    pendingAfterCommit: world.echoPendingLocal,
++    appliedHumanLocalRows: world.echoAudit.recent(32)
++      .filter((e) => e.result === 'applied' && e.provenance === 'human-local' && !e.proposalId).length
++  };
++  rows.push(row);
++  // Persist the measured facts before asserting so a failing run still archives them.
++  if (recName) rec(recName, { entry: label, row });
++
++  expect(pending, `${label}: the conservative busy guard exists after the restore`).not.toBeNull();
++  expect(pending!.restored, `${label}: the guard is marked as restored`).toBe(true);
++  expect(pending!.proposalId ?? null, `${label}: no proposal id is invented`).toBeNull();
++  expect(propose, `${label}: proposeLocalEcho is blocked while the guard is set`).toBeNull();
++  expect(directConfirm, `${label}: a direct second confirm is refused`).toBe(false);
++  expect(audit.some((a) => a.result === 'rejected' && a.code === 'E_ALREADY_PENDING'),
++    `${label}: the refusal is an E_ALREADY_PENDING rejection row`).toBe(true);
++  expect(queueAfter.length, `${label}: the core queue is unchanged (no extra command)`).toBe(frameQueue.length);
++  if (kind === 'scan' || kind === 'jam') {
++    expect(commits.length, `${label}: the queued ${kind} commits exactly once on a real tick`).toBe(1);
++    const e: any = commits[0];
++    expect(e.ok, `${label}: the commit was accepted`).toBe(true);
++    const actorEnergy = e.actorId === -2 ? 'echo' : 'player';
++    const actorBefore = (beforeEnergy as any)[actorEnergy];
++    // Exact cost from the committed event payload (never a post-sample net delta).
++    expect(actorBefore - e.energy, `${label}: the ${kind} costs exactly ${COST[kind]} (event payload)`).toBe(COST[kind]);
++    row.exactCost = { actor: actorEnergy, before: actorBefore, eventEnergy: e.energy, actualCost: actorBefore - e.energy, netDelta: actorBefore - (afterEnergy as any)[actorEnergy] };
++  }
++  if (kind === 'toggle-relay') {
++    expect(toggles.length, `${label}: the queued relay toggle commits exactly once`).toBe(1);
++  }
++  expect(world.echoPendingLocal, `${label}: the guard clears by its real receipt (no deadlock)`).toBeNull();
++  expect(row.appliedHumanLocalRows, `${label}: no fabricated applied human-local row`).toBe(0);
++  if (recName) rec(recName + '-final', { entry: label, row });
++  return row;
++}
++
++for (const seed of SEEDS) {
++  test(`R1 · snapshot -> restore(frame) keeps one pending guard (seed ${seed})`, async () => {
++    test.setTimeout(120000);
++    const rows: any[] = [];
++    const s = sessionWithPending(seed);
++    expect(s.proposal, `seed ${seed}: a real local proposal exists to confirm`).not.toBeNull();
++    expect(s.accepted, `seed ${seed}: the real boundary accepted the confirmation`).toBe(true);
++    expect(s.queue.length, `seed ${seed}: exactly one command is queued after the confirm`).toBe(1);
++    expect(s.hw.echoPendingLocal, `seed ${seed}: a real pending exists before the snapshot`).not.toBeNull();
++    const frame = s.hw.snapshot();
++    const frameQueue = (frame.sim as any).pendingCommands.map((c: any) => c.type);
++    expect(frameQueue.length, `seed ${seed}: the mid-execution frame carries the command`).toBe(1);
++    const resumed = new HeadlessWorld({ seed, demo: true, echoAutonomy: false });
++    const restore = resumed.restore(frame);
++    expect(restore.ok, `seed ${seed}: restore accepted the frame`).toBe(true);
++    const row = checkContract(resumed, `restore(frame) seed ${seed}`, frameQueue, rows, 'p4-r1-restore-single-pending');
++    rec('p4-r1-restore-single-pending-summary', { seed, kind: s.proposal.kind, entry: 'restore(frame)', row });
++  });
++
++  test(`R2 · fromFrame keeps the same guard and a readable pending projection (seed ${seed})`, async () => {
++    test.setTimeout(120000);
++    const rows: any[] = [];
++    const s = sessionWithPending(seed);
++    const frame = s.hw.snapshot();
++    const frameQueue = (frame.sim as any).pendingCommands.map((c: any) => c.type);
++    const loaded = HeadlessWorld.fromFrame(frame);
++    const row = checkContract(loaded, `fromFrame(frame) seed ${seed}`, frameQueue, rows, 'p4-r2-fromframe-pending');
++    rec('p4-r2-fromframe-pending-summary', { seed, kind: s.proposal?.kind ?? null, entry: 'fromFrame(frame)', row });
++  });
++}
++
++test('R2b · replay() inherits the same guard (it builds its world with fromFrame)', async () => {
++  test.setTimeout(120000);
++  const rows: any[] = [];
++  for (const seed of SEEDS) {
++    const s = sessionWithPending(seed);
++    const frame = s.hw.snapshot();
++    const replayWorld = HeadlessWorld.fromFrame(frame);
++    const pending = replayWorld.echoPendingLocal;
++    const propose = replayWorld.proposeLocalEcho();
++    rows.push({
++      seed,
++      pending: pending && { kind: pending.kind, restored: pending.restored },
++      propose: propose ? { id: propose.id, kind: propose.kind } : null,
++      routeState: replayWorld.routeState
++    });
++    expect(pending, `seed ${seed}: the replay world carries the restored guard`).not.toBeNull();
++    expect(pending!.restored, `seed ${seed}: replay guard is conservative`).toBe(true);
++    expect(propose, `seed ${seed}: replay world cannot propose over the guard`).toBeNull();
++  }
++  rec('p4-r2b-replay-guard', { rows });
++});
