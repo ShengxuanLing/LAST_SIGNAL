@@ -1,0 +1,34 @@
+cmd: PORT=5471 npx playwright test tests/runtime-bugs.spec.ts -g 'cleared room always offers an exit portal'  (RED, v3 bytes)
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+src World sha256: 3ff4f7e3ad7310d85796055846a45435ecb52ff671a3073ae9cd69d9cc19548f
+at: 2026-11-18T16:01:47+01:00
+
+Running 1 test using 1 worker
+
+  x  1 [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited (3.8s)
+
+
+  1) [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited 
+
+    Error: start room portal is walkable
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      274 |   });
+      275 |   expect(startPortal.has, 'start room portal exists').toBe(true);
+    > 276 |   expect(startPortal.walkable, 'start room portal is walkable').toBe(true);
+          |                                                                 ^
+      277 |   expect(startPortal.inRoom, 'start room portal is inside room bounds').toBe(true);
+      278 |
+      279 |   // Enter the first connected room, clear it, and verify a portal remains.
+        at D:\Project\LAST_SIGNAL\.cindy-worktrees\serene-leakey\tests\runtime-bugs.spec.ts:276:65
+
+    Error Context: test-results\runtime-bugs-cleared-room--d8364--when-every-room-is-visited-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited 
+EXIT=1

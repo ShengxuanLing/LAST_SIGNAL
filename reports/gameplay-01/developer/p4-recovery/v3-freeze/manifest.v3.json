@@ -1,0 +1,87 @@
+{
+  "task": "GAMEPLAY-01 P4 v3 — close review R1 (frame restore guard) + R2 (fromFrame runtime), restore-contract wording corrected",
+  "date": "2026-11-18",
+  "worker": "Orca worker q331nefqzzh4gzn0hdbmnxwh",
+  "cwd": "D:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey",
+  "git": {
+    "branch": "cindy/serene-leakey",
+    "head": "3819621c5faab56b114b6e5a560f8fe78c17709d",
+    "commitsMadeByThisWorker": 0,
+    "push": false,
+    "mainRepoDirtySrcFilesUntouched": true
+  },
+  "supersedes": "manifest.v2.json (v2 sources/evidence archived at v2-freeze/ before this round)",
+  "freezeArchives": {
+    "v1": "v1-freeze/ (7 sources + v1 manifest + v1 rendered evidence/screenshots)",
+    "v2": "v2-freeze/ (9 sources + 3 docs + v2 manifest + driver/evidence/patch copies, FREEZE-HASHES.log.txt)"
+  },
+  "v2ToV3ExactDiff": {
+    "modified": [
+      "src/ai-native/worldHeadless.ts",
+      "docs/gameplay/P4_TEST_AND_FINAL_LIMITS.md"
+    ],
+    "added": [
+      "src/ai-native/worldHeadlessRestoreSafety.test.ts",
+      "docs/gameplay/P4_RESTORE_CONTRACT.V3.md"
+    ],
+    "unchanged": "all other v2 sources, docs and rendered/driver evidence are byte-identical",
+    "diffs": [
+      "v3/patch/v2-to-v3-worldHeadless.diff",
+      "v3/patch/v2-to-v3-limits-doc.diff"
+    ],
+    "incrementalNewFiles": [
+      "v3/patch/worldHeadlessRestoreSafety.test.ts",
+      "v3/patch/P4_RESTORE_CONTRACT.V3.md"
+    ],
+    "fullPatchFromHead": "v3/patch/p4-src-fix-v3-full.patch"
+  },
+  "fixes": {
+    "R1": "restore(frame) now clears the old local session (echoController.reset(), pendingLocalAction=null) and calls restoreSignalGuard() to rebuild the conservative marker from frame.sim.pendingCommands, reusing findRestoredSignal / setRestoredPending. No fabricated human-local receipt; no exact-queue deletion; other actors' commands untouched.",
+    "R2": "fromFrame() now initialises the same EchoController + EchoAuditRing + pending fields as fromSimulationState and calls the same restoreSignalGuard; replay inherits it because it builds via fromFrame.",
+    "contract": "fromSimulationState / restore / fromFrame / replay now share one guard contract; RunCheckpoint still intentionally drops uncommitted commands (different semantics, unchanged).",
+    "wording": "the historical blanket claim that P2 restore is safe on *all* paths is withdrawn in docs/gameplay/P4_RESTORE_CONTRACT.V3.md and in P4_TEST_AND_FINAL_LIMITS.md §2b; only the four actual entry points are claimed.",
+    "R3": "cross-version identity between sim.authored and World.p1Scenario is a documented LIMITATION, explicitly out of scope this round."
+  },
+  "deliveredSources": [
+    { "file": "src/world/sim/core.ts", "status": "unchanged-since-v1", "sha256": "f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6" },
+    { "file": "src/config/p1Scenario.ts", "status": "unchanged-since-v2", "sha256": "76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7" },
+    { "file": "src/ai-native/worldHeadless.ts", "status": "modified-v2-to-v3 (R1/R2)", "sha256": "7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316" },
+    { "file": "src/world/World.ts", "status": "unchanged-since-v1", "sha256": "3ff4f7e3ad7310d85796055846a45435ecb52ff671a3073ae9cd69d9cc19548f" },
+    { "file": "src/signal/relay.ts", "status": "unchanged-from-candidate", "sha256": "6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89" },
+    { "file": "src/signal/relayRoutes.test.ts", "status": "unchanged-since-v1", "sha256": "097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423" },
+    { "file": "src/ai-native/worldHeadlessDemoRoute.test.ts", "status": "unchanged-since-v1", "sha256": "11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4" },
+    { "file": "src/config/p1ScenarioLayout.test.ts", "status": "unchanged-since-v2", "sha256": "8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6" },
+    { "file": "src/ai-native/worldHeadlessFrameAuthored.test.ts", "status": "unchanged-since-v2", "sha256": "93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21" },
+    { "file": "src/ai-native/worldHeadlessRestoreSafety.test.ts", "status": "NEW in v3 (R1/R2 negative repro)", "sha256": "ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652" }
+  ],
+  "deliveredDocs": [
+    { "file": "docs/gameplay/COOP_LEVEL_DESIGN.P4-UPDATE.md", "status": "unchanged-since-v2", "sha256": "7c9a19bf3557426d166fdd366bd7f8e15aa044b151fe0b056a70fe3e8c3ea7ff" },
+    { "file": "docs/gameplay/P5_VARIANTS_PLAN.md", "status": "unchanged-since-v2", "sha256": "80094d2d4ad3c95ca38c0af0a74d92f711456e9ddd56cf8c3bb3b21f9c1c8019" },
+    { "file": "docs/gameplay/P4_TEST_AND_FINAL_LIMITS.md", "status": "modified-v2-to-v3 (T12 + §2b)", "sha256": "3a75fb9603d2d2d6d5355812f4e803f7d4aff111132bc46afb4c7029da50597a" },
+    { "file": "docs/gameplay/P4_RESTORE_CONTRACT.V3.md", "status": "NEW in v3", "sha256": "62986032c6b913cc48a5d4d36b43501984ce699449aa257b6d72ea01837419aa" }
+  ],
+  "patchHashes": {
+    "v3/patch/p4-src-fix-v3-full.patch": "05b8614c4a031d0536376a5e0a1910cca342df5ba2877b6787b7d6f98da2b419"
+  },
+  "gates": [
+    { "command": "npx vitest run src/ai-native/worldHeadlessRestoreSafety.test.ts (RED, v2 bytes)", "result": "FAIL 8/8 as intended", "log": "v3/red-repro.log.txt" },
+    { "command": "npx vitest run src/ai-native/worldHeadlessRestoreSafety.test.ts (GREEN, v3)", "result": "PASS 8/8", "log": "v3/green-repro.log.txt" },
+    { "command": "npx tsc --noEmit", "result": "PASS (0 errors)", "log": "v3/gates/v3-typecheck.log.txt" },
+    { "command": "npx vitest run <restore-safety + 4 v2 source test files>", "result": "PASS 62/62 (5 files)", "log": "v3/gates/v3-src-tests.log.txt" },
+    { "command": "npx vitest run <17 P2/restore/replay/parity/checkpoint/core boundary files>", "result": "PASS 221/221 (17 files)", "log": "v3/gates/v3-boundary.log.txt" },
+    { "command": "npm run test:parity (product generated inside this worktree in v2)", "result": "PASS 3/3", "log": "v3/gates/v3-parity.log.txt" }
+  ],
+  "notRun": "full 818 suite, full E2E, build (Lead: targeted only); v1/v2 rendered evidence unchanged because no rendered source changed in v3.",
+  "filesIntentionallyNotTouched": [
+    "tests/**",
+    "main repo four dirty src files",
+    "P2 Owner capability / confirm protocol",
+    "src/world/sim/core.ts, src/world/World.ts and all other v2 sources",
+    "P5 variant implementation (plan only)"
+  ],
+  "freeze": {
+    "state": "FROZEN for independent re-review (v3)",
+    "humanAcceptance": "PENDING",
+    "modelCalls": 0
+  }
+}

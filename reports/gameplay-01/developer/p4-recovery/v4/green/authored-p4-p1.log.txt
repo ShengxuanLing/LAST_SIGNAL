@@ -1,0 +1,42 @@
+cmd: PORT=5471 npx playwright test tests/gameplay-04-coop-level.spec.ts tests/gameplay-01.spec.ts (GREEN, v4 authored P4/P1 regression)
+at: 2026-11-18T16:07:51+01:00
+
+Running 7 tests using 1 worker
+
+  ok 1 [chromium] › tests\gameplay-01.spec.ts:321:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 1) real menu entry: relay ACTIVE, linked drones, T/Y costs and jam expiry (11.0s)
+  ok 2 [chromium] › tests\gameplay-01.spec.ts:471:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 2) route A reached by real walking + F after real combat (no teleport, no rescue) (13.8s)
+  ok 3 [chromium] › tests\gameplay-01.spec.ts:505:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 3) route B: manual relay OFF (R) selects the other authored route (9.5s)
+P1_METRICS D:\Project\LAST_SIGNAL\.cindy-worktrees\serene-leakey\reports\gameplay-01\tester\evidence\p1-acceptance.json
+  x  4 [chromium] › tests\gameplay-01.spec.ts:535:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 4) standing at the door: natural Y is range-rejected, fixture jam cannot pass (12.7s)
+  ok 5 [chromium] › tests\gameplay-01.spec.ts:650:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 5) save -> page reload -> CONTINUE restores room, relay and route target (14.2s)
+  ok 6 [chromium] › tests\gameplay-01.spec.ts:679:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 6) seeds 20261117/18/19 all set up a real playable authored layout (13.2s)
+P1_METRICS D:\Project\LAST_SIGNAL\.cindy-worktrees\serene-leakey\reports\gameplay-01\tester\evidence\p1-acceptance.json
+  ok 7 [chromium] › tests\gameplay-01.spec.ts:734:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 7) HUD + menu at five viewports: readable font, no clipped / unexpected overlap (26.4s)
+
+
+  1) [chromium] › tests\gameplay-01.spec.ts:535:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 4) standing at the door: natural Y is range-rejected, fixture jam cannot pass 
+
+    Error: authored door is farther than JAM_RANGE from the relay
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 6
+    Received:   1
+
+      576 |     });
+      577 |     // The authored door is intentionally outside jam range (6 tiles).
+    > 578 |     expect(atDoor.distanceRelayDoor, 'authored door is farther than JAM_RANGE from the relay').toBeGreaterThan(TUNE.JAM_RANGE);
+          |                                                                                                ^
+      579 |     await page.keyboard.press('KeyY');
+      580 |     await page.waitForTimeout(500);
+      581 |     const afterNaturalY = await page.evaluate(() => {
+        at D:\Project\LAST_SIGNAL\.cindy-worktrees\serene-leakey\tests\gameplay-01.spec.ts:578:96
+
+    Error Context: test-results\gameplay-01-GAMEPLAY-01-P1-647b6-ted-fixture-jam-cannot-pass-chromium\error-context.md
+
+    Error Context: test-results\gameplay-01-GAMEPLAY-01-P1-647b6-ted-fixture-jam-cannot-pass-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\gameplay-01.spec.ts:535:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 4) standing at the door: natural Y is range-rejected, fixture jam cannot pass 
+  6 passed (1.8m)
+EXIT=1

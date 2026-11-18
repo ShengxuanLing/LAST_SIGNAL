@@ -1,0 +1,15 @@
+# reviewer independent re-run of the two originally-red legacy specs (UNMODIFIED base specs, original thresholds)
+# workdir=D:/tmp/gp01-p4v4 base=3819621 + v4 ten sources (World 349544bf) PORT=5498 2026-11-18T15:13:32Z
+# spec shas: runtime-bugs=5451249688c21200 audit=fe43dc48a6164218
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited
+  1 passed (24.0s)
+RUNTIME_BUGS_EXIT=0
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+  1 passed (19.4s)
+AUDIT_EXIT=0

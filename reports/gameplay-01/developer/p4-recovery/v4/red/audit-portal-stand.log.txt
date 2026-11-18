@@ -1,0 +1,29 @@
+cmd: PORT=5471 npx playwright test tests/audit.spec.ts -g 'fixed-seed playability regression'  (RED, v3 bytes)
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+src World sha256: 3ff4f7e3ad7310d85796055846a45435ecb52ff671a3073ae9cd69d9cc19548f
+at: 2026-11-18T16:02:07+01:00
+
+Running 1 test using 1 worker
+
+  x  1 [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport (22.3s)
+
+
+  1) [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport 
+
+    TimeoutError: page.waitForFunction: Timeout 8000ms exceeded.
+
+      480 |   // portal tile before pressing F (no catch: a sync failure must be reported
+      481 |   // here, not masked behind a later geometry assertion).
+    > 482 |   await page.waitForFunction((onPortal: { x: number; y: number }) => {
+          |              ^
+      483 |     const g: any = (window as any).__game;
+      484 |     const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+      485 |     const w = gs?.world;
+        at D:\Project\LAST_SIGNAL\.cindy-worktrees\serene-leakey\tests\audit.spec.ts:482:14
+
+    Error Context: test-results\audit-fixed-seed-playabili-9b589--upgrade---pause---teleport-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport 
+EXIT=1

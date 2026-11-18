@@ -1,0 +1,11 @@
+cmd: PORT=5471 npx playwright test tests/companion-room-race.spec.ts  (isolated re-run after one failure in the combined run)
+at: 2026-11-18T16:06:19+01:00
+
+Running 3 tests using 1 worker
+
+  ok 1 [chromium] › tests\companion-room-race.spec.ts:208:1 › T1 delayed room notification 4000ms: old confirm refused synchronously; receipt never applied (12.7s)
+  ok 2 [chromium] › tests\companion-room-race.spec.ts:303:1 › T2 decision response delayed 6s while the room changes: server ok, renderer refuses to apply (13.9s)
+  ok 3 [chromium] › tests\companion-room-race.spec.ts:358:1 › T3 A->B->C with the first notification delayed: no rollback, newest room usable (14.1s)
+
+  3 passed (42.6s)
+EXIT=0

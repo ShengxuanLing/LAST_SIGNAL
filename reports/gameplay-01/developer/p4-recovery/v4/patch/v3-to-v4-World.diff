@@ -1,0 +1,77 @@
+--- ../serene-leakey/reports/gameplay-01/developer/p4-recovery/v3-freeze/src/world/World.ts	2026-11-18 16:00:51.534506900 +0100
++++ src/world/World.ts	2026-11-18 16:03:09.882808600 +0100
+@@ -1338,10 +1338,10 @@
+     if (this.isDeckExit(r) && this.nextDeck !== undefined) {
+       if (r.kind === 'extraction') {
+         // 无 boss 的终点房：其他房间已清后，进入即为下一 sector 门。
+-        if (this.exitUnlocked) { this.makePortal(null, this.cellCentre(this.findWalkableInRoom(r))); return; }
++        if (this.exitUnlocked) { this.makePortal(null, this.findWalkableCentreInRoom(r)); return; }
+         this.clearPortal(); return;
+       }
+-      if (r.cleared) { this.makePortal(null, this.cellCentre(this.findWalkableInRoom(r))); return; }
++      if (r.cleared) { this.makePortal(null, this.findWalkableCentreInRoom(r)); return; }
+       this.clearPortal(); return;
+     }
+     // Prefer the first step toward any unvisited room. If every room is already
+@@ -1367,26 +1367,37 @@
+     const tr = this.map.rooms[target];
+     const targetCenter = { x: tr.gx + tr.w / 2, y: tr.gy + tr.h / 2 };
+ 
+-    // Place the portal on a walkable tile INSIDE the current room, nearest to the
+-    // target room. The old code searched around the midpoint between room centres
+-    // with `isWalkable(..., 8)`, which requires a 16x16 open square and therefore
+-    // almost never matches; the portal then stayed at a wall/void midpoint.
+-    let best = {
+-      x: r.gx + Math.floor(r.w / 2),
+-      y: r.gy + Math.floor(r.h / 2)
+-    };
++    // Place the portal on a walkable CELL CENTRE inside the current room, nearest
++    // to the target room. The probe and the beacon must use the SAME point: the
++    // old loop probed the tile CORNER (`isWalkable(tile.x, tile.y, 0.5)`) while
++    // `makePortal` placed the beacon on the CELL CENTRE, whose radius-0.5
++    // footprint touches all four neighbouring cells — so a corner cell could be
++    // selected where the player cannot actually stand on the beacon.
++    this.makePortal(target, this.findWalkableCentreInRoom(r, targetCenter));
++  }
++
++  /**
++   * Walkable CELL CENTRE inside `r` (nearest to `near`, default room centre).
++   * This is the ONE coordinate used both to validate and to present a portal,
++   * so the beacon can never sit where the player cannot stand.
++   */
++  private findWalkableCentreInRoom(r: Room, near?: Vec2): Vec2 {
++    const anchor = near ?? { x: r.gx + r.w / 2, y: r.gy + r.h / 2 };
++    let best: Vec2 | null = null;
+     let bestD = Infinity;
+     for (const row of this.map.tiles) {
+       for (const tile of row) {
+         if (tile.x < r.gx || tile.x >= r.gx + r.w) continue;
+         if (tile.y < r.gy || tile.y >= r.gy + r.h) continue;
+-        if (!this.isWalkable(tile.x, tile.y, 0.5)) continue;
+-        const dd = (tile.x - targetCenter.x) ** 2 + (tile.y - targetCenter.y) ** 2;
+-        if (dd < bestD) { bestD = dd; best = { x: tile.x, y: tile.y }; }
++        const centre = this.cellCentre(tile);
++        if (!this.isWalkable(centre.x, centre.y, 0.5)) continue;
++        const dd = (centre.x - anchor.x) ** 2 + (centre.y - anchor.y) ** 2;
++        if (dd < bestD) { bestD = dd; best = centre; }
+       }
+     }
+-
+-    this.makePortal(target, this.cellCentre(best));
++    // Degenerate room (no centre-qualifying cell): keep the previous fallback
++    // point so the room still gets a beacon; generated rooms always qualify.
++    return best ?? this.cellCentre({ x: r.gx + Math.floor(r.w / 2), y: r.gy + Math.floor(r.h / 2) });
+   }
+ 
+   private clearPortal(): void {
+@@ -1457,6 +1468,10 @@
+    * Only tiles whose radius-0.5 footprint is clear qualify (same predicate as
+    * placePortal); integer grid coords are returned so Player/Boss collision
+    * checks sample the same tiles we validated here.
++   *
++   * POSITIONS ONLY (spawns/landings/boss). A PORTAL must use
++   * `findWalkableCentreInRoom()` instead: its presented point is the cell centre,
++   * so it must be validated at that same centre (v4 regression fix).
+    */
+   private findWalkableInRoom(r: Room): Vec2 {
+     const cx = r.gx + r.w / 2, cy = r.gy + r.h / 2;

@@ -1,0 +1,12 @@
+cmd: PORT=5471 npx playwright test tests/audit.spec.ts -g 'fixed-seed playability regression'  (GREEN, v4)
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+src World sha256: 349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+at: 2026-11-18T16:04:22+01:00
+
+Running 1 test using 1 worker
+
+  ok 1 [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport (20.1s)
+
+  1 passed (25.3s)
+EXIT=0

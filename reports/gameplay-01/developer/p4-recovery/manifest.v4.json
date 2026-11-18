@@ -1,0 +1,83 @@
+{
+  "task": "GAMEPLAY-01 P4 v4 — legacy portal centre-walkability regression fix (necessary product repair after tester run3)",
+  "date": "2026-11-18",
+  "worker": "Orca worker q331nefqzzh4gzn0hdbmnxwh",
+  "cwd": "D:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey",
+  "git": {
+    "branch": "cindy/serene-leakey",
+    "head": "3819621c5faab56b114b6e5a560f8fe78c17709d",
+    "commitsMadeByThisWorker": 0,
+    "push": false,
+    "mainRepoIntegratedV3": "48b080d (v3 ten sources verified byte-identical before this round)",
+    "mainRepoSourceNotWrittenByThisWorker": true
+  },
+  "freezeArchives": {
+    "v1": "v1-freeze/",
+    "v2": "v2-freeze/",
+    "v3": "v3-freeze/ (10 sources + 4 docs + manifest.v3 + FREEZE-HASHES.log.txt, archived before this fix)"
+  },
+  "regression": {
+    "source": "main repo reports/gameplay-01/tester/p4-final/P4_TEST_REPORT.md (run3-v3-final)",
+    "symptoms": [
+      "tests/runtime-bugs.spec.ts:276 'start room portal is walkable' === false",
+      "tests/audit.spec.ts:482 player.reset(portal.wx, portal.wy) never stands on the portal within 8 s"
+    ],
+    "rootCause": "legacy candidate loop probed the tile CORNER (isWalkable(tile.x, tile.y, 0.5)) while makePortal placed the beacon on the CELL CENTRE, whose radius-0.5 footprint requires all four neighbouring cells; a corner cell could be selected where the player cannot stand on the beacon.",
+    "scope": "legacy (non-demo) portal placement only; authored route portals were already centre-based and are unchanged."
+  },
+  "fix": {
+    "file": "src/world/World.ts",
+    "sha256": "349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64",
+    "summary": "new findWalkableCentreInRoom(r, near?) probes and returns the SAME cell centre that makePortal presents; placePortalForTarget and both deck-exit portal placements use it. findWalkableInRoom stays the position/spawn helper (corner probe matches the entity position) and is documented as such. No change to makePortal semantics, no half-tile revert, authored portals untouched.",
+    "minimalNewTests": "none added. The two unmodified legacy specs are the regression gate; a new unit test would only mirror the expression, so it was deliberately skipped."
+  },
+  "v3ToV4Diff": {
+    "modified": ["src/world/World.ts"],
+    "added": [],
+    "unchangedEverythingElse": true,
+    "diff": "v4/patch/v3-to-v4-World.diff (sha256 e0ace9bb28c24c910e1fcc19620acc80d00e9531342a943aded422a2540718ab)",
+    "wholeFileCopy": "v4/patch/World.v4.ts",
+    "vsHeadPatch": "v4/patch/World-vs-HEAD.patch (sha256 7e520c0a99fce06a1f6582b2d316b859e6d11a2eae4c1015bf05cf1e2fc814d0)"
+  },
+  "sources": [
+    { "file": "src/world/sim/core.ts", "sha256": "f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6", "changedThisRound": false },
+    { "file": "src/config/p1Scenario.ts", "sha256": "76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7", "changedThisRound": false },
+    { "file": "src/ai-native/worldHeadless.ts", "sha256": "7382d6f090e5da6b6ae005d85b0768ba623ef52dbe6799cc1c54dfe889e54316", "changedThisRound": false },
+    { "file": "src/world/World.ts", "sha256": "349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64", "changedThisRound": true },
+    { "file": "src/signal/relay.ts", "sha256": "6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89", "changedThisRound": false },
+    { "file": "src/signal/relayRoutes.test.ts", "sha256": "097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423", "changedThisRound": false },
+    { "file": "src/ai-native/worldHeadlessDemoRoute.test.ts", "sha256": "11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4", "changedThisRound": false },
+    { "file": "src/config/p1ScenarioLayout.test.ts", "sha256": "8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6", "changedThisRound": false },
+    { "file": "src/ai-native/worldHeadlessFrameAuthored.test.ts", "sha256": "93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21", "changedThisRound": false },
+    { "file": "src/ai-native/worldHeadlessRestoreSafety.test.ts", "sha256": "ec4139ffbfc47d9b493d19377e9a8d6908a79dc808f2c1718cc590f338fb8652", "changedThisRound": false }
+  ],
+  "docs": [
+    { "file": "docs/gameplay/COOP_LEVEL_DESIGN.P4-UPDATE.md", "sha256": "7c9a19bf3557426d166fdd366bd7f8e15aa044b151fe0b056a70fe3e8c3ea7ff" },
+    { "file": "docs/gameplay/P5_VARIANTS_PLAN.md", "sha256": "80094d2d4ad3c95ca38c0af0a74d92f711456e9ddd56cf8c3bb3b21f9c1c8019" },
+    { "file": "docs/gameplay/P4_TEST_AND_FINAL_LIMITS.md", "sha256": "3a75fb9603d2d2d6d5355812f4e803f7d4aff111132bc46afb4c7029da50597a" },
+    { "file": "docs/gameplay/P4_RESTORE_CONTRACT.V3.md", "sha256": "62986032c6b913cc48a5d4d36b43501984ce699449aa257b6d72ea01837419aa" }
+  ],
+  "gates": [
+    { "command": "PORT=5471 npx playwright test tests/runtime-bugs.spec.ts -g 'cleared room always offers an exit portal'", "phase": "RED", "result": "FAIL (start room portal is walkable)", "log": "v4/red/runtime-bugs-start-room-portal.log.txt" },
+    { "command": "PORT=5471 npx playwright test tests/audit.spec.ts -g 'fixed-seed playability regression'", "phase": "RED", "result": "FAIL (waitForFunction 8000ms on portal)", "log": "v4/red/audit-portal-stand.log.txt" },
+    { "command": "same two tests after the World fix", "phase": "GREEN", "result": "PASS 1/1 and 1/1", "log": "v4/green/runtime-bugs-start-room-portal.log.txt ; v4/green/audit-portal-stand.log.txt" },
+    { "command": "npx tsc --noEmit", "phase": "GREEN", "result": "PASS (0 errors)", "log": "v4/gates/v4-typecheck.log.txt" },
+    { "command": "PORT=5471 npx playwright test tests/checkpoint.spec.ts tests/economy.spec.ts tests/echo-portal-migration.spec.ts tests/signal-human-crossroom.spec.ts", "phase": "GREEN", "result": "PASS 10/10", "log": "v4/green/portal-checkpoint-required.log.txt" },
+    { "command": "same + tests/companion-room-cancel.spec.ts + tests/companion-room-race.spec.ts", "phase": "MIXED", "result": "14/15; companion-room-race.spec.ts:274 flaked under load, passes 3/3 isolated (unrelated P2 race, no assertion touched)", "log": "v4/green/portal-checkpoint-targeted.log.txt ; v4/green/companion-room-race-isolated.log.txt" },
+    { "command": "PORT=5471 npx playwright test tests/gameplay-04-coop-level.spec.ts tests/gameplay-01.spec.ts", "phase": "INFO", "result": "gameplay-04 spec absent at this base (tester-owned); P1 6/7 pass, the single failure is the known stale door-distance assertion tests/gameplay-01.spec.ts:578 (product decision F7, tester-owned)", "log": "v4/green/authored-p4-p1.log.txt" }
+  ],
+  "testInventory": "Not measured/claimed here. The tester reported 859 tests / 73 files on the v3 snapshot; earlier rounds used 818 / 70. This round ran targeted gates only; inventory belongs to Tester/Reviewer.",
+  "notRun": "full unit suite, full E2E, build, mcp-surface (Lead: targeted only for v4).",
+  "filesIntentionallyNotTouched": [
+    "tests/** (both legacy reds kept as-is as the regression gate)",
+    "P2 Owner capability / confirm protocol",
+    "src/world/sim/core.ts and every source except src/world/World.ts",
+    "authored portal path (src/config/p1Scenario.ts builder, updateP1RoutePortal)",
+    "P5 variants (plan only)"
+  ],
+  "freeze": {
+    "state": "FROZEN for independent re-review (v4)",
+    "humanAcceptance": "PENDING",
+    "modelCalls": 0
+  }
+}

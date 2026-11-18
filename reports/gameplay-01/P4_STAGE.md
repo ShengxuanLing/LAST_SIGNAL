@@ -1,6 +1,12 @@
-# GAMEPLAY-01 P4 v3 阶段集成
+# GAMEPLAY-01 P4 v3 / v4 阶段集成
 
 状态：源码与独立审查范围内通过，可本地阶段集成。Tester 的三 seed Rendered 通关与完整回归尚未交付；整体 GAMEPLAY-01 未 PASS，HUMAN ACCEPTANCE PENDING。
+
+后续 v3 测试已交付：三 seed × HumanOnly/HumanEcho 在真实浏览器均完成清房与换房，Headless 另验证同权威规则。单测实际 73 文件 / 859 条、surface 1、build、fresh parity 3 均通过；完整 E2E 为 150/155。两条失败是 legacy 门户中心不可走的真实产品回归，另三条为有证据的 world/camera 就绪前置错误，定向修后通过。全量当时 P4 测试字节为 17fe4a09，最终 50e74fdc 有全量后扩展，不能说那次全量运行了最终字节。
+
+v4 仅改 World.ts（SHA256 `349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64`）：legacy 门户按实际格中心检测 radius 0.5 并呈现同一点，deck-exit 同步；作者门户和 spawn/landing/boss 位置路径不变。Reviewer 独立用原测试、原阈值跑出 v3 两红、v4 两绿，并通过 8 条门户/存档定向测试，见 [P4_V4_REVIEW.md](reviewer/P4_V4_REVIEW.md)。这不回填旧 150/155，新 v4 完整链仍待 Tester。
+
+legacy 无 centre 可用格的 fallback 保留，60 个生成房间探针未触发不等于所有 seed 或手写房间都有解。另有 Companion race 负载下失败，实际红行是 tests/companion-room-race.spec.ts:208（开发 manifest 的 :274 是记录错误）；孤立 3/3 只说明负载敏感，未视为修复。
 
 作者场景与路线规则由正式 World、Headless 共用。core 提交作者房间唯一的 room.cleared；World 呈现门户，Headless 路线投影读取同一标记。布局失败不修改地图，门户格中心统一。作者身份随核心 snapshot/frame 恢复；四条正式恢复入口保留排队命令并建立未知来源 busy 标记，阻止重复确认，不虚构人类授权或动作回执。
 

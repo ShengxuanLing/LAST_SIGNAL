@@ -1,0 +1,79 @@
+# GAMEPLAY-01 P4 v2 — material for Tester E2E and the FINAL limits statement
+
+Date: 2026-11-18. This file is **material, not a test change**: the developer does not
+touch `tests/**`. It states exactly what the formal E2E should assert and which claims
+must never be made, so Tester and the FINAL report can copy from one source.
+
+---
+
+## 1. Assertions the formal E2E should carry (tester-owned)
+
+All of these are already measured by the developer's rendered run
+(`reports/gameplay-01/developer/p4-recovery/rendered/p4-demo.p4.spec.ts`, seed 20261117)
+and by the Headless rules (`src/config/p1ScenarioLayout.test.ts`,
+`src/ai-native/worldHeadlessDemoRoute.test.ts`, `src/ai-native/worldHeadlessFrameAuthored.test.ts`).
+
+| # | Assertion | Expected value | Source of truth |
+|---|---|---|---|
+| T1 | Authored entry through the real menu | `GameScene` active, no `DEMO 01 UNAVAILABLE`, `startRoomId === roomId` | rendered run |
+| T2 | Layout never overlaps | device↔player start ≥ 1.5, sentries ≥ 2 apart, portals on distinct cells | `relayRoutes.test.ts` (5 seeds) |
+| T3 | Room starts uncleared and has **no** portal | `cleared === false`, `portal === null` | rendered run |
+| T4 | Clear happens by real fire and commits **once** | `map.rooms[id].cleared === true`, exactly one `room-cleared` | Headless rule test + rendered |
+| T5 | Presented portal == authored cell centre == interaction point | `portal.wx/wy === route.portal`, label/beacon on the same point (no half tile) | rendered run |
+| T6 | Standing jam at the door is natural and costs real energy | door↔relay ≤ `JAM_RANGE` (1.0 tile); `jamCost ∈ [JAM_COST-2, JAM_COST]` (23–25) | rendered run (v2 adds the cost) |
+| T7 | JAMMED closes the route but never un-clears the room | `routeTarget === null`, `portal === null`, `cleared === true` | rendered + Headless |
+| T8 | `F` while JAMMED does not change the room | same `room.id` after F | rendered run |
+| T9 | Jam expiry restores the same route from the committed relay | `relay === 'ACTIVE'`, `routeTarget` and portal back | rendered + Headless (360 ticks) |
+| T10 | `F` at the authored door enters the route target | `room.id === routeTarget` | rendered run (1 seed) |
+| T11 | Restore re-derives the authored portal from the relay | reload → `CONTINUE` → same cleared room, portal == saved, `authored` present | rendered run |
+| T12 | P2 single-pending / unknown-restored guard on **each actual restore entry** (`fromSimulationState`, `restore(frame)`, `fromFrame`/`replay`) | one queued command, `restored: true` with `proposalId: null`, old ids rejected, no fake human-local row | `worldHeadlessRestoreSafety.test.ts` (v3) + boundary tests |
+| T13 | A corrupt frame is refused, not thrown from later | `isHeadlessFrame` false for bad `authored`, `restore` → `E_SNAPSHOT_INVALID`, live world intact | `worldHeadlessFrameAuthored.test.ts` |
+| T14 | A failed layout leaves the map untouched | `null` result + byte-identical room graph | `p1ScenarioLayout.test.ts` |
+
+Replacing the stale P1 assertion (`tests/gameplay-01.spec.ts:578`,
+`distanceRelayDoor > JAM_RANGE`) is **T6's story**, not a threshold change: the door is
+intentionally inside jam range and the real cost is what must be asserted. Keep the
+range-refusal branch by standing genuinely far away, never by teleporting.
+
+---
+
+## 2. Claims that must NOT be made (FINAL wording)
+
+| Forbidden wording | Correct wording / reason |
+|---|---|
+| "3 seeds cleared in the rendered game" | **Rendered** completion is proven on **1 seed** (20261117). 3 seeds are proven in the **Headless route projection** only. |
+| "Headless `completed` is a room transition" | It is a projection: room cleared + route target + player inside the portal radius. Headless has no room transition; `interact` is only consumed by the tick. |
+| "0 damage proves the level is safe/balanced" | 0 damage is what the scripted long-range fire produced on these seeds. It is **not** a balance sample; the rendered fight took 6 damage on seed 20261117. |
+| "HumanOnly is the offline/disconnect test" | HumanOnly = **no ECHO connection created**. The real disconnect/offline path was not exercised in P4 evidence. |
+| "ECHO costs ~128 ticks" | That delta is the script's 125-tick wait after a human refusal. Use `ticksExcludingScriptedHold` (v2 driver): HumanEcho ≈ HumanOnly + 3 ticks. |
+| "`energySpentEcho` is the scan cost" | It was a **net** delta (regen included). v2 renames it `netEnergyChangeEcho`; the real cost is `actualScanCost` (10) / the event delta `echoEnergy 100 → 90`. |
+| "The owner confirmed the suggestion" | In scripted runs the confirmation is a **FIXTURE** (`confirmLocalEchoProposal(id, true)`); no human played. |
+| "P4 is accepted / GAMEPLAY is PASS" | P4 v2 is engineering-delivered pending re-review; overall GAMEPLAY is **not** PASS. |
+| "P5 variants are implemented" | P4 has no new enemy/resource variants; see `P5_VARIANTS_PLAN.md` (plan only). |
+
+---
+
+## 2b. v3 correction to restore wording (withdrawn blanket claim)
+
+The earlier shorthand "P2 single-pending / restore is safe on all restore paths" is
+**withdrawn**: the v2 review found real gaps in `restore(frame)` (R1) and `fromFrame()`
+(R2). v3 closes exactly the four named owner-restore entry points listed in T12 and in
+`docs/gameplay/P4_RESTORE_CONTRACT.V3.md`. `RunCheckpoint` intentionally keeps its
+different "drop uncommitted commands" semantics; cross-version `authored` identity (R3)
+is a documented limit, not a claim of full coverage.
+
+## 3. Freeze and provenance notes for the FINAL report
+
+- v1 reviewed bytes are archived at
+  `reports/gameplay-01/developer/p4-recovery/v1-freeze/` (7 sources + v1 manifest + v1
+  rendered evidence + v1 screenshots). v2 = v1 + F1/F2 fixes + metric definitions + the
+  jam-cost assertion. Everything else is unchanged.
+- The four P4 candidate files came from the main worktree as an input patch; their
+  provenance is still unknown. A patch proves bytes, not authorship.
+- `reports/ai-native-02/signal/parity/*.json` used for the parity hard gate were
+  regenerated **inside this worktree** by the unmodified tester spec
+  `tests/signal-rendered-parity.spec.ts`; the main repo's copies were not touched.
+- One pre-existing defect is still open by decision: `World.updateRoom` contains the
+  room-clear block twice (present before `1a6306f`). P4 never reaches it for the authored
+  room (the core commits first), but any future metric wired to `onRoomCleared` on
+  **non-authored** rooms would double-count. Not a P4 regression.

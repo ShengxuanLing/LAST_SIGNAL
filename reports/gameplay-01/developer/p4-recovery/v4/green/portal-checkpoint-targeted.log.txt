@@ -1,0 +1,49 @@
+cmd: PORT=5471 npx playwright test tests/checkpoint.spec.ts tests/economy.spec.ts tests/echo-portal-migration.spec.ts tests/signal-human-crossroom.spec.ts tests/companion-room-cancel.spec.ts tests/companion-room-race.spec.ts (GREEN, v4 portal/checkpoint targeted)
+at: 2026-11-18T16:05:02+01:00
+
+Running 15 tests using 4 workers
+
+  ok  2 [chromium] › tests\checkpoint.spec.ts:71:1 › inventory equips an owned weapon and the safe checkpoint restores the selection (6.4s)
+  ok  1 [chromium] › tests\echo-portal-migration.spec.ts:75:1 › ordinary portal: the ECHO migrates with the protagonist in the same transition, assist cleared (6.8s)
+  ok  5 [chromium] › tests\checkpoint.spec.ts:152:1 › number keys select an upgrade when four choices are eligible (4.4s)
+  ok  6 [chromium] › tests\echo-portal-migration.spec.ts:122:1 › NEGATIVE CONTROL: a teleport without migration leaves the echo where it was (5.7s)
+  ok  7 [chromium] › tests\checkpoint.spec.ts:172:1 › loss recap shows run stats and retries the same seed (5.1s)
+  ok  4 [chromium] › tests\companion-room-cancel.spec.ts:123:1 › real portal retires old-room suggestions: no stale confirm, no execution; new room works once (15.7s)
+  x   3 [chromium] › tests\companion-room-race.spec.ts:208:1 › T1 delayed room notification 4000ms: old confirm refused synchronously; receipt never applied (18.7s)
+  ok  8 [chromium] › tests\economy.spec.ts:11:1 › earns and spends run credits, with purchases restored from the checkpoint (12.0s)
+  ok  9 [chromium] › tests\checkpoint.spec.ts:197:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress (13.3s)
+  ok 10 [chromium] › tests\companion-room-cancel.spec.ts:279:1 › pause/resume with no room change never cancels a live proposal (12.7s)
+  ok 12 [chromium] › tests\economy.spec.ts:123:1 › a failed checkpoint save keeps the purchase pending and completes once after recovery (5.4s)
+  ok 13 [chromium] › tests\checkpoint.spec.ts:316:1 › death routes to Game Over and clears the run checkpoint (3.4s)
+STEP U1 human R in room A: {"roomId":0,"relay":"ACTIVE","exitOpen":true,"manualEnabled":true,"deviceRoom":0,"pending":[]}
+STEP U2 real portal A->B: {"roomId":3,"relay":"ACTIVE","exitOpen":true,"manualEnabled":true,"deviceRoom":0,"pending":[]}
+STEP U3 human R in room B toggles old-room device: {"roomId":3,"relay":"INACTIVE","exitOpen":false,"manualEnabled":false,"deviceRoom":0,"pending":[]}
+  ok 14 [chromium] › tests\signal-human-crossroom.spec.ts:37:1 › human R in a new room still controls the relay left in the old room (6.8s)
+  ok 11 [chromium] › tests\companion-room-race.spec.ts:303:1 › T2 decision response delayed 6s while the room changes: server ok, renderer refuses to apply (18.1s)
+  ok 15 [chromium] › tests\companion-room-race.spec.ts:358:1 › T3 A->B->C with the first notification delayed: no rollback, newest room usable (14.8s)
+
+
+  1) [chromium] › tests\companion-room-race.spec.ts:208:1 › T1 delayed room notification 4000ms: old confirm refused synchronously; receipt never applied 
+
+    Error: the real Owner-shaped notification reached the handler
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 200
+    Received array: []
+
+      272 |     expect(status.receipts.some((r: any) => r.suggestionId === seeded.id && r.status === 'applied')).toBe(false);
+      273 |     expect(status.status.roomId).toBe(roomB);
+    > 274 |     expect(roomResponses, 'the real Owner-shaped notification reached the handler').toContain(200);
+          |                                                                                     ^
+      275 |
+      276 |     // Agent shape cannot reach the Owner cancel route: refused at the OUTER
+      277 |     // browser-only Origin gate (route classification).
+        at D:\Project\LAST_SIGNAL\.cindy-worktrees\serene-leakey\tests\companion-room-race.spec.ts:274:85
+
+    Error Context: test-results\companion-room-race-T1-del-3ca4c-ously-receipt-never-applied-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\companion-room-race.spec.ts:208:1 › T1 delayed room notification 4000ms: old confirm refused synchronously; receipt never applied 
+  14 passed (1.0m)
+EXIT=1

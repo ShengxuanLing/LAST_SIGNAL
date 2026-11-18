@@ -1,0 +1,2 @@
+World integrated sha256=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64; v3 retained in git and v3-freeze
+verified_post_copy_sha256=349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64

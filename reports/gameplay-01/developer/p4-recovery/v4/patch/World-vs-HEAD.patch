@@ -1,0 +1,289 @@
+diff --git a/src/world/World.ts b/src/world/World.ts
+index b8731da..143c155 100644
+--- a/src/world/World.ts
++++ b/src/world/World.ts
+@@ -34,7 +34,8 @@ import {
+ import { CombatVfx, BOLT_HEIGHT, type BoltView, type TelegraphView } from '../art/survey/CombatVfx';
+ import { CSS, DEPTH, FONT, INK } from '../art/survey/tokens';
+ import { deckLabel, dungeonRng, encounter, TOTAL_DECKS } from '../config/dungeon';
+-import { P1_DEMO_ID, p1RouteFor, type P1Scenario } from '../config/p1Scenario';
++import { P1_DEMO_ID, buildP1Scenario, p1RouteFor, type P1Scenario } from '../config/p1Scenario';
++import { routeTargetFor } from '../signal/relay';
+ 
+ export interface WorldCallbacks {
+   onLevelUp: (level: number) => void;
+@@ -618,89 +619,38 @@ export class World {
+     // different route pair (breaking portalTarget restore).
+     if (this.p1Scenario) return true;
+     if (this.p1ScenarioError) return false;
+-    const room = this.map.rooms[0];
+-    if (!room) { this.p1ScenarioError = 'DEMO 01 UNAVAILABLE · NO START ROOM'; return false; }
+-    const seen = new Set<number>([room.id]);
+-    const targets: Room[] = [];
+-    const consider = (candidate: Room | undefined): void => {
+-      if (!candidate || seen.has(candidate.id)) return;
+-      // The authored routes must continue play. Boss / extraction are terminal
+-      // targets and are never offered as a route choice.
+-      if (candidate.kind === 'boss' || candidate.kind === 'extraction') return;
+-      seen.add(candidate.id);
+-      targets.push(candidate);
+-    };
+-    for (const id of room.connectedTo) consider(this.map.rooms[id]);
+-    for (const candidate of this.map.rooms) consider(candidate);
+-    if (targets.length < 2) {
+-      // Do not silently degrade the DEMO into a normal run: report the failure
+-      // so GameScene can show a visible notice instead.
+-      this.p1ScenarioError = 'DEMO 01 UNAVAILABLE · NOT ENOUGH SUITABLE ROUTES';
++    const scenario = buildP1Scenario({
++      map: this.map,
++      isWalkable: (x, y, radius) => this.isWalkable(x, y, radius)
++    });
++    if (!scenario) {
++      this.p1ScenarioError = 'DEMO 01 UNAVAILABLE · LAYOUT / ROUTES CANNOT BE AUTHORED';
+       return false;
+     }
+-    // Deterministic seed variation inside the authored scene: the route pair
+-    // rotates with the real map seed. The scene is still authored data; this is
+-    // not a generic route framework.
+-    const variant = this.map.seed >>> 0;
+-    const li = variant % targets.length;
+-    const a = targets[li];
+-    const b = targets[(li + 1) % targets.length];
+-    // Keep the room graph consistent with the two authored routes so a saved
+-    // portalTarget still validates on restore.
+-    for (const target of [a, b]) {
+-      if (!room.connectedTo.includes(target.id)) room.connectedTo.push(target.id);
+-      if (!target.connectedTo.includes(room.id)) target.connectedTo.push(room.id);
+-    }
+-    // The authored room is a combat room on fresh and on restored runs.
+-    room.kind = 'combat';
+-    const relay = this.findWalkableInRoom(room);
+-    const drones = this.findP1SentrySpots(room, relay, variant);
+-    this.p1Scenario = {
+-      id: P1_DEMO_ID,
+-      roomId: room.id,
+-      routes: [
+-        { target: a.id, when: 'RELAY_ACTIVE', label: a.kind.toUpperCase() },
+-        { target: b.id, when: 'RELAY_INACTIVE', label: b.kind.toUpperCase() }
+-      ],
+-      initial: { manualEnabled: true, powered: true },
+-      relay,
+-      drones
++    this.p1Scenario = scenario;
++    // P4/M2: the authored demo + route identity is part of the CORE state, so a
++    // snapshot / restore / replay cannot silently lose it (the rendered World
++    // and the formal Headless now agree on one identity). Data only: the route
++    // target is still derived from the committed relay state.
++    this._sim.authored = {
++      id: scenario.id,
++      roomId: scenario.roomId,
++      startRoomId: scenario.startRoomId,
++      routes: scenario.routes.map((route) => ({
++        target: route.target, when: route.when, label: route.label,
++        ...(route.portal ? { portal: { x: route.portal.x, y: route.portal.y } } : {})
++      }))
+     };
++    // P4 layout: the authored player start is distinct from the device cell.
++    if (scenario.playerStart) {
++      this._sim.player.x = scenario.playerStart.x;
++      this._sim.player.y = scenario.playerStart.y;
++      this.bumpSimVersion();
++    }
+     this.lastP1RouteTarget = -1;
+     return true;
+   }
+ 
+-  /** Two walkable cells away from the player spawn and the relay. The pair is
+-   *  rotated deterministically by the real map seed (3+ authored variants). */
+-  private findP1SentrySpots(room: Room, relay: Vec2, variant: number): Vec2[] {
+-    const candidates: Vec2[] = [];
+-    const px = this.player.x, py = this.player.y;
+-    for (const row of this.map.tiles) {
+-      for (const tile of row) {
+-        if (tile.x < room.gx || tile.x >= room.gx + room.w) continue;
+-        if (tile.y < room.gy || tile.y >= room.gy + room.h) continue;
+-        if (!this.isWalkable(tile.x, tile.y, 0.5)) continue;
+-        if (Math.hypot(tile.x - px, tile.y - py) < 3.5) continue;
+-        if (Math.hypot(tile.x - relay.x, tile.y - relay.y) < 1.5) continue;
+-        if (candidates.some((s) => Math.hypot(s.x - tile.x, s.y - tile.y) < 2)) continue;
+-        candidates.push({ x: tile.x, y: tile.y });
+-      }
+-    }
+-    if (candidates.length === 0) {
+-      return [{ x: relay.x, y: relay.y }, { x: relay.x, y: relay.y }];
+-    }
+-    const start = variant % candidates.length;
+-    const picks: Vec2[] = [];
+-    for (let k = 0; k < candidates.length && picks.length < 2; k++) {
+-      const c = candidates[(start + k) % candidates.length];
+-      if (picks.some((p) => Math.hypot(p.x - c.x, p.y - c.y) < 2)) continue;
+-      picks.push(c);
+-    }
+-    if (picks.length === 0) picks.push(candidates[0]);
+-    if (picks.length === 1) picks.push(candidates[Math.min(1, candidates.length - 1)]);
+-    return [picks[0], picks[1]];
+-  }
+-
+   /** Spawn the authored sentry encounter in the scenario room (fresh demo only). */
+   spawnP1Sentry(): void {
+     const scenario = this.p1Scenario;
+@@ -747,7 +697,8 @@ export class World {
+     if (target === this.lastP1RouteTarget) return;
+     this.lastP1RouteTarget = target;
+     if (target === null) { this.clearPortal(); return; }
+-    this.placePortalForTarget(room, target);
++    if (route?.portal) this.makePortal(target, route.portal);
++    else this.placePortalForTarget(room, target);
+   }
+ 
+   /** P1 HUD helper: null = no authored link; true = linked drones may fire. */
+@@ -766,7 +717,7 @@ export class World {
+   get p1RouteTarget(): number | null {
+     const scenario = this.p1Scenario;
+     if (!scenario) return null;
+-    return p1RouteFor(this._sim.signal?.relay ?? null, scenario.routes)?.target ?? null;
++    return routeTargetFor(this._sim.signal?.relay ?? null, scenario.routes);
+   }
+ 
+   /** Owner-confirmed companion action -> a SINGLE queued core intent (move/fire/
+@@ -1387,10 +1338,10 @@ export class World {
+     if (this.isDeckExit(r) && this.nextDeck !== undefined) {
+       if (r.kind === 'extraction') {
+         // 无 boss 的终点房：其他房间已清后，进入即为下一 sector 门。
+-        if (this.exitUnlocked) { this.makePortal(null, this.findWalkableInRoom(r)); return; }
++        if (this.exitUnlocked) { this.makePortal(null, this.findWalkableCentreInRoom(r)); return; }
+         this.clearPortal(); return;
+       }
+-      if (r.cleared) { this.makePortal(null, this.findWalkableInRoom(r)); return; }
++      if (r.cleared) { this.makePortal(null, this.findWalkableCentreInRoom(r)); return; }
+       this.clearPortal(); return;
+     }
+     // Prefer the first step toward any unvisited room. If every room is already
+@@ -1416,26 +1367,37 @@ export class World {
+     const tr = this.map.rooms[target];
+     const targetCenter = { x: tr.gx + tr.w / 2, y: tr.gy + tr.h / 2 };
+ 
+-    // Place the portal on a walkable tile INSIDE the current room, nearest to the
+-    // target room. The old code searched around the midpoint between room centres
+-    // with `isWalkable(..., 8)`, which requires a 16x16 open square and therefore
+-    // almost never matches; the portal then stayed at a wall/void midpoint.
+-    let best = {
+-      x: r.gx + Math.floor(r.w / 2),
+-      y: r.gy + Math.floor(r.h / 2)
+-    };
++    // Place the portal on a walkable CELL CENTRE inside the current room, nearest
++    // to the target room. The probe and the beacon must use the SAME point: the
++    // old loop probed the tile CORNER (`isWalkable(tile.x, tile.y, 0.5)`) while
++    // `makePortal` placed the beacon on the CELL CENTRE, whose radius-0.5
++    // footprint touches all four neighbouring cells — so a corner cell could be
++    // selected where the player cannot actually stand on the beacon.
++    this.makePortal(target, this.findWalkableCentreInRoom(r, targetCenter));
++  }
++
++  /**
++   * Walkable CELL CENTRE inside `r` (nearest to `near`, default room centre).
++   * This is the ONE coordinate used both to validate and to present a portal,
++   * so the beacon can never sit where the player cannot stand.
++   */
++  private findWalkableCentreInRoom(r: Room, near?: Vec2): Vec2 {
++    const anchor = near ?? { x: r.gx + r.w / 2, y: r.gy + r.h / 2 };
++    let best: Vec2 | null = null;
+     let bestD = Infinity;
+     for (const row of this.map.tiles) {
+       for (const tile of row) {
+         if (tile.x < r.gx || tile.x >= r.gx + r.w) continue;
+         if (tile.y < r.gy || tile.y >= r.gy + r.h) continue;
+-        if (!this.isWalkable(tile.x, tile.y, 0.5)) continue;
+-        const dd = (tile.x - targetCenter.x) ** 2 + (tile.y - targetCenter.y) ** 2;
+-        if (dd < bestD) { bestD = dd; best = { x: tile.x, y: tile.y }; }
++        const centre = this.cellCentre(tile);
++        if (!this.isWalkable(centre.x, centre.y, 0.5)) continue;
++        const dd = (centre.x - anchor.x) ** 2 + (centre.y - anchor.y) ** 2;
++        if (dd < bestD) { bestD = dd; best = centre; }
+       }
+     }
+-
+-    this.makePortal(target, best);
++    // Degenerate room (no centre-qualifying cell): keep the previous fallback
++    // point so the room still gets a beacon; generated rooms always qualify.
++    return best ?? this.cellCentre({ x: r.gx + Math.floor(r.w / 2), y: r.gy + Math.floor(r.h / 2) });
+   }
+ 
+   private clearPortal(): void {
+@@ -1445,10 +1407,13 @@ export class World {
+     this.portal = null;
+   }
+ 
+-  private makePortal(target: number | null, best: Vec2): void {
++  private makePortal(target: number | null, center: Vec2): void {
+     this.clearPortal();
+-    // Display at the visual centre of the chosen cell; interaction still uses (best.x, best.y).
+-    const s = this.worldToScreen(best.x + 0.5, best.y + 0.5);
++    // `center` is the authored/derived CELL CENTRE (tile + 0.5). The sprite, its
++    // label, its glow and the interaction point (`wx`/`wy`) all use that one
++    // point — P1 passed a corner here and the beacon sat half a tile away from
++    // the real interaction point (M7).
++    const s = this.worldToScreen(center.x, center.y);
+     const spr = this.scene.add.sprite(s.x, s.y, 'portal_beacon');
+     spr.setOrigin(0.5, 54 / 64).setDepth(DEPTH.decal + 1);
+     if (target === null) spr.setTint(0xffd233);
+@@ -1461,7 +1426,12 @@ export class World {
+     }).setOrigin(0, 0.5).setDepth(DEPTH.decal + 1);
+     const glow = this.scene.add.image(s.x, s.y, 'light_interact').setBlendMode(Phaser.BlendModes.ADD).setScale(0.6).setAlpha(0.35).setDepth(DEPTH.light);
+     spr.once('destroy', () => { label.destroy(); glow.destroy(); });
+-    this.portal = { spr, targetRoom: target, wx: best.x, wy: best.y };
++    this.portal = { spr, targetRoom: target, wx: center.x, wy: center.y };
++  }
++
++  /** Integer grid cell -> the cell CENTRE the presenters/interaction agree on. */
++  private cellCentre(cell: Vec2): Vec2 {
++    return { x: cell.x + 0.5, y: cell.y + 0.5 };
+   }
+ 
+   /** First adjacent room on the shortest room-graph path to an unvisited room. */
+@@ -1498,6 +1468,10 @@ export class World {
+    * Only tiles whose radius-0.5 footprint is clear qualify (same predicate as
+    * placePortal); integer grid coords are returned so Player/Boss collision
+    * checks sample the same tiles we validated here.
++   *
++   * POSITIONS ONLY (spawns/landings/boss). A PORTAL must use
++   * `findWalkableCentreInRoom()` instead: its presented point is the cell centre,
++   * so it must be validated at that same centre (v4 regression fix).
+    */
+   private findWalkableInRoom(r: Room): Vec2 {
+     const cx = r.gx + r.w / 2, cy = r.gy + r.h / 2;
+@@ -2099,6 +2073,18 @@ export class World {
+         case 'enemy-spawned':
+           this.spawnEnemyFromCore(event as any);
+           break;
++        case 'room-cleared': {
++          // GAMEPLAY-01 P4 / M1: the CORE owns the one authoritative room-clear
++          // commit. The presenter only reacts (seal, authored portal, callback)
++          // and never re-writes the flag, so World and Headless cannot diverge.
++          const cleared = this.map.rooms[event.roomId];
++          if (!cleared) break;
++          this.clearRoomSeal();
++          if (this.p1Scenario && this.p1Scenario.roomId === cleared.id) this.updateP1RoutePortal();
++          else if (this.map.deck !== undefined && !this.won) this.placePortal(cleared);
++          this.callbacks.onRoomCleared(cleared);
++          break;
++        }
+         case 'room-generated': {
+           const room = this.map.rooms[event.roomId];
+           if (room) {
+@@ -2523,7 +2509,14 @@ export class World {
+     this.currentRoomId = room.id;
+     // Visual: rooms surveyed before the checkpoint are drawn immediately (no pulse).
+     for (const id of new Set([...run.clearedRooms, room.id])) this.renderer?.observeRoom(id, 0, 0, true);
+-    this.placePortal(room, run.portalTarget);
++    if (this.p1Scenario && this.p1Scenario.roomId === room.id) {
++      // P4/M2: the authored portal is re-derived from the COMMITTED relay state
++      // after a restore; a saved portalTarget can never resurrect a stale door.
++      this.lastP1RouteTarget = -1;
++      this.updateP1RoutePortal();
++    } else {
++      this.placePortal(room, run.portalTarget);
++    }
+     this.rng.restore(run.rngState);
+     this._sim.tick = 0;
+     this._sim.drones = [];

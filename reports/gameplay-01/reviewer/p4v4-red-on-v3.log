@@ -1,0 +1,52 @@
+# reviewer RED verification — same two unmodified legacy specs against v3 World (3ff4f7e3, pre-fix) workdir=D:/tmp/gp01-p4v3 PORT=5497
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited
+  1) [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited 
+
+    Error: start room portal is walkable
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      274 |   });
+      275 |   expect(startPortal.has, 'start room portal exists').toBe(true);
+    > 276 |   expect(startPortal.walkable, 'start room portal is walkable').toBe(true);
+          |                                                                 ^
+      277 |   expect(startPortal.inRoom, 'start room portal is inside room bounds').toBe(true);
+      278 |
+      279 |   // Enter the first connected room, clear it, and verify a portal remains.
+        at D:\tmp\gp01-p4v3\tests\runtime-bugs.spec.ts:276:65
+
+    Error Context: test-results\runtime-bugs-cleared-room--d8364--when-every-room-is-visited-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\runtime-bugs.spec.ts:246:1 › cleared room always offers an exit portal, even when every room is visited 
+RUNTIME_BUGS_EXIT=1
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport
+  1) [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport 
+
+    TimeoutError: page.waitForFunction: Timeout 8000ms exceeded.
+
+      480 |   // portal tile before pressing F (no catch: a sync failure must be reported
+      481 |   // here, not masked behind a later geometry assertion).
+    > 482 |   await page.waitForFunction((onPortal: { x: number; y: number }) => {
+          |              ^
+      483 |     const g: any = (window as any).__game;
+      484 |     const gs = Object.values(g.scene.scenes).find((s: any) => s?.sys?.settings?.key === 'GameScene') as any;
+      485 |     const w = gs?.world;
+        at D:\tmp\gp01-p4v3\tests\audit.spec.ts:482:14
+
+    Error Context: test-results\audit-fixed-seed-playabili-9b589--upgrade---pause---teleport-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › tests\audit.spec.ts:66:1 › fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport 
+AUDIT_EXIT=1

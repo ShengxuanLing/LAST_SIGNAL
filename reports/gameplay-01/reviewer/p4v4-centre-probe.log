@@ -1,0 +1,15 @@
+# reviewer v4 fallback-reachability probe — workdir=D:/tmp/gp01-p4v4
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/gp01-p4v4[39m
+
+[90mstdout[2m | src/reviewer/p4v4-probe.test.ts[2m > [22m[2mP4 v4 portal-centre probe[2m > [22m[2mcounts rooms without any centre-qualifying cell (fallback reachability)
+[22m[39mP4V4_PROBE [{"seed":20261117,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":20261118,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":20261119,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":1,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":42,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":424242,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":777,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":20260101,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":555,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]},{"seed":99999,"rooms":6,"roomsWithoutCentre":0,"failingIds":[]}]
+
+ [32m✓[39m src/reviewer/p4v4-probe.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 72[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 16:16:29
+[2m   Duration [22m 2.21s[2m (transform 476ms, setup 0ms, collect 1.30s, tests 72ms, environment 0ms, prepare 362ms)[22m
+
+EXIT=0
