@@ -1,0 +1,1098 @@
+diff --git a/src/ai-native/worldHeadless.ts b/src/ai-native/worldHeadless.ts
+index 8f442bb..84bee3b 100644
+--- a/src/ai-native/worldHeadless.ts
++++ b/src/ai-native/worldHeadless.ts
+@@ -19,6 +19,9 @@
+ 
+ import { basePlayerData } from '../config/game';
+ import { buildEnemyData } from '../config/enemies';
++import { buildP1Scenario, type P1Scenario } from '../config/p1Scenario';
++import { routeTargetFor, type RelayState } from '../signal/relay';
++import type { Vec2 } from '../types';
+ import { roomAt } from '../config/supplies';
+ import { canonicalJson, payloadFingerprint } from './protocol';
+ import {
+@@ -28,7 +31,7 @@ import {
+   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
+   createSimulationState, enqueueCommand, registerDrone, stepSimulationTicks, tileAtFromState,
+   isWalkableFromState,
+-  type SimCommand, type SimEvent, type SimulationIntent, type SimulationState
++  type SimCommand, type SimEvent, type SimulationIntent, type SimulationState, type SimAuthoredScene
+ } from '../world/sim/core';
+ import type { EnemyKind, MapData, PlayerData, Room } from '../types';
+ import { buildWorldObservation } from './worldObservation';
+@@ -66,6 +69,32 @@ function findRestoredSignal(commands: readonly SimCommand[]): { kind: EchoLocalP
+   return null;
+ }
+ 
++/**
++ * GAMEPLAY-01 P4 v3 / R1+R2 — rebuild the SAME conservative P2 busy guard on
++ * every restore entry (`restore`, `fromFrame`, `fromSimulationState`, and replay
++ * via `fromFrame`). The caller has already cleared the OLD session's local
++ * proposal/pending marker (full `reset()` for `restore()`, a fresh controller
++ * for the Object.create factories). We never fabricate a human-local audit row,
++ * never invent a proposal id, and never delete the other actors' queued
++ * commands: the core queue stays exact while the guard is conservative.
++ */
++function restoreSignalGuard(world: HeadlessWorld, sim: SimulationState): void {
++  (world as any).pendingLocalAction = null;
++  (world as any).lastEnqueuedSignalCommand = null;
++  (world as any).restoredSignalCommand = null;
++  const controller = (world as any).echoController as EchoController | undefined;
++  if (!controller) return;
++  controller.clearLocalPending();
++  const restored = findRestoredSignal(sim.pendingCommands);
++  if (restored) {
++    // `setRestoredPending` also drops the displayed local proposal card.
++    controller.setRestoredPending(restored.kind);
++    (world as any).restoredSignalCommand = restored.command;
++  } else {
++    controller.clearRestoredPending();
++  }
++}
++
+ /**
+  * Immutable-history helper: the owner frame must never share nested objects
+  * with the live world (or with the caller). JSON round-trip keeps full
+@@ -236,6 +265,18 @@ export interface HeadlessWorldOptions {
+   seed: number;
+   /** P2 low-risk ECHO cooperation switch (default false, saved human preference). */
+   echoAutonomy?: boolean;
++  /** GAMEPLAY-01 P4: load the SAME authored Demo-03/P1 scenario as World. */
++  demo?: boolean;
++}
++
++export interface HeadlessRouteState {
++  roomId: number;
++  roomCleared: boolean;
++  relay: RelayState | null;
++  target: number | null;
++  portal: Vec2 | null;
++  playerAtPortal: boolean;
++  completed: boolean;
+ }
+ 
+ export class HeadlessWorld {
+@@ -271,27 +312,82 @@ export class HeadlessWorld {
+   } | null = null;
+   private lastEnqueuedSignalCommand: SimCommand | null = null;
+ 
++  /**
++   * GAMEPLAY-01 P4 authored demo/route identity — read from the CORE state, so
++   * it survives snapshot / restore / replay / `fromSimulationState` (M2). The
++   * route TARGET and portal are always re-derived from the committed relay
++   * state; nothing here can complete a route by itself.
++   */
++  get demoScenario(): SimAuthoredScene | null { return this.sim.authored ?? null; }
++
+   constructor(options: HeadlessWorldOptions) {
+     const seed = options.seed >>> 0;
+     const map = generateRealMap(seed);
+-    const combatRoom = chooseCombatRoom(map);
+     const startRoom = map.rooms.find((r) => r.kind === 'start');
+     const sim = createSimulationState({
+       seed, map, playerData: playerData(), playerX: 0, playerY: 0
+     });
+-    const placement = findPlacement(sim, combatRoom);
+-    sim.player.x = placement.player.x;
+-    sim.player.y = placement.player.y;
+-
+-    const depths = roomDepth(map, startRoom?.id ?? 0);
+-    const depth = depths.get(combatRoom.id) ?? 0;
+-    const data = buildEnemyData('drone', combatRoom.id, depth, {
+-      gx: combatRoom.gx, gy: combatRoom.gy, w: combatRoom.w, h: combatRoom.h
+-    });
+-    registerDrone(sim, {
+-      id: 1, x: placement.drone.x, y: placement.drone.y,
+-      hp: data.stats.maxHp, data, attackTimer: 0, wanderTimer: 1000
+-    });
++    let combatRoom = chooseCombatRoom(map);
++    let demoScenario: P1Scenario | null = null;
++    if (options.demo === true) {
++      demoScenario = buildP1Scenario({
++        map,
++        isWalkable: (x, y, radius) => isWalkableFromState(sim, x, y, radius)
++      });
++      if (!demoScenario) throw new Error('P4 demo scenario unavailable');
++      combatRoom = map.rooms[demoScenario.roomId];
++      if (!combatRoom) throw new Error('P4 demo room unavailable');
++      // Same authored player start/device/sentry data the formal World uses.
++      sim.player.x = demoScenario.playerStart?.x ?? combatRoom.gx + combatRoom.w / 2;
++      sim.player.y = demoScenario.playerStart?.y ?? combatRoom.gy + combatRoom.h / 2;
++      const depths = roomDepth(map, startRoom?.id ?? 0);
++      const depth = depths.get(combatRoom.id) ?? 0;
++      const droneIds: number[] = [];
++      for (let i = 0; i < demoScenario.drones.length; i += 1) {
++        const spot = demoScenario.drones[i];
++        const data = buildEnemyData('drone', combatRoom.id, depth, {
++          gx: combatRoom.gx, gy: combatRoom.gy, w: combatRoom.w, h: combatRoom.h
++        });
++        const id = i + 1;
++        registerDrone(sim, {
++          id, x: spot.x, y: spot.y, hp: data.stats.maxHp, data, attackTimer: 0, wanderTimer: 1000
++        });
++        droneIds.push(id);
++      }
++      enqueueCommand(sim, {
++        type: 'spawn-signal-device', deviceId: 'relay_main', roomId: demoScenario.roomId,
++        x: demoScenario.relay.x, y: demoScenario.relay.y, initial: demoScenario.initial
++      });
++      enqueueCommand(sim, { type: 'link-drones-to-signal', deviceId: 'relay_main', droneIds });
++      combatRoom.kind = 'combat';
++      combatRoom.spawned = true;
++      combatRoom.cleared = false;
++      // M2: the demo/route identity is part of the CORE state (data only), so a
++      // snapshot/restore/replay/raw-sim restore can never silently drop it and
++      // report `routeState === null` for a demo run.
++      sim.authored = {
++        id: demoScenario.id,
++        roomId: demoScenario.roomId,
++        startRoomId: demoScenario.startRoomId,
++        routes: demoScenario.routes.map((route) => ({
++          target: route.target, when: route.when, label: route.label,
++          ...(route.portal ? { portal: { x: route.portal.x, y: route.portal.y } } : {})
++        }))
++      };
++    } else {
++      const placement = findPlacement(sim, combatRoom);
++      sim.player.x = placement.player.x;
++      sim.player.y = placement.player.y;
++      const depths = roomDepth(map, startRoom?.id ?? 0);
++      const depth = depths.get(combatRoom.id) ?? 0;
++      const data = buildEnemyData('drone', combatRoom.id, depth, {
++        gx: combatRoom.gx, gy: combatRoom.gy, w: combatRoom.w, h: combatRoom.h
++      });
++      registerDrone(sim, {
++        id: 1, x: placement.drone.x, y: placement.drone.y,
++        hp: data.stats.maxHp, data, attackTimer: 0, wanderTimer: 1000
++      });
++    }
+ 
+     this.sim = sim;
+     this.echoController.setAutonomy(!!options.echoAutonomy);
+@@ -303,7 +399,7 @@ export class HeadlessWorld {
+       seed,
+       mapHash: payloadFingerprint(canonicalJson(map)),
+       roomCount: map.rooms.length,
+-      startRoomId: startRoom?.id ?? null,
++      startRoomId: sim.authored?.startRoomId ?? startRoom?.id ?? null,
+       combatRoomId: combatRoom.id
+     };
+   }
+@@ -315,6 +411,29 @@ export class HeadlessWorld {
+   get identity(): HeadlessMapIdentity { return { ...this.mapIdentity }; }
+   get seed(): number { return this.sim.seed; }
+ 
++  /** P4 legal route state: same authored data/rule as the World. The room's
++   *  cleared flag is the SAME authoritative `map.rooms[id].cleared` the rendered
++   *  gate, the core `descend` gate and GameScene read — never a live-drone count
++   *  (M1). The portal only exists after that committed clear, and JAMMED /
++   *  DISABLED yield no target. */
++  get routeState(): HeadlessRouteState | null {
++    const scenario = this.demoScenario;
++    if (!scenario) return null;
++    const room = this.sim.map.rooms[scenario.roomId];
++    const roomCleared = room?.spawned === true && room.cleared === true;
++    const relay = this.sim.signal?.relay ?? null;
++    const target = routeTargetFor(relay, scenario.routes);
++    const route = target === null ? undefined : scenario.routes.find((r) => r.target === target);
++    const portal = roomCleared ? route?.portal ?? null : null;
++    const playerAtPortal = portal
++      ? Math.hypot(this.sim.player.x - portal.x, this.sim.player.y - portal.y) < 2.0
++      : false;
++    return {
++      roomId: scenario.roomId, roomCleared, relay, target, portal, playerAtPortal,
++      completed: roomCleared && target !== null && portal !== null && playerAtPortal
++    };
++  }
++
+   /** Cheap live counters for hot loops (inspect() hashes the whole state). */
+   get liveDrones(): number { return this.sim.drones.reduce((n, d) => n + (d.hp > 0 ? 1 : 0), 0); }
+   get liveTargets(): number { return this.sim.targets.reduce((n, t) => n + (t.hp > 0 ? 1 : 0), 0); }
+@@ -773,17 +892,15 @@ export class HeadlessWorld {
+     (world as any).pendingLocalAction = null;
+     (world as any).lastEnqueuedSignalCommand = null;
+     (world as any).restoredSignalCommand = null;
+-    // A raw-sim restore keeps the core queue. If it already contains an echo
+-    // scan/jam or a relay toggle, rebuild a conservative busy marker instead of
+-    // dropping the command or pretending it is a human-local receipt. Other
+-    // actors' commands are preserved and do not mark a local guard.
+-    const restored = findRestoredSignal(sim.pendingCommands);
+-    if (restored) {
+-      (world as any).echoController.setRestoredPending(restored.kind);
+-      (world as any).restoredSignalCommand = restored.command;
+-    }
++    // Same conservative guard as the frame-restore path (R1).
++    restoreSignalGuard(world, sim);
+     const map = sim.map;
+-    const startRoom = map.rooms.find((r) => r.kind === 'start');
++    // M2/M5: a raw-sim restore has no frame, so the demo identity must come from
++    // the state itself; the start room id must be the one captured before the
++    // authored kind mutation (a restored demo world otherwise reported null).
++    const startRoom = sim.authored?.startRoomId !== undefined
++      ? map.rooms[sim.authored.startRoomId] ?? null
++      : map.rooms.find((r) => r.kind === 'start') ?? null;
+     (world as any).mapIdentity = {
+       seed: sim.seed,
+       mapHash: payloadFingerprint(canonicalJson(map)),
+@@ -859,6 +976,13 @@ export class HeadlessWorld {
+     this.shots = frame.shots as number;
+     this.damageTaken = frame.damageTaken as number;
+     this.mapIdentity = frame.mapIdentity as HeadlessMapIdentity;
++    // R1: a restore is an authority/session boundary. Drop the OLD session's
++    // local proposal/pending lifecycle (the same full reset the rendered
++    // checkpoint uses) and rebuild the conservative guard from the queued core
++    // commands. No human-local receipt is fabricated for an unknown command.
++    this.pendingLocalAction = null;
++    this.echoController.reset();
++    restoreSignalGuard(this, this.sim);
+     // A restore invalidates the old epoch, exactly like C3-a yield/restore.
+     this.epoch = Math.max(this.epoch + 1, (frame.epoch as number) + 1);
+     return { ok: true, epoch: this.epoch };
+@@ -1058,6 +1182,17 @@ export class HeadlessWorld {
+     (world as any).damageTaken = frame.damageTaken as number;
+     (world as any).epoch = bumpEpoch ? (frame.epoch as number) + 1 : (frame.epoch as number);
+     (world as any).mapIdentity = frame.mapIdentity as HeadlessMapIdentity;
++    // R2: Object.create bypasses class-field initialization. Initialise the
++    // SAME EchoController / audit ring / pending fields as
++    // `fromSimulationState`, then apply the same conservative guard so replay
++    // (which uses fromFrame) has an identical safety contract.
++    (world as any).echoController = new EchoController();
++    (world as any).echoAudit = new EchoAuditRing();
++    (world as any).echoRoomGeneration = 0;
++    (world as any).pendingLocalAction = null;
++    (world as any).lastEnqueuedSignalCommand = null;
++    (world as any).restoredSignalCommand = null;
++    restoreSignalGuard(world, (world as any).sim);
+     return world;
+   }
+ }
+@@ -1072,6 +1207,43 @@ export function isHistoryTruncated(eventTotal: number, retained: number): boolea
+   return Number.isFinite(eventTotal) && eventTotal > retained;
+ }
+ 
++/**
++ * GAMEPLAY-01 P4 / review F2 — bounded structural check of the authored scene
++ * carried INSIDE a frame. `routeState`/`demoScenario` read this data directly, so
++ * a corrupt frame must be refused here (E_SNAPSHOT_INVALID) instead of throwing
++ * later (`routes.find is not a function`) or projecting a portal in a wall.
++ * It is deliberately data-shape-only: no rule, no simulation and no map writes.
++ */
++function isValidAuthoredScene(value: unknown, rooms: readonly unknown[]): boolean {
++  if (!value || typeof value !== 'object') return false;
++  const a = value as Record<string, unknown>;
++  if (a.id !== 'p1') return false;
++  const roomIds = new Set<unknown>();
++  for (const room of rooms) {
++    if (room && typeof room === 'object') roomIds.add((room as Record<string, unknown>).id);
++  }
++  if (typeof a.roomId !== 'number' || !roomIds.has(a.roomId)) return false;
++  if (typeof a.startRoomId !== 'number' || !roomIds.has(a.startRoomId)) return false;
++  const routes = a.routes;
++  // The authored table is exactly two routes today; 1..2 keeps it bounded and
++  // leaves room for a documented single-route scene without a schema bump.
++  if (!Array.isArray(routes) || routes.length < 1 || routes.length > 2) return false;
++  for (const route of routes) {
++    if (!route || typeof route !== 'object') return false;
++    const r = route as Record<string, unknown>;
++    if (typeof r.target !== 'number' || !roomIds.has(r.target)) return false;
++    if (r.when !== 'RELAY_ACTIVE' && r.when !== 'RELAY_INACTIVE') return false;
++    if (r.label !== undefined && typeof r.label !== 'string') return false;
++    if (r.portal !== undefined) {
++      if (!r.portal || typeof r.portal !== 'object') return false;
++      const p = r.portal as Record<string, unknown>;
++      if (typeof p.x !== 'number' || typeof p.y !== 'number') return false;
++      if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return false;
++    }
++  }
++  return true;
++}
++
+ export function isHeadlessFrame(value: unknown): value is HeadlessWorldFrame {
+   if (!value || typeof value !== 'object') return false;
+   const f = value as Record<string, unknown>;
+@@ -1083,6 +1255,8 @@ export function isHeadlessFrame(value: unknown): value is HeadlessWorldFrame {
+   if (!Array.isArray(sim.drones) || !Array.isArray(sim.projectiles)) return false;
+   const map = sim.map as { rooms?: unknown } | undefined;
+   if (!map || !Array.isArray(map.rooms)) return false;
++  // Absent authored scene = every frame produced before P4; still compatible.
++  if (sim.authored !== undefined && !isValidAuthoredScene(sim.authored, map.rooms)) return false;
+   if (!Array.isArray(f.events) || !Array.isArray(f.actionLog) || !Array.isArray(f.enteredRooms)) return false;
+   if (typeof f.epoch !== 'number' || typeof f.status !== 'string') return false;
+   if (!f.mapIdentity || typeof f.mapIdentity !== 'object') return false;
+diff --git a/src/config/p1Scenario.ts b/src/config/p1Scenario.ts
+index 40915bd..2c13860 100644
+--- a/src/config/p1Scenario.ts
++++ b/src/config/p1Scenario.ts
+@@ -1,9 +1,11 @@
+-// GAMEPLAY-01 P1 — authored Demo-01 scenario data contract.
++// GAMEPLAY-01 P1/P4 — authored Demo-01 scenario data contract.
+ //
+ // This is DELIBERATELY small and authored-scene-only. Old rooms have no
+ // scenario: `World.p1Scenario` stays null and every legacy behaviour is
+ // unchanged. The combat/perception/shooting/relay causality lives in
+ // src/world/sim; this module only describes the authored room.
++import type { MapData, Room, Vec2 } from '../types';
++import { SIGNAL_TUNING } from '../signal/signalTuning';
+ import { routeMatches, type RelayState, type RouteWhen } from '../signal/relay';
+ 
+ export const P1_DEMO_ID = 'p1' as const;
+@@ -11,20 +13,36 @@ export type P1DemoId = typeof P1_DEMO_ID;
+ /** Fixed menu seed; worker verification may start the same demo with other seeds. */
+ export const P1_DEMO_SEED = 20261117;
+ 
++/** A route must offer a DIFFERENT cell than the other route (no collapsed pair). */
++const ROUTE_CELL_SEPARATION = 1.5;
++/** The device must not sit on the authored player start (P1 layout defect). */
++const DEVICE_PLAYER_SEPARATION = 1.5;
++/** Two authored sentries must never stack on one cell. */
++const SENTRY_SEPARATION = 2;
++
+ export interface P1Route {
+   target: number;
+   when: RouteWhen;
+   label: string;
++  /** Authored portal cell centre; the World presents it, the Headless completes
++   *  on it. Always the CENTRE (`grid + 0.5`), never the tile corner. */
++  portal?: Vec2;
+ }
+ 
+ export interface P1Scenario {
+   id: P1DemoId;
+   /** The authored combat/route room (the run's start room in Demo-01). */
+   roomId: number;
++  /** The room's id BEFORE the authored kind mutation ('start' -> 'combat').
++   *  Presenters report this as `startRoomId` so a restored demo world and a
++   *  fresh one agree (M5). */
++  startRoomId: number;
+   routes: [P1Route, P1Route];
+   /** Authored initial relay state: ACTIVE, so the linked danger is real. */
+   initial: { manualEnabled: true; powered: true };
+-  relay: { x: number; y: number };
++  /** Distinct authored player start and device cells (no same-tile overlap). */
++  playerStart?: Vec2;
++  relay: Vec2;
+   drones: Array<{ x: number; y: number }>;
+ }
+ 
+@@ -34,3 +52,173 @@ export function p1RouteFor(relay: RelayState | null, routes: readonly P1Route[])
+   if (!relay) return null;
+   return routes.find((route) => routeMatches(relay, route.when)) ?? null;
+ }
++
++/** Shared authored-scene builder used by both the formal World and Headless.
++ *  It mutates only the authored room graph/room kind; no renderer/Phaser. */
++export interface P1BuildContext {
++  map: MapData;
++  /** Grid-cell walkability probe (0.5 radius), supplied by the owner. */
++  isWalkable: (x: number, y: number, radius: number) => boolean;
++}
++
++function roomCenter(room: Room): Vec2 {
++  return { x: room.gx + room.w / 2, y: room.gy + room.h / 2 };
++}
++
++/** Closest walkable CELL CENTRE to `target` inside `room`.
++ *  Returns null when the room has no walkable cell at all — the caller must
++ *  fail visibly instead of returning a wall/centre pseudo-success (M3). */
++function closestWalkable(
++  room: Room,
++  target: Vec2,
++  isWalkable: P1BuildContext['isWalkable'],
++  avoid?: readonly Vec2[]
++): Vec2 | null {
++  let best: Vec2 | null = null;
++  let bestD = Infinity;
++  for (let y = room.gy; y < room.gy + room.h; y += 1) {
++    for (let x = room.gx; x < room.gx + room.w; x += 1) {
++      // Probe the CELL CENTRE with the real radius; probing the integer corner
++      // accepts cells whose neighbours are walls (the old portal bug).
++      if (!isWalkable(x + 0.5, y + 0.5, 0.5)) continue;
++      const p = { x: x + 0.5, y: y + 0.5 };
++      // A second route must not reuse the first route's cell when it can avoid it.
++      const blocked = avoid?.some((q) => Math.hypot(p.x - q.x, p.y - q.y) < ROUTE_CELL_SEPARATION) ?? false;
++      const d = (p.x - target.x) ** 2 + (p.y - target.y) ** 2 + (blocked ? 10000 : 0);
++      if (d < bestD) { bestD = d; best = p; }
++    }
++  }
++  return best;
++}
++
++/** Two walkable sentry cells away from the distinct player spawn and relay.
++ *  Returns null when the room cannot host two distinct sentries: stacking both
++ *  on the relay cell is a silent failure, never an accepted layout (M3). */
++function sentrySpots(
++  room: Room,
++  relay: Vec2,
++  player: Vec2,
++  variant: number,
++  isWalkable: P1BuildContext['isWalkable']
++): Vec2[] | null {
++  const candidates: Vec2[] = [];
++  for (let y = room.gy; y < room.gy + room.h; y += 1) {
++    for (let x = room.gx; x < room.gx + room.w; x += 1) {
++      if (!isWalkable(x + 0.5, y + 0.5, 0.5)) continue;
++      if (Math.hypot(x + 0.5 - player.x, y + 0.5 - player.y) < 3.5) continue;
++      if (Math.hypot(x + 0.5 - relay.x, y + 0.5 - relay.y) < 1.5) continue;
++      const p = { x: x + 0.5, y: y + 0.5 };
++      if (candidates.some((s) => Math.hypot(s.x - p.x, s.y - p.y) < SENTRY_SEPARATION)) continue;
++      candidates.push(p);
++    }
++  }
++  if (candidates.length < 2) return null;
++  const start = variant % candidates.length;
++  const picks: Vec2[] = [];
++  for (let k = 0; k < candidates.length && picks.length < 2; k++) {
++    const c = candidates[(start + k) % candidates.length];
++    if (picks.some((p) => Math.hypot(p.x - c.x, p.y - c.y) < SENTRY_SEPARATION)) continue;
++    picks.push(c);
++  }
++  if (picks.length < 2) return null;
++  return [picks[0], picks[1]];
++}
++
++/** P4 layout: relay distinct from the player, near the authored route portals,
++ *  so the portal-jam distance is a real layout fact rather than a teleport.
++ *  Returns null when no walkable cell satisfies the separation (M3). */
++function relaySpot(
++  room: Room,
++  player: Vec2,
++  portals: readonly Vec2[],
++  isWalkable: P1BuildContext['isWalkable']
++): Vec2 | null {
++  let best: Vec2 | null = null;
++  let bestScore = Infinity;
++  for (let y = room.gy; y < room.gy + room.h; y += 1) {
++    for (let x = room.gx; x < room.gx + room.w; x += 1) {
++      if (!isWalkable(x + 0.5, y + 0.5, 0.5)) continue;
++      const p = { x: x + 0.5, y: y + 0.5 };
++      if (Math.hypot(p.x - player.x, p.y - player.y) < DEVICE_PLAYER_SEPARATION) continue;
++      // Prefer cells within the real jam range of the route portals; score is
++      // the worst portal distance, then the sum, so both routes stay reachable.
++      const distances = portals.map((q) => Math.hypot(p.x - q.x, p.y - q.y));
++      const worst = distances.length ? Math.max(...distances) : 0;
++      const sum = distances.reduce((a, b) => a + b, 0);
++      const score = worst * 100 + sum + (worst > SIGNAL_TUNING.JAM_RANGE ? 10000 : 0);
++      if (score < bestScore) { bestScore = score; best = p; }
++    }
++  }
++  return best;
++}
++
++/** Build the authored scene, or return null when the map cannot host a legal
++ *  layout. Every null case is a VISIBLE failure at the caller (World shows
++ *  `p1ScenarioError`, Headless throws) — never a same-cell / wall pseudo-success.
++ *
++ *  NOTE (M6): the demo room's `kind` becomes 'combat' and two `connectedTo`
++ *  edges are added, so the identity hash of a demo map differs from the same
++ *  seed used as an ordinary run. Parity tooling must not compare the two
++ *  without accounting for that. */
++export function buildP1Scenario(ctx: P1BuildContext): P1Scenario | null {
++  const room = ctx.map.rooms.find((r) => r.kind === 'start') ?? ctx.map.rooms[0];
++  if (!room) return null;
++  // M5: capture the authored room's real identity BEFORE the kind mutation, so
++  // a restored demo world can still report the same start room as a fresh one.
++  const startRoomId = room.kind === 'start' ? room.id : (ctx.map.rooms.find((r) => r.kind === 'start')?.id ?? room.id);
++  const seen = new Set<number>([room.id]);
++  const targets: Room[] = [];
++  const consider = (candidate: Room | undefined): void => {
++    if (!candidate || seen.has(candidate.id)) return;
++    if (candidate.kind === 'boss' || candidate.kind === 'extraction') return;
++    seen.add(candidate.id);
++    targets.push(candidate);
++  };
++  for (const id of room.connectedTo) consider(ctx.map.rooms[id]);
++  for (const candidate of ctx.map.rooms) consider(candidate);
++  if (targets.length < 2) return null;
++
++  const variant = ctx.map.seed >>> 0;
++  const li = variant % targets.length;
++  const a = targets[li];
++  const b = targets[(li + 1) % targets.length];
++
++  // F1: compute the WHOLE layout (and every feasibility/distinctness check)
++  // before touching the map. A null result must leave the room graph byte-identical:
++  // the rendered World keeps its map when the authored scene cannot be built.
++  const playerStart = closestWalkable(room, roomCenter(room), ctx.isWalkable);
++  if (!playerStart) return null;
++  const portalA = closestWalkable(room, roomCenter(a), ctx.isWalkable);
++  if (!portalA) return null;
++  const portalB = closestWalkable(room, roomCenter(b), ctx.isWalkable, [portalA]);
++  if (!portalB) return null;
++  // Distinct route cells: two portals on one cell would make the route choice
++  // unreachable while still reporting success.
++  if (Math.hypot(portalA.x - portalB.x, portalA.y - portalB.y) < ROUTE_CELL_SEPARATION) return null;
++  const relay = relaySpot(room, playerStart, [portalA, portalB], ctx.isWalkable);
++  if (!relay) return null;
++  const drones = sentrySpots(room, relay, playerStart, variant, ctx.isWalkable);
++  if (!drones) return null;
++
++  // ONE commit step: the authored graph edges + room kind are written only
++  // after the layout is known to be legal (no rollback, no partial mutation).
++  for (const target of [a, b]) {
++    if (!room.connectedTo.includes(target.id)) room.connectedTo.push(target.id);
++    if (!target.connectedTo.includes(room.id)) target.connectedTo.push(room.id);
++  }
++  room.kind = 'combat';
++
++  return {
++    id: P1_DEMO_ID,
++    roomId: room.id,
++    startRoomId,
++    routes: [
++      { target: a.id, when: 'RELAY_ACTIVE', label: a.kind.toUpperCase(), portal: portalA },
++      { target: b.id, when: 'RELAY_INACTIVE', label: b.kind.toUpperCase(), portal: portalB }
++    ],
++    initial: { manualEnabled: true, powered: true },
++    playerStart,
++    relay,
++    drones
++  };
++}
+diff --git a/src/signal/relay.ts b/src/signal/relay.ts
+index d7eb52a..6c7884c 100644
+--- a/src/signal/relay.ts
++++ b/src/signal/relay.ts
+@@ -16,6 +16,17 @@ export function routeMatches(relay: RelayState, when: RouteWhen): boolean {
+   return when === 'RELAY_ACTIVE' ? relay === 'ACTIVE' : relay === 'INACTIVE';
+ }
+ 
++/** Shared, pure route target for the authored scene. JAMMED/DISABLED match
++ *  neither route; an uncleared room must not be considered passable by the
++ *  caller. World and the formal Headless must both use this function. */
++export function routeTargetFor(
++  relay: RelayState | null,
++  routes: ReadonlyArray<{ target: number; when: RouteWhen }>
++): number | null {
++  if (!relay) return null;
++  return routes.find((route) => routeMatches(relay, route.when))?.target ?? null;
++}
++
+ /** One immutable post-commit relay reading, independent of callback order. */
+ export interface RelayReading {
+   readonly manualEnabled: boolean;
+diff --git a/src/signal/relayRoutes.test.ts b/src/signal/relayRoutes.test.ts
+index a6c32aa..88c09fb 100644
+--- a/src/signal/relayRoutes.test.ts
++++ b/src/signal/relayRoutes.test.ts
+@@ -1,5 +1,12 @@
+ import { describe, expect, it } from 'vitest';
+-import { routeMatches, relayOutput, exitOpen, type RelayState } from './relay';
++import {
++  routeMatches, routeTargetFor, relayOutput, exitOpen, type RelayState, type RouteWhen
++} from './relay';
++import { P1_DEMO_SEED, buildP1Scenario, p1RouteFor, type P1BuildContext } from '../config/p1Scenario';
++import { isWalkableFromState, createSimulationState } from '../world/sim/core';
++import { basePlayerData } from '../config/game';
++import type { MapData, PlayerData } from '../types';
++import { generateRealMap } from '../ai-native/worldHeadless';
+ 
+ // GAMEPLAY-01 P1 — the authored route condition is exact:
+ // ACTIVE matches RELAY_ACTIVE, INACTIVE matches RELAY_INACTIVE, and JAMMED /
+@@ -29,3 +36,161 @@ describe('authored relay route condition', () => {
+     }
+   });
+ });
++
++const ROUTES: Array<{ target: number; when: RouteWhen }> = [
++  { target: 7, when: 'RELAY_ACTIVE' },
++  { target: 9, when: 'RELAY_INACTIVE' }
++];
++
++const ALL_STATES: RelayState[] = ['ACTIVE', 'INACTIVE', 'JAMMED', 'DISABLED'];
++
++// GAMEPLAY-01 P4 — ONE pure route rule consumed by the formal World AND the
++// formal Headless. Before P4 only the Rendered presenter had a route rule.
++describe('P4 shared routeTargetFor (one rule, two presenters)', () => {
++  it('maps every committed relay state to exactly one authored route', () => {
++    expect(routeTargetFor('ACTIVE', ROUTES)).toBe(7);
++    expect(routeTargetFor('INACTIVE', ROUTES)).toBe(9);
++    // JAMMED is a temporary suppression, not a third manual state.
++    expect(routeTargetFor('JAMMED', ROUTES)).toBeNull();
++    expect(routeTargetFor('DISABLED', ROUTES)).toBeNull();
++    expect(routeTargetFor(null, ROUTES)).toBeNull();
++  });
++
++  it('keeps routeMatches and routeTargetFor on ONE predicate', () => {
++    for (const relay of ALL_STATES) {
++      for (const route of ROUTES) {
++        const byTarget = routeTargetFor(relay, ROUTES) === route.target;
++        expect(routeMatches(relay, route.when)).toBe(byTarget);
++      }
++    }
++  });
++
++  it('has no route when the authored table is empty', () => {
++    for (const relay of ALL_STATES) expect(routeTargetFor(relay, [])).toBeNull();
++  });
++
++  it('p1RouteFor (presenter wrapper) agrees with routeTargetFor', () => {
++    const built = buildAuthored(P1_DEMO_SEED);
++    expect(built).not.toBeNull();
++    const scenario = built!.scenario;
++    for (const relay of ALL_STATES) {
++      const route = p1RouteFor(relay, scenario.routes);
++      expect(route?.target ?? null).toBe(routeTargetFor(relay, scenario.routes));
++    }
++  });
++
++  // The three authored seeds the P4 plan names must all expose both routes, so
++  // neither HumanOnly nor HumanEcho is forced onto one branch.
++  for (const seed of [20261117, 20261118, 20261119]) {
++    it(`authored seed ${seed} exposes two legal, distinct route cells`, () => {
++      const built = buildAuthored(seed);
++      expect(built).not.toBeNull();
++      const { scenario, map } = built!;
++      expect(scenario.routes).toHaveLength(2);
++      expect(scenario.routes[0].target).not.toBe(scenario.routes[1].target);
++      const a = scenario.routes[0].portal!;
++      const b = scenario.routes[1].portal!;
++      expect(a).toBeTruthy();
++      expect(b).toBeTruthy();
++      // Distinct cells: two routes on one cell would be an unreachable choice.
++      expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(1.5);
++      // The authored room is the run's start room and it became a combat room.
++      expect(map.rooms[scenario.roomId].kind).toBe('combat');
++      expect(scenario.startRoomId).toBe(scenario.roomId);
++      expect(map.rooms.find((r) => r.kind === 'start')).toBeUndefined();
++    });
++  }
++});
++
++/** Full PlayerData for a simulation state (the same shape the Headless builds). */
++function fullPlayerData(): PlayerData {
++  return {
++    ...basePlayerData(), level: 1, xp: 0, xpToNext: 30, currency: 0,
++    weaponKey: 'pulse',
++    weapons: [{ key: 'pulse', level: 1, ammo: -1, magazine: -1, reloading: false, reloadTimer: 0 }],
++    upgrades: [], abilities: []
++  } as PlayerData;
++}
++
++/** Independent of the presenter: build on the REAL map generator with the
++ *  documented walkability contract (4 corners, wall/lava/water blocked). */
++function buildAuthored(seed: number): { scenario: NonNullable<ReturnType<typeof buildP1Scenario>>; map: MapData } | null {
++  const map = generateRealMap(seed);
++  const ctx: P1BuildContext = {
++    map,
++    isWalkable: (x, y, radius) => isWalkableFromState(simFor(map), x, y, radius)
++  };
++  const scenario = buildP1Scenario(ctx);
++  return scenario ? { scenario, map } : null;
++}
++
++const simCache = new WeakMap<MapData, ReturnType<typeof createSimulationState>>();
++function simFor(map: MapData) {
++  let sim = simCache.get(map);
++  if (!sim) {
++    sim = createSimulationState({ seed: map.seed, map, playerData: fullPlayerData(), playerX: 0, playerY: 0 });
++    simCache.set(map, sim);
++  }
++  return sim;
++}
++
++// P4/M3 — the shared builder must FAIL VISIBLY instead of silently degrading
++// into a same-cell device, stacked sentries or wall pseudo-success.
++describe('P4 authored builder fails visibly (M3)', () => {
++  it('returns null when the map cannot offer two routes', () => {
++    const map = syntheticMap(2, () => 'floor');
++    map.rooms = [room(0, 'start', 0, 0, 3, 3, [])];
++    expect(buildP1Scenario({ map, isWalkable: () => true })).toBeNull();
++  });
++
++  it('returns null when the authored room has no walkable cell (no wall pseudo-success)', () => {
++    const map = syntheticMap(6, () => 'floor');
++    map.rooms = [
++      room(0, 'start', 0, 0, 3, 3, [1]),
++      room(1, 'combat', 3, 0, 2, 2, [0])
++    ];
++    expect(buildP1Scenario({ map, isWalkable: () => false })).toBeNull();
++  });
++
++  it('returns null when both routes collapse onto one walkable cell', () => {
++    const map = syntheticMap(6, () => 'wall');
++    map.rooms = [
++      room(0, 'start', 0, 0, 3, 3, [1]),
++      room(1, 'combat', 3, 0, 2, 2, [0])
++    ];
++    // Exactly one walkable cell in the authored room: one portal cell only.
++    const only = { x: 1.5, y: 1.5 };
++    const isWalkable = (x: number, y: number): boolean => x === only.x && y === only.y;
++    expect(buildP1Scenario({ map, isWalkable })).toBeNull();
++  });
++
++  it('never places the device on the player start and never stacks the sentries', () => {
++    for (const seed of [20261117, 20261118, 20261119, 1, 42]) {
++      const built = buildAuthored(seed);
++      expect(built, `seed ${seed}`).not.toBeNull();
++      const s = built!.scenario;
++      expect(Math.hypot(s.relay.x - s.playerStart!.x, s.relay.y - s.playerStart!.y))
++        .toBeGreaterThanOrEqual(1.5);
++      expect(s.drones).toHaveLength(2);
++      expect(Math.hypot(s.drones[0].x - s.drones[1].x, s.drones[0].y - s.drones[1].y))
++        .toBeGreaterThanOrEqual(2);
++      for (const drone of s.drones) {
++        expect(Math.hypot(drone.x - s.relay.x, drone.y - s.relay.y)).toBeGreaterThanOrEqual(1.5);
++      }
++    }
++  });
++});
++
++function syntheticMap(size: number, kind: () => 'floor' | 'wall'): MapData {
++  const tiles: MapData['tiles'] = [];
++  for (let y = 0; y < size; y += 1) {
++    const row: MapData['tiles'][number] = [];
++    for (let x = 0; x < size; x += 1) row.push({ x, y, type: kind(), height: 0 });
++    tiles.push(row);
++  }
++  return { seed: 1, width: size, height: size, tiles, rooms: [], doorways: [], roomsOrder: [] };
++}
++
++function room(id: number, kind: MapData['rooms'][number]['kind'], gx: number, gy: number, w: number, h: number, connectedTo: number[]) {
++  return { id, kind, gx, gy, w, h, connectedTo, cleared: false, spawned: false };
++}
+diff --git a/src/world/World.ts b/src/world/World.ts
+index b8731da..b7be2b3 100644
+--- a/src/world/World.ts
++++ b/src/world/World.ts
+@@ -34,7 +34,8 @@ import {
+ import { CombatVfx, BOLT_HEIGHT, type BoltView, type TelegraphView } from '../art/survey/CombatVfx';
+ import { CSS, DEPTH, FONT, INK } from '../art/survey/tokens';
+ import { deckLabel, dungeonRng, encounter, TOTAL_DECKS } from '../config/dungeon';
+-import { P1_DEMO_ID, p1RouteFor, type P1Scenario } from '../config/p1Scenario';
++import { P1_DEMO_ID, buildP1Scenario, p1RouteFor, type P1Scenario } from '../config/p1Scenario';
++import { routeTargetFor } from '../signal/relay';
+ 
+ export interface WorldCallbacks {
+   onLevelUp: (level: number) => void;
+@@ -618,89 +619,38 @@ export class World {
+     // different route pair (breaking portalTarget restore).
+     if (this.p1Scenario) return true;
+     if (this.p1ScenarioError) return false;
+-    const room = this.map.rooms[0];
+-    if (!room) { this.p1ScenarioError = 'DEMO 01 UNAVAILABLE · NO START ROOM'; return false; }
+-    const seen = new Set<number>([room.id]);
+-    const targets: Room[] = [];
+-    const consider = (candidate: Room | undefined): void => {
+-      if (!candidate || seen.has(candidate.id)) return;
+-      // The authored routes must continue play. Boss / extraction are terminal
+-      // targets and are never offered as a route choice.
+-      if (candidate.kind === 'boss' || candidate.kind === 'extraction') return;
+-      seen.add(candidate.id);
+-      targets.push(candidate);
+-    };
+-    for (const id of room.connectedTo) consider(this.map.rooms[id]);
+-    for (const candidate of this.map.rooms) consider(candidate);
+-    if (targets.length < 2) {
+-      // Do not silently degrade the DEMO into a normal run: report the failure
+-      // so GameScene can show a visible notice instead.
+-      this.p1ScenarioError = 'DEMO 01 UNAVAILABLE · NOT ENOUGH SUITABLE ROUTES';
++    const scenario = buildP1Scenario({
++      map: this.map,
++      isWalkable: (x, y, radius) => this.isWalkable(x, y, radius)
++    });
++    if (!scenario) {
++      this.p1ScenarioError = 'DEMO 01 UNAVAILABLE · LAYOUT / ROUTES CANNOT BE AUTHORED';
+       return false;
+     }
+-    // Deterministic seed variation inside the authored scene: the route pair
+-    // rotates with the real map seed. The scene is still authored data; this is
+-    // not a generic route framework.
+-    const variant = this.map.seed >>> 0;
+-    const li = variant % targets.length;
+-    const a = targets[li];
+-    const b = targets[(li + 1) % targets.length];
+-    // Keep the room graph consistent with the two authored routes so a saved
+-    // portalTarget still validates on restore.
+-    for (const target of [a, b]) {
+-      if (!room.connectedTo.includes(target.id)) room.connectedTo.push(target.id);
+-      if (!target.connectedTo.includes(room.id)) target.connectedTo.push(room.id);
+-    }
+-    // The authored room is a combat room on fresh and on restored runs.
+-    room.kind = 'combat';
+-    const relay = this.findWalkableInRoom(room);
+-    const drones = this.findP1SentrySpots(room, relay, variant);
+-    this.p1Scenario = {
+-      id: P1_DEMO_ID,
+-      roomId: room.id,
+-      routes: [
+-        { target: a.id, when: 'RELAY_ACTIVE', label: a.kind.toUpperCase() },
+-        { target: b.id, when: 'RELAY_INACTIVE', label: b.kind.toUpperCase() }
+-      ],
+-      initial: { manualEnabled: true, powered: true },
+-      relay,
+-      drones
++    this.p1Scenario = scenario;
++    // P4/M2: the authored demo + route identity is part of the CORE state, so a
++    // snapshot / restore / replay cannot silently lose it (the rendered World
++    // and the formal Headless now agree on one identity). Data only: the route
++    // target is still derived from the committed relay state.
++    this._sim.authored = {
++      id: scenario.id,
++      roomId: scenario.roomId,
++      startRoomId: scenario.startRoomId,
++      routes: scenario.routes.map((route) => ({
++        target: route.target, when: route.when, label: route.label,
++        ...(route.portal ? { portal: { x: route.portal.x, y: route.portal.y } } : {})
++      }))
+     };
++    // P4 layout: the authored player start is distinct from the device cell.
++    if (scenario.playerStart) {
++      this._sim.player.x = scenario.playerStart.x;
++      this._sim.player.y = scenario.playerStart.y;
++      this.bumpSimVersion();
++    }
+     this.lastP1RouteTarget = -1;
+     return true;
+   }
+ 
+-  /** Two walkable cells away from the player spawn and the relay. The pair is
+-   *  rotated deterministically by the real map seed (3+ authored variants). */
+-  private findP1SentrySpots(room: Room, relay: Vec2, variant: number): Vec2[] {
+-    const candidates: Vec2[] = [];
+-    const px = this.player.x, py = this.player.y;
+-    for (const row of this.map.tiles) {
+-      for (const tile of row) {
+-        if (tile.x < room.gx || tile.x >= room.gx + room.w) continue;
+-        if (tile.y < room.gy || tile.y >= room.gy + room.h) continue;
+-        if (!this.isWalkable(tile.x, tile.y, 0.5)) continue;
+-        if (Math.hypot(tile.x - px, tile.y - py) < 3.5) continue;
+-        if (Math.hypot(tile.x - relay.x, tile.y - relay.y) < 1.5) continue;
+-        if (candidates.some((s) => Math.hypot(s.x - tile.x, s.y - tile.y) < 2)) continue;
+-        candidates.push({ x: tile.x, y: tile.y });
+-      }
+-    }
+-    if (candidates.length === 0) {
+-      return [{ x: relay.x, y: relay.y }, { x: relay.x, y: relay.y }];
+-    }
+-    const start = variant % candidates.length;
+-    const picks: Vec2[] = [];
+-    for (let k = 0; k < candidates.length && picks.length < 2; k++) {
+-      const c = candidates[(start + k) % candidates.length];
+-      if (picks.some((p) => Math.hypot(p.x - c.x, p.y - c.y) < 2)) continue;
+-      picks.push(c);
+-    }
+-    if (picks.length === 0) picks.push(candidates[0]);
+-    if (picks.length === 1) picks.push(candidates[Math.min(1, candidates.length - 1)]);
+-    return [picks[0], picks[1]];
+-  }
+-
+   /** Spawn the authored sentry encounter in the scenario room (fresh demo only). */
+   spawnP1Sentry(): void {
+     const scenario = this.p1Scenario;
+@@ -747,7 +697,8 @@ export class World {
+     if (target === this.lastP1RouteTarget) return;
+     this.lastP1RouteTarget = target;
+     if (target === null) { this.clearPortal(); return; }
+-    this.placePortalForTarget(room, target);
++    if (route?.portal) this.makePortal(target, route.portal);
++    else this.placePortalForTarget(room, target);
+   }
+ 
+   /** P1 HUD helper: null = no authored link; true = linked drones may fire. */
+@@ -766,7 +717,7 @@ export class World {
+   get p1RouteTarget(): number | null {
+     const scenario = this.p1Scenario;
+     if (!scenario) return null;
+-    return p1RouteFor(this._sim.signal?.relay ?? null, scenario.routes)?.target ?? null;
++    return routeTargetFor(this._sim.signal?.relay ?? null, scenario.routes);
+   }
+ 
+   /** Owner-confirmed companion action -> a SINGLE queued core intent (move/fire/
+@@ -1387,10 +1338,10 @@ export class World {
+     if (this.isDeckExit(r) && this.nextDeck !== undefined) {
+       if (r.kind === 'extraction') {
+         // 无 boss 的终点房：其他房间已清后，进入即为下一 sector 门。
+-        if (this.exitUnlocked) { this.makePortal(null, this.findWalkableInRoom(r)); return; }
++        if (this.exitUnlocked) { this.makePortal(null, this.cellCentre(this.findWalkableInRoom(r))); return; }
+         this.clearPortal(); return;
+       }
+-      if (r.cleared) { this.makePortal(null, this.findWalkableInRoom(r)); return; }
++      if (r.cleared) { this.makePortal(null, this.cellCentre(this.findWalkableInRoom(r))); return; }
+       this.clearPortal(); return;
+     }
+     // Prefer the first step toward any unvisited room. If every room is already
+@@ -1435,7 +1386,7 @@ export class World {
+       }
+     }
+ 
+-    this.makePortal(target, best);
++    this.makePortal(target, this.cellCentre(best));
+   }
+ 
+   private clearPortal(): void {
+@@ -1445,10 +1396,13 @@ export class World {
+     this.portal = null;
+   }
+ 
+-  private makePortal(target: number | null, best: Vec2): void {
++  private makePortal(target: number | null, center: Vec2): void {
+     this.clearPortal();
+-    // Display at the visual centre of the chosen cell; interaction still uses (best.x, best.y).
+-    const s = this.worldToScreen(best.x + 0.5, best.y + 0.5);
++    // `center` is the authored/derived CELL CENTRE (tile + 0.5). The sprite, its
++    // label, its glow and the interaction point (`wx`/`wy`) all use that one
++    // point — P1 passed a corner here and the beacon sat half a tile away from
++    // the real interaction point (M7).
++    const s = this.worldToScreen(center.x, center.y);
+     const spr = this.scene.add.sprite(s.x, s.y, 'portal_beacon');
+     spr.setOrigin(0.5, 54 / 64).setDepth(DEPTH.decal + 1);
+     if (target === null) spr.setTint(0xffd233);
+@@ -1461,7 +1415,12 @@ export class World {
+     }).setOrigin(0, 0.5).setDepth(DEPTH.decal + 1);
+     const glow = this.scene.add.image(s.x, s.y, 'light_interact').setBlendMode(Phaser.BlendModes.ADD).setScale(0.6).setAlpha(0.35).setDepth(DEPTH.light);
+     spr.once('destroy', () => { label.destroy(); glow.destroy(); });
+-    this.portal = { spr, targetRoom: target, wx: best.x, wy: best.y };
++    this.portal = { spr, targetRoom: target, wx: center.x, wy: center.y };
++  }
++
++  /** Integer grid cell -> the cell CENTRE the presenters/interaction agree on. */
++  private cellCentre(cell: Vec2): Vec2 {
++    return { x: cell.x + 0.5, y: cell.y + 0.5 };
+   }
+ 
+   /** First adjacent room on the shortest room-graph path to an unvisited room. */
+@@ -2099,6 +2058,18 @@ export class World {
+         case 'enemy-spawned':
+           this.spawnEnemyFromCore(event as any);
+           break;
++        case 'room-cleared': {
++          // GAMEPLAY-01 P4 / M1: the CORE owns the one authoritative room-clear
++          // commit. The presenter only reacts (seal, authored portal, callback)
++          // and never re-writes the flag, so World and Headless cannot diverge.
++          const cleared = this.map.rooms[event.roomId];
++          if (!cleared) break;
++          this.clearRoomSeal();
++          if (this.p1Scenario && this.p1Scenario.roomId === cleared.id) this.updateP1RoutePortal();
++          else if (this.map.deck !== undefined && !this.won) this.placePortal(cleared);
++          this.callbacks.onRoomCleared(cleared);
++          break;
++        }
+         case 'room-generated': {
+           const room = this.map.rooms[event.roomId];
+           if (room) {
+@@ -2523,7 +2494,14 @@ export class World {
+     this.currentRoomId = room.id;
+     // Visual: rooms surveyed before the checkpoint are drawn immediately (no pulse).
+     for (const id of new Set([...run.clearedRooms, room.id])) this.renderer?.observeRoom(id, 0, 0, true);
+-    this.placePortal(room, run.portalTarget);
++    if (this.p1Scenario && this.p1Scenario.roomId === room.id) {
++      // P4/M2: the authored portal is re-derived from the COMMITTED relay state
++      // after a restore; a saved portalTarget can never resurrect a stale door.
++      this.lastP1RouteTarget = -1;
++      this.updateP1RoutePortal();
++    } else {
++      this.placePortal(room, run.portalTarget);
++    }
+     this.rng.restore(run.rngState);
+     this._sim.tick = 0;
+     this._sim.drones = [];
+diff --git a/src/world/sim/core.ts b/src/world/sim/core.ts
+index 96adfbd..1141ee7 100644
+--- a/src/world/sim/core.ts
++++ b/src/world/sim/core.ts
+@@ -157,11 +157,35 @@ export interface SimProjectile {
+   hitIds: number[];
+ }
+ 
++/** GAMEPLAY-01 P4 authored-scene identity. DATA only (no rule engine): it is
++ *  kept INSIDE the core state so snapshot / restore / replay / raw-sim restore
++ *  cannot silently lose the demo + route identity. Presenters derive the route
++ *  target from the committed relay state and this table via
++ *  `routeTargetFor`; the core only owns the room-clear commit. */
++export interface SimAuthoredRoute {
++  target: number;
++  when: 'RELAY_ACTIVE' | 'RELAY_INACTIVE';
++  label: string;
++  /** Portal cell centre in world tiles (already +0.5 of the grid cell). */
++  portal?: Vec2;
++}
++
++export interface SimAuthoredScene {
++  id: 'p1';
++  roomId: number;
++  /** Captured BEFORE the authored room's kind mutation ('start' -> 'combat'),
++   *  so a restored demo world reports the same start room as a fresh one. */
++  startRoomId: number;
++  routes: SimAuthoredRoute[];
++}
++
+ export interface SimulationState {
+   seed: number;
+   tick: number;
+   rngState: number;
+   map: MapData;
++  /** Authored demo/route identity; absent for every ordinary run. */
++  authored?: SimAuthoredScene;
+   mapMinX: number;
+   mapMinY: number;
+   player: SimPlayerState;
+@@ -224,7 +248,11 @@ export type SimEvent =
+   | { type: 'signal-jammed'; actorId: number; energy: number; cooldownTicks: number; relay: string; jamExpiresAtTick: number; ok?: boolean; code?: string }
+   | { type: 'signal-relay-changed'; relay: string; manualEnabled: boolean; powered: boolean }
+   | { type: 'signal-evidence-expired'; deviceId: string }
+-  | { type: 'signal-energy'; actorId: number; energy: number; scanCooldownTicks: number; jamCooldownTicks: number };
++  | { type: 'signal-energy'; actorId: number; energy: number; scanCooldownTicks: number; jamCooldownTicks: number }
++  /** GAMEPLAY-01 P4: the ONE authoritative clear commit of an authored room.
++   *  Emitted only for `state.authored` scenes, so legacy event streams are
++   *  byte-identical. */
++  | { type: 'room-cleared'; roomId: number };
+ 
+ export interface CreateSimulationInput {
+   seed: number;
+@@ -1355,12 +1383,39 @@ export function stepSimulationTicks(
+     stepDrones(state, dt, events);
+     stepProjectiles(state, dt, rng, events);
+     stepLoot(state, dt, events);
++    commitAuthoredRoomClear(state, events);
+     state.tick++;
+   }
+   state.rngState = rng.snapshot();
+   return events;
+ }
+ 
++/**
++ * GAMEPLAY-01 P4 / M1 — the ONE authoritative room-clear commit for an authored
++ * scene. Before P4 the rendered World owned this write while the Headless
++ * recomputed "cleared" from live drones, so the same tick reported two
++ * different states (5 seeds diverged). The core now commits the map flag the
++ * rendered gate, `descend` and `GameScene` all read, exactly once per room:
++ *   - the room must have committed its own generation (`spawned`);
++ *   - a still-queued `room-enter` for the room means its generation is pending;
++ *   - no live drone spawned in the room and no live target inside its bounds.
++ * Ordinary (non-authored) runs never enter this path: their clear stays with
++ * the existing World/legacy code and their event streams are unchanged.
++ */
++function commitAuthoredRoomClear(state: SimulationState, events: SimEvent[]): void {
++  const authored = state.authored;
++  if (!authored) return;
++  const room = state.map.rooms[authored.roomId];
++  if (!room || !room.spawned || room.cleared) return;
++  if (state.pendingCommands.some((c) => c.type === 'room-enter' && c.roomId === room.id)) return;
++  if (state.drones.some((d) => d.hp > 0 && d.data.spawnRoom === room.id)) return;
++  const inside = (x: number, y: number): boolean =>
++    x >= room.gx && x < room.gx + room.w && y >= room.gy && y < room.gy + room.h;
++  if (state.targets.some((t) => t.hp > 0 && inside(t.x, t.y))) return;
++  room.cleared = true;
++  events.push({ type: 'room-cleared', roomId: room.id });
++}
++
+ /** Deep serializable copy (no live object references). */
+ export function cloneSimulationState(state: SimulationState): SimulationState {
+   return JSON.parse(JSON.stringify(state)) as SimulationState;
+@@ -1383,6 +1438,7 @@ export interface CanonicalSimulationState {
+   };
+   echo?: SimEchoState;
+   signal?: SimSignalDevice;
++  authored?: SimAuthoredScene;
+   drones: SimDroneState[];
+   targets: SimTarget[];
+   projectiles: SimProjectile[];
+@@ -1415,6 +1471,7 @@ export function canonicalSimulationState(state: SimulationState): string {
+     },
+     ...(state.echo ? { echo: state.echo } : {}),
+     ...(state.signal ? { signal: state.signal } : {}),
++    ...(state.authored ? { authored: state.authored } : {}),
+     drones: state.drones,
+     targets: state.targets,
+     projectiles: state.projectiles,

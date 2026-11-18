@@ -1,0 +1,8 @@
+84eac073b43accff3cab7c2d443c3f5001f709a21b14bb759a9d8c01ceb05f85 *../../src/world/World.ts
+37cf6ffb81db8482374270ba3856524f34bf1045caf94b7025d19986d4a9a3e5 *src/world/World.ts
+2ad184433290ad4ac06a4ee3b1f0f54a487b483f76fcb0ecc4396ceac3fd13c2 *../../src/ai-native/worldHeadless.ts
+d5b2c5107d5e956e7f40abf7bac7927ae7d7a060f35b310c1978b36b98e0cbda *src/ai-native/worldHeadless.ts
+d6dd9a48e7a929ec46f86e1000ae14b5d79d730f488eb0cae5004b75ca517635 *../../src/config/p1Scenario.ts
+60030aa7f5690d79e8746a1bd2a9e4ed7ea6010d684fac9f79cc21b821f80532 *src/config/p1Scenario.ts
+6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89 *../../src/signal/relay.ts
+4c5e51b39efabf2594be0e4b96dbea80bcd1bf73bd59b7229513a4a28d8fc050 *src/signal/relay.ts

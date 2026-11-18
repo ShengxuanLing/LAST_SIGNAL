@@ -1,0 +1,993 @@
+{
+  "metrics": {
+    "seed": 20261118,
+    "mode": "human-only",
+    "demoId": "p1",
+    "roomId": 0,
+    "startRoomId": 0,
+    "routes": [
+      {
+        "target": 2,
+        "when": "RELAY_ACTIVE",
+        "label": "RESOURCE",
+        "portal": {
+          "x": 11.5,
+          "y": 49.5
+        }
+      },
+      {
+        "target": 5,
+        "when": "RELAY_INACTIVE",
+        "label": "ELITE",
+        "portal": {
+          "x": 12.5,
+          "y": 45.5
+        }
+      }
+    ],
+    "routeChosen": 2,
+    "routeWhen": "ACTIVE",
+    "completed": true,
+    "terminalStatus": "running",
+    "ticks": 114,
+    "elapsedSeconds": 1.9,
+    "playerHpStart": 100,
+    "playerHpEnd": 100,
+    "damageTaken": 0,
+    "kills": 2,
+    "shots": 6,
+    "echoShots": 0,
+    "signal": {
+      "scans": 0,
+      "jams": 0,
+      "toggles": 1,
+      "energyStartPlayer": 100,
+      "energyStartEcho": 100,
+      "energyEndPlayer": 100,
+      "energyEndEcho": 100,
+      "energySpentPlayer": 0,
+      "energySpentEcho": 0
+    },
+    "proposals": {
+      "offered": 0,
+      "accepted": 0,
+      "rejected": 0,
+      "failed": 0,
+      "kinds": [],
+      "lastAcceptToEffectTicks": null,
+      "lastAcceptToEffectDetail": null
+    },
+    "actions": 114,
+    "events": {
+      "signal-device-spawned": 1,
+      "signal-linked": 1,
+      "player-moved": 114,
+      "player-fired": 6,
+      "projectile-spawned": 6,
+      "drone-step": 88,
+      "enemy-hit": 4,
+      "enemy-died": 2,
+      "loot-dropped": 2,
+      "xp-gained": 2,
+      "currency-gained": 2,
+      "loot-collected": 2,
+      "projectile-wall": 2,
+      "room-cleared": 1,
+      "signal-relay-changed": 1
+    },
+    "roomClearedAtTick": 62,
+    "echoEnabled": false,
+    "offLineSimulated": false,
+    "notes": [
+      "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+      "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+      "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+    ]
+  },
+  "recovery": {
+    "restoreOk": true,
+    "snapshotRoute": {
+      "id": "p1",
+      "roomId": 0,
+      "startRoomId": 0,
+      "routes": [
+        {
+          "target": 2,
+          "when": "RELAY_ACTIVE",
+          "label": "RESOURCE",
+          "portal": {
+            "x": 11.5,
+            "y": 49.5
+          }
+        },
+        {
+          "target": 5,
+          "when": "RELAY_INACTIVE",
+          "label": "ELITE",
+          "portal": {
+            "x": 12.5,
+            "y": 45.5
+          }
+        }
+      ]
+    },
+    "restoredRoute": {
+      "roomId": 0,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "target": 2,
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "playerAtPortal": true,
+      "completed": true
+    },
+    "fromSimulationStateRoute": {
+      "roomId": 0,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "target": 2,
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "playerAtPortal": true,
+      "completed": true
+    },
+    "fromSimulationStateStartRoomId": 0,
+    "freshStartRoomId": 0,
+    "routeIdentityEqual": true
+  },
+  "steps": [
+    {
+      "tick": 1,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 2,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 3,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 4,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 5,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 6,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 7,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 8,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 9,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 10,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 11,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 12,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 13,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 14,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 15,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 16,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.8555512754639873
+      }
+    },
+    {
+      "tick": 17,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.8555512754639873
+      }
+    },
+    {
+      "tick": 18,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.8555512754639873
+      }
+    },
+    {
+      "tick": 19,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.8555512754639873
+      }
+    },
+    {
+      "tick": 20,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.8321137754639856
+      }
+    },
+    {
+      "tick": 21,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.808676275463984
+      }
+    },
+    {
+      "tick": 22,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.785238775463982
+      }
+    },
+    {
+      "tick": 23,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.7618012754639802
+      }
+    },
+    {
+      "tick": 24,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.7383637754639785
+      }
+    },
+    {
+      "tick": 25,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.7149262754639762
+      }
+    },
+    {
+      "tick": 26,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.691488775463974
+      }
+    },
+    {
+      "tick": 27,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.801056399632875
+      }
+    },
+    {
+      "tick": 28,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.777618899632874
+      }
+    },
+    {
+      "tick": 29,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.754181399632873
+      }
+    },
+    {
+      "tick": 30,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.730743899632872
+      }
+    },
+    {
+      "tick": 31,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.707306399632869
+      }
+    },
+    {
+      "tick": 32,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.683868899632868
+      }
+    },
+    {
+      "tick": 33,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.6604313996328655
+      }
+    },
+    {
+      "tick": 34,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.636993899632865
+      }
+    },
+    {
+      "tick": 35,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.613556399632863
+      }
+    },
+    {
+      "tick": 36,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.590118899632861
+      }
+    },
+    {
+      "tick": 37,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.566681399632859
+      }
+    },
+    {
+      "tick": 38,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.5432438996328575
+      }
+    },
+    {
+      "tick": 39,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.519806399632856
+      }
+    },
+    {
+      "tick": 40,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.496368899632854
+      }
+    },
+    {
+      "tick": 41,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.472931399632853
+      }
+    },
+    {
+      "tick": 42,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.449493899632851
+      }
+    },
+    {
+      "tick": 43,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.4260563996328495
+      }
+    },
+    {
+      "tick": 44,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.402618899632849
+      }
+    },
+    {
+      "tick": 45,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.379181399632846
+      }
+    },
+    {
+      "tick": 46,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.355743899632845
+      }
+    },
+    {
+      "tick": 47,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.332306399632843
+      }
+    },
+    {
+      "tick": 48,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.3088688996328415
+      }
+    },
+    {
+      "tick": 49,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.28543139963284
+      }
+    },
+    {
+      "tick": 50,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.261993899632838
+      }
+    },
+    {
+      "tick": 51,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.238556399632836
+      }
+    },
+    {
+      "tick": 52,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.465118899632836
+      }
+    },
+    {
+      "tick": 53,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.441681399632834
+      }
+    },
+    {
+      "tick": 54,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.418243899632833
+      }
+    },
+    {
+      "tick": 55,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.394806399632831
+      }
+    },
+    {
+      "tick": 56,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.371368899632829
+      }
+    },
+    {
+      "tick": 57,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.347931399632827
+      }
+    },
+    {
+      "tick": 58,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.3244938996328255
+      }
+    },
+    {
+      "tick": 59,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.301056399632824
+      }
+    },
+    {
+      "tick": 60,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.277618899632823
+      }
+    },
+    {
+      "tick": 61,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.254181399632821
+      }
+    },
+    {
+      "tick": 62,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.230743899632818
+      }
+    },
+    {
+      "tick": 64,
+      "action": "toggle-relay",
+      "detail": {
+        "want": "RELAY_ACTIVE",
+        "relay": "ACTIVE"
+      }
+    },
+    {
+      "tick": 64,
+      "action": "route-chosen",
+      "detail": {
+        "target": 2,
+        "when": "ACTIVE"
+      }
+    },
+    {
+      "tick": 65,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 5,
+        "target": 2
+      }
+    },
+    {
+      "tick": 66,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.87899431271161,
+        "target": 2
+      }
+    },
+    {
+      "tick": 67,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.757496471435679,
+        "target": 2
+      }
+    },
+    {
+      "tick": 68,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.635516260659304,
+        "target": 2
+      }
+    },
+    {
+      "tick": 69,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.513066203663572,
+        "target": 2
+      }
+    },
+    {
+      "tick": 70,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.390162064241829,
+        "target": 2
+      }
+    },
+    {
+      "tick": 71,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.266823444278986,
+        "target": 2
+      }
+    },
+    {
+      "tick": 72,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.143074496941344,
+        "target": 2
+      }
+    },
+    {
+      "tick": 73,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.018944779495179,
+        "target": 2
+      }
+    },
+    {
+      "tick": 74,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.8944702749362325,
+        "target": 2
+      }
+    },
+    {
+      "tick": 75,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.7696946178097996,
+        "target": 2
+      }
+    },
+    {
+      "tick": 76,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.6446705669496806,
+        "target": 2
+      }
+    },
+    {
+      "tick": 77,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.5194617764191696,
+        "target": 2
+      }
+    },
+    {
+      "tick": 78,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.3941449256144107,
+        "target": 2
+      }
+    },
+    {
+      "tick": 79,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.268812279933883,
+        "target": 2
+      }
+    },
+    {
+      "tick": 80,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.143574763771085,
+        "target": 2
+      }
+    },
+    {
+      "tick": 81,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.018565636114684,
+        "target": 2
+      }
+    },
+    {
+      "tick": 82,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.8939448625072415,
+        "target": 2
+      }
+    },
+    {
+      "tick": 83,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.769904269813134,
+        "target": 2
+      }
+    },
+    {
+      "tick": 84,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.6466735425108703,
+        "target": 2
+      }
+    },
+    {
+      "tick": 85,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.524527055296679,
+        "target": 2
+      }
+    },
+    {
+      "tick": 86,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.4037914120311443,
+        "target": 2
+      }
+    },
+    {
+      "tick": 87,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.28485333900659,
+        "target": 2
+      }
+    },
+    {
+      "tick": 88,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.1681672113331683,
+        "target": 2
+      }
+    },
+    {
+      "tick": 89,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.0542609158390173,
+        "target": 2
+      }
+    },
+    {
+      "tick": 90,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.9437379222353168,
+        "target": 2
+      }
+    },
+    {
+      "tick": 91,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.8372723530247075,
+        "target": 2
+      }
+    },
+    {
+      "tick": 92,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.7355926704421758,
+        "target": 2
+      }
+    },
+    {
+      "tick": 93,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.6394487953008046,
+        "target": 2
+      }
+    },
+    {
+      "tick": 94,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.549557946436397,
+        "target": 2
+      }
+    },
+    {
+      "tick": 95,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.466527552979365,
+        "target": 2
+      }
+    },
+    {
+      "tick": 96,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.3907603692604547,
+        "target": 2
+      }
+    },
+    {
+      "tick": 97,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.322356948011433,
+        "target": 2
+      }
+    },
+    {
+      "tick": 98,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.2610402054296557,
+        "target": 2
+      }
+    },
+    {
+      "tick": 99,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.206129180536978,
+        "target": 2
+      }
+    },
+    {
+      "tick": 100,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.156578563010167,
+        "target": 2
+      }
+    },
+    {
+      "tick": 101,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.1110789363799574,
+        "target": 2
+      }
+    },
+    {
+      "tick": 102,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.0681909702098715,
+        "target": 2
+      }
+    },
+    {
+      "tick": 103,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.0264776214019593,
+        "target": 2
+      }
+    },
+    {
+      "tick": 104,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.9846055385708714,
+        "target": 2
+      }
+    },
+    {
+      "tick": 105,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.9414031965749474,
+        "target": 2
+      }
+    },
+    {
+      "tick": 106,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.895878425732015,
+        "target": 2
+      }
+    },
+    {
+      "tick": 107,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.847206073640843,
+        "target": 2
+      }
+    },
+    {
+      "tick": 108,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.7946976412223739,
+        "target": 2
+      }
+    },
+    {
+      "tick": 109,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.7377618517478088,
+        "target": 2
+      }
+    },
+    {
+      "tick": 110,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.6758610628769988,
+        "target": 2
+      }
+    },
+    {
+      "tick": 111,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.6084647761792902,
+        "target": 2
+      }
+    },
+    {
+      "tick": 112,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.5349990419994552,
+        "target": 2
+      }
+    },
+    {
+      "tick": 113,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.4547916661545652,
+        "target": 2
+      }
+    },
+    {
+      "tick": 114,
+      "action": "interact-at-portal",
+      "detail": {
+        "target": 2
+      }
+    }
+  ]
+}

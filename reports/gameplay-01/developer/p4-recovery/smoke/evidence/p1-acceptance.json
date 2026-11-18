@@ -1,0 +1,54 @@
+[
+  {
+    "item": "p1-relay-basics",
+    "at": "2026-11-18T12:24:29.815Z",
+    "runner": "agent (real T/Y keys)",
+    "fixtures": "none",
+    "seed": 20261117,
+    "scenario": {
+      "roomId": 0,
+      "relay": {
+        "x": 11.5,
+        "y": 48.5
+      },
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE"
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE"
+        }
+      ],
+      "drones": 2
+    },
+    "energy": {
+      "start": 100,
+      "afterScan": 90,
+      "afterJam": 65,
+      "exactScanCost": 10,
+      "exactJamCost": 25,
+      "scanRegenEventsBeforeCommit": 0,
+      "jamRegenEventsBeforeCommit": 0,
+      "netScanDelta": 10,
+      "netJamDelta": 25,
+      "note": "exact costs come from the committed core events; net deltas are post-sample observations that include regen"
+    },
+    "relay": {
+      "start": "ACTIVE",
+      "jammed": "JAMMED",
+      "expired": "ACTIVE"
+    },
+    "ticks": {
+      "atJam": 70,
+      "expired": 451
+    },
+    "routeTargets": {
+      "jammed": null,
+      "expired": 1,
+      "routeA": 1
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\.cindy-worktrees\\serene-leakey\\reports\\gameplay-01\\developer\\p4-recovery\\smoke\\shots\\p1-1-relay-expired.png"
+  }
+]

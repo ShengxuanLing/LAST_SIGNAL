@@ -1,0 +1,24 @@
+cmd: npx vitest run src/ai-native/worldHeadlessRestoreSafety.test.ts
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+at: 2026-11-18T14:19:40+01:00
+phase: GREEN (after R1/R2 fix)
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey[39m
+
+ [32m✓[39m src/ai-native/worldHeadlessRestoreSafety.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 5308[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mscan: guard is rebuilt, no second command can be confirmed, receipt clears it [33m718[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mtoggle: guard is rebuilt, no second command can be confirmed, receipt clears it [33m643[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mdoes not delete other actors' queued commands (mixed player + echo scan) [33m662[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mscan: echoPendingLocal is readable, proposal is blocked, runSteps commits once [33m316[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mtoggle: echoPendingLocal is readable, proposal is blocked, runSteps commits once [33m300[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mfromSimulationState keeps the SAME contract as restore/fromFrame [33m817[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mreplay (which uses fromFrame internally) does not crash on a guarded frame [33m990[2mms[22m[39m
+   [33m[2m✓[22m[39m R1/R2 — old frames and echo-less worlds stay compatible[2m > [22ma frame with no echo / no queued signal has a null guard everywhere [33m860[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 14:19:42
+[2m   Duration [22m 6.92s[2m (transform 373ms, setup 0ms, collect 988ms, tests 5.31s, environment 0ms, prepare 222ms)[22m
+
+EXIT=0

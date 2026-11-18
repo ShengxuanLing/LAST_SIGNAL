@@ -1,0 +1,54 @@
+cmd: npx vitest run <v3 all src tests: restore-safety + 4 v2 files>
+at: 2026-11-18T14:20:18+01:00
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey[39m
+
+ [32m✓[39m src/config/p1ScenarioLayout.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+ [32m✓[39m src/signal/relayRoutes.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 143[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessRestoreSafety.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 10942[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mscan: guard is rebuilt, no second command can be confirmed, receipt clears it [33m1555[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mtoggle: guard is rebuilt, no second command can be confirmed, receipt clears it [33m1463[2mms[22m[39m
+   [33m[2m✓[22m[39m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mdoes not delete other actors' queued commands (mixed player + echo scan) [33m1537[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mscan: echoPendingLocal is readable, proposal is blocked, runSteps commits once [33m593[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mtoggle: echoPendingLocal is readable, proposal is blocked, runSteps commits once [33m463[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mfromSimulationState keeps the SAME contract as restore/fromFrame [33m1634[2mms[22m[39m
+   [33m[2m✓[22m[39m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mreplay (which uses fromFrame internally) does not crash on a guarded frame [33m2020[2mms[22m[39m
+   [33m[2m✓[22m[39m R1/R2 — old frames and echo-less worlds stay compatible[2m > [22ma frame with no echo / no queued signal has a null guard everywhere [33m1674[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessFrameAuthored.test.ts [2m([22m[2m22 tests[22m[2m)[22m[33m 10623[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose authored is not an object [33m441[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose authored.id is unknown [33m536[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose routes is not an array [33m474[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose routes is empty [33m431[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose routes has too many entries [33m519[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose route is not an object [33m450[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose target is not a number [33m527[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose target is not a map room [33m557[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose when is not a route condition [33m512[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose portal is not an object [33m448[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose portal.x is not a number [33m405[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose portal has NaN [33m441[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose portal is infinite [33m390[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose roomId is not a map room [33m389[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose roomId is not a number [33m431[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose startRoomId is not a map room [33m387[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose startRoomId is missing [33m413[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22man ordinary (non-demo) frame has no authored key and is accepted [33m1251[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22ma P1 demo frame captured before the authored field existed still restores [33m790[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22ma valid demo frame restores the same route identity, once [33m704[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessDemoRoute.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 22541[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mconsumes the shared builder (same cells as a fresh authored build) [33m563[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mstarts uncleared with the ACTIVE route and no portal [33m475[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mM1: the core clears the room exactly once and the presenter reads the same flag [33m3214[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mcompletes a legal route by walking onto the authored portal and pressing F [33m4014[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mJAMMED closes the route while the room stays cleared (safety gate intact) [33m3504[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mmanual OFF also yields exactly one route (no JAMMED-style blackout) [33m1521[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22msnapshot → restore keeps demo + route + cleared state [33m1832[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22mfromFrame and fromSimulationState keep the SAME demo identity [33m1623[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22mreplay reproduces the same route state after the same inputs [33m5564[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m62 passed[39m[22m[90m (62)[39m
+[2m   Start at [22m 14:20:20
+[2m   Duration [22m 24.64s[2m (transform 985ms, setup 0ms, collect 5.99s, tests 44.27s, environment 2ms, prepare 1.63s)[22m
+
+EXIT=0

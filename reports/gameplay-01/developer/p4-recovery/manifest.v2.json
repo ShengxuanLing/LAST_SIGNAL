@@ -1,0 +1,65 @@
+{
+  "task": "GAMEPLAY-01 P4 v2 freeze candidate — F1 (all-or-nothing layout) + F2 (bounded frame validation) + corrected metric definitions",
+  "date": "2026-11-18",
+  "supersedes": "manifest.json (v1) — archived at v1-freeze/manifest.v1.json",
+  "worker": "Orca worker q331nefqzzh4gzn0hdbmnxwh",
+  "cwd": "D:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey",
+  "git": {
+    "branch": "cindy/serene-leakey",
+    "head": "3819621c5faab56b114b6e5a560f8fe78c17709d",
+    "commitsMadeByThisWorker": 0,
+    "push": false,
+    "mainRepoDirtySrcFilesUntouched": true
+  },
+  "v1FreezeArchive": {
+    "dir": "v1-freeze/",
+    "hashLog": "v1-freeze/FREEZE-HASHES.log.txt",
+    "v1Manifest": "v1-freeze/manifest.v1.json",
+    "v1RenderedEvidence": "v1-freeze/rendered-evidence.v1.json",
+    "v1Screenshots": "v1-freeze/rendered-shots-v1/ (7 png)",
+    "note": "Archived BEFORE any F1/F2 edit; the 7 v1 sha256 values are identical to what the independent final review verified."
+  },
+  "reviewFindingsAddressed": {
+    "F1": "buildP1Scenario computes the whole layout + every feasibility/distinctness check BEFORE any map mutation; the two connectedTo edges and kind='combat' are committed in one step only on success. A null result leaves the room graph byte-identical.",
+    "F2": "isHeadlessFrame now applies a bounded structural check to sim.authored (id/roomId/startRoomId refer to existing map rooms, routes array length 1..2, numeric target in map rooms, when enum, optional string label, finite numeric portal). Absent authored stays compatible (old frames).",
+    "F3": "rendered evidence now ASSERTS the real standing-jam cost at the authored door (JAM_COST 25, measured 23 with 2 points of regen).",
+    "F5": "driver metric definitions corrected (netEnergyChange*, actualScanCost, scriptedRejectHoldTicks, ticksExcludingScriptedHold, completedKind, connectionState, balanceSample). Old runs are kept and explained in runs/README.md; no re-run was used to improve a number."
+  },
+  "deliveredSourceWhitelist": [
+    { "file": "src/world/sim/core.ts", "status": "unchanged-since-v1", "sha256": "f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6", "role": "single authored-room clear commit + authored identity in canonical state" },
+    { "file": "src/config/p1Scenario.ts", "status": "modified-in-v2 (F1)", "sha256": "76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7", "role": "shared builder: layout-first, one commit step, explicit null, startRoomId before kind mutation" },
+    { "file": "src/ai-native/worldHeadless.ts", "status": "modified-in-v2 (F2)", "sha256": "56253ef7762826a2e83568d9e22aab2f5d3d7a6a28617307fc670596ba8b5da4", "role": "demo identity from core state, routeState reads map.rooms[id].cleared, bounded authored frame validation" },
+    { "file": "src/world/World.ts", "status": "unchanged-since-v1", "sha256": "3ff4f7e3ad7310d85796055846a45435ecb52ff671a3073ae9cd69d9cc19548f", "role": "reacts to the core clear; portal centre unified; restore re-derives the authored portal" },
+    { "file": "src/signal/relay.ts", "status": "unchanged-since-candidate", "sha256": "6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89", "role": "pure routeTargetFor" },
+    { "file": "src/signal/relayRoutes.test.ts", "status": "unchanged-since-v1", "sha256": "097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423", "role": "P4 rule tests + the 5 preserved P1 route tests" },
+    { "file": "src/ai-native/worldHeadlessDemoRoute.test.ts", "status": "unchanged-since-v1", "sha256": "11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4", "role": "Headless demo clear/route/JAM/restore/replay + same-scenario cells" },
+    { "file": "src/config/p1ScenarioLayout.test.ts", "status": "NEW in v2 (F1)", "sha256": "8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6", "role": "negative repro: failed layout never mutates the map; success commits once" },
+    { "file": "src/ai-native/worldHeadlessFrameAuthored.test.ts", "status": "NEW in v2 (F2)", "sha256": "93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21", "role": "negative repro: 17 malformed authored frames rejected (E_SNAPSHOT_INVALID); legacy frames still restore" }
+  ],
+  "docsDelivered": [
+    { "file": "docs/gameplay/COOP_LEVEL_DESIGN.P4-UPDATE.md", "sha256": "7c9a19bf3557426d166fdd366bd7f8e15aa044b151fe0b056a70fe3e8c3ea7ff", "role": "proposed replacement text for the untracked main-repo COOP_LEVEL_DESIGN.md" },
+    { "file": "docs/gameplay/P5_VARIANTS_PLAN.md", "sha256": "80094d2d4ad3c95ca38c0af0a74d92f711456e9ddd56cf8c3bb3b21f9c1c8019", "role": "P5 minimal plan: 3 state presets of existing mechanics, files, balance targets, measurable failures (not coded)" },
+    { "file": "docs/gameplay/P4_TEST_AND_FINAL_LIMITS.md", "sha256": "b3ec418c16dd171709e019a0689911774a40b2c3321b7bdbc6cdf048b0a3bb22", "role": "Tester E2E assertion list (T1..T14) + forbidden FINAL wording + freeze notes" }
+  ],
+  "evidenceUpdates": [
+    { "file": "reports/gameplay-01/developer/p4-recovery/driver/demoRun.mts", "sha256": "c43afd740f890908ffc976c8efa5ab90672af744e00bf60aedd34908f6f526b6", "role": "corrected metric definitions; emits completedKind/connectionState/balanceSample/netEnergyChange*/actualScanCost/scriptedRejectHoldTicks" },
+    { "file": "reports/gameplay-01/developer/p4-recovery/runs/README.md", "role": "explains the 12 kept v1 runs and the renamed fields; no run was re-executed to look better" },
+    { "file": "reports/gameplay-01/developer/p4-recovery/runs/driver-v2-smoke-20261117-human-echo.json", "role": "single v2 driver smoke proving the corrected fields (ticksExcludingScriptedHold 113, actualScanCost 10)" },
+    { "file": "reports/gameplay-01/developer/p4-recovery/rendered/evidence/p4-rendered-evidence.json", "role": "v2 rendered run: adds jamCost 23/25 assertion (v1 archived in v1-freeze/)" }
+  ],
+  "gateNotes": {
+    "parityProduct": "reports/ai-native-02/signal/parity/*.json were generated INSIDE this worktree by the unmodified tester spec tests/signal-rendered-parity.spec.ts; the main repo's parity files were not touched."
+  },
+  "filesIntentionallyNotTouched": [
+    "tests/** (tester-owned; including the stale P1 door-distance assertion, kept for the tester)",
+    "main repo four dirty src files (read-only)",
+    "Owner protocol / epoch / permission / P2 queue-restore rules",
+    "P3 frozen UI/menu files",
+    "src/world/sim/core.ts was NOT touched in v2"
+  ],
+  "freeze": {
+    "state": "FROZEN for independent re-review (v2)",
+    "humanAcceptance": "PENDING",
+    "modelCalls": 0
+  }
+}

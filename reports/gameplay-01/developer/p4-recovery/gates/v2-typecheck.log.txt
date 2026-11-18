@@ -1,0 +1,5 @@
+cmd: npx tsc --noEmit
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+at: 2026-11-18T13:54:59+01:00
+EXIT=0

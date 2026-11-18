@@ -1,0 +1,99 @@
+cmd: npx vitest run <boundary 13 complete set: incl src/world/sim/parity.test.ts, src/systems/runCheckpoint.test.ts, restore/replay snapshot files>
+at: 2026-11-18T13:56:42+01:00
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey[39m
+
+ [32m✓[39m src/ai-native/echoCoop.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 36[2mms[22m[39m
+ [32m✓[39m src/world/sim/parity.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 33[2mms[22m[39m
+ [32m✓[39m src/world/sim/rules.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 55[2mms[22m[39m
+ [32m✓[39m src/ai-native/control.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 27[2mms[22m[39m
+ [32m✓[39m src/core/runtime.test.ts [2m([22m[2m15 tests[22m[2m)[22m[90m 39[2mms[22m[39m
+ [32m✓[39m src/ai-native/coop.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 981[2mms[22m[39m
+   [33m[2m✓[22m[39m instance identity and full-payload snapshot authorization[2m > [22meviction is explicit and repeated valid restore works [33m489[2mms[22m[39m
+ [32m✓[39m src/systems/runCheckpoint.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 29[2mms[22m[39m
+ [32m✓[39m src/ai-native/ownerAuth.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1342[2mms[22m[39m
+   [33m[2m✓[22m[39m Owner capability authorization regression chains[2m > [22mC1 self-handshake: no human pairing key => 403 [33m573[2mms[22m[39m
+ [32m✓[39m src/world/sim/core.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 6268[2mms[22m[39m
+   [33m[2m✓[22m[39m C2 fixed-tick authoritative core[2m > [22mis reproducible from a serializable snapshot (same seed + intents + ticks) [33m3333[2mms[22m[39m
+   [33m[2m✓[22m[39m C2 fixed-tick authoritative core[2m > [22mH1/H6: canonical state is authoritative and events are not rounded [33m1350[2mms[22m[39m
+ [32m✓[39m src/world/sim/echoRoomTransition.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 2323[2mms[22m[39m
+   [33m[2m✓[22m[39m ordinary portal transition moves the ECHO on the same tick[2m > [22mis deterministic: identical state + identical command => identical canonical state [33m2240[2mms[22m[39m
+ [32m✓[39m src/world/sim/signalState.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 5064[2mms[22m[39m
+   [33m[2m✓[22m[39m optional core Signal device[2m > [22mabsent signal leaves the canonical projection byte-identical [33m3508[2mms[22m[39m
+   [33m[2m✓[22m[39m optional core Signal device[2m > [22mspawn/scan/jam/toggle commit ONLY at the tick boundary [33m1443[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessEcho.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 9153[2mms[22m[39m
+   [33m[2m✓[22m[39m HeadlessWorld echo[2m > [22mspawns the echo at the next committed tick and only moves with an echoIntent [33m2539[2mms[22m[39m
+   [33m[2m✓[22m[39m HeadlessWorld echo[2m > [22mechoView is centred on the echo and never on the player [33m1155[2mms[22m[39m
+   [33m[2m✓[22m[39m HeadlessWorld echo[2m > [22mcanonical state includes the echo only after it exists [33m3216[2mms[22m[39m
+   [33m[2m✓[22m[39m HeadlessWorld echo observation (shared projection)[2m > [22mincludes non-drone core targets and Boss public state, not hidden ones [33m2236[2mms[22m[39m
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/canonicalStability.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 22243[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — key order independence[2m > [22ma key-sorted rebuild of the same state has the same canonical string [33m3733[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — key order independence[2m > [22mplayer data constructed in a different key order still hashes identically [33m2677[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — precision and array order[2m > [22mpreserves full numeric precision (a tiny change is NOT rounded away) [33m2389[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — precision and array order[2m > [22mdoes not reorder arrays (array order is part of the projection) [33m2325[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — transport → restore round trip[2m > [22ma boundary frame sorted on the wire restores to the same state/events for the same actions [33m7322[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c canonical — transport → restore round trip[2m > [22ma numeric tamper in the frame is detected (no rounded/ignored diff) [33m3794[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessHistoryReplay.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 26000[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — core events are immutable value DTOs[2m > [22ma projectile-spawned event never changes when the projectile moves/hits [33m1950[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — core events are immutable value DTOs[2m > [22ma loot-dropped event never changes when the loot bobs/is collected [33m1444[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — snapshot/restore/fromFrame isolation[2m > [22mmutating the live world does not change a saved frame (events/state/commands/ledger) [33m1538[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — snapshot/restore/fromFrame isolation[2m > [22mmutating the input frame after restore does not change the live world [33m6534[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — snapshot/restore/fromFrame isolation[2m > [22mfromFrame is isolated from the input frame [33m1465[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — replay baseline offset[2m > [22mreplays a MID-RUN boundary frame over the same interval (sameState/sameEvents) [33m3799[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — replay baseline offset[2m > [22mtampering the baseline history is detected at the exact index [33m3137[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — replay baseline offset[2m > [22ma different continuation is detected in the NEW segment, not at 0 [33m3304[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c history — replay baseline offset[2m > [22ma tick0/start frame still replays all steps exactly [33m2825[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessEchoCoop.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 30901[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mecho perceives the relay and produces a local scan proposal (non-executing) [33m2375[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mnon-human owner fails closed with no echo energy spend [33m1522[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mhuman confirm commits a real core scan on the next tick (echo energy, not player) [33m1761[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mpaused repeated confirm enqueues only one command and one real receipt [33m1644[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mrepeated toggle confirm flips the relay exactly once on the real tick [33m1341[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mexplicit cancel removes the exact command, records it and allows a new action [33m1352[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mswitch OFF does not cancel an already human-confirmed action [33m1590[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mwrong/stale id fails closed; rejection keeps energy and applies a cooldown [33m1000[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22mthe headless tick uses the same controller when no echoIntent override is given [33m1041[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 headless ECHO local cooperation[2m > [22ma new run defaults low-risk OFF; the option only enables it explicitly [33m2288[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mrestore keeps one queued scan, blocks a second confirm, then executes once [33m2919[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mrestore keeps one queued toggle, blocks a second confirm, flips exactly once [33m2377[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mdoes not mark or delete a player/other-actor command as human-local [33m2389[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mpreserves an external Owner toggle command while blocking a new local confirm [33m2633[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22ma room generation change does not clear the restored guard before the core [33m1800[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22mdoes not let an explicit local cancel delete an unknown restored command [33m1835[2mms[22m[39m
+   [33m[2m✓[22m[39m P2 raw-sim restore / queue guard[2m > [22ma dead echo does not leave an actually-local guard stuck [33m1029[2mms[22m[39m
+[headless] channel=restricted (public commands only); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/worldHeadlessSnapshotBoundary.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 42507[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mrefuses a mid-execution snapshot without cancelling, ACKing or advancing [33m8792[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mrefuses a snapshot while an action is queued but not started [33m4090[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22ma completed boundary snapshot is restorable and restore bumps the epoch [33m8122[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mrestore rejects a frame without the boundary marker and a mid-execution session [33m5564[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mpost-restore subsequent actions match the same sequence without restore [33m7198[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22mexportFailure marks a mid-execution bundle as NOT replayable [33m6018[2mms[22m[39m
+   [33m[2m✓[22m[39m C3c snapshot — action boundary only[2m > [22minspect exposes manager execution state for diagnostics [33m2715[2mms[22m[39m
+[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.
+[headless] channel closed; instances released; exit 0.
+ [32m✓[39m src/ai-native/runtime.test.ts [2m([22m[2m40 tests[22m[2m)[22m[33m 71652[2mms[22m[39m
+   [33m[2m✓[22m[39m B5 — canonical hash is authoritative-state only[2m > [22mCLI 0-step replay hash equals the source snapshot hash [33m25473[2mms[22m[39m
+   [33m[2m✓[22m[39m B6 — CLI Dev channel identity (no audience upgrade)[2m > [22msnapshot/replay/restore require the explicit --dev channel [33m8669[2mms[22m[39m
+   [33m[2m✓[22m[39m B6 — CLI Dev channel identity (no audience upgrade)[2m > [22mobserve never leaks seed/RNG/full model even on the Dev channel [33m6587[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mstep/replay reject non-array actions/steps instead of silently using [] [33m7189[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22menforces instance count, id length and JSON line size [33m6639[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mrestore requires hashes and only accepts this instance issued frame [33m5646[2mms[22m[39m
+   [33m[2m✓[22m[39m B7 — CLI strict schema and resource limits[2m > [22mquit exits and cleans up without waiting for stdin EOF [33m5475[2mms[22m[39m
+   [33m[2m✓[22m[39m purity and real Node CLI process[2m > [22mfull CLI cycle: create/step/observe/snapshot/replay/pause/resume/close/quit [33m4900[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m17 passed[39m[22m[90m (17)[39m
+[2m      Tests [22m [1m[32m221 passed[39m[22m[90m (221)[39m
+[2m   Start at [22m 13:56:45
+[2m   Duration [22m 75.37s[2m (transform 8.99s, setup 0ms, collect 32.53s, tests 218.65s, environment 10ms, prepare 9.67s)[22m
+
+EXIT=0

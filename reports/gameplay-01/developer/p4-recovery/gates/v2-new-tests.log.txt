@@ -1,0 +1,46 @@
+cmd: npx vitest run src/config/p1ScenarioLayout.test.ts src/ai-native/worldHeadlessFrameAuthored.test.ts src/signal/relayRoutes.test.ts src/ai-native/worldHeadlessDemoRoute.test.ts (v2 new+changed tests)
+at: 2026-11-18T13:54:00+01:00
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey[39m
+
+ [32m✓[39m src/config/p1ScenarioLayout.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 29[2mms[22m[39m
+ [32m✓[39m src/signal/relayRoutes.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 215[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessFrameAuthored.test.ts [2m([22m[2m22 tests[22m[2m)[22m[33m 14015[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose authored is not an object [33m688[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose authored.id is unknown [33m649[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose routes is not an array [33m514[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose routes is empty [33m673[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose routes has too many entries [33m601[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose route is not an object [33m669[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose target is not a number [33m723[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose target is not a map room [33m575[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose when is not a route condition [33m610[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose portal is not an object [33m664[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose portal.x is not a number [33m724[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose portal has NaN [33m654[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose portal is infinite [33m503[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose roomId is not a map room [33m619[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose roomId is not a number [33m510[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose startRoomId is not a map room [33m493[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — isHeadlessFrame bounds the authored scene[2m > [22mrejects a frame whose startRoomId is missing [33m479[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22man ordinary (non-demo) frame has no authored key and is accepted [33m1396[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22ma P1 demo frame captured before the authored field existed still restores [33m1218[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 F2 — legacy frames without an authored scene stay compatible[2m > [22ma valid demo frame restores the same route identity, once [33m952[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessDemoRoute.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 37815[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mconsumes the shared builder (same cells as a fresh authored build) [33m812[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mstarts uncleared with the ACTIVE route and no portal [33m665[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mM1: the core clears the room exactly once and the presenter reads the same flag [33m4036[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mcompletes a legal route by walking onto the authored portal and pressing F [33m5197[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mJAMMED closes the route while the room stays cleared (safety gate intact) [33m4677[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mmanual OFF also yields exactly one route (no JAMMED-style blackout) [33m2727[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22msnapshot → restore keeps demo + route + cleared state [33m3696[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22mfromFrame and fromSimulationState keep the SAME demo identity [33m4051[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22mreplay reproduces the same route state after the same inputs [33m11411[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22man ordinary (non-demo) world still has no authored identity [33m539[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m54 passed[39m[22m[90m (54)[39m
+[2m   Start at [22m 13:54:04
+[2m   Duration [22m 40.84s[2m (transform 1.26s, setup 0ms, collect 6.50s, tests 52.07s, environment 3ms, prepare 2.08s)[22m
+
+EXIT=0

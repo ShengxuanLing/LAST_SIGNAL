@@ -1,0 +1,21 @@
+# command: npx vitest run src/signal/relayRoutes.test.ts src/ai-native/worldHeadlessDemoRoute.test.ts
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/gp01-p4f[39m
+
+ [32m✓[39m src/signal/relayRoutes.test.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 93[2mms[22m[39m
+ [32m✓[39m src/ai-native/worldHeadlessDemoRoute.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 16353[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mconsumes the shared builder (same cells as a fresh authored build) [33m332[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mM1: the core clears the room exactly once and the presenter reads the same flag [33m1446[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mcompletes a legal route by walking onto the authored portal and pressing F [33m1867[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mJAMMED closes the route while the room stays cleared (safety gate intact) [33m1893[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — same authored scene as the World[2m > [22mmanual OFF also yields exactly one route (no JAMMED-style blackout) [33m1378[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22msnapshot → restore keeps demo + route + cleared state [33m1841[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22mfromFrame and fromSimulationState keep the SAME demo identity [33m1638[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 Headless demo — route identity survives snapshot/restore/replay (M2)[2m > [22mreplay reproduces the same route state after the same inputs [33m5491[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m26 passed[39m[22m[90m (26)[39m
+[2m   Start at [22m 13:40:47
+[2m   Duration [22m 20.75s[2m (transform 526ms, setup 0ms, collect 5.69s, tests 16.45s, environment 0ms, prepare 1.82s)[22m
+
+EXIT=0

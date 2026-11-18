@@ -1,0 +1,85 @@
+--- reports/gameplay-01/developer/p4-recovery/v2-freeze/src/ai-native/worldHeadless.ts	2026-11-18 14:15:00.055777700 +0100
++++ src/ai-native/worldHeadless.ts	2026-11-18 14:17:49.758548200 +0100
+@@ -70,6 +70,32 @@
+ }
+ 
+ /**
++ * GAMEPLAY-01 P4 v3 / R1+R2 — rebuild the SAME conservative P2 busy guard on
++ * every restore entry (`restore`, `fromFrame`, `fromSimulationState`, and replay
++ * via `fromFrame`). The caller has already cleared the OLD session's local
++ * proposal/pending marker (full `reset()` for `restore()`, a fresh controller
++ * for the Object.create factories). We never fabricate a human-local audit row,
++ * never invent a proposal id, and never delete the other actors' queued
++ * commands: the core queue stays exact while the guard is conservative.
++ */
++function restoreSignalGuard(world: HeadlessWorld, sim: SimulationState): void {
++  (world as any).pendingLocalAction = null;
++  (world as any).lastEnqueuedSignalCommand = null;
++  (world as any).restoredSignalCommand = null;
++  const controller = (world as any).echoController as EchoController | undefined;
++  if (!controller) return;
++  controller.clearLocalPending();
++  const restored = findRestoredSignal(sim.pendingCommands);
++  if (restored) {
++    // `setRestoredPending` also drops the displayed local proposal card.
++    controller.setRestoredPending(restored.kind);
++    (world as any).restoredSignalCommand = restored.command;
++  } else {
++    controller.clearRestoredPending();
++  }
++}
++
++/**
+  * Immutable-history helper: the owner frame must never share nested objects
+  * with the live world (or with the caller). JSON round-trip keeps full
+  * IEEE-754 precision and detaches events/commands/ledger/actionLog.
+@@ -866,15 +892,8 @@
+     (world as any).pendingLocalAction = null;
+     (world as any).lastEnqueuedSignalCommand = null;
+     (world as any).restoredSignalCommand = null;
+-    // A raw-sim restore keeps the core queue. If it already contains an echo
+-    // scan/jam or a relay toggle, rebuild a conservative busy marker instead of
+-    // dropping the command or pretending it is a human-local receipt. Other
+-    // actors' commands are preserved and do not mark a local guard.
+-    const restored = findRestoredSignal(sim.pendingCommands);
+-    if (restored) {
+-      (world as any).echoController.setRestoredPending(restored.kind);
+-      (world as any).restoredSignalCommand = restored.command;
+-    }
++    // Same conservative guard as the frame-restore path (R1).
++    restoreSignalGuard(world, sim);
+     const map = sim.map;
+     // M2/M5: a raw-sim restore has no frame, so the demo identity must come from
+     // the state itself; the start room id must be the one captured before the
+@@ -957,6 +976,13 @@
+     this.shots = frame.shots as number;
+     this.damageTaken = frame.damageTaken as number;
+     this.mapIdentity = frame.mapIdentity as HeadlessMapIdentity;
++    // R1: a restore is an authority/session boundary. Drop the OLD session's
++    // local proposal/pending lifecycle (the same full reset the rendered
++    // checkpoint uses) and rebuild the conservative guard from the queued core
++    // commands. No human-local receipt is fabricated for an unknown command.
++    this.pendingLocalAction = null;
++    this.echoController.reset();
++    restoreSignalGuard(this, this.sim);
+     // A restore invalidates the old epoch, exactly like C3-a yield/restore.
+     this.epoch = Math.max(this.epoch + 1, (frame.epoch as number) + 1);
+     return { ok: true, epoch: this.epoch };
+@@ -1156,6 +1182,17 @@
+     (world as any).damageTaken = frame.damageTaken as number;
+     (world as any).epoch = bumpEpoch ? (frame.epoch as number) + 1 : (frame.epoch as number);
+     (world as any).mapIdentity = frame.mapIdentity as HeadlessMapIdentity;
++    // R2: Object.create bypasses class-field initialization. Initialise the
++    // SAME EchoController / audit ring / pending fields as
++    // `fromSimulationState`, then apply the same conservative guard so replay
++    // (which uses fromFrame) has an identical safety contract.
++    (world as any).echoController = new EchoController();
++    (world as any).echoAudit = new EchoAuditRing();
++    (world as any).echoRoomGeneration = 0;
++    (world as any).pendingLocalAction = null;
++    (world as any).lastEnqueuedSignalCommand = null;
++    (world as any).restoredSignalCommand = null;
++    restoreSignalGuard(world, (world as any).sim);
+     return world;
+   }
+ }

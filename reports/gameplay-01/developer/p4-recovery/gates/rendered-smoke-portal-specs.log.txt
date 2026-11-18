@@ -1,0 +1,16 @@
+cmd: PORT=5471 npx playwright test tests/checkpoint.spec.ts tests/echo-portal-migration.spec.ts tests/economy.spec.ts
+
+Running 9 tests using 3 workers
+
+  ok 1 [chromium] › tests\echo-portal-migration.spec.ts:75:1 › ordinary portal: the ECHO migrates with the protagonist in the same transition, assist cleared (5.0s)
+  ok 2 [chromium] › tests\checkpoint.spec.ts:71:1 › inventory equips an owned weapon and the safe checkpoint restores the selection (4.9s)
+  ok 5 [chromium] › tests\checkpoint.spec.ts:152:1 › number keys select an upgrade when four choices are eligible (3.2s)
+  ok 4 [chromium] › tests\echo-portal-migration.spec.ts:122:1 › NEGATIVE CONTROL: a teleport without migration leaves the echo where it was (4.2s)
+  ok 3 [chromium] › tests\economy.spec.ts:11:1 › earns and spends run credits, with purchases restored from the checkpoint (9.7s)
+  ok 6 [chromium] › tests\checkpoint.spec.ts:172:1 › loss recap shows run stats and retries the same seed (3.3s)
+  ok 7 [chromium] › tests\economy.spec.ts:123:1 › a failed checkpoint save keeps the purchase pending and completes once after recovery (3.4s)
+  ok 8 [chromium] › tests\checkpoint.spec.ts:197:1 › resume reuses the checkpoint id and restores saved HP / run-scoped progress (6.5s)
+  ok 9 [chromium] › tests\checkpoint.spec.ts:316:1 › death routes to Game Over and clears the run checkpoint (1.8s)
+
+  9 passed (21.5s)
+EXIT=0

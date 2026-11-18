@@ -1,0 +1,1095 @@
+cmd: demoRun.mts matrix (re-run with final driver; --want RELAY_ACTIVE default)
+at: 2026-11-18T13:32:56+01:00
+{
+  "seed": 20261117,
+  "mode": "human-only",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 1,
+      "when": "RELAY_ACTIVE",
+      "label": "COMBAT",
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      }
+    },
+    {
+      "target": 2,
+      "when": "RELAY_INACTIVE",
+      "label": "RESOURCE",
+      "portal": {
+        "x": 11.5,
+        "y": 47.5
+      }
+    }
+  ],
+  "routeChosen": 1,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 110,
+  "elapsedSeconds": 1.83,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 0,
+    "accepted": 0,
+    "rejected": 0,
+    "failed": 0,
+    "kinds": [],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 110,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "player-moved": 110,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "drone-step": 84,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 58,
+  "echoEnabled": false,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261117 human-only completed=true route=1/ACTIVE ticks=110 dmg=0 hp=100 kills=2 scans=0 props=[] acceptToTick=null changed=null clearedTick=58 recovery=true
+{
+  "seed": 20261117,
+  "mode": "human-echo",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 1,
+      "when": "RELAY_ACTIVE",
+      "label": "COMBAT",
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      }
+    },
+    {
+      "target": 2,
+      "when": "RELAY_INACTIVE",
+      "label": "RESOURCE",
+      "portal": {
+        "x": 11.5,
+        "y": 47.5
+      }
+    }
+  ],
+  "routeChosen": 1,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 238,
+  "elapsedSeconds": 3.97,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 1,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 94,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 6
+  },
+  "proposals": {
+    "offered": 2,
+    "accepted": 1,
+    "rejected": 1,
+    "failed": 0,
+    "kinds": [
+      "scan:rejected-by-human",
+      "scan:accepted"
+    ],
+    "lastAcceptToEffectTicks": 1,
+    "lastAcceptToEffectDetail": {
+      "kind": "scan",
+      "relayBefore": "ACTIVE",
+      "relayAfter": "ACTIVE",
+      "echoEnergyBefore": 100,
+      "echoEnergyAfter": 90,
+      "echoScanCdAfter": 119,
+      "evidenceAfter": 1,
+      "changed": true
+    }
+  },
+  "actions": 236,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "echo-spawned": 1,
+    "player-moved": 238,
+    "drone-step": 88,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "echo-moved": 236,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-scanned": 1,
+    "signal-energy": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 60,
+  "echoEnabled": true,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261117 human-echo completed=true route=1/ACTIVE ticks=238 dmg=0 hp=100 kills=2 scans=1 props=["scan:rejected-by-human","scan:accepted"] acceptToTick=1 changed=true clearedTick=60 recovery=true
+{
+  "seed": 20261117,
+  "mode": "human-echo-reject",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 1,
+      "when": "RELAY_ACTIVE",
+      "label": "COMBAT",
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      }
+    },
+    {
+      "target": 2,
+      "when": "RELAY_INACTIVE",
+      "label": "RESOURCE",
+      "portal": {
+        "x": 11.5,
+        "y": 47.5
+      }
+    }
+  ],
+  "routeChosen": 1,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 237,
+  "elapsedSeconds": 3.95,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 1,
+    "accepted": 0,
+    "rejected": 1,
+    "failed": 0,
+    "kinds": [
+      "scan:rejected-by-human"
+    ],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 235,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "echo-spawned": 1,
+    "player-moved": 237,
+    "drone-step": 88,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "echo-moved": 235,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 60,
+  "echoEnabled": true,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261117 human-echo-reject completed=true route=1/ACTIVE ticks=237 dmg=0 hp=100 kills=2 scans=0 props=["scan:rejected-by-human"] acceptToTick=null changed=null clearedTick=60 recovery=true
+{
+  "seed": 20261117,
+  "mode": "human-only",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 1,
+      "when": "RELAY_ACTIVE",
+      "label": "COMBAT",
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      }
+    },
+    {
+      "target": 2,
+      "when": "RELAY_INACTIVE",
+      "label": "RESOURCE",
+      "portal": {
+        "x": 11.5,
+        "y": 47.5
+      }
+    }
+  ],
+  "routeChosen": 2,
+  "routeWhen": "INACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 92,
+  "elapsedSeconds": 1.53,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 0,
+    "accepted": 0,
+    "rejected": 0,
+    "failed": 0,
+    "kinds": [],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 92,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "player-moved": 92,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "drone-step": 84,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 58,
+  "echoEnabled": false,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261117 human-only-routeB completed=true route=2/INACTIVE ticks=92 toggles=1 recovery=true
+{
+  "seed": 20261118,
+  "mode": "human-only",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 2,
+      "when": "RELAY_ACTIVE",
+      "label": "RESOURCE",
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      }
+    },
+    {
+      "target": 5,
+      "when": "RELAY_INACTIVE",
+      "label": "ELITE",
+      "portal": {
+        "x": 12.5,
+        "y": 45.5
+      }
+    }
+  ],
+  "routeChosen": 2,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 114,
+  "elapsedSeconds": 1.9,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 0,
+    "accepted": 0,
+    "rejected": 0,
+    "failed": 0,
+    "kinds": [],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 114,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "player-moved": 114,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "drone-step": 88,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 62,
+  "echoEnabled": false,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261118 human-only completed=true route=2/ACTIVE ticks=114 dmg=0 hp=100 kills=2 scans=0 props=[] acceptToTick=null changed=null clearedTick=62 recovery=true
+{
+  "seed": 20261118,
+  "mode": "human-echo",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 2,
+      "when": "RELAY_ACTIVE",
+      "label": "RESOURCE",
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      }
+    },
+    {
+      "target": 5,
+      "when": "RELAY_INACTIVE",
+      "label": "ELITE",
+      "portal": {
+        "x": 12.5,
+        "y": 45.5
+      }
+    }
+  ],
+  "routeChosen": 2,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 242,
+  "elapsedSeconds": 4.03,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 1,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 94,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 6
+  },
+  "proposals": {
+    "offered": 2,
+    "accepted": 1,
+    "rejected": 1,
+    "failed": 0,
+    "kinds": [
+      "scan:rejected-by-human",
+      "scan:accepted"
+    ],
+    "lastAcceptToEffectTicks": 1,
+    "lastAcceptToEffectDetail": {
+      "kind": "scan",
+      "relayBefore": "ACTIVE",
+      "relayAfter": "ACTIVE",
+      "echoEnergyBefore": 100,
+      "echoEnergyAfter": 90,
+      "echoScanCdAfter": 119,
+      "evidenceAfter": 1,
+      "changed": true
+    }
+  },
+  "actions": 240,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "echo-spawned": 1,
+    "player-moved": 242,
+    "drone-step": 92,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "echo-moved": 240,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-scanned": 1,
+    "signal-energy": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 64,
+  "echoEnabled": true,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261118 human-echo completed=true route=2/ACTIVE ticks=242 dmg=0 hp=100 kills=2 scans=1 props=["scan:rejected-by-human","scan:accepted"] acceptToTick=1 changed=true clearedTick=64 recovery=true
+{
+  "seed": 20261118,
+  "mode": "human-echo-reject",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 2,
+      "when": "RELAY_ACTIVE",
+      "label": "RESOURCE",
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      }
+    },
+    {
+      "target": 5,
+      "when": "RELAY_INACTIVE",
+      "label": "ELITE",
+      "portal": {
+        "x": 12.5,
+        "y": 45.5
+      }
+    }
+  ],
+  "routeChosen": 2,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 241,
+  "elapsedSeconds": 4.02,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 1,
+    "accepted": 0,
+    "rejected": 1,
+    "failed": 0,
+    "kinds": [
+      "scan:rejected-by-human"
+    ],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 239,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "echo-spawned": 1,
+    "player-moved": 241,
+    "drone-step": 92,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "echo-moved": 239,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 64,
+  "echoEnabled": true,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261118 human-echo-reject completed=true route=2/ACTIVE ticks=241 dmg=0 hp=100 kills=2 scans=0 props=["scan:rejected-by-human"] acceptToTick=null changed=null clearedTick=64 recovery=true
+{
+  "seed": 20261118,
+  "mode": "human-only",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 2,
+      "when": "RELAY_ACTIVE",
+      "label": "RESOURCE",
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      }
+    },
+    {
+      "target": 5,
+      "when": "RELAY_INACTIVE",
+      "label": "ELITE",
+      "portal": {
+        "x": 12.5,
+        "y": 45.5
+      }
+    }
+  ],
+  "routeChosen": 5,
+  "routeWhen": "INACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 109,
+  "elapsedSeconds": 1.82,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 0,
+    "accepted": 0,
+    "rejected": 0,
+    "failed": 0,
+    "kinds": [],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 109,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "player-moved": 109,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "drone-step": 88,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 62,
+  "echoEnabled": false,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261118 human-only-routeB completed=true route=5/INACTIVE ticks=109 toggles=1 recovery=true
+{
+  "seed": 20261119,
+  "mode": "human-only",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 5,
+      "when": "RELAY_ACTIVE",
+      "label": "ELITE",
+      "portal": {
+        "x": 12.5,
+        "y": 45.5
+      }
+    },
+    {
+      "target": 3,
+      "when": "RELAY_INACTIVE",
+      "label": "COMBAT",
+      "portal": {
+        "x": 11.5,
+        "y": 47.5
+      }
+    }
+  ],
+  "routeChosen": 5,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 109,
+  "elapsedSeconds": 1.82,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 0,
+    "accepted": 0,
+    "rejected": 0,
+    "failed": 0,
+    "kinds": [],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 109,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "player-moved": 109,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "drone-step": 89,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 62,
+  "echoEnabled": false,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261119 human-only completed=true route=5/ACTIVE ticks=109 dmg=0 hp=100 kills=2 scans=0 props=[] acceptToTick=null changed=null clearedTick=62 recovery=true
+{
+  "seed": 20261119,
+  "mode": "human-echo",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 5,
+      "when": "RELAY_ACTIVE",
+      "label": "ELITE",
+      "portal": {
+        "x": 12.5,
+        "y": 45.5
+      }
+    },
+    {
+      "target": 3,
+      "when": "RELAY_INACTIVE",
+      "label": "COMBAT",
+      "portal": {
+        "x": 11.5,
+        "y": 47.5
+      }
+    }
+  ],
+  "routeChosen": 5,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 237,
+  "elapsedSeconds": 3.95,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 1,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 94,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 6
+  },
+  "proposals": {
+    "offered": 2,
+    "accepted": 1,
+    "rejected": 1,
+    "failed": 0,
+    "kinds": [
+      "scan:rejected-by-human",
+      "scan:accepted"
+    ],
+    "lastAcceptToEffectTicks": 1,
+    "lastAcceptToEffectDetail": {
+      "kind": "scan",
+      "relayBefore": "ACTIVE",
+      "relayAfter": "ACTIVE",
+      "echoEnergyBefore": 100,
+      "echoEnergyAfter": 90,
+      "echoScanCdAfter": 119,
+      "evidenceAfter": 1,
+      "changed": true
+    }
+  },
+  "actions": 235,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "echo-spawned": 1,
+    "player-moved": 237,
+    "drone-step": 93,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "echo-moved": 235,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-scanned": 1,
+    "signal-energy": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 64,
+  "echoEnabled": true,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261119 human-echo completed=true route=5/ACTIVE ticks=237 dmg=0 hp=100 kills=2 scans=1 props=["scan:rejected-by-human","scan:accepted"] acceptToTick=1 changed=true clearedTick=64 recovery=true
+{
+  "seed": 20261119,
+  "mode": "human-echo-reject",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 5,
+      "when": "RELAY_ACTIVE",
+      "label": "ELITE",
+      "portal": {
+        "x": 12.5,
+        "y": 45.5
+      }
+    },
+    {
+      "target": 3,
+      "when": "RELAY_INACTIVE",
+      "label": "COMBAT",
+      "portal": {
+        "x": 11.5,
+        "y": 47.5
+      }
+    }
+  ],
+  "routeChosen": 5,
+  "routeWhen": "ACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 236,
+  "elapsedSeconds": 3.93,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 1,
+    "accepted": 0,
+    "rejected": 1,
+    "failed": 0,
+    "kinds": [
+      "scan:rejected-by-human"
+    ],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 234,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "echo-spawned": 1,
+    "player-moved": 236,
+    "drone-step": 93,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "echo-moved": 234,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 64,
+  "echoEnabled": true,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261119 human-echo-reject completed=true route=5/ACTIVE ticks=236 dmg=0 hp=100 kills=2 scans=0 props=["scan:rejected-by-human"] acceptToTick=null changed=null clearedTick=64 recovery=true
+{
+  "seed": 20261119,
+  "mode": "human-only",
+  "demoId": "p1",
+  "roomId": 0,
+  "startRoomId": 0,
+  "routes": [
+    {
+      "target": 5,
+      "when": "RELAY_ACTIVE",
+      "label": "ELITE",
+      "portal": {
+        "x": 12.5,
+        "y": 45.5
+      }
+    },
+    {
+      "target": 3,
+      "when": "RELAY_INACTIVE",
+      "label": "COMBAT",
+      "portal": {
+        "x": 11.5,
+        "y": 47.5
+      }
+    }
+  ],
+  "routeChosen": 3,
+  "routeWhen": "INACTIVE",
+  "completed": true,
+  "terminalStatus": "running",
+  "ticks": 96,
+  "elapsedSeconds": 1.6,
+  "playerHpStart": 100,
+  "playerHpEnd": 100,
+  "damageTaken": 0,
+  "kills": 2,
+  "shots": 6,
+  "echoShots": 0,
+  "signal": {
+    "scans": 0,
+    "jams": 0,
+    "toggles": 1,
+    "energyStartPlayer": 100,
+    "energyStartEcho": 100,
+    "energyEndPlayer": 100,
+    "energyEndEcho": 100,
+    "energySpentPlayer": 0,
+    "energySpentEcho": 0
+  },
+  "proposals": {
+    "offered": 0,
+    "accepted": 0,
+    "rejected": 0,
+    "failed": 0,
+    "kinds": [],
+    "lastAcceptToEffectTicks": null,
+    "lastAcceptToEffectDetail": null
+  },
+  "actions": 96,
+  "events": {
+    "signal-device-spawned": 1,
+    "signal-linked": 1,
+    "player-moved": 96,
+    "player-fired": 6,
+    "projectile-spawned": 6,
+    "drone-step": 89,
+    "enemy-hit": 4,
+    "enemy-died": 2,
+    "loot-dropped": 2,
+    "xp-gained": 2,
+    "currency-gained": 2,
+    "loot-collected": 2,
+    "projectile-wall": 2,
+    "room-cleared": 1,
+    "signal-relay-changed": 1
+  },
+  "roomClearedAtTick": 62,
+  "echoEnabled": false,
+  "offLineSimulated": false,
+  "notes": [
+    "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+    "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+    "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+  ]
+}
+ROW 20261119 human-only-routeB completed=true route=3/INACTIVE ticks=96 toggles=1 recovery=true
+EXIT=0 (any FAILED row is marked above)

@@ -1,0 +1,1513 @@
+{
+  "metrics": {
+    "seed": 20261118,
+    "mode": "human-echo-reject",
+    "demoId": "p1",
+    "roomId": 0,
+    "startRoomId": 0,
+    "routes": [
+      {
+        "target": 2,
+        "when": "RELAY_ACTIVE",
+        "label": "RESOURCE",
+        "portal": {
+          "x": 11.5,
+          "y": 49.5
+        }
+      },
+      {
+        "target": 5,
+        "when": "RELAY_INACTIVE",
+        "label": "ELITE",
+        "portal": {
+          "x": 12.5,
+          "y": 45.5
+        }
+      }
+    ],
+    "routeChosen": 2,
+    "routeWhen": "ACTIVE",
+    "completed": true,
+    "terminalStatus": "running",
+    "ticks": 241,
+    "elapsedSeconds": 4.02,
+    "playerHpStart": 100,
+    "playerHpEnd": 100,
+    "damageTaken": 0,
+    "kills": 2,
+    "shots": 6,
+    "echoShots": 0,
+    "signal": {
+      "scans": 0,
+      "jams": 0,
+      "toggles": 1,
+      "energyStartPlayer": 100,
+      "energyStartEcho": 100,
+      "energyEndPlayer": 100,
+      "energyEndEcho": 100,
+      "energySpentPlayer": 0,
+      "energySpentEcho": 0
+    },
+    "proposals": {
+      "offered": 1,
+      "accepted": 0,
+      "rejected": 1,
+      "failed": 0,
+      "kinds": [
+        "scan:rejected-by-human"
+      ],
+      "lastAcceptToEffectTicks": null,
+      "lastAcceptToEffectDetail": null
+    },
+    "actions": 239,
+    "events": {
+      "signal-device-spawned": 1,
+      "signal-linked": 1,
+      "echo-spawned": 1,
+      "player-moved": 241,
+      "drone-step": 92,
+      "player-fired": 6,
+      "projectile-spawned": 6,
+      "echo-moved": 239,
+      "enemy-hit": 4,
+      "enemy-died": 2,
+      "loot-dropped": 2,
+      "xp-gained": 2,
+      "currency-gained": 2,
+      "loot-collected": 2,
+      "projectile-wall": 2,
+      "room-cleared": 1,
+      "signal-relay-changed": 1
+    },
+    "roomClearedAtTick": 64,
+    "echoEnabled": true,
+    "offLineSimulated": false,
+    "notes": [
+      "NON-BLIND: the scripted autopilot reads canonical sim positions via the public Headless API; it is not a perception claim and not a human playtest.",
+      "OWNER FIXTURE: proposal confirmation uses confirmLocalEchoProposal(id, true); no human played.",
+      "No clearEnemies/teleport/heal was used; the room is cleared by real fire intents and the map flag is committed by the core."
+    ]
+  },
+  "recovery": {
+    "restoreOk": true,
+    "snapshotRoute": {
+      "id": "p1",
+      "roomId": 0,
+      "startRoomId": 0,
+      "routes": [
+        {
+          "target": 2,
+          "when": "RELAY_ACTIVE",
+          "label": "RESOURCE",
+          "portal": {
+            "x": 11.5,
+            "y": 49.5
+          }
+        },
+        {
+          "target": 5,
+          "when": "RELAY_INACTIVE",
+          "label": "ELITE",
+          "portal": {
+            "x": 12.5,
+            "y": 45.5
+          }
+        }
+      ]
+    },
+    "restoredRoute": {
+      "roomId": 0,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "target": 2,
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "playerAtPortal": true,
+      "completed": true
+    },
+    "fromSimulationStateRoute": {
+      "roomId": 0,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "target": 2,
+      "portal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "playerAtPortal": true,
+      "completed": true
+    },
+    "fromSimulationStateStartRoomId": 0,
+    "freshStartRoomId": 0,
+    "routeIdentityEqual": true
+  },
+  "steps": [
+    {
+      "tick": 2,
+      "action": "echo-enabled",
+      "detail": {
+        "x": 9.5,
+        "y": 45.5
+      }
+    },
+    {
+      "tick": 3,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 4,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 5,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 6,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 7,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 8,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 9,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 10,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 11,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 12,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 13,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 14,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 15,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 16,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 17,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.6055512754639896
+      }
+    },
+    {
+      "tick": 18,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.8555512754639873
+      }
+    },
+    {
+      "tick": 19,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.8555512754639873
+      }
+    },
+    {
+      "tick": 20,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.8321137754639856
+      }
+    },
+    {
+      "tick": 21,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.808676275463984
+      }
+    },
+    {
+      "tick": 22,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.785238775463982
+      }
+    },
+    {
+      "tick": 23,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.7618012754639802
+      }
+    },
+    {
+      "tick": 24,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.7383637754639785
+      }
+    },
+    {
+      "tick": 25,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.7149262754639762
+      }
+    },
+    {
+      "tick": 26,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.691488775463974
+      }
+    },
+    {
+      "tick": 27,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.668051275463972
+      }
+    },
+    {
+      "tick": 28,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 3.64461377546397
+      }
+    },
+    {
+      "tick": 29,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.754181399632873
+      }
+    },
+    {
+      "tick": 30,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.730743899632872
+      }
+    },
+    {
+      "tick": 31,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.707306399632869
+      }
+    },
+    {
+      "tick": 32,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.683868899632868
+      }
+    },
+    {
+      "tick": 33,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.6604313996328655
+      }
+    },
+    {
+      "tick": 34,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.636993899632865
+      }
+    },
+    {
+      "tick": 35,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.613556399632863
+      }
+    },
+    {
+      "tick": 36,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.590118899632861
+      }
+    },
+    {
+      "tick": 37,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.566681399632859
+      }
+    },
+    {
+      "tick": 38,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.5432438996328575
+      }
+    },
+    {
+      "tick": 39,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.519806399632856
+      }
+    },
+    {
+      "tick": 40,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.496368899632854
+      }
+    },
+    {
+      "tick": 41,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.472931399632853
+      }
+    },
+    {
+      "tick": 42,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.449493899632851
+      }
+    },
+    {
+      "tick": 43,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.4260563996328495
+      }
+    },
+    {
+      "tick": 44,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.402618899632849
+      }
+    },
+    {
+      "tick": 45,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.379181399632846
+      }
+    },
+    {
+      "tick": 46,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.355743899632845
+      }
+    },
+    {
+      "tick": 47,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.332306399632843
+      }
+    },
+    {
+      "tick": 48,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.3088688996328415
+      }
+    },
+    {
+      "tick": 49,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.28543139963284
+      }
+    },
+    {
+      "tick": 50,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.261993899632838
+      }
+    },
+    {
+      "tick": 51,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.238556399632836
+      }
+    },
+    {
+      "tick": 52,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.215118899632835
+      }
+    },
+    {
+      "tick": 53,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.191681399632833
+      }
+    },
+    {
+      "tick": 54,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.41824389963283
+      }
+    },
+    {
+      "tick": 55,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.394806399632828
+      }
+    },
+    {
+      "tick": 56,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.371368899632826
+      }
+    },
+    {
+      "tick": 57,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.347931399632825
+      }
+    },
+    {
+      "tick": 58,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.324493899632823
+      }
+    },
+    {
+      "tick": 59,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.301056399632821
+      }
+    },
+    {
+      "tick": 60,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.277618899632819
+      }
+    },
+    {
+      "tick": 61,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.2541813996328175
+      }
+    },
+    {
+      "tick": 62,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.230743899632817
+      }
+    },
+    {
+      "tick": 63,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.207306399632815
+      }
+    },
+    {
+      "tick": 64,
+      "action": "fire-sentry",
+      "detail": {
+        "dist": 4.183868899632813
+      }
+    },
+    {
+      "tick": 64,
+      "action": "echo-proposal-rejected",
+      "detail": {
+        "kind": "scan",
+        "id": "local_64_1"
+      }
+    },
+    {
+      "tick": 65,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 66,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 67,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 68,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 69,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 70,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 71,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 72,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 73,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 74,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 75,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 76,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 77,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 78,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 79,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 80,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 81,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 82,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 83,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 84,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 85,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 86,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 87,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 88,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 89,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 90,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 91,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 92,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 93,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 94,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 95,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 96,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 97,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 98,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 99,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 100,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 101,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 102,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 103,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 104,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 105,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 106,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 107,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 108,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 109,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 110,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 111,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 112,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 113,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 114,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 115,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 116,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 117,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 118,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 119,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 120,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 121,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 122,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 123,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 124,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 125,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 126,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 127,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 128,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 129,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 130,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 131,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 132,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 133,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 134,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 135,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 136,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 137,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 138,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 139,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 140,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 141,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 142,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 143,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 144,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 145,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 146,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 147,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 148,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 149,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 150,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 151,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 152,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 153,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 154,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 155,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 156,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 157,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 158,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 159,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 160,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 161,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 162,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 163,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 164,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 165,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 166,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 167,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 168,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 169,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 170,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 171,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 172,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 173,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 174,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 175,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 176,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 177,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 178,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 179,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 180,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 181,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 182,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 183,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 184,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 185,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 186,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 187,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 188,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 189,
+      "action": "hold-after-reject"
+    },
+    {
+      "tick": 191,
+      "action": "toggle-relay",
+      "detail": {
+        "want": "RELAY_ACTIVE",
+        "relay": "ACTIVE"
+      }
+    },
+    {
+      "tick": 191,
+      "action": "route-chosen",
+      "detail": {
+        "target": 2,
+        "when": "ACTIVE"
+      }
+    },
+    {
+      "tick": 192,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 5,
+        "target": 2
+      }
+    },
+    {
+      "tick": 193,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.87899431271161,
+        "target": 2
+      }
+    },
+    {
+      "tick": 194,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.757496471435679,
+        "target": 2
+      }
+    },
+    {
+      "tick": 195,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.635516260659304,
+        "target": 2
+      }
+    },
+    {
+      "tick": 196,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.513066203663572,
+        "target": 2
+      }
+    },
+    {
+      "tick": 197,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.390162064241829,
+        "target": 2
+      }
+    },
+    {
+      "tick": 198,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.266823444278986,
+        "target": 2
+      }
+    },
+    {
+      "tick": 199,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.143074496941344,
+        "target": 2
+      }
+    },
+    {
+      "tick": 200,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 4.018944779495179,
+        "target": 2
+      }
+    },
+    {
+      "tick": 201,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.8944702749362325,
+        "target": 2
+      }
+    },
+    {
+      "tick": 202,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.7696946178097996,
+        "target": 2
+      }
+    },
+    {
+      "tick": 203,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.6446705669496806,
+        "target": 2
+      }
+    },
+    {
+      "tick": 204,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.5194617764191696,
+        "target": 2
+      }
+    },
+    {
+      "tick": 205,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.3941449256144107,
+        "target": 2
+      }
+    },
+    {
+      "tick": 206,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.268812279933883,
+        "target": 2
+      }
+    },
+    {
+      "tick": 207,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.143574763771085,
+        "target": 2
+      }
+    },
+    {
+      "tick": 208,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 3.018565636114684,
+        "target": 2
+      }
+    },
+    {
+      "tick": 209,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.8939448625072415,
+        "target": 2
+      }
+    },
+    {
+      "tick": 210,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.769904269813134,
+        "target": 2
+      }
+    },
+    {
+      "tick": 211,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.6466735425108703,
+        "target": 2
+      }
+    },
+    {
+      "tick": 212,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.524527055296679,
+        "target": 2
+      }
+    },
+    {
+      "tick": 213,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.4037914120311443,
+        "target": 2
+      }
+    },
+    {
+      "tick": 214,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.28485333900659,
+        "target": 2
+      }
+    },
+    {
+      "tick": 215,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.1681672113331683,
+        "target": 2
+      }
+    },
+    {
+      "tick": 216,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 2.0542609158390173,
+        "target": 2
+      }
+    },
+    {
+      "tick": 217,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.9437379222353168,
+        "target": 2
+      }
+    },
+    {
+      "tick": 218,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.8372723530247075,
+        "target": 2
+      }
+    },
+    {
+      "tick": 219,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.7355926704421758,
+        "target": 2
+      }
+    },
+    {
+      "tick": 220,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.6394487953008046,
+        "target": 2
+      }
+    },
+    {
+      "tick": 221,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.549557946436397,
+        "target": 2
+      }
+    },
+    {
+      "tick": 222,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.466527552979365,
+        "target": 2
+      }
+    },
+    {
+      "tick": 223,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.3907603692604547,
+        "target": 2
+      }
+    },
+    {
+      "tick": 224,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.322356948011433,
+        "target": 2
+      }
+    },
+    {
+      "tick": 225,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.2610402054296557,
+        "target": 2
+      }
+    },
+    {
+      "tick": 226,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.206129180536978,
+        "target": 2
+      }
+    },
+    {
+      "tick": 227,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.156578563010167,
+        "target": 2
+      }
+    },
+    {
+      "tick": 228,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.1110789363799574,
+        "target": 2
+      }
+    },
+    {
+      "tick": 229,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.0681909702098715,
+        "target": 2
+      }
+    },
+    {
+      "tick": 230,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 1.0264776214019593,
+        "target": 2
+      }
+    },
+    {
+      "tick": 231,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.9846055385708714,
+        "target": 2
+      }
+    },
+    {
+      "tick": 232,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.9414031965749474,
+        "target": 2
+      }
+    },
+    {
+      "tick": 233,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.895878425732015,
+        "target": 2
+      }
+    },
+    {
+      "tick": 234,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.847206073640843,
+        "target": 2
+      }
+    },
+    {
+      "tick": 235,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.7946976412223739,
+        "target": 2
+      }
+    },
+    {
+      "tick": 236,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.7377618517478088,
+        "target": 2
+      }
+    },
+    {
+      "tick": 237,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.6758610628769988,
+        "target": 2
+      }
+    },
+    {
+      "tick": 238,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.6084647761792902,
+        "target": 2
+      }
+    },
+    {
+      "tick": 239,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.5349990419994552,
+        "target": 2
+      }
+    },
+    {
+      "tick": 240,
+      "action": "walk-to-portal",
+      "detail": {
+        "dist": 0.4547916661545652,
+        "target": 2
+      }
+    },
+    {
+      "tick": 241,
+      "action": "interact-at-portal",
+      "detail": {
+        "target": 2
+      }
+    }
+  ]
+}

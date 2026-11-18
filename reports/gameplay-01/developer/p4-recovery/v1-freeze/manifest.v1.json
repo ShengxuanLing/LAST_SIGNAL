@@ -1,0 +1,89 @@
+{
+  "task": "GAMEPLAY-01 P4 (recovery developer) — formal DEMO-01 cooperative level",
+  "date": "2026-11-18",
+  "worker": "Orca worker q331nefqzzh4gzn0hdbmnxwh (replacement developer)",
+  "cwd": "D:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey",
+  "git": {
+    "branch": "cindy/serene-leakey",
+    "head": "3819621c5faab56b114b6e5a560f8fe78c17709d",
+    "headSubject": "test(gameplay): verify cooperation feedback and scaled HUD readability",
+    "createdFrom": "3819621 (same as main repo feat/gameplay-01-ai-cooperation HEAD)",
+    "mainRepoHead": "3819621c5faab56b114b6e5a560f8fe78c17709d",
+    "commitsMadeByThisWorker": 0,
+    "mainRepoDirtySrcFilesUntouched": true
+  },
+  "provenance": {
+    "note": "The four P4 candidate files were copied from the main worktree as an explicit input patch. Their provenance was NOT verified (a patch proves bytes, not authorship). Hashes below are sha256 of the bytes actually used.",
+    "inputsVerified": [
+      { "file": "src/world/World.ts", "sha256": "84eac073b43accff3cab7c2d443c3f5001f709a21b14bb759a9d8c01ceb05f85", "matchesHandoff": true },
+      { "file": "src/ai-native/worldHeadless.ts", "sha256": "2ad184433290ad4ac06a4ee3b1f0f54a487b483f76fcb0ecc4396ceac3fd13c2", "matchesHandoff": true },
+      { "file": "src/config/p1Scenario.ts", "sha256": "d6dd9a48e7a929ec46f86e1000ae14b5d79d730f488eb0cae5004b75ca517635", "matchesHandoff": true },
+      { "file": "src/signal/relay.ts", "sha256": "6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89", "matchesHandoff": true }
+    ],
+    "preCopyHashLog": "incoming/before-hash.log.txt",
+    "postCopyHashLog": "incoming/after-copy-hash.log.txt"
+  },
+  "deliveredSourceWhitelist": [
+    { "file": "src/world/sim/core.ts", "role": "ONE authoritative authored-room clear commit + authored identity in canonical state", "status": "modified", "sha256": "f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6" },
+    { "file": "src/config/p1Scenario.ts", "role": "shared authored builder: explicit null failures, startRoomId captured before kind mutation, cell-centre portals", "status": "modified", "sha256": "799f0dddf750f51dabd72478b7524bd478e825f3afc513a0455ece57ae97da82" },
+    { "file": "src/ai-native/worldHeadless.ts", "role": "demo/route identity read from core state, routeState reads map.rooms[id].cleared, startRoomId recovery", "status": "modified", "sha256": "0df873b40bdcbace8daf1463d8fb26163b99bd9fc052c50082ebbae80f756fa9" },
+    { "file": "src/world/World.ts", "role": "presenter reacts to the core clear, portal centre unified (visual == interaction), restore re-derives the authored portal", "status": "modified", "sha256": "3ff4f7e3ad7310d85796055846a45435ecb52ff671a3073ae9cd69d9cc19548f" },
+    { "file": "src/signal/relay.ts", "role": "pure routeTargetFor (candidate byte kept as-is, no further change)", "status": "unchanged-from-candidate", "sha256": "6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89" },
+    { "file": "src/signal/relayRoutes.test.ts", "role": "P4 rule tests added; the 5 pre-existing P1 route tests are preserved verbatim", "status": "extended", "sha256": "097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423" },
+    { "file": "src/ai-native/worldHeadlessDemoRoute.test.ts", "role": "NEW: Headless demo clear/route/JAM/restore/replay rules + World-Headless same-scenario cells", "status": "new", "sha256": "11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4" }
+  ],
+  "patch": {
+    "file": "patch/p4-src-fix.patch",
+    "sha256": "fb5374dafc789aa2de9251947b5b38d245bd03a16a3f249fef6e881677d2af1d",
+    "appliesTo": "3819621 (src/ tracked modifications only)",
+    "newFileCopy": "patch/new-files/src/ai-native/worldHeadlessDemoRoute.test.ts"
+  },
+  "filesIntentionallyNotTouched": [
+    "tests/** (tester-owned)",
+    "src/scenes/** (P3 frozen: HUD/menu/echo feedback)",
+    "src/world/sim/signal* / owner protocol / epoch / P2 queue-restore",
+    "src/signal/signalTuning.ts (no threshold or timeout changes)",
+    "main repo working tree (4 dirty src files kept read-only)"
+  ],
+  "gates": [
+    { "gate": "npx tsc --noEmit", "result": "PASS", "log": "gates/typecheck.log.txt" },
+    { "gate": "npx vitest run src/signal/relayRoutes.test.ts src/ai-native/worldHeadlessDemoRoute.test.ts", "result": "PASS", "detail": "26 tests (16 relayRoutes incl. 5 preserved P1 tests, 10 headless demo route)", "log": "gates/new-src-tests.log.txt" },
+    { "gate": "npx vitest run src/", "result": "PASS (70/70 files, 818 tests)", "detail": "First run had 2 ownerAuth.test.ts failures ('fetch failed / bad port') under parallel load; that file passes alone and in the re-run — environmental, files untouched by this patch", "log": "gates/src-unit-suite-rerun.log.txt", "earlierRun": "gates/src-unit-suite.log.txt", "isolation": "gates/ownerAuth-isolation.log.txt" },
+    { "gate": "npm run build", "result": "PASS", "log": "gates/build.log.txt" },
+    { "gate": "npm run test:mcp-surface", "result": "PASS", "log": "gates/mcp-surface.log.txt" },
+    { "gate": "PORT=5471 npx playwright test --config reports/.../rendered/pw.p4.config.ts", "result": "PASS (2/2 rendered evidence tests)", "log": "gates/rendered-p4-evidence.log.txt" },
+    { "gate": "PORT=5471 npx playwright test tests/gameplay-01.spec.ts -g '1) real menu entry'", "result": "PASS (existing P1 rendered test 1, unmodified file)", "log": "gates/rendered-smoke-p1-test1.log.txt" },
+    { "gate": "PORT=5471 npx playwright test tests/checkpoint.spec.ts tests/echo-portal-migration.spec.ts tests/economy.spec.ts", "result": "PASS (9/9 portal/checkpoint/economy specs)", "log": "gates/rendered-smoke-portal-specs.log.txt" },
+    { "gate": "demoRun.mts matrix: 3 seeds x (human-only, human-echo, human-echo-reject, human-only-routeB)", "result": "PASS (12/12 legal completions)", "log": "gates/demo-matrix.log.txt", "runs": "runs/" }
+  ],
+  "renderedEvidence": {
+    "spec": "rendered/p4-demo.p4.spec.ts",
+    "config": "rendered/pw.p4.config.ts",
+    "data": "rendered/evidence/p4-rendered-evidence.json",
+    "screenshots": [
+      "rendered/shots/p4-1-early-playable.png",
+      "rendered/shots/p4-2-cleared-authored-portal.png",
+      "rendered/shots/p4-3-at-authored-door.png",
+      "rendered/shots/p4-4-jam-closes-route.png",
+      "rendered/shots/p4-5-jam-expired-route-restored.png",
+      "rendered/shots/p4-6-entered-route-a.png",
+      "rendered/shots/p4-7-restored-authored-portal.png"
+    ],
+    "labels": {
+      "input": "agent (real menu click / WASD / mouse fire / F / Y)",
+      "steering": "NON-BLIND — the loop reads canonical coordinates to choose keys",
+      "ownerConfirm": "not used in the rendered runs",
+      "human": "none — HUMAN ACCEPTANCE PENDING"
+    }
+  },
+  "headlessEvidence": {
+    "driver": "driver/demoRun.mts",
+    "declaration": "NON-BLIND scripted driver; real intents + core signal commands; no clearEnemies/teleport/heal; Owner confirm is a FIXTURE (ownerHuman=true claimed by the driver).",
+    "metrics": "runs/*.json (metrics + recovery + per-action steps)"
+  },
+  "freeze": {
+    "state": "FROZEN for independent Reviewer/Tester",
+    "humanAcceptance": "PENDING (nobody played this build by hand)",
+    "modelCalls": 0
+  }
+}

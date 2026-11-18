@@ -1,0 +1,10 @@
+cmd: PORT=5471 npx playwright test tests/signal-rendered-parity.spec.ts  (produces the parity product INSIDE my own worktree reports/, tester file unmodified)
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+at: 2026-11-18T13:58:35+01:00
+
+Running 1 test using 1 worker
+
+  ok 1 [chromium] › tests\signal-rendered-parity.spec.ts:36:1 › Rendered signal export for Headless parity (scan/jam/toggle/echo/real damage) (5.0s)
+
+  1 passed (6.2s)
+EXIT=0

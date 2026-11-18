@@ -1,0 +1,33 @@
+cmd: npm run test:mcp-surface
+
+> last-signal@0.1.0 test:mcp-surface
+> npm run game:mcp:build && vitest run -c vitest.integration.config.ts src/ai-native/companionSurface.test.ts
+
+
+> last-signal@0.1.0 game:mcp:build
+> vite build --config vite.mcp.config.ts
+
+[36mvite v5.4.21 [32mbuilding SSR bundle for production...[36m[39m
+transforming...
+[32m✓[39m 52 modules transformed.
+rendering chunks...
+[2mdist-mcp/[22m[36mworldMcpServer.mjs                         [39m[1m[2m  0.43 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mworldHeadlessMcpServer.mjs                 [39m[1m[2m  0.64 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mcompanionMcpServer.mjs                     [39m[1m[2m  7.26 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mchunks/signalCore-3ncVDZ2K.mjs             [39m[1m[2m 15.00 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mchunks/worldMcpTools-BJWDjc5a.mjs          [39m[1m[2m 15.70 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mchunks/worldProtocol-DLNqSHBF.mjs          [39m[1m[2m 53.79 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mchunks/worldHeadlessMcpTools-B0jC_nOR.mjs  [39m[1m[2m222.64 kB[22m[1m[22m
+[2mdist-mcp/[22m[36mmcpServer.mjs                              [39m[1m[2m252.24 kB[22m[1m[22m
+[32m✓ built in 1.07s[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey[39m
+
+ [32m✓[39m src/ai-native/companionSurface.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 8[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 13:24:08
+[2m   Duration [22m 644ms[2m (transform 47ms, setup 0ms, collect 66ms, tests 8ms, environment 0ms, prepare 228ms)[22m
+
+EXIT=0

@@ -1,0 +1,14 @@
+PASS src/world/sim/core.ts
+PASS src/config/p1Scenario.ts
+PASS src/ai-native/worldHeadless.ts
+PASS src/world/World.ts
+PASS src/signal/relay.ts
+PASS src/signal/relayRoutes.test.ts
+PASS src/ai-native/worldHeadlessDemoRoute.test.ts
+PASS src/config/p1ScenarioLayout.test.ts
+PASS src/ai-native/worldHeadlessFrameAuthored.test.ts
+PASS src/ai-native/worldHeadlessRestoreSafety.test.ts
+PASS docs/gameplay/COOP_LEVEL_DESIGN.P4-UPDATE.md
+PASS docs/gameplay/P5_VARIANTS_PLAN.md
+PASS docs/gameplay/P4_TEST_AND_FINAL_LIMITS.md
+PASS docs/gameplay/P4_RESTORE_CONTRACT.V3.md

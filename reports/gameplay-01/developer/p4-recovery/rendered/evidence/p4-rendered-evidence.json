@@ -1,0 +1,333 @@
+[
+  {
+    "item": "rendered-early",
+    "at": "2026-11-18T12:52:23.774Z",
+    "seed": 20261117,
+    "tick": 34,
+    "shot": "D:\\Project\\LAST_SIGNAL\\.cindy-worktrees\\serene-leakey\\reports\\gameplay-01\\developer\\p4-recovery\\rendered\\shots\\p4-1-early-playable.png",
+    "relay": {
+      "state": "ACTIVE",
+      "manual": true,
+      "powered": true,
+      "energy": 100
+    },
+    "linkedFire": true,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "scenario": {
+      "roomId": 0,
+      "startRoomId": 0,
+      "relay": {
+        "x": 11.5,
+        "y": 48.5
+      },
+      "playerStart": {
+        "x": 8.5,
+        "y": 45.5
+      },
+      "drones": [
+        {
+          "x": 10.5,
+          "y": 42.5
+        },
+        {
+          "x": 4.5,
+          "y": 44.5
+        }
+      ],
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT",
+          "portal": {
+            "x": 11.5,
+            "y": 49.5
+          }
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE",
+          "portal": {
+            "x": 11.5,
+            "y": 47.5
+          }
+        }
+      ]
+    },
+    "portal": null,
+    "player": {
+      "x": 8.5,
+      "y": 45.5,
+      "hp": 100
+    },
+    "room": {
+      "id": 0,
+      "kind": "combat",
+      "cleared": false,
+      "spawned": true
+    }
+  },
+  {
+    "item": "rendered-fight",
+    "at": "2026-11-18T12:52:24.994Z",
+    "seed": 20261117,
+    "shots": 2,
+    "approaches": 0,
+    "cleared": true,
+    "hp": 100,
+    "diag": [
+      {
+        "t": 28,
+        "hp": 100,
+        "enemies": 2,
+        "ammo": -1,
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "enemy": {
+          "x": 10.5,
+          "y": 42.5,
+          "hp": 24,
+          "d": 3.6055512754639896
+        }
+      },
+      {
+        "t": 568,
+        "hp": 100,
+        "enemies": 1,
+        "ammo": -1,
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "enemy": {
+          "x": 4.5,
+          "y": 44.5,
+          "hp": 24,
+          "d": 4.123105625617661
+        }
+      },
+      {
+        "t": 1218,
+        "hp": 94,
+        "enemies": 0,
+        "ammo": -1,
+        "player": {
+          "x": 8.29198742641555,
+          "y": 45.812018860376696
+        },
+        "enemy": null
+      }
+    ]
+  },
+  {
+    "item": "rendered-clear",
+    "at": "2026-11-18T12:52:26.200Z",
+    "seed": 20261117,
+    "tick": 150,
+    "shots": 2,
+    "approaches": 0,
+    "hpStart": 100,
+    "hpEnd": 88,
+    "portal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    },
+    "routeTarget": 1,
+    "room": {
+      "id": 0,
+      "kind": "combat",
+      "cleared": true,
+      "spawned": true
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\.cindy-worktrees\\serene-leakey\\reports\\gameplay-01\\developer\\p4-recovery\\rendered\\shots\\p4-2-cleared-authored-portal.png"
+  },
+  {
+    "item": "rendered-at-door",
+    "at": "2026-11-18T12:52:26.724Z",
+    "seed": 20261117,
+    "walkBefore": {
+      "arrived": true,
+      "reason": "at-portal",
+      "distance": 0.8434717564101154
+    },
+    "distanceRelayDoor": 1,
+    "portal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    }
+  },
+  {
+    "item": "rendered-jammed-at-door",
+    "at": "2026-11-18T12:52:27.754Z",
+    "seed": 20261117,
+    "relay": {
+      "state": "JAMMED",
+      "manual": true,
+      "powered": true,
+      "energy": 77
+    },
+    "portal": null,
+    "routeTarget": null,
+    "roomCleared": true,
+    "energyBeforeJam": 100,
+    "energyAfterJam": 77,
+    "jamCost": 23,
+    "jamCostExpected": 25
+  },
+  {
+    "item": "rendered-jam-expired",
+    "at": "2026-11-18T12:52:36.274Z",
+    "seed": 20261117,
+    "relay": {
+      "state": "ACTIVE",
+      "manual": true,
+      "powered": true,
+      "energy": 100
+    },
+    "portal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    },
+    "routeTarget": 1
+  },
+  {
+    "item": "rendered-route-entry",
+    "at": "2026-11-18T12:52:38.897Z",
+    "seed": 20261117,
+    "arrived": {
+      "arrived": true,
+      "reason": "at-portal",
+      "distance": 0.8434717564101154
+    },
+    "fromRoom": 0,
+    "toRoom": 1,
+    "routeTarget": 1,
+    "status": [
+      "GameScene"
+    ]
+  },
+  {
+    "item": "rendered-fight-b",
+    "at": "2026-11-18T12:52:51.759Z",
+    "seed": 20261117,
+    "shots": 3,
+    "approaches": 0,
+    "cleared": true,
+    "hp": 100,
+    "diag": [
+      {
+        "t": 38,
+        "hp": 100,
+        "enemies": 2,
+        "ammo": -1,
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "enemy": {
+          "x": 10.5,
+          "y": 42.5,
+          "hp": 24,
+          "d": 3.6055512754639896
+        }
+      },
+      {
+        "t": 789,
+        "hp": 100,
+        "enemies": 2,
+        "ammo": -1,
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "enemy": {
+          "x": 10.5,
+          "y": 42.5,
+          "hp": 24,
+          "d": 3.6055512754639896
+        }
+      },
+      {
+        "t": 1525,
+        "hp": 100,
+        "enemies": 1,
+        "ammo": -1,
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "enemy": {
+          "x": 4.5,
+          "y": 44.5,
+          "hp": 24,
+          "d": 4.123105625617661
+        }
+      },
+      {
+        "t": 2219,
+        "hp": 100,
+        "enemies": 0,
+        "ammo": -1,
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "enemy": null
+      }
+    ]
+  },
+  {
+    "item": "rendered-restore",
+    "at": "2026-11-18T12:52:58.338Z",
+    "seed": 20261117,
+    "savedPortal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    },
+    "restoredPortal": {
+      "x": 11.5,
+      "y": 49.5,
+      "target": 1
+    },
+    "restoredRouteTarget": 1,
+    "restoredAuthored": {
+      "id": "p1",
+      "roomId": 0,
+      "startRoomId": 0,
+      "routes": [
+        {
+          "target": 1,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT",
+          "portal": {
+            "x": 11.5,
+            "y": 49.5
+          }
+        },
+        {
+          "target": 2,
+          "when": "RELAY_INACTIVE",
+          "label": "RESOURCE",
+          "portal": {
+            "x": 11.5,
+            "y": 47.5
+          }
+        }
+      ]
+    },
+    "restoredRoom": {
+      "id": 0,
+      "kind": "combat",
+      "cleared": true,
+      "spawned": true
+    },
+    "restoredScenarioStartRoomId": 0
+  }
+]

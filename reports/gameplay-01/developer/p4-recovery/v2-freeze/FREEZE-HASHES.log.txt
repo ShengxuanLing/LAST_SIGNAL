@@ -1,0 +1,16 @@
+# P4 v2 freeze bytes archived BEFORE R1/R2 edits
+at: 2026-11-18T14:15:00+01:00
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+f71523e1ccd04828381ddfa0224db68ccaa890d41a98b3dd100c050e4bc36bf6  src/world/sim/core.ts
+76367087a719b8a7395b3a3dd10c9952552db33b66a1ca5f5a0dd045a0d4c2b7  src/config/p1Scenario.ts
+56253ef7762826a2e83568d9e22aab2f5d3d7a6a28617307fc670596ba8b5da4  src/ai-native/worldHeadless.ts
+3ff4f7e3ad7310d85796055846a45435ecb52ff671a3073ae9cd69d9cc19548f  src/world/World.ts
+6fc7ba4028812b655e63fb92b90d7f193ea155e62ae683e7875540028c770a89  src/signal/relay.ts
+097bfc6f64346c07f38860348e62194e9f7948976925a4db92a0fb15209b3423  src/signal/relayRoutes.test.ts
+11c812f737e31183d8a0a24e5962a0f93dbd7782b41911756c1066f1205a1ef4  src/ai-native/worldHeadlessDemoRoute.test.ts
+8b12cbf22b786f9d198d2d61d7eab97e711ad11cbf002b45b58aaed8b2556ce6  src/config/p1ScenarioLayout.test.ts
+93447a608519432dfb87bc9178e2b2466508bb7961c8afc1f6c90ed1eba75e21  src/ai-native/worldHeadlessFrameAuthored.test.ts
+7c9a19bf3557426d166fdd366bd7f8e15aa044b151fe0b056a70fe3e8c3ea7ff  docs/gameplay/COOP_LEVEL_DESIGN.P4-UPDATE.md
+80094d2d4ad3c95ca38c0af0a74d92f711456e9ddd56cf8c3bb3b21f9c1c8019  docs/gameplay/P5_VARIANTS_PLAN.md
+b3ec418c16dd171709e019a0689911774a40b2c3321b7bdbc6cdf048b0a3bb22  docs/gameplay/P4_TEST_AND_FINAL_LIMITS.md

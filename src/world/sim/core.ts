@@ -157,11 +157,35 @@ export interface SimProjectile {
   hitIds: number[];
 }
 
+/** GAMEPLAY-01 P4 authored-scene identity. DATA only (no rule engine): it is
+ *  kept INSIDE the core state so snapshot / restore / replay / raw-sim restore
+ *  cannot silently lose the demo + route identity. Presenters derive the route
+ *  target from the committed relay state and this table via
+ *  `routeTargetFor`; the core only owns the room-clear commit. */
+export interface SimAuthoredRoute {
+  target: number;
+  when: 'RELAY_ACTIVE' | 'RELAY_INACTIVE';
+  label: string;
+  /** Portal cell centre in world tiles (already +0.5 of the grid cell). */
+  portal?: Vec2;
+}
+
+export interface SimAuthoredScene {
+  id: 'p1';
+  roomId: number;
+  /** Captured BEFORE the authored room's kind mutation ('start' -> 'combat'),
+   *  so a restored demo world reports the same start room as a fresh one. */
+  startRoomId: number;
+  routes: SimAuthoredRoute[];
+}
+
 export interface SimulationState {
   seed: number;
   tick: number;
   rngState: number;
   map: MapData;
+  /** Authored demo/route identity; absent for every ordinary run. */
+  authored?: SimAuthoredScene;
   mapMinX: number;
   mapMinY: number;
   player: SimPlayerState;
@@ -224,7 +248,11 @@ export type SimEvent =
   | { type: 'signal-jammed'; actorId: number; energy: number; cooldownTicks: number; relay: string; jamExpiresAtTick: number; ok?: boolean; code?: string }
   | { type: 'signal-relay-changed'; relay: string; manualEnabled: boolean; powered: boolean }
   | { type: 'signal-evidence-expired'; deviceId: string }
-  | { type: 'signal-energy'; actorId: number; energy: number; scanCooldownTicks: number; jamCooldownTicks: number };
+  | { type: 'signal-energy'; actorId: number; energy: number; scanCooldownTicks: number; jamCooldownTicks: number }
+  /** GAMEPLAY-01 P4: the ONE authoritative clear commit of an authored room.
+   *  Emitted only for `state.authored` scenes, so legacy event streams are
+   *  byte-identical. */
+  | { type: 'room-cleared'; roomId: number };
 
 export interface CreateSimulationInput {
   seed: number;
@@ -1355,10 +1383,37 @@ export function stepSimulationTicks(
     stepDrones(state, dt, events);
     stepProjectiles(state, dt, rng, events);
     stepLoot(state, dt, events);
+    commitAuthoredRoomClear(state, events);
     state.tick++;
   }
   state.rngState = rng.snapshot();
   return events;
+}
+
+/**
+ * GAMEPLAY-01 P4 / M1 — the ONE authoritative room-clear commit for an authored
+ * scene. Before P4 the rendered World owned this write while the Headless
+ * recomputed "cleared" from live drones, so the same tick reported two
+ * different states (5 seeds diverged). The core now commits the map flag the
+ * rendered gate, `descend` and `GameScene` all read, exactly once per room:
+ *   - the room must have committed its own generation (`spawned`);
+ *   - a still-queued `room-enter` for the room means its generation is pending;
+ *   - no live drone spawned in the room and no live target inside its bounds.
+ * Ordinary (non-authored) runs never enter this path: their clear stays with
+ * the existing World/legacy code and their event streams are unchanged.
+ */
+function commitAuthoredRoomClear(state: SimulationState, events: SimEvent[]): void {
+  const authored = state.authored;
+  if (!authored) return;
+  const room = state.map.rooms[authored.roomId];
+  if (!room || !room.spawned || room.cleared) return;
+  if (state.pendingCommands.some((c) => c.type === 'room-enter' && c.roomId === room.id)) return;
+  if (state.drones.some((d) => d.hp > 0 && d.data.spawnRoom === room.id)) return;
+  const inside = (x: number, y: number): boolean =>
+    x >= room.gx && x < room.gx + room.w && y >= room.gy && y < room.gy + room.h;
+  if (state.targets.some((t) => t.hp > 0 && inside(t.x, t.y))) return;
+  room.cleared = true;
+  events.push({ type: 'room-cleared', roomId: room.id });
 }
 
 /** Deep serializable copy (no live object references). */
@@ -1383,6 +1438,7 @@ export interface CanonicalSimulationState {
   };
   echo?: SimEchoState;
   signal?: SimSignalDevice;
+  authored?: SimAuthoredScene;
   drones: SimDroneState[];
   targets: SimTarget[];
   projectiles: SimProjectile[];
@@ -1415,6 +1471,7 @@ export function canonicalSimulationState(state: SimulationState): string {
     },
     ...(state.echo ? { echo: state.echo } : {}),
     ...(state.signal ? { signal: state.signal } : {}),
+    ...(state.authored ? { authored: state.authored } : {}),
     drones: state.drones,
     targets: state.targets,
     projectiles: state.projectiles,

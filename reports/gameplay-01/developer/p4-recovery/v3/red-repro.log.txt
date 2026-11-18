@@ -1,0 +1,146 @@
+cmd: npx vitest run src/ai-native/worldHeadlessRestoreSafety.test.ts
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+at: 2026-11-18T14:17:19+01:00
+phase: RED (v2 bytes, before R1/R2 fix)
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey[39m
+
+ [31m❯[39m src/ai-native/worldHeadlessRestoreSafety.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[33m 4628[2mms[22m[39m
+[31m   [31m×[31m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mscan: guard is rebuilt, no second command can be confirmed, receipt clears it[33m 753[2mms[22m[31m[39m
+[31m     → R1: a queued unknown-provenance signal must mark busy: expected null not to be null[39m
+[31m   [31m×[31m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mtoggle: guard is rebuilt, no second command can be confirmed, receipt clears it[33m 615[2mms[22m[31m[39m
+[31m     → R1: a queued unknown-provenance signal must mark busy: expected null not to be null[39m
+[31m   [31m×[31m R1 — frame restore() preserves the conservative single-pending guard[2m > [22mdoes not delete other actors' queued commands (mixed player + echo scan)[33m 644[2mms[22m[31m[39m
+[31m     → expected undefined to be true // Object.is equality[39m
+[31m   [31m×[31m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mscan: echoPendingLocal is readable, proposal is blocked, runSteps commits once[90m 249[2mms[22m[31m[39m
+[31m     → expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown[39m
+[31m   [31m×[31m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mtoggle: echoPendingLocal is readable, proposal is blocked, runSteps commits once[90m 228[2mms[22m[31m[39m
+[31m     → expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown[39m
+[31m   [31m×[31m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mfromSimulationState keeps the SAME contract as restore/fromFrame[33m 975[2mms[22m[31m[39m
+[31m     → expected { Object (proposalId, kind, ...) } to deeply equal null[39m
+[31m   [31m×[31m R2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mreplay (which uses fromFrame internally) does not crash on a guarded frame[33m 519[2mms[22m[31m[39m
+[31m     → Cannot read properties of undefined (reading 'autonomyEnabled')[39m
+[31m   [31m×[31m R1/R2 — old frames and echo-less worlds stay compatible[2m > [22ma frame with no echo / no queued signal has a null guard everywhere[33m 642[2mms[22m[31m[39m
+[31m     → expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 8 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/worldHeadlessRestoreSafety.test.ts[2m > [22mR1 — frame restore() preserves the conservative single-pending guard[2m > [22mscan: guard is rebuilt, no second command can be confirmed, receipt clears it
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/worldHeadlessRestoreSafety.test.ts[2m > [22mR1 — frame restore() preserves the conservative single-pending guard[2m > [22mtoggle: guard is rebuilt, no second command can be confirmed, receipt clears it
+[31m[1mAssertionError[22m: R1: a queued unknown-provenance signal must mark busy: expected null not to be null[39m
+[36m [2m❯[22m src/ai-native/worldHeadlessRestoreSafety.test.ts:[2m65:82[22m[39m
+    [90m 63| [39m      [34mexpect[39m(restored[33m.[39mstate[33m.[39mpendingCommands[33m.[39m[34mmap[39m((c) [33m=>[39m c[33m.[39mtype))[33m.[39m[34mtoEqua[39m…
+    [90m 64| [39m      [35mconst[39m guard [33m=[39m restored[33m.[39mechoPendingLocal[33m;[39m
+    [90m 65| [39m      [34mexpect[39m(guard[33m,[39m [32m'R1: a queued unknown-provenance signal must mark [39m…
+    [90m   | [39m                                                                                 [31m^[39m
+    [90m 66| [39m      [34mexpect[39m(guard[33m![39m[33m.[39mrestored)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m 67| [39m      [34mexpect[39m(guard[33m![39m[33m.[39mproposalId)[33m.[39m[34mtoBeNull[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/worldHeadlessRestoreSafety.test.ts[2m > [22mR1 — frame restore() preserves the conservative single-pending guard[2m > [22mdoes not delete other actors' queued commands (mixed player + echo scan)
+[31m[1mAssertionError[22m: expected undefined to be true // Object.is equality[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m src/ai-native/worldHeadlessRestoreSafety.test.ts:[2m111:49[22m[39m
+    [90m109| [39m    [34mexpect[39m(restored[33m.[39m[34mrestore[39m(frame)[33m.[39mok)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m110| [39m    [34mexpect[39m(restored[33m.[39mstate[33m.[39mpendingCommands[33m.[39m[34mmap[39m((c) [33m=>[39m [32m`[39m[36m${[39mc[33m.[39mtype[36m}[39m[32m:[39m[36m${[39m(c [35ma[39m…
+    [90m111| [39m    [34mexpect[39m(restored[33m.[39mechoPendingLocal[33m?.[39mrestored)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                                [31m^[39m
+    [90m112| [39m    [34mexpect[39m(restored[33m.[39m[34mproposeLocalEcho[39m())[33m.[39m[34mtoBeNull[39m()[33m;[39m
+    [90m113| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/worldHeadlessRestoreSafety.test.ts[2m > [22mR2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mscan: echoPendingLocal is readable, proposal is blocked, runSteps commits once
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/worldHeadlessRestoreSafety.test.ts[2m > [22mR2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mtoggle: echoPendingLocal is readable, proposal is blocked, runSteps commits once
+[31m[1mAssertionError[22m: expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown[39m
+
+[32m- Expected:[39m 
+undefined
+
+[31m+ Received:[39m 
+"TypeError: Cannot read properties of undefined (reading 'restoredPendingKind')"
+
+[36m [2m❯[22m src/ai-native/worldHeadlessRestoreSafety.test.ts:[2m126:52[22m[39m
+    [90m124| [39m      [34mexpect[39m([34misHeadlessFrame[39m(frame))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m125| [39m      [35mconst[39m fromFrame [33m=[39m [33mHeadlessWorld[39m[33m.[39m[34mfromFrame[39m(frame[33m,[39m [35mfalse[39m)[33m;[39m
+    [90m126| [39m      [34mexpect[39m(() [33m=>[39m fromFrame[33m.[39mechoPendingLocal)[33m.[39mnot[33m.[39m[34mtoThrow[39m()[33m;[39m
+    [90m   | [39m                                                   [31m^[39m
+    [90m127| [39m      [34mexpect[39m(fromFrame[33m.[39mechoPendingLocal[33m?.[39mrestored)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m128| [39m      [34mexpect[39m(fromFrame[33m.[39mechoPendingLocal[33m?.[39mproposalId)[33m.[39m[34mtoBeNull[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/worldHeadlessRestoreSafety.test.ts[2m > [22mR2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mfromSimulationState keeps the SAME contract as restore/fromFrame
+[31m[1mAssertionError[22m: expected { Object (proposalId, kind, ...) } to deeply equal null[39m
+
+[32m- Expected:[39m 
+null
+
+[31m+ Received:[39m 
+Object {
+  "acceptedTick": null,
+  "kind": "scan",
+  "proposalId": null,
+  "restored": true,
+  "roomGeneration": 0,
+  "target": null,
+}
+
+[36m [2m❯[22m src/ai-native/worldHeadlessRestoreSafety.test.ts:[2m149:40[22m[39m
+    [90m147| [39m    [35mconst[39m restored [33m=[39m [35mnew[39m [33mHeadlessWorld[39m({ seed[33m:[39m [33mSEED[39m[33m,[39m demo[33m:[39m [35mtrue[39m })[33m;[39m
+    [90m148| [39m    restored[33m.[39m[34mrestore[39m(frame)[33m;[39m
+    [90m149| [39m    [34mexpect[39m(fromState[33m.[39mechoPendingLocal)[33m.[39m[34mtoEqual[39m(restored[33m.[39mechoPendingLoc…
+    [90m   | [39m                                       [31m^[39m
+    [90m150| [39m    [34mexpect[39m([33mHeadlessWorld[39m[33m.[39m[34mfromFrame[39m(frame[33m,[39m [35mfalse[39m)[33m.[39mechoPendingLocal)[33m.[39m[34mtoE[39m…
+    [90m151| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/worldHeadlessRestoreSafety.test.ts[2m > [22mR2 — fromFrame() initialises the same P2 runtime and guard[2m > [22mreplay (which uses fromFrame internally) does not crash on a guarded frame
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'autonomyEnabled')[39m
+[36m [2m❯[22m HeadlessWorld.echoPolicyView src/ai-native/worldHeadless.ts:[2m516:69[22m[39m
+    [90m514| [39m      })[33m;[39m
+    [90m515| [39m    }[33m;[39m
+    [90m516| [39m    [35mreturn[39m { [33m...[39mview[33m,[39m canWalk[33m,[39m autonomyEnabled[33m:[39m [35mthis[39m[33m.[39mechoController[33m.[39mau…
+    [90m   | [39m                                                                    [31m^[39m
+    [90m517| [39m  }
+    [90m518| [39m
+[90m [2m❯[22m HeadlessWorld.runSteps src/ai-native/worldHeadless.ts:[2m740:31[22m[39m
+[90m [2m❯[22m HeadlessWorld.replay src/ai-native/worldHeadless.ts:[2m992:17[22m[39m
+[90m [2m❯[22m src/ai-native/worldHeadlessRestoreSafety.test.ts:[2m156:25[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/ai-native/worldHeadlessRestoreSafety.test.ts[2m > [22mR1/R2 — old frames and echo-less worlds stay compatible[2m > [22ma frame with no echo / no queued signal has a null guard everywhere
+[31m[1mAssertionError[22m: expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown[39m
+
+[32m- Expected:[39m 
+undefined
+
+[31m+ Received:[39m 
+"TypeError: Cannot read properties of undefined (reading 'restoredPendingKind')"
+
+[36m [2m❯[22m src/ai-native/worldHeadlessRestoreSafety.test.ts:[2m175:49[22m[39m
+    [90m173| [39m
+    [90m174| [39m    [35mconst[39m viaFrame [33m=[39m [33mHeadlessWorld[39m[33m.[39m[34mfromFrame[39m(frame[33m,[39m [35mfalse[39m)[33m;[39m
+    [90m175| [39m    [34mexpect[39m(() [33m=>[39m viaFrame[33m.[39mechoPendingLocal)[33m.[39mnot[33m.[39m[34mtoThrow[39m()[33m;[39m
+    [90m   | [39m                                                [31m^[39m
+    [90m176| [39m    [34mexpect[39m(viaFrame[33m.[39mechoPendingLocal)[33m.[39m[34mtoBeNull[39m()[33m;[39m
+    [90m177| [39m    [34mexpect[39m(() [33m=>[39m viaFrame[33m.[39m[34mrunSteps[39m([{ ticks[33m:[39m [34m1[39m[33m,[39m intent[33m:[39m [33mNEUTRAL_INTENT[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[90m (8)[39m
+[2m   Start at [22m 14:17:21
+[2m   Duration [22m 6.26s[2m (transform 379ms, setup 0ms, collect 1.03s, tests 4.63s, environment 0ms, prepare 239ms)[22m
+
+EXIT=1

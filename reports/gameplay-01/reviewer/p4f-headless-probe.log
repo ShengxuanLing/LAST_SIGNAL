@@ -1,0 +1,22 @@
+# reviewer headless probe v4 (+ null-layout mutation check)
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/gp01-p4f[39m
+
+[90mstdout[2m | src/reviewer/p4f-probe.test.ts[2m > [22m[2mP4 final probe[2m > [22m[2mlog rows
+[22m[39mP4F_PROBE [{"seed":20261117,"beforeKill":false,"clearEvents1":1,"cleared":true,"clearEvents2":0,"routeCleared":true},{"seed":20261118,"beforeKill":false,"clearEvents1":1,"cleared":true,"clearEvents2":0,"routeCleared":true},{"seed":20261119,"beforeKill":false,"clearEvents1":1,"cleared":true,"clearEvents2":0,"routeCleared":true},{"guards":{"unspawned":{"cleared":false,"events":0},"liveDrone":{"cleared":false,"events":0},"liveTarget":{"cleared":false,"events":0}}},{"plain":{"authored":false,"clearEvents":0}},{"survival":{"live":{"roomId":0,"roomCleared":true,"relay":"ACTIVE","target":2,"portal":{"x":11.5,"y":49.5},"playerAtPortal":false,"completed":false},"restored":{"roomId":0,"roomCleared":true,"relay":"ACTIVE","target":2,"portal":{"x":11.5,"y":49.5},"playerAtPortal":false,"completed":false},"fromState":{"roomId":0,"roomCleared":true,"relay":"ACTIVE","target":2,"portal":{"x":11.5,"y":49.5},"playerAtPortal":false,"completed":false},"fromFrame":{"roomId":0,"roomCleared":true,"relay":"ACTIVE","target":2,"portal":{"x":11.5,"y":49.5},"playerAtPortal":false,"completed":false},"liveStartRoomId":0,"fromStateStartRoomId":0,"fromFrameStartRoomId":0}},{"proposal":{"kind":"scan"}},{"queueGuard":{"queued":["signal-scan"],"restoredQueue":["signal-scan"],"busy":{"proposalId":null,"kind":"scan","target":null,"acceptedTick":null,"roomGeneration":0,"restored":true}}},{"foreignFrame":{"accepted":true,"routeThrew":"routes.find is not a function","routeValue":null}},{"replay":{"ok":true,"sameState":true,"sameEvents":true,"authoredInFrame":true},"observation":{"hasAuthored":false,"hasPortalRoute":false}},{"nullLayout":{"scenario":true,"before":{"kind":"start","connectedTo":[3]},"after":{"kind":"combat","connectedTo":[3,1,2]},"mutated":true}}]
+
+ [32m✓[39m src/reviewer/p4f-probe.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 5583[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 final probe[2m > [22mcore commits the authored room clear exactly once, and only for authored scenes [33m933[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 final probe[2m > [22mreachable clear guards: unspawned room, live drone, live target inside the room [33m815[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 final probe[2m > [22mordinary (non-demo) runs are unchanged: no authored state, no new event, same canonical shape [33m670[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 final probe[2m > [22mauthored identity + route survive snapshot/restore/fromFrame/fromSimulationState [33m1188[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 final probe[2m > [22mP2 exact queue + unknown restored guard do not regress with the demo [33m568[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 final probe[2m > [22ma foreign frame cannot inject an authored scene that leaks into route state [33m344[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 final probe[2m > [22mreplay of a demo frame keeps the authored identity; Player observation never carries it [33m1052[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 13:45:27
+[2m   Duration [22m 7.83s[2m (transform 546ms, setup 0ms, collect 1.37s, tests 5.58s, environment 0ms, prepare 266ms)[22m
+
+EXIT=0

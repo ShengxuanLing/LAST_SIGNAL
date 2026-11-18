@@ -1,0 +1,8 @@
+# reviewer rendered probe — workdir=D:/tmp/gp01-p4f base=3819621+7 sources PORT=5495 2026-11-18T12:43:23Z
+# command: PORT=5495 P4F_OUT=<h> npx playwright test -c _review-p4f.config.ts --workers=1
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\p4f-jam.spec.ts:38:1 › reviewer: door-side jam pays JAM_COST and closes the route target
+  1 passed (13.2s)
+EXIT=0

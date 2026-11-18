@@ -16,6 +16,17 @@ export function routeMatches(relay: RelayState, when: RouteWhen): boolean {
   return when === 'RELAY_ACTIVE' ? relay === 'ACTIVE' : relay === 'INACTIVE';
 }
 
+/** Shared, pure route target for the authored scene. JAMMED/DISABLED match
+ *  neither route; an uncleared room must not be considered passable by the
+ *  caller. World and the formal Headless must both use this function. */
+export function routeTargetFor(
+  relay: RelayState | null,
+  routes: ReadonlyArray<{ target: number; when: RouteWhen }>
+): number | null {
+  if (!relay) return null;
+  return routes.find((route) => routeMatches(relay, route.when))?.target ?? null;
+}
+
 /** One immutable post-commit relay reading, independent of callback order. */
 export interface RelayReading {
   readonly manualEnabled: boolean;

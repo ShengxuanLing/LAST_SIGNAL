@@ -1,0 +1,11 @@
+cmd: PORT=5471 npx playwright test --config reports/.../rendered/pw.p4.config.ts  (v2: adds real door-Jam energy cost, review F3)
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+at: 2026-11-18T13:52:11+01:00
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › reports\gameplay-01\developer\p4-recovery\rendered\p4-demo.p4.spec.ts:254:3 › GAMEPLAY-01 P4 · rendered DEMO-01 cooperative level › A) real menu entry, early playable state, real clear, authored portal, route entry
+[2/2] [chromium] › reports\gameplay-01\developer\p4-recovery\rendered\p4-demo.p4.spec.ts:364:3 › GAMEPLAY-01 P4 · rendered DEMO-01 cooperative level › B) checkpoint restore re-derives the authored portal from the committed relay (M2)
+  2 passed (1.1m)
+EXIT=0

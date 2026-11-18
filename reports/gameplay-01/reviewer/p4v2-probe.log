@@ -1,0 +1,53 @@
+# reviewer v2 negative probes v6 (relay committed before corruption tests)
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/gp01-p4v2[39m
+
+[90mstdout[2m | src/reviewer/p4v2-probe.test.ts[2m > [22m[2mP4 v2 negative probes[2m > [22m[2mlog rows
+[22m[39mP4V2_PROBE [{"f1":{"name":"no walkable cell in the authored room","scenario":"null","unchanged":true}},{"f1":{"name":"only one cell (cannot host 2 sentries)","scenario":"null","unchanged":true}},{"f1":{"name":"a tiny strip room (portals would collapse)","scenario":"null","unchanged":true}},{"f1ok":{"built":true,"kind":"combat","added":2}},{"f1idem":{"built":true,"edges":3,"sameRoutes":true}},{"f2bad":{"name":"routes not an array","accepted":false}},{"f2bad":{"name":"routes empty","accepted":false}},{"f2bad":{"name":"routes length 3","accepted":false}},{"f2bad":{"name":"route null entry","accepted":false}},{"f2bad":{"name":"target not in map","accepted":false}},{"f2bad":{"name":"target not a number","accepted":false}},{"f2bad":{"name":"when enum invalid","accepted":false}},{"f2bad":{"name":"portal NaN","accepted":false}},{"f2bad":{"name":"portal Infinity","accepted":false}},{"f2bad":{"name":"portal not numeric","accepted":false}},{"f2bad":{"name":"portal array","accepted":false}},{"f2bad":{"name":"label not a string","accepted":false}},{"f2bad":{"name":"roomId not in map","accepted":false}},{"f2bad":{"name":"startRoomId not in map","accepted":false}},{"f2bad":{"name":"id not p1","accepted":false}},{"f2bad":{"name":"authored null","accepted":false}},{"f2bad":{"name":"authored is a string","accepted":false}},{"f2legacy":{"accepted":true}},{"f2odd":{"accepted":true,"threw":null,"target":1,"portal":null}},{"f2weird":[{"name":"portal far outside the map","accepted":true,"threw":null,"target":1,"portal":null},{"name":"route target points at the authored room itself","accepted":true,"threw":null,"target":0,"portal":null},{"name":"startRoomId differs from roomId","accepted":true,"threw":null,"target":1,"portal":null}]},{"f2live":{"ok":false,"code":"E_SNAPSHOT_INVALID","unchanged":true}},{"p2":{"accepted":true,"queued":["signal-scan"],"restoredQueue":["signal-scan"],"guard":{"proposalId":"local_2_1","kind":"scan","target":{"x":11.5,"y":46.5},"acceptedTick":2,"roomGeneration":0,"restored":false},"restoredGuard":null,"restoredReconfirmRefused":true,"fromFrameThrew":"Cannot read properties of undefined (reading 'restoredPendingKind')","sameRoute":true}},{"frameContinue":{"q0":["signal-scan"],"guardAfterRestore":null,"afterTick":[],"newProposal":"toggle-relay","secondConfirm":true,"finalQueue":["toggle-relay"],"rawPath":{"guard":{"proposalId":null,"kind":"scan","target":null,"acceptedTick":null,"roomGeneration":0,"restored":true},"newProposal":null,"queue":["signal-scan"]}}},{"window":{"guard":{"proposalId":"local_2_1","kind":"scan","target":{"x":11.5,"y":46.5},"acceptedTick":2,"roomGeneration":0,"restored":false},"immediateProposal":"scan","immediateConfirm":true,"queueAfterImmediateConfirm":["signal-scan","signal-scan"]}}]
+
+ [31m❯[39m src/reviewer/p4v2-probe.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 8472[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v2 negative probes[2m > [22mF1: on success the map is mutated exactly once (two edges + kind) [33m680[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v2 negative probes[2m > [22mF2: malformed authored scenes are all rejected (fail closed) [33m1667[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v2 negative probes[2m > [22mF2: a rejected frame does not touch the live world [33m1536[2mms[22m[39m
+[31m   [31m×[31m P4 v2 negative probes[2m > [22mP2 queue / busy guard do not regress through the Owner restore path[33m 1268[2mms[22m[31m[39m
+[31m     → guard state preserved through the Owner restore: expected null to deeply equal { proposalId: 'local_2_1', …(5) }[39m
+   [33m[2m✓[22m[39m P4 v2 negative probes[2m > [22mframe restore + continue: can a second confirm duplicate the queued command? [33m1802[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v2 negative probes[2m > [22mframe restore: is the guard-loss window reachable before the queued command commits? [33m1271[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/reviewer/p4v2-probe.test.ts[2m > [22mP4 v2 negative probes[2m > [22mP2 queue / busy guard do not regress through the Owner restore path
+[31m[1mAssertionError[22m: guard state preserved through the Owner restore: expected null to deeply equal { proposalId: 'local_2_1', …(5) }[39m
+
+[32m- Expected:[39m 
+Object {
+  "acceptedTick": 2,
+  "kind": "scan",
+  "proposalId": "local_2_1",
+  "restored": false,
+  "roomGeneration": 0,
+  "target": Object {
+    "x": 11.5,
+    "y": 46.5,
+  },
+}
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m src/reviewer/p4v2-probe.test.ts:[2m173:78[22m[39m
+    [90m171| [39m    [34mexpect[39m((res [35mas[39m any)[33m.[39mok[33m,[39m [32m'restore accepts the real frame'[39m)[33m.[39m[34mtoBe[39m([35mtru[39m…
+    [90m172| [39m    [34mexpect[39m(restoredQueue[33m,[39m [32m'queue preserved exactly through the Owner r[39m…
+    [90m173| [39m    [34mexpect[39m(restoredGuard[33m,[39m [32m'guard state preserved through the Owner res[39m…
+    [90m   | [39m                                                                             [31m^[39m
+    [90m174| [39m    [34mexpect[39m(target[33m.[39m[34mconfirmLocalEchoProposal[39m(p[33m![39m[33m.[39mid[33m,[39m [35mtrue[39m)[33m,[39m [32m'the saved id[39m…
+    [90m175| [39m    [34mexpect[39m([33mJSON[39m[33m.[39m[34mstringify[39m(target[33m.[39mrouteState)[33m,[39m [32m'route identity survives[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 14:11:40
+[2m   Duration [22m 11.46s[2m (transform 735ms, setup 0ms, collect 1.87s, tests 8.47s, environment 0ms, prepare 265ms)[22m
+
+EXIT=1

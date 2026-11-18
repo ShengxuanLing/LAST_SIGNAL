@@ -1,0 +1,9 @@
+cmd: PORT=5471 P1_EVIDENCE_DIR=<dev> LS_SHOT_DIR=<dev> npx playwright test tests/gameplay-01.spec.ts -g '1) real menu entry'
+
+Running 1 test using 1 worker
+
+P1_METRICS D:\Project\LAST_SIGNAL\.cindy-worktrees\serene-leakey\reports\gameplay-01\developer\p4-recovery\smoke\evidence\p1-acceptance.json
+  ok 1 [chromium] › tests\gameplay-01.spec.ts:321:3 › GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance › 1) real menu entry: relay ACTIVE, linked drones, T/Y costs and jam expiry (10.4s)
+
+  1 passed (11.5s)
+EXIT=0

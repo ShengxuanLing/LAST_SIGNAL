@@ -1,0 +1,3 @@
+# reviewer v2 typecheck — workdir=D:/tmp/gp01-p4v2 base=3819621 + 9 v2 sources(docs 3) 2026-11-18T13:09:31Z
+# command: npx tsc --noEmit
+TSC_EXIT=0

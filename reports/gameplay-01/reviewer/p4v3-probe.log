@@ -1,0 +1,23 @@
+# reviewer v3 probes v3 (+used-target audit/generation)
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/tmp/gp01-p4v3[39m
+
+[90mstdout[2m | src/reviewer/p4v3-probe.test.ts[2m > [22m[2mP4 v3 probes[2m > [22m[2mlog rows
+[22m[39mP4V3_PROBE [{"r1":{"restoreOk":true,"queued":["signal-scan"],"restoredQueue":["signal-scan"],"guard":{"proposalId":null,"kind":"scan","target":null,"acceptedTick":null,"roomGeneration":0,"restored":true},"immediateProposal":null,"immediateConfirm":false,"queueAfterImmediate":["signal-scan"],"oldIdConfirm":false,"queueAfterOldId":["signal-scan"]}},{"scanExec":{"scans":1,"echoEnergy":[100,90],"cost":10,"busyAfter":null,"auditResults":[],"queueAfter":[]}},{"mixed":{"before":["signal-scan:player","signal-scan:echo"],"after":["signal-scan:player","signal-scan:echo"],"scans":2,"guard":null}},{"actorFilter":{"playerOnlyGuard":null,"toggleGuard":{"proposalId":null,"kind":"toggle-relay","target":null,"acceptedTick":null,"roomGeneration":0,"restored":true}}},{"fromFrame":{"threw":null,"guard":{"proposalId":null,"kind":"scan","target":null,"acceptedTick":null,"roomGeneration":0,"restored":true},"ffProposal":null,"fsProposal":null,"replayOk":true,"echoRoomGeneration":0}},{"failedRestore":{"ok":false,"code":"E_SNAPSHOT_INVALID","unchanged":true,"auditUnchanged":true}},{"legacy":{"accepted":true,"routeState":null,"guard":null}},{"session":{"staleCard":null,"staleIdConfirm":false,"ownerRefused":false,"ownerQueue":[],"ownerGuard":null,"cap":32,"ringLen":32}},{"crossPath":{"usedAuditBefore":[{"result":"enqueued","pid":"local_2_1"},{"result":"applied","pid":"local_2_1"}],"usedAuditAfter":[{"result":"enqueued","pid":"local_2_1"},{"result":"applied","pid":"local_2_1"}],"auditKept":true,"beforeRestoreGen":7,"restoreGen":7,"fromFrameGen":0,"fromStateGen":0,"fromFrameAudit":0,"fromStateAudit":0,"guard":{"proposalId":null,"kind":"scan","target":null,"acceptedTick":null,"roomGeneration":7,"restored":true}}}]
+
+ [32m✓[39m src/reviewer/p4v3-probe.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 7825[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v3 probes[2m > [22mR1 counter-example from v2 is gone: restore keeps the queue AND rebuilds the guard [33m906[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v3 probes[2m > [22mrestored action executes exactly once with the real cost (scan 10 / toggle flip 1) [33m715[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v3 probes[2m > [22mmixed player + echo commands survive a restore and both commit once [33m629[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v3 probes[2m > [22ma player-only queued scan does NOT mark the echo busy (actor filter), a toggle does [33m1307[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v3 probes[2m > [22mfromFrame shares the same contract as fromSimulationState (R2) and replay does not crash [33m1042[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v3 probes[2m > [22ma failed restore does not touch the live world, and legacy frames still restore [33m1147[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v3 probes[2m > [22mthe old local session cannot leak: stale proposal card, stale id, owner gate, audit cap [33m973[2mms[22m[39m
+   [33m[2m✓[22m[39m P4 v3 probes[2m > [22mrestore into a USED world: audit history and room generation across the four entry points [33m1101[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 14:29:12
+[2m   Duration [22m 9.71s[2m (transform 454ms, setup 0ms, collect 1.17s, tests 7.82s, environment 0ms, prepare 254ms)[22m
+
+EXIT=0

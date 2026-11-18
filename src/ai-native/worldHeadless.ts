@@ -19,6 +19,9 @@
 
 import { basePlayerData } from '../config/game';
 import { buildEnemyData } from '../config/enemies';
+import { buildP1Scenario, type P1Scenario } from '../config/p1Scenario';
+import { routeTargetFor, type RelayState } from '../signal/relay';
+import type { Vec2 } from '../types';
 import { roomAt } from '../config/supplies';
 import { canonicalJson, payloadFingerprint } from './protocol';
 import {
@@ -28,7 +31,7 @@ import {
   canonicalSimulationEvents, canonicalSimulationState, cloneSimulationState,
   createSimulationState, enqueueCommand, registerDrone, stepSimulationTicks, tileAtFromState,
   isWalkableFromState,
-  type SimCommand, type SimEvent, type SimulationIntent, type SimulationState
+  type SimCommand, type SimEvent, type SimulationIntent, type SimulationState, type SimAuthoredScene
 } from '../world/sim/core';
 import type { EnemyKind, MapData, PlayerData, Room } from '../types';
 import { buildWorldObservation } from './worldObservation';
@@ -64,6 +67,32 @@ function findRestoredSignal(commands: readonly SimCommand[]): { kind: EchoLocalP
     if (command.type === 'toggle-relay') return { kind: 'toggle-relay', command };
   }
   return null;
+}
+
+/**
+ * GAMEPLAY-01 P4 v3 / R1+R2 — rebuild the SAME conservative P2 busy guard on
+ * every restore entry (`restore`, `fromFrame`, `fromSimulationState`, and replay
+ * via `fromFrame`). The caller has already cleared the OLD session's local
+ * proposal/pending marker (full `reset()` for `restore()`, a fresh controller
+ * for the Object.create factories). We never fabricate a human-local audit row,
+ * never invent a proposal id, and never delete the other actors' queued
+ * commands: the core queue stays exact while the guard is conservative.
+ */
+function restoreSignalGuard(world: HeadlessWorld, sim: SimulationState): void {
+  (world as any).pendingLocalAction = null;
+  (world as any).lastEnqueuedSignalCommand = null;
+  (world as any).restoredSignalCommand = null;
+  const controller = (world as any).echoController as EchoController | undefined;
+  if (!controller) return;
+  controller.clearLocalPending();
+  const restored = findRestoredSignal(sim.pendingCommands);
+  if (restored) {
+    // `setRestoredPending` also drops the displayed local proposal card.
+    controller.setRestoredPending(restored.kind);
+    (world as any).restoredSignalCommand = restored.command;
+  } else {
+    controller.clearRestoredPending();
+  }
 }
 
 /**
@@ -236,6 +265,18 @@ export interface HeadlessWorldOptions {
   seed: number;
   /** P2 low-risk ECHO cooperation switch (default false, saved human preference). */
   echoAutonomy?: boolean;
+  /** GAMEPLAY-01 P4: load the SAME authored Demo-03/P1 scenario as World. */
+  demo?: boolean;
+}
+
+export interface HeadlessRouteState {
+  roomId: number;
+  roomCleared: boolean;
+  relay: RelayState | null;
+  target: number | null;
+  portal: Vec2 | null;
+  playerAtPortal: boolean;
+  completed: boolean;
 }
 
 export class HeadlessWorld {
@@ -271,27 +312,82 @@ export class HeadlessWorld {
   } | null = null;
   private lastEnqueuedSignalCommand: SimCommand | null = null;
 
+  /**
+   * GAMEPLAY-01 P4 authored demo/route identity — read from the CORE state, so
+   * it survives snapshot / restore / replay / `fromSimulationState` (M2). The
+   * route TARGET and portal are always re-derived from the committed relay
+   * state; nothing here can complete a route by itself.
+   */
+  get demoScenario(): SimAuthoredScene | null { return this.sim.authored ?? null; }
+
   constructor(options: HeadlessWorldOptions) {
     const seed = options.seed >>> 0;
     const map = generateRealMap(seed);
-    const combatRoom = chooseCombatRoom(map);
     const startRoom = map.rooms.find((r) => r.kind === 'start');
     const sim = createSimulationState({
       seed, map, playerData: playerData(), playerX: 0, playerY: 0
     });
-    const placement = findPlacement(sim, combatRoom);
-    sim.player.x = placement.player.x;
-    sim.player.y = placement.player.y;
-
-    const depths = roomDepth(map, startRoom?.id ?? 0);
-    const depth = depths.get(combatRoom.id) ?? 0;
-    const data = buildEnemyData('drone', combatRoom.id, depth, {
-      gx: combatRoom.gx, gy: combatRoom.gy, w: combatRoom.w, h: combatRoom.h
-    });
-    registerDrone(sim, {
-      id: 1, x: placement.drone.x, y: placement.drone.y,
-      hp: data.stats.maxHp, data, attackTimer: 0, wanderTimer: 1000
-    });
+    let combatRoom = chooseCombatRoom(map);
+    let demoScenario: P1Scenario | null = null;
+    if (options.demo === true) {
+      demoScenario = buildP1Scenario({
+        map,
+        isWalkable: (x, y, radius) => isWalkableFromState(sim, x, y, radius)
+      });
+      if (!demoScenario) throw new Error('P4 demo scenario unavailable');
+      combatRoom = map.rooms[demoScenario.roomId];
+      if (!combatRoom) throw new Error('P4 demo room unavailable');
+      // Same authored player start/device/sentry data the formal World uses.
+      sim.player.x = demoScenario.playerStart?.x ?? combatRoom.gx + combatRoom.w / 2;
+      sim.player.y = demoScenario.playerStart?.y ?? combatRoom.gy + combatRoom.h / 2;
+      const depths = roomDepth(map, startRoom?.id ?? 0);
+      const depth = depths.get(combatRoom.id) ?? 0;
+      const droneIds: number[] = [];
+      for (let i = 0; i < demoScenario.drones.length; i += 1) {
+        const spot = demoScenario.drones[i];
+        const data = buildEnemyData('drone', combatRoom.id, depth, {
+          gx: combatRoom.gx, gy: combatRoom.gy, w: combatRoom.w, h: combatRoom.h
+        });
+        const id = i + 1;
+        registerDrone(sim, {
+          id, x: spot.x, y: spot.y, hp: data.stats.maxHp, data, attackTimer: 0, wanderTimer: 1000
+        });
+        droneIds.push(id);
+      }
+      enqueueCommand(sim, {
+        type: 'spawn-signal-device', deviceId: 'relay_main', roomId: demoScenario.roomId,
+        x: demoScenario.relay.x, y: demoScenario.relay.y, initial: demoScenario.initial
+      });
+      enqueueCommand(sim, { type: 'link-drones-to-signal', deviceId: 'relay_main', droneIds });
+      combatRoom.kind = 'combat';
+      combatRoom.spawned = true;
+      combatRoom.cleared = false;
+      // M2: the demo/route identity is part of the CORE state (data only), so a
+      // snapshot/restore/replay/raw-sim restore can never silently drop it and
+      // report `routeState === null` for a demo run.
+      sim.authored = {
+        id: demoScenario.id,
+        roomId: demoScenario.roomId,
+        startRoomId: demoScenario.startRoomId,
+        routes: demoScenario.routes.map((route) => ({
+          target: route.target, when: route.when, label: route.label,
+          ...(route.portal ? { portal: { x: route.portal.x, y: route.portal.y } } : {})
+        }))
+      };
+    } else {
+      const placement = findPlacement(sim, combatRoom);
+      sim.player.x = placement.player.x;
+      sim.player.y = placement.player.y;
+      const depths = roomDepth(map, startRoom?.id ?? 0);
+      const depth = depths.get(combatRoom.id) ?? 0;
+      const data = buildEnemyData('drone', combatRoom.id, depth, {
+        gx: combatRoom.gx, gy: combatRoom.gy, w: combatRoom.w, h: combatRoom.h
+      });
+      registerDrone(sim, {
+        id: 1, x: placement.drone.x, y: placement.drone.y,
+        hp: data.stats.maxHp, data, attackTimer: 0, wanderTimer: 1000
+      });
+    }
 
     this.sim = sim;
     this.echoController.setAutonomy(!!options.echoAutonomy);
@@ -303,7 +399,7 @@ export class HeadlessWorld {
       seed,
       mapHash: payloadFingerprint(canonicalJson(map)),
       roomCount: map.rooms.length,
-      startRoomId: startRoom?.id ?? null,
+      startRoomId: sim.authored?.startRoomId ?? startRoom?.id ?? null,
       combatRoomId: combatRoom.id
     };
   }
@@ -314,6 +410,29 @@ export class HeadlessWorld {
   get runStatus(): HeadlessStatus { return this.status; }
   get identity(): HeadlessMapIdentity { return { ...this.mapIdentity }; }
   get seed(): number { return this.sim.seed; }
+
+  /** P4 legal route state: same authored data/rule as the World. The room's
+   *  cleared flag is the SAME authoritative `map.rooms[id].cleared` the rendered
+   *  gate, the core `descend` gate and GameScene read — never a live-drone count
+   *  (M1). The portal only exists after that committed clear, and JAMMED /
+   *  DISABLED yield no target. */
+  get routeState(): HeadlessRouteState | null {
+    const scenario = this.demoScenario;
+    if (!scenario) return null;
+    const room = this.sim.map.rooms[scenario.roomId];
+    const roomCleared = room?.spawned === true && room.cleared === true;
+    const relay = this.sim.signal?.relay ?? null;
+    const target = routeTargetFor(relay, scenario.routes);
+    const route = target === null ? undefined : scenario.routes.find((r) => r.target === target);
+    const portal = roomCleared ? route?.portal ?? null : null;
+    const playerAtPortal = portal
+      ? Math.hypot(this.sim.player.x - portal.x, this.sim.player.y - portal.y) < 2.0
+      : false;
+    return {
+      roomId: scenario.roomId, roomCleared, relay, target, portal, playerAtPortal,
+      completed: roomCleared && target !== null && portal !== null && playerAtPortal
+    };
+  }
 
   /** Cheap live counters for hot loops (inspect() hashes the whole state). */
   get liveDrones(): number { return this.sim.drones.reduce((n, d) => n + (d.hp > 0 ? 1 : 0), 0); }
@@ -773,17 +892,15 @@ export class HeadlessWorld {
     (world as any).pendingLocalAction = null;
     (world as any).lastEnqueuedSignalCommand = null;
     (world as any).restoredSignalCommand = null;
-    // A raw-sim restore keeps the core queue. If it already contains an echo
-    // scan/jam or a relay toggle, rebuild a conservative busy marker instead of
-    // dropping the command or pretending it is a human-local receipt. Other
-    // actors' commands are preserved and do not mark a local guard.
-    const restored = findRestoredSignal(sim.pendingCommands);
-    if (restored) {
-      (world as any).echoController.setRestoredPending(restored.kind);
-      (world as any).restoredSignalCommand = restored.command;
-    }
+    // Same conservative guard as the frame-restore path (R1).
+    restoreSignalGuard(world, sim);
     const map = sim.map;
-    const startRoom = map.rooms.find((r) => r.kind === 'start');
+    // M2/M5: a raw-sim restore has no frame, so the demo identity must come from
+    // the state itself; the start room id must be the one captured before the
+    // authored kind mutation (a restored demo world otherwise reported null).
+    const startRoom = sim.authored?.startRoomId !== undefined
+      ? map.rooms[sim.authored.startRoomId] ?? null
+      : map.rooms.find((r) => r.kind === 'start') ?? null;
     (world as any).mapIdentity = {
       seed: sim.seed,
       mapHash: payloadFingerprint(canonicalJson(map)),
@@ -859,6 +976,13 @@ export class HeadlessWorld {
     this.shots = frame.shots as number;
     this.damageTaken = frame.damageTaken as number;
     this.mapIdentity = frame.mapIdentity as HeadlessMapIdentity;
+    // R1: a restore is an authority/session boundary. Drop the OLD session's
+    // local proposal/pending lifecycle (the same full reset the rendered
+    // checkpoint uses) and rebuild the conservative guard from the queued core
+    // commands. No human-local receipt is fabricated for an unknown command.
+    this.pendingLocalAction = null;
+    this.echoController.reset();
+    restoreSignalGuard(this, this.sim);
     // A restore invalidates the old epoch, exactly like C3-a yield/restore.
     this.epoch = Math.max(this.epoch + 1, (frame.epoch as number) + 1);
     return { ok: true, epoch: this.epoch };
@@ -1058,6 +1182,17 @@ export class HeadlessWorld {
     (world as any).damageTaken = frame.damageTaken as number;
     (world as any).epoch = bumpEpoch ? (frame.epoch as number) + 1 : (frame.epoch as number);
     (world as any).mapIdentity = frame.mapIdentity as HeadlessMapIdentity;
+    // R2: Object.create bypasses class-field initialization. Initialise the
+    // SAME EchoController / audit ring / pending fields as
+    // `fromSimulationState`, then apply the same conservative guard so replay
+    // (which uses fromFrame) has an identical safety contract.
+    (world as any).echoController = new EchoController();
+    (world as any).echoAudit = new EchoAuditRing();
+    (world as any).echoRoomGeneration = 0;
+    (world as any).pendingLocalAction = null;
+    (world as any).lastEnqueuedSignalCommand = null;
+    (world as any).restoredSignalCommand = null;
+    restoreSignalGuard(world, (world as any).sim);
     return world;
   }
 }
@@ -1072,6 +1207,43 @@ export function isHistoryTruncated(eventTotal: number, retained: number): boolea
   return Number.isFinite(eventTotal) && eventTotal > retained;
 }
 
+/**
+ * GAMEPLAY-01 P4 / review F2 — bounded structural check of the authored scene
+ * carried INSIDE a frame. `routeState`/`demoScenario` read this data directly, so
+ * a corrupt frame must be refused here (E_SNAPSHOT_INVALID) instead of throwing
+ * later (`routes.find is not a function`) or projecting a portal in a wall.
+ * It is deliberately data-shape-only: no rule, no simulation and no map writes.
+ */
+function isValidAuthoredScene(value: unknown, rooms: readonly unknown[]): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const a = value as Record<string, unknown>;
+  if (a.id !== 'p1') return false;
+  const roomIds = new Set<unknown>();
+  for (const room of rooms) {
+    if (room && typeof room === 'object') roomIds.add((room as Record<string, unknown>).id);
+  }
+  if (typeof a.roomId !== 'number' || !roomIds.has(a.roomId)) return false;
+  if (typeof a.startRoomId !== 'number' || !roomIds.has(a.startRoomId)) return false;
+  const routes = a.routes;
+  // The authored table is exactly two routes today; 1..2 keeps it bounded and
+  // leaves room for a documented single-route scene without a schema bump.
+  if (!Array.isArray(routes) || routes.length < 1 || routes.length > 2) return false;
+  for (const route of routes) {
+    if (!route || typeof route !== 'object') return false;
+    const r = route as Record<string, unknown>;
+    if (typeof r.target !== 'number' || !roomIds.has(r.target)) return false;
+    if (r.when !== 'RELAY_ACTIVE' && r.when !== 'RELAY_INACTIVE') return false;
+    if (r.label !== undefined && typeof r.label !== 'string') return false;
+    if (r.portal !== undefined) {
+      if (!r.portal || typeof r.portal !== 'object') return false;
+      const p = r.portal as Record<string, unknown>;
+      if (typeof p.x !== 'number' || typeof p.y !== 'number') return false;
+      if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return false;
+    }
+  }
+  return true;
+}
+
 export function isHeadlessFrame(value: unknown): value is HeadlessWorldFrame {
   if (!value || typeof value !== 'object') return false;
   const f = value as Record<string, unknown>;
@@ -1083,6 +1255,8 @@ export function isHeadlessFrame(value: unknown): value is HeadlessWorldFrame {
   if (!Array.isArray(sim.drones) || !Array.isArray(sim.projectiles)) return false;
   const map = sim.map as { rooms?: unknown } | undefined;
   if (!map || !Array.isArray(map.rooms)) return false;
+  // Absent authored scene = every frame produced before P4; still compatible.
+  if (sim.authored !== undefined && !isValidAuthoredScene(sim.authored, map.rooms)) return false;
   if (!Array.isArray(f.events) || !Array.isArray(f.actionLog) || !Array.isArray(f.enteredRooms)) return false;
   if (typeof f.epoch !== 'number' || typeof f.status !== 'string') return false;
   if (!f.mapIdentity || typeof f.mapIdentity !== 'object') return false;

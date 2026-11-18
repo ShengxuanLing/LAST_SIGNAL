@@ -1,0 +1,9 @@
+cmd: PORT=5471 npx playwright test --config reports/gameplay-01/developer/p4-recovery/rendered/pw.p4.config.ts
+at: 2026-11-18T13:30:41+01:00
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › reports\gameplay-01\developer\p4-recovery\rendered\p4-demo.p4.spec.ts:254:3 › GAMEPLAY-01 P4 · rendered DEMO-01 cooperative level › A) real menu entry, early playable state, real clear, authored portal, route entry
+[2/2] [chromium] › reports\gameplay-01\developer\p4-recovery\rendered\p4-demo.p4.spec.ts:355:3 › GAMEPLAY-01 P4 · rendered DEMO-01 cooperative level › B) checkpoint restore re-derives the authored portal from the committed relay (M2)
+  2 passed (26.0s)
+EXIT=0
