@@ -1,0 +1,110 @@
+{
+  "cssScale": 0.5,
+  "canvas": {
+    "w": 800,
+    "h": 450
+  },
+  "tinyCss": [
+    [
+      "EX-17 · VITALS",
+      16,
+      8
+    ],
+    [
+      "94 / 100",
+      17,
+      8.5
+    ],
+    [
+      "XP 0/30",
+      16,
+      8
+    ],
+    [
+      "CREDITS 0",
+      17,
+      8.5
+    ],
+    [
+      "LV 1",
+      17,
+      8.5
+    ],
+    [
+      "T+0:06",
+      16,
+      8
+    ],
+    [
+      "Pulse Rifle [△] · ∞",
+      17,
+      8.5
+    ],
+    [
+      "R-00 · COMBAT · SURVEYED 1/6",
+      16,
+      8
+    ],
+    [
+      "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+      16,
+      8
+    ],
+    [
+      "HOSTILES 2",
+      17,
+      8.5
+    ],
+    [
+      "SURVEY MAP · 1/6",
+      16,
+      8
+    ],
+    [
+      "KILLS 0 · LOOT 0 · DMG 0 · 6s",
+      16,
+      8
+    ],
+    [
+      "CONTROL  HUMAN",
+      17,
+      8.5
+    ],
+    [
+      "AI ACTION  —",
+      17,
+      8.5
+    ],
+    [
+      "AI TARGET  —",
+      17,
+      8.5
+    ],
+    [
+      "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT ",
+      17,
+      8.5
+    ],
+    [
+      "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      17,
+      8.5
+    ],
+    [
+      "RELAY ACTIVE · EXIT OPEN",
+      17,
+      8.5
+    ],
+    [
+      "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      17,
+      8.5
+    ],
+    [
+      "ESC PAUSE · ANY MOVE / FIRE / F TAKES HU",
+      16,
+      8
+    ]
+  ],
+  "sample": 20
+}

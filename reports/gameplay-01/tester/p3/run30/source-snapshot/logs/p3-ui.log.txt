@@ -1,0 +1,12 @@
+workdir=/d/tmp/ls-p3-accept spec=tests/gameplay-03-feedback.spec.ts PORT=5492 commit=0083e20 specSha=7aecf2160a2c5c14981f0f0b1054860388ba8362b6a24cba8a1302b13ffa3a5e 2026-11-18T01:46:06Z
+
+Running 7 tests using 1 worker
+
+[1/7] [chromium] › tests\gameplay-03-feedback.spec.ts:268:3 › GAMEPLAY-01 P3 · feedback surfaces › 1) six viewports across default / pending / result states: font floor, no raw ids, no overlap
+[2/7] [chromium] › tests\gameplay-03-feedback.spec.ts:324:3 › GAMEPLAY-01 P3 · feedback surfaces › 2) proposal -> Ready -> real CONFIRM -> WAITING/Queued + disabled -> real resume -> applied
+[3/7] [chromium] › tests\gameplay-03-feedback.spec.ts:365:3 › GAMEPLAY-01 P3 · feedback surfaces › 3) pending: CONFIRM/REJECT are disabled, not focusable and not activatable by keyboard
+[4/7] [chromium] › tests\gameplay-03-feedback.spec.ts:387:3 › GAMEPLAY-01 P3 · feedback surfaces › 4) RECENT ACTIONS: ≤8 numbered records, ESC/BACK round trip, pending and queue untouched
+[5/7] [chromium] › tests\gameplay-03-feedback.spec.ts:443:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) echo detail + HUD: font floor, real signal text, HUD texts inside the frame
+[6/7] [chromium] › tests\gameplay-03-feedback.spec.ts:468:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize and reopen keep the page object count stable; no fake OFFLINE
+[7/7] [chromium] › tests\gameplay-03-feedback.spec.ts:495:3 › GAMEPLAY-01 P3 · feedback surfaces › 7) LLM page footer states the resume rule, with a real screenshot
+  7 passed (1.3m)

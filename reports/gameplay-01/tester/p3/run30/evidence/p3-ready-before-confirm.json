@@ -1,0 +1,51 @@
+{
+  "readyText": "ECHO LOCAL COOPERATION\nLOCAL ECHO · A HUMAN CONFIRMS\nReady to confirm · 100/100 HP · Following · Human owner\nScan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted\nLOW-RISK COOPERATION: OFF\nCONFIRM (HUMAN)\nREJECT\nRECENT ACTIONS\nBACK\nNo recent actions\nESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+  "buttons": [
+    {
+      "label": "LOW-RISK COOPERATION: OFF",
+      "disabled": false,
+      "focused": true,
+      "x": 640,
+      "y": 340,
+      "w": 440,
+      "h": 44
+    },
+    {
+      "label": "CONFIRM (HUMAN)",
+      "disabled": false,
+      "focused": false,
+      "x": 640,
+      "y": 396,
+      "w": 460,
+      "h": 50
+    },
+    {
+      "label": "REJECT",
+      "disabled": false,
+      "focused": false,
+      "x": 640,
+      "y": 452,
+      "w": 460,
+      "h": 50
+    },
+    {
+      "label": "RECENT ACTIONS",
+      "disabled": false,
+      "focused": false,
+      "x": 640,
+      "y": 508,
+      "w": 460,
+      "h": 50
+    },
+    {
+      "label": "BACK",
+      "disabled": false,
+      "focused": false,
+      "x": 640,
+      "y": 564,
+      "w": 300,
+      "h": 50
+    }
+  ],
+  "pid": "local_81_1"
+}

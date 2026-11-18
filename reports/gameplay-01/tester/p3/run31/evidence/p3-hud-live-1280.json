@@ -1,0 +1,29 @@
+{
+  "cssScale": 0.8,
+  "canvas": {
+    "w": 1280,
+    "h": 720
+  },
+  "tinyCss": [],
+  "sample": 20,
+  "pick": {
+    "txtSignal": {
+      "text": "RELAY ACTIVE · EXIT OPEN",
+      "visible": true,
+      "logical": 17,
+      "css": 13.600000000000001
+    },
+    "txtEcho": {
+      "text": "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      "visible": true,
+      "logical": 17,
+      "css": 13.600000000000001
+    },
+    "txtSignalDetail": {
+      "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      "visible": true,
+      "logical": 17,
+      "css": 13.600000000000001
+    }
+  }
+}

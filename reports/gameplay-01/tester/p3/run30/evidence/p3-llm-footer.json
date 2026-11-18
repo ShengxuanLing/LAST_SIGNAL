@@ -1,0 +1,6 @@
+{
+  "pageName": "llm",
+  "body": "LLM COMPANION\nONLY A HUMAN HERE CAN CONFIRM · THE AGENT HAS NO CONFIRM TOOL\nCONNECTION\nSTATE  OFF\nMODEL  NOT CONNECTED\nENABLE / RE-AUTHORIZE (HUMAN)\nPENDING PROPOSAL\nNo pending proposal.\nREJECT FIRST PROPOSAL\nCONFIRM FIRST PROPOSAL (OWNER)\nDISCONNECT (NO MODEL)\nBACK\nCONFIRM ACTS ON THE ▶ LINE ONLY · Takes effect when you resume",
+  "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p3\\run30\\shots\\p3-07-llm-footer.png",
+  "fixture": "connection state as shown by the real page (no model call made)"
+}

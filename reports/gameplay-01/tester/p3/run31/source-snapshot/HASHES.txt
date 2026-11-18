@@ -1,0 +1,17 @@
+run=run31 (P3 F1-F8 repair, final)
+spec=tests/gameplay-03-feedback.spec.ts
+before=7aecf2160a2c5c14981f0f0b1054860388ba8362b6a24cba8a1302b13ffa3a5e
+after=3544ee6e1b196c85da9cd62b8b0abac00a54e0638bdcf481faa98615a91bd180
+archived=3544ee6e1b196c85da9cd62b8b0abac00a54e0638bdcf481faa98615a91bd180
+spec_src=3544ee6e1b196c85da9cd62b8b0abac00a54e0638bdcf481faa98615a91bd180
+helpers=none (spec is self-contained)
+product_src=UNCHANGED by this task (archived under source-snapshot/src):
+  11af218697007584f9ea336aacd26a35d1ac3d67d915b2dc3cf665999e714e75 *src/scenes/GameScene.ts
+  ed3a1078824aa0deb3a81be65bb5dfaec9a98b54314ae0658f37356e5a24a14e *src/scenes/PauseScene.ts
+  3fd1258255796b345d2f81b548e605acbb699204ab1b56c8f9e3ed92103cc7ec *src/ui/menuKit.ts
+  7c1e9bd9bf6b79086286e5d1f5aab3b013a45ad12d10bf486e4ee40222302b71 *src/ui/feedback.ts
+  717e87e604f3b96bd0b3621f21e7bce7b4a5da8ec226b305875f6aceea503592 *src/ui/feedback.test.ts
+tree=D:/tmp/ls-p3-accept commit=0083e20 port=5492
+result=7 passed (1.3m), skip 0, timeout unchanged
+typecheck=tsc --noEmit exit 0, 0 'error TS'
+run30=RETAINED untouched (7aecf216 / 7 passed)

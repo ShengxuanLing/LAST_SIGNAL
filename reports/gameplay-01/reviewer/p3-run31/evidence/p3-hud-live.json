@@ -1,0 +1,353 @@
+{
+  "cssScale": 0.5,
+  "canvas": {
+    "w": 800,
+    "h": 450
+  },
+  "sample": 20,
+  "pick": {
+    "txtSignal": {
+      "text": "RELAY ACTIVE · EXIT OPEN",
+      "visible": true,
+      "logical": 17,
+      "css": 8.5
+    },
+    "txtEcho": {
+      "text": "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      "visible": true,
+      "logical": 17,
+      "css": 8.5
+    },
+    "txtSignalDetail": {
+      "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      "visible": true,
+      "logical": 17,
+      "css": 8.5
+    }
+  },
+  "texts": [
+    {
+      "t": "EX-17 · VITALS",
+      "visible": true,
+      "inFrame": true,
+      "logical": 16,
+      "css": 8,
+      "x": -107.26507596707744,
+      "y": -59.113669484783216,
+      "w": 150,
+      "h": 16
+    },
+    {
+      "t": "94 / 100",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 102.73492090367873,
+      "y": -48.11366964869598,
+      "w": 75,
+      "h": 18
+    },
+    {
+      "t": "XP 0/30",
+      "visible": true,
+      "inFrame": true,
+      "logical": 16,
+      "css": 8,
+      "x": 102.73492090367873,
+      "y": -29.113669931818038,
+      "w": 62,
+      "h": 16
+    },
+    {
+      "t": "CREDITS 0",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": -107.26507596707744,
+      "y": -15.11367014043428,
+      "w": 85,
+      "h": 17
+    },
+    {
+      "t": "LV 1",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": -107.26507596707744,
+      "y": 2.886329591344818,
+      "w": 38,
+      "h": 18
+    },
+    {
+      "t": "T+0:06",
+      "visible": true,
+      "inFrame": true,
+      "logical": 16,
+      "css": 8,
+      "x": -107.26507596707744,
+      "y": 24.886329263519286,
+      "w": 53,
+      "h": 16
+    },
+    {
+      "t": "Pulse Rifle [△] · ∞",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 953.7349055554835,
+      "y": -57.11366951458554,
+      "w": 179,
+      "h": 18
+    },
+    {
+      "t": "R-00 · COMBAT · SURVEYED 1/6",
+      "visible": true,
+      "inFrame": true,
+      "logical": 16,
+      "css": 8,
+      "x": 885.7349055554835,
+      "y": -31.113669902015715,
+      "w": 247,
+      "h": 16
+    },
+    {
+      "t": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+      "visible": true,
+      "inFrame": true,
+      "logical": 16,
+      "css": 8,
+      "x": 288.23491479420267,
+      "y": 560.8863211572877,
+      "w": 449,
+      "h": 16
+    },
+    {
+      "t": "HOSTILES 2",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 1038.7349055554835,
+      "y": -5.113670289445893,
+      "w": 94,
+      "h": 18
+    },
+    {
+      "t": "SURVEY MAP · 1/6",
+      "visible": true,
+      "inFrame": true,
+      "logical": 16,
+      "css": 8,
+      "x": 976.7349055554835,
+      "y": 514.8863219619504,
+      "w": 156,
+      "h": 16
+    },
+    {
+      "t": "KILLS 0 · LOOT 0 · DMG 0 · 6s",
+      "visible": true,
+      "inFrame": true,
+      "logical": 16,
+      "css": 8,
+      "x": -107.26507596707744,
+      "y": 624.8863203228227,
+      "w": 256,
+      "h": 16
+    },
+    {
+      "t": "CONTROL  HUMAN",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 1001.7349055554835,
+      "y": 22.88632929332161,
+      "w": 131,
+      "h": 18
+    },
+    {
+      "t": "AI ACTION  —",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 1019.7349055554835,
+      "y": 50.886328876089095,
+      "w": 113,
+      "h": 17
+    },
+    {
+      "t": "AI TARGET  —",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 1019.7349055554835,
+      "y": 78.88632845885661,
+      "w": 113,
+      "h": 17
+    },
+    {
+      "t": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT ",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 674.7349055554835,
+      "y": 106.8863280416241,
+      "w": 458,
+      "h": 17
+    },
+    {
+      "t": "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 814.7349055554835,
+      "y": 134.8863276243916,
+      "w": 318,
+      "h": 17
+    },
+    {
+      "t": "RELAY ACTIVE · EXIT OPEN",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 907.7349055554835,
+      "y": 162.8863272071591,
+      "w": 225,
+      "h": 17
+    },
+    {
+      "t": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      "visible": true,
+      "inFrame": true,
+      "logical": 17,
+      "css": 8.5,
+      "x": 804.7349055554835,
+      "y": 184.88632687933355,
+      "w": 328,
+      "h": 17
+    },
+    {
+      "t": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HU",
+      "visible": true,
+      "inFrame": true,
+      "logical": 16,
+      "css": 8,
+      "x": -107.26507596707744,
+      "y": 594.8863207698575,
+      "w": 449,
+      "h": 16
+    }
+  ],
+  "outsideCss": [],
+  "tinyHud": [
+    [
+      "EX-17 · VITALS",
+      16,
+      8
+    ],
+    [
+      "94 / 100",
+      17,
+      8.5
+    ],
+    [
+      "XP 0/30",
+      16,
+      8
+    ],
+    [
+      "CREDITS 0",
+      17,
+      8.5
+    ],
+    [
+      "LV 1",
+      17,
+      8.5
+    ],
+    [
+      "T+0:06",
+      16,
+      8
+    ],
+    [
+      "Pulse Rifle [△] · ∞",
+      17,
+      8.5
+    ],
+    [
+      "R-00 · COMBAT · SURVEYED 1/6",
+      16,
+      8
+    ],
+    [
+      "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+      16,
+      8
+    ],
+    [
+      "HOSTILES 2",
+      17,
+      8.5
+    ],
+    [
+      "SURVEY MAP · 1/6",
+      16,
+      8
+    ],
+    [
+      "KILLS 0 · LOOT 0 · DMG 0 · 6s",
+      16,
+      8
+    ],
+    [
+      "CONTROL  HUMAN",
+      17,
+      8.5
+    ],
+    [
+      "AI ACTION  —",
+      17,
+      8.5
+    ],
+    [
+      "AI TARGET  —",
+      17,
+      8.5
+    ],
+    [
+      "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT ",
+      17,
+      8.5
+    ],
+    [
+      "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      17,
+      8.5
+    ],
+    [
+      "RELAY ACTIVE · EXIT OPEN",
+      17,
+      8.5
+    ],
+    [
+      "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      17,
+      8.5
+    ],
+    [
+      "ESC PAUSE · ANY MOVE / FIRE / F TAKES HU",
+      16,
+      8
+    ]
+  ]
+}

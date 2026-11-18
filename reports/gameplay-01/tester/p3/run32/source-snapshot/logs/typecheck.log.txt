@@ -1,0 +1,12 @@
+# G2: permanent record of the unfiltered typecheck (per P3 review §8.2)
+workdir=/d/tmp/ls-p3-accept
+HEAD=0083e2077960ef2caf76f731145ae5ccd3407a2a (0083e20 docs(gameplay): record P2 safety review and real ECHO model evidence)
+spec=tests/gameplay-03-feedback.spec.ts sha256=d446a7683560236199638b3a15af92204e31ae781a239255221921bc0b3c254c
+src hash: 11af218697007584f9ea336aacd26a35d1ac3d67d915b2dc3cf665999e714e75 *src/scenes/GameScene.ts ed3a1078824aa0deb3a81be65bb5dfaec9a98b54314ae0658f37356e5a24a14e *src/scenes/PauseScene.ts 3fd1258255796b345d2f81b548e605acbb699204ab1b56c8f9e3ed92103cc7ec *src/ui/menuKit.ts 7c1e9bd9bf6b79086286e5d1f5aab3b013a45ad12d10bf486e4ee40222302b71 *src/ui/feedback.ts 
+command=npx tsc --noEmit   (cwd=/d/tmp/ls-p3-accept, unfiltered, whole tree)
+started=2026-11-18T03:13:48Z
+--- stdout+stderr begin (0 bytes) ---
+--- stdout+stderr end ---
+stdout_is_empty=yes
+error_TS_lines=0
+exit_code=0

@@ -1,0 +1,16 @@
+{
+  "done": {
+    "hasEcho": true,
+    "alive": true,
+    "owner": "human",
+    "proposal": null,
+    "pending": null,
+    "queue": [],
+    "auditApplied": [
+      "local_81_1"
+    ],
+    "energy": 100,
+    "tick": 101
+  },
+  "pid": "local_81_1"
+}

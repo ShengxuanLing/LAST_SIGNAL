@@ -1,0 +1,5 @@
+workdir=/d/tmp/ls-p3-accept 2026-11-18T01:47:37Z
+
+> last-signal@0.1.0 typecheck
+> tsc --noEmit
+

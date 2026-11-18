@@ -1,0 +1,17 @@
+{
+  "got": true,
+  "state": {
+    "hasEcho": true,
+    "alive": true,
+    "owner": "human",
+    "proposal": {
+      "id": "local_87_1",
+      "kind": "scan"
+    },
+    "pending": null,
+    "queue": [],
+    "auditApplied": [],
+    "energy": 100,
+    "tick": 87
+  }
+}

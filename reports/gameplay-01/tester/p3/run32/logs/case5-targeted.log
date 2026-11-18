@@ -1,0 +1,5 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-03-feedback.spec.ts:602:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) live HUD >=10 CSS px at 800 AND 1280 (inverse-scale aware); echo page font floor
+  1 passed (10.6s)

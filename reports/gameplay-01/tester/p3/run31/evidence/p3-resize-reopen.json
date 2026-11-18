@@ -1,0 +1,82 @@
+{
+  "base": {
+    "uiObjects": 17,
+    "buttons": 5,
+    "labels": [
+      "LOW-RISK COOPERATION: OFF",
+      "CONFIRM (HUMAN)",
+      "REJECT",
+      "RECENT ACTIONS",
+      "BACK"
+    ]
+  },
+  "rows": [
+    {
+      "vp": "1280x720",
+      "uiObjects": 17,
+      "buttons": 5,
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ]
+    },
+    {
+      "vp": "800x600",
+      "uiObjects": 17,
+      "buttons": 5,
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ]
+    },
+    {
+      "vp": "1920x1080",
+      "uiObjects": 17,
+      "buttons": 5,
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ]
+    },
+    {
+      "vp": "1280x720",
+      "uiObjects": 17,
+      "buttons": 5,
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ]
+    }
+  ],
+  "reopened": {
+    "uiObjects": 17,
+    "buttons": 5,
+    "labels": [
+      "LOW-RISK COOPERATION: OFF",
+      "CONFIRM (HUMAN)",
+      "REJECT",
+      "RECENT ACTIONS",
+      "BACK"
+    ]
+  },
+  "status": {
+    "companionStatus": "OFF",
+    "hasLink": false,
+    "page": "local-coop"
+  },
+  "body": "ECHO LOCAL COOPERATION\nLOCAL ECHO · A HUMAN CONFIRMS\nReady to confirm · 100/100 HP · Following · Human owner\nScan relay\nSeen: relay in sight\nCost: 10 echo energy · range 12 tiles\nReady now\nA human must confirm\nExpect: reveal relay details\nOnly if still in sight and permitted\nLOW-RISK COOPERATION: OFF\nCONFIRM (HUMAN)\nREJECT\nRECENT ACTIONS\nBACK\nNo recent actions\nESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+  "pid": "local_85_1",
+  "note": "compact 800 legitimately uses the small token set, so its count may differ; equality is asserted only for the same viewport"
+}

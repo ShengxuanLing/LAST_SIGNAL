@@ -1,0 +1,6 @@
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-03-feedback.spec.ts:500:3 › GAMEPLAY-01 P3 · feedback surfaces › 4) RECENT ACTIONS: newest 8 of the stack, ESC/BACK round trip, pending and queue untouched
+[2/2] [chromium] › tests\gameplay-03-feedback.spec.ts:686:3 › GAMEPLAY-01 P3 · feedback surfaces › 7) LLM page footer + its real connection state, with a real screenshot
+  2 passed (17.2s)

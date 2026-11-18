@@ -1,0 +1,10 @@
+{
+  "tiny": [],
+  "scale": 1,
+  "sample": 14,
+  "body": "ECHO COMPANION\nINDEPENDENT ACTOR · OWN 12-TILE PERCEPTION · NEVER DRIVEN BY AN EXTERNAL AGENT\nSTATUS  HP 94/100 · FOLLOW\nMOVEMENT  FOLLOW · ASSIST SAFE\nAssist ready · enemy in sight\nDISABLE ECHO\nMODE: FOLLOW\nMODE: HOLD POSITION\nMODE: MOVE TO AIM\nCONFIRM ASSIST FIRE\nBACK\nLOCAL COOPERATION >\nScan 10 energy · 12 tiles · ready\nJam 25 energy · 6 tiles · ready\nLink: new fire on\nESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+  "pausedHud": {
+    "pauseActive": true,
+    "signalVisible": false
+  }
+}

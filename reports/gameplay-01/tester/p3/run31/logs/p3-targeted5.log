@@ -1,0 +1,5 @@
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-03-feedback.spec.ts:478:3 › GAMEPLAY-01 P3 · feedback surfaces › 3) pending: CONFIRM/REJECT are disabled, not focusable and not activatable by keyboard
+  1 passed (12.1s)

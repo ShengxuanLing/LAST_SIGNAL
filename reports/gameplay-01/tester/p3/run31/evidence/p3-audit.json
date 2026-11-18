@@ -1,0 +1,91 @@
+{
+  "numbered": 8,
+  "afterEsc": "local-coop",
+  "reopened": "local-audit",
+  "backPage": "local-coop",
+  "tiny": [],
+  "overlaps": [],
+  "body": "LOCAL AUDIT\nRecent actions · local and model details · as of opening\n#1 You · Scan relay · Queued\n  id local_fixture_2 · tick 202 · target 8.0,45.0 · room gen 1\n#2 You · Change relay route · Queued\n  id local_fixture_3 · tick 203 · target 8.0,45.0 · room gen 1\n#3 You · Scan relay · Queued\n  id local_fixture_4 · tick 204 · target 8.0,45.0 · room gen 1\n#4 You · Change relay route · Queued\n  id local_fixture_5 · tick 205 · target 8.0,45.0 · room gen 1\n#5 You · Scan relay · Queued\n  id local_fixture_6 · tick 206 · target 8.0,45.0 · room gen 1\n#6 You · Change relay route · Queued\n  id local_fixture_7 · tick 207 · target 8.0,45.0 · room gen 1\n#7 You · Scan relay · Queued\n  id local_fixture_8 · tick 208 · target 8.0,45.0 · room gen 1\n#8 You · Change relay route · Queued\n  id local_fixture_9 · tick 209 · target 8.0,45.0 · room gen 1\nBACK\nESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+  "before": {
+    "hasEcho": true,
+    "alive": true,
+    "owner": "human",
+    "proposal": null,
+    "pending": {
+      "id": "local_85_1",
+      "kind": "scan"
+    },
+    "queue": [
+      "signal-scan"
+    ],
+    "auditApplied": [],
+    "energy": 100,
+    "tick": 85
+  },
+  "after": {
+    "hasEcho": true,
+    "alive": true,
+    "owner": "human",
+    "proposal": null,
+    "pending": {
+      "id": "local_85_1",
+      "kind": "scan"
+    },
+    "queue": [
+      "signal-scan"
+    ],
+    "auditApplied": [],
+    "energy": 100,
+    "tick": 85
+  },
+  "window8": {
+    "newest": [
+      {
+        "tick": 202,
+        "pid": "local_fixture_2"
+      },
+      {
+        "tick": 203,
+        "pid": "local_fixture_3"
+      },
+      {
+        "tick": 204,
+        "pid": "local_fixture_4"
+      },
+      {
+        "tick": 205,
+        "pid": "local_fixture_5"
+      },
+      {
+        "tick": 206,
+        "pid": "local_fixture_6"
+      },
+      {
+        "tick": 207,
+        "pid": "local_fixture_7"
+      },
+      {
+        "tick": 208,
+        "pid": "local_fixture_8"
+      },
+      {
+        "tick": 209,
+        "pid": "local_fixture_9"
+      }
+    ],
+    "stackTicks": [
+      85,
+      200,
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209
+    ]
+  },
+  "fixture": "layout only: 10 injected audit entries exercise the 8-record window; behaviour assertions use real state"
+}

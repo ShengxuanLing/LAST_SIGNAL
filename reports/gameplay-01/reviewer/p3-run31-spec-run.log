@@ -1,0 +1,14 @@
+# reviewer independent run31 replay — workdir=D:/tmp/gp01-p3r commit=7007ce2 spec=3544ee6e1b196c85da9cd62b8b0abac00a54e0638bdcf481faa98615a91bd180 PORT=5494 2026-11-18T02:58:56Z
+# command: PORT=5494 LS_AI_EVIDENCE_DIR=<h> LS_SHOT_DIR=<h> npx playwright test tests/gameplay-03-feedback.spec.ts --workers=1 --reporter=line
+
+Running 7 tests using 1 worker
+
+[1/7] [chromium] › tests\gameplay-03-feedback.spec.ts:340:3 › GAMEPLAY-01 P3 · feedback surfaces › 1) six viewports × default state; pending at 800/1920; no Done state covered
+[2/7] [chromium] › tests\gameplay-03-feedback.spec.ts:399:3 › GAMEPLAY-01 P3 · feedback surfaces › 2) proposal -> Ready -> real CONFIRM -> WAITING/Queued + disabled -> real resume -> applied
+[3/7] [chromium] › tests\gameplay-03-feedback.spec.ts:478:3 › GAMEPLAY-01 P3 · feedback surfaces › 3) pending: CONFIRM/REJECT are disabled, not focusable and not activatable by keyboard
+[4/7] [chromium] › tests\gameplay-03-feedback.spec.ts:524:3 › GAMEPLAY-01 P3 · feedback surfaces › 4) RECENT ACTIONS: newest 8 of the stack, ESC/BACK round trip, pending and queue untouched
+[5/7] [chromium] › tests\gameplay-03-feedback.spec.ts:597:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) HUD sampled while LIVE inside the canvas frame; echo page font floor in CSS px
+[6/7] [chromium] › tests\gameplay-03-feedback.spec.ts:655:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize 800->1920->1280 and reopen rebuild exact object counts; no fake OFFLINE
+[7/7] [chromium] › tests\gameplay-03-feedback.spec.ts:710:3 › GAMEPLAY-01 P3 · feedback surfaces › 7) LLM page footer + its real connection state, with a real screenshot
+  7 passed (1.3m)
+PLAYWRIGHT_EXIT=0

@@ -1,0 +1,6 @@
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-03-feedback.spec.ts:571:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) HUD sampled while LIVE inside the canvas frame; echo page font floor in CSS px
+[2/2] [chromium] › tests\gameplay-03-feedback.spec.ts:629:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize 800->1920->1280 and reopen rebuild exact object counts; no fake OFFLINE
+  2 passed (24.0s)

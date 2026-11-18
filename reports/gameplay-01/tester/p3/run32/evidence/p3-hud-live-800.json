@@ -1,0 +1,380 @@
+{
+  "zoom": 0.8,
+  "canvasScale": 0.625,
+  "canvas": {
+    "w": 800,
+    "h": 450
+  },
+  "lines": 20,
+  "sizes": [
+    10,
+    10.625
+  ],
+  "scaleY": [
+    1.25
+  ],
+  "logical": [
+    16,
+    17
+  ],
+  "detail": [
+    {
+      "text": "EX-17 · VITALS",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10,
+      "bounds": {
+        "x": 2582.821196600052,
+        "y": -68.72534121122374,
+        "w": 187.5,
+        "h": 20
+      }
+    },
+    {
+      "text": "94 / 100",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 2845.3211926884974,
+        "y": -54.97534141611469,
+        "w": 93.75,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "XP 0/30",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10,
+      "bounds": {
+        "x": 2845.3211926884974,
+        "y": -31.22534177001726,
+        "w": 77.5,
+        "h": 20
+      }
+    },
+    {
+      "text": "CREDITS 0",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 2582.821196600052,
+        "y": -13.725342030787573,
+        "w": 106.25,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "LV 1",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 2582.821196600052,
+        "y": 8.7746576339363,
+        "w": 47.5,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "T+0:06",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10,
+      "bounds": {
+        "x": 2582.821196600052,
+        "y": 36.27465722415438,
+        "w": 66.25,
+        "h": 20
+      }
+    },
+    {
+      "text": "Pulse Rifle [△] · ∞",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 3909.0711735032537,
+        "y": -66.22534124847664,
+        "w": 223.75,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "R-00 · COMBAT · SURVEYED 1/6",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10,
+      "bounds": {
+        "x": 3824.0711735032537,
+        "y": -33.725341732764356,
+        "w": 308.75,
+        "h": 20
+      }
+    },
+    {
+      "text": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10,
+      "bounds": {
+        "x": 3077.1961850516527,
+        "y": 706.2746470913651,
+        "w": 561.25,
+        "h": 20
+      }
+    },
+    {
+      "text": "HOSTILES 2",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 4015.3211735032537,
+        "y": -1.2253422170520878,
+        "w": 117.5,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "SURVEY MAP · 1/6",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10,
+      "bounds": {
+        "x": 3937.8211735032537,
+        "y": 648.7746480971934,
+        "w": 195,
+        "h": 20
+      }
+    },
+    {
+      "text": "KILLS 0 · LOOT 0 · DMG 0 · 6s",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10,
+      "bounds": {
+        "x": 2582.821196600052,
+        "y": 786.2746460482838,
+        "w": 320,
+        "h": 20
+      }
+    },
+    {
+      "text": "CONTROL  HUMAN",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 3969.0711735032537,
+        "y": 33.77465726140727,
+        "w": 163.75,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "AI ACTION  —",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 3991.5711735032537,
+        "y": 68.77465673986666,
+        "w": 141.25,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "AI TARGET  —",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 3991.5711735032537,
+        "y": 103.77465621832602,
+        "w": 141.25,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT ",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 3560.3211735032537,
+        "y": 138.7746556967854,
+        "w": 572.5,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 3735.3211735032537,
+        "y": 173.77465517524473,
+        "w": 397.5,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "RELAY ACTIVE · EXIT OPEN",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 3851.5711735032537,
+        "y": 208.77465465370415,
+        "w": 281.25,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10.625,
+      "bounds": {
+        "x": 3722.8211735032537,
+        "y": 236.2746542439222,
+        "w": 410,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HU",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "css": 10,
+      "bounds": {
+        "x": 2582.821196600052,
+        "y": 748.7746466070773,
+        "w": 561.25,
+        "h": 20
+      }
+    }
+  ],
+  "pick": {
+    "txtSignal": {
+      "text": "RELAY ACTIVE · EXIT OPEN",
+      "visible": true,
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "bounds": {
+        "x": 3851.5711735032537,
+        "y": 208.77465465370415,
+        "w": 281.25,
+        "h": 21.25
+      },
+      "css": 10.625,
+      "inverseScaleProduct": 1,
+      "inFrame": true
+    },
+    "txtEcho": {
+      "text": "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      "visible": true,
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "bounds": {
+        "x": 3735.3211735032537,
+        "y": 173.77465517524473,
+        "w": 397.5,
+        "h": 21.25
+      },
+      "css": 10.625,
+      "inverseScaleProduct": 1,
+      "inFrame": true
+    },
+    "txtSignalDetail": {
+      "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      "visible": true,
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 0.625,
+      "bounds": {
+        "x": 3722.8211735032537,
+        "y": 236.2746542439222,
+        "w": 410,
+        "h": 21.25
+      },
+      "css": 10.625,
+      "inverseScaleProduct": 1,
+      "inFrame": true
+    }
+  },
+  "outsideAllTexts": [],
+  "note": "css = fontSize x scaleY x zoom x canvasScale; lockHud inverse scaling cancels zoom (G1-a)"
+}

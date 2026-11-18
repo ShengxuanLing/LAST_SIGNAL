@@ -1,0 +1,131 @@
+{
+  "queuedText": "ECHO LOCAL COOPERATION\nLOCAL ECHO · A HUMAN CONFIRMS\nQueued · 100/100 HP · Following · Human owner\nWaiting to resume\nQueued: Scan relay · runs after you resume\nConfirm and reject are paused\nLOW-RISK COOPERATION: OFF\nCONFIRM (HUMAN)\nREJECT\nRECENT ACTIONS\nBACK\nQueued · Scan relay · runs after you resume\nRecent actions: 1\nESC BACK · ↑↓ SELECT · ENTER ACTIVATE",
+  "buttons": [
+    {
+      "label": "LOW-RISK COOPERATION: OFF",
+      "enabled": true,
+      "disabled": false,
+      "focused": true,
+      "x": 640,
+      "y": 340,
+      "w": 440,
+      "h": 44
+    },
+    {
+      "label": "CONFIRM (HUMAN)",
+      "enabled": false,
+      "disabled": true,
+      "focused": false,
+      "x": 640,
+      "y": 396,
+      "w": 460,
+      "h": 50
+    },
+    {
+      "label": "REJECT",
+      "enabled": false,
+      "disabled": true,
+      "focused": false,
+      "x": 640,
+      "y": 452,
+      "w": 460,
+      "h": 50
+    },
+    {
+      "label": "RECENT ACTIONS",
+      "enabled": true,
+      "disabled": false,
+      "focused": false,
+      "x": 640,
+      "y": 508,
+      "w": 460,
+      "h": 50
+    },
+    {
+      "label": "BACK",
+      "enabled": true,
+      "disabled": false,
+      "focused": false,
+      "x": 640,
+      "y": 564,
+      "w": 300,
+      "h": 50
+    }
+  ],
+  "queued": {
+    "hasEcho": true,
+    "alive": true,
+    "owner": "human",
+    "proposal": null,
+    "pending": {
+      "id": "local_86_1",
+      "kind": "scan"
+    },
+    "queue": [
+      "signal-scan"
+    ],
+    "auditApplied": [],
+    "energy": 100,
+    "tick": 86
+  },
+  "afterSecond": {
+    "hasEcho": true,
+    "alive": true,
+    "owner": "human",
+    "proposal": null,
+    "pending": {
+      "id": "local_86_1",
+      "kind": "scan"
+    },
+    "queue": [
+      "signal-scan"
+    ],
+    "auditApplied": [],
+    "energy": 100,
+    "tick": 86
+  },
+  "settled": {
+    "LOW-RISK COOPERATION: OFF": {
+      "enabled": true,
+      "disabled": false
+    },
+    "CONFIRM (HUMAN)": {
+      "enabled": false,
+      "disabled": true
+    },
+    "REJECT": {
+      "enabled": false,
+      "disabled": true
+    },
+    "RECENT ACTIONS": {
+      "enabled": true,
+      "disabled": false
+    },
+    "BACK": {
+      "enabled": true,
+      "disabled": false
+    }
+  },
+  "afterSecondClick": {
+    "LOW-RISK COOPERATION: OFF": {
+      "enabled": true,
+      "disabled": false
+    },
+    "CONFIRM (HUMAN)": {
+      "enabled": false,
+      "disabled": true
+    },
+    "REJECT": {
+      "enabled": false,
+      "disabled": true
+    },
+    "RECENT ACTIONS": {
+      "enabled": true,
+      "disabled": false
+    },
+    "BACK": {
+      "enabled": true,
+      "disabled": false
+    }
+  }
+}

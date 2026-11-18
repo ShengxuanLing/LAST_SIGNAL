@@ -1,0 +1,154 @@
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-03-feedback.spec.ts:571:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) HUD sampled while LIVE inside the canvas frame; echo page font floor in CSS px
+  1) [chromium] › tests\gameplay-03-feedback.spec.ts:571:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) HUD sampled while LIVE inside the canvas frame; echo page font floor in CSS px 
+
+    Error: live HUD text is at least 10 CSS px
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -   1
+    + Received  + 102
+
+    - Array []
+    + Array [
+    +   Array [
+    +     "EX-17 · VITALS",
+    +     16,
+    +     8,
+    +   ],
+    +   Array [
+    +     "94 / 100",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "XP 0/30",
+    +     16,
+    +     8,
+    +   ],
+    +   Array [
+    +     "CREDITS 0",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "LV 1",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "T+0:06",
+    +     16,
+    +     8,
+    +   ],
+    +   Array [
+    +     "Pulse Rifle [△] · ∞",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "R-00 · COMBAT · SURVEYED 1/6",
+    +     16,
+    +     8,
+    +   ],
+    +   Array [
+    +     "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+    +     16,
+    +     8,
+    +   ],
+    +   Array [
+    +     "HOSTILES 2",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "SURVEY MAP · 1/6",
+    +     16,
+    +     8,
+    +   ],
+    +   Array [
+    +     "KILLS 0 · LOOT 0 · DMG 0 · 6s",
+    +     16,
+    +     8,
+    +   ],
+    +   Array [
+    +     "CONTROL  HUMAN",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "AI ACTION  —",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "AI TARGET  —",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT ",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "RELAY ACTIVE · EXIT OPEN",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "T SCAN · Y JAM · R TOGGLE · LINK ON",
+    +     17,
+    +     8.5,
+    +   ],
+    +   Array [
+    +     "ESC PAUSE · ANY MOVE / FIRE / F TAKES HU",
+    +     16,
+    +     8,
+    +   ],
+    + ]
+
+      591 |     });
+      592 |     expect(outsideCss.map((t) => t.t), 'every visible live HUD text intersects the camera worldView').toEqual([]);
+    > 593 |     expect(tinyHud, 'live HUD text is at least 10 CSS px').toEqual([]);
+          |                                                            ^
+      594 |     await shot3(page, 'p3-05-hud-live');
+      595 |
+      596 |     // The paused state hides the HUD: assert that, instead of reading an empty list.
+        at D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:593:60
+
+    Error Context: test-results\gameplay-03-feedback-GAMEP-64448-o-page-font-floor-in-CSS-px-chromium\error-context.md
+
+
+[2/2] [chromium] › tests\gameplay-03-feedback.spec.ts:615:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize 800->1920->1280 and reopen rebuild exact object counts; no fake OFFLINE
+  2) [chromium] › tests\gameplay-03-feedback.spec.ts:615:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize 800->1920->1280 and reopen rebuild exact object counts; no fake OFFLINE 
+
+    Error: companion status is the real scene-level source
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: "OFF"
+    Received array: ["CONNECTED", "FALLBACK:NO_MODEL", "READ_ONLY", null]
+
+      664 |     // LLM-page-only string, so this assertion is unconditional (no dead provenance).
+      665 |     expect(body, 'the local cooperation page never says OFFLINE').not.toMatch(/\bOFFLINE\b/);
+    > 666 |     expect(['CONNECTED', 'FALLBACK:NO_MODEL', 'READ_ONLY', null], 'companion status is the real scene-level source').toContain(status.companionStatus);
+          |                                                                                                                      ^
+      667 |     expect(reopened.labels, 'reopening restores the cooperation actions').toEqual(expect.arrayContaining(['CONFIRM (HUMAN)', 'REJECT', 'RECENT ACTIONS']));
+      668 |   });
+      669 |
+        at D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:666:118
+
+    Error Context: test-results\gameplay-03-feedback-GAMEP-c2a0b-ject-counts-no-fake-OFFLINE-chromium\error-context.md
+
+
+  2 failed
+    [chromium] › tests\gameplay-03-feedback.spec.ts:571:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) HUD sampled while LIVE inside the canvas frame; echo page font floor in CSS px 
+    [chromium] › tests\gameplay-03-feedback.spec.ts:615:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize 800->1920->1280 and reopen rebuild exact object counts; no fake OFFLINE 

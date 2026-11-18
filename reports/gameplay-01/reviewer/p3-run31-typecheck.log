@@ -1,0 +1,3 @@
+# reviewer typecheck — workdir=D:/tmp/gp01-p3r commit=7007ce2 spec=3544ee6e 2026-11-18T02:58:35Z
+# command: npx tsc --noEmit
+TSC_EXIT=0

@@ -1,0 +1,378 @@
+{
+  "zoom": 0.8,
+  "canvasScale": 1,
+  "canvas": {
+    "w": 1280,
+    "h": 720
+  },
+  "lines": 20,
+  "sizes": [
+    16,
+    17
+  ],
+  "scaleY": [
+    1.25
+  ],
+  "logical": [
+    16,
+    17
+  ],
+  "detail": [
+    {
+      "text": "EX-17 · VITALS",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 16,
+      "bounds": {
+        "x": 2585.5809401488655,
+        "y": -70.84189249360391,
+        "w": 187.5,
+        "h": 20
+      }
+    },
+    {
+      "text": "94 / 100",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 2848.0809362373107,
+        "y": -57.09189269849487,
+        "w": 93.75,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "XP 0/30",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 16,
+      "bounds": {
+        "x": 2848.0809362373107,
+        "y": -33.34189305239744,
+        "w": 77.5,
+        "h": 20
+      }
+    },
+    {
+      "text": "CREDITS 0",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 2585.5809401488655,
+        "y": -15.841893313167759,
+        "w": 106.25,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "LV 1",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 2585.5809401488655,
+        "y": 6.658106351556114,
+        "w": 47.5,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "T+0:07",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 16,
+      "bounds": {
+        "x": 2585.5809401488655,
+        "y": 34.158105941774195,
+        "w": 66.25,
+        "h": 20
+      }
+    },
+    {
+      "text": "Pulse Rifle [△] · ∞",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 3911.830917052066,
+        "y": -68.34189253085681,
+        "w": 223.75,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "R-00 · COMBAT · SURVEYED 1/6",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 16,
+      "bounds": {
+        "x": 3826.830917052066,
+        "y": -35.841893015144535,
+        "w": 308.75,
+        "h": 20
+      }
+    },
+    {
+      "text": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 16,
+      "bounds": {
+        "x": 3079.9559286004655,
+        "y": 704.1580958089849,
+        "w": 561.25,
+        "h": 20
+      }
+    },
+    {
+      "text": "HOSTILES 2",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 4018.080917052066,
+        "y": -3.341893499432274,
+        "w": 117.5,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "SURVEY MAP · 1/6",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 16,
+      "bounds": {
+        "x": 3940.580917052066,
+        "y": 646.6580968148132,
+        "w": 195,
+        "h": 20
+      }
+    },
+    {
+      "text": "KILLS 0 · LOOT 0 · DMG 0 · 7s",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 16,
+      "bounds": {
+        "x": 2585.5809401488655,
+        "y": 784.1580947659036,
+        "w": 320,
+        "h": 20
+      }
+    },
+    {
+      "text": "CONTROL  HUMAN",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 3971.830917052066,
+        "y": 31.6581059790271,
+        "w": 163.75,
+        "h": 22.5
+      }
+    },
+    {
+      "text": "AI ACTION  —",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 3994.330917052066,
+        "y": 66.65810545748647,
+        "w": 141.25,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "AI TARGET  —",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 3994.330917052066,
+        "y": 101.65810493594583,
+        "w": 141.25,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT ",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 3563.080917052066,
+        "y": 136.65810441440522,
+        "w": 572.5,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 3738.080917052066,
+        "y": 171.65810389286457,
+        "w": 397.5,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "RELAY ACTIVE · EXIT OPEN",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 3854.330917052066,
+        "y": 206.65810337132393,
+        "w": 281.25,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 17,
+      "bounds": {
+        "x": 3725.580917052066,
+        "y": 234.15810296154206,
+        "w": 410,
+        "h": 21.25
+      }
+    },
+    {
+      "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HU",
+      "logical": 16,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "css": 16,
+      "bounds": {
+        "x": 2585.5809401488655,
+        "y": 746.6580953246971,
+        "w": 561.25,
+        "h": 20
+      }
+    }
+  ],
+  "pick": {
+    "txtSignal": {
+      "text": "RELAY ACTIVE · EXIT OPEN",
+      "visible": true,
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "bounds": {
+        "x": 3854.330917052066,
+        "y": 206.65810337132393,
+        "w": 281.25,
+        "h": 21.25
+      },
+      "css": 17,
+      "inverseScaleProduct": 1,
+      "inFrame": true
+    },
+    "txtEcho": {
+      "text": "ECHO 94/100 · FOLLOW · ASSIST SAFE",
+      "visible": true,
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "bounds": {
+        "x": 3738.080917052066,
+        "y": 171.65810389286457,
+        "w": 397.5,
+        "h": 21.25
+      },
+      "css": 17,
+      "inverseScaleProduct": 1,
+      "inFrame": true
+    },
+    "txtSignalDetail": {
+      "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+      "visible": true,
+      "logical": 17,
+      "scaleX": 1.25,
+      "scaleY": 1.25,
+      "zoom": 0.8,
+      "canvasScale": 1,
+      "bounds": {
+        "x": 3725.580917052066,
+        "y": 234.15810296154206,
+        "w": 410,
+        "h": 21.25
+      },
+      "css": 17,
+      "inverseScaleProduct": 1,
+      "inFrame": true
+    }
+  }
+}

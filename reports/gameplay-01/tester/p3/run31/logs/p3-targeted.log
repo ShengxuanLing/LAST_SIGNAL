@@ -1,0 +1,60 @@
+
+Running 4 tests using 1 worker
+
+[1/4] [chromium] › tests\gameplay-03-feedback.spec.ts:392:3 › GAMEPLAY-01 P3 · feedback surfaces › 2) proposal -> Ready -> real CONFIRM -> WAITING/Queued + disabled -> real resume -> applied
+[2/4] [chromium] › tests\gameplay-03-feedback.spec.ts:471:3 › GAMEPLAY-01 P3 · feedback surfaces › 3) pending: CONFIRM/REJECT are disabled, not focusable and not activatable by keyboard
+[3/4] [chromium] › tests\gameplay-03-feedback.spec.ts:564:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) HUD sampled while LIVE inside the canvas frame; echo page font floor in CSS px
+  1) [chromium] › tests\gameplay-03-feedback.spec.ts:564:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) HUD sampled while LIVE inside the canvas frame; echo page font floor in CSS px 
+
+    Error: every live HUD text sits inside the canvas frame (CSS px)
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 12
+
+    - Array []
+    + Array [
+    +   "EX-17 · VITALS",
+    +   "94 / 100",
+    +   "XP 0/30",
+    +   "CREDITS 0",
+    +   "LV 1",
+    +   "T+0:06",
+    +   "Pulse Rifle [△] · ∞",
+    +   "R-00 · COMBAT · SURVEYED 1/6",
+    +   "KILLS 0 · LOOT 0 · DMG 0 · 6s",
+    +   "ESC PAUSE · ANY MOVE / FIRE / F TAKES HU",
+    + ]
+
+      583 |       pick: hud.pick, texts: hud.texts.slice(0, 40), outsideCss, tinyHud
+      584 |     });
+    > 585 |     expect(outsideCss.map((t) => t.t), 'every live HUD text sits inside the canvas frame (CSS px)').toEqual([]);
+          |                                                                                                     ^
+      586 |     expect(tinyHud, 'live HUD text is at least 10 CSS px').toEqual([]);
+      587 |     await shot3(page, 'p3-05-hud-live');
+      588 |
+        at D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:585:101
+
+    Error Context: test-results\gameplay-03-feedback-GAMEP-64448-o-page-font-floor-in-CSS-px-chromium\error-context.md
+
+
+[4/4] [chromium] › tests\gameplay-03-feedback.spec.ts:608:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize 800->1920->1280 and reopen rebuild exact object counts; no fake OFFLINE
+  2) [chromium] › tests\gameplay-03-feedback.spec.ts:608:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize 800->1920->1280 and reopen rebuild exact object counts; no fake OFFLINE 
+
+    Error: page.evaluate: TypeError: gs.scene.getScene is not a function
+        at eval (eval at evaluate (:370:30), <anonymous>:7:71)
+        at UtilityScript.evaluate (<anonymous>:372:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:370:30), <anonymous>:7:71)
+        at UtilityScript.evaluate (<anonymous>:372:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:639:31
+
+    Error Context: test-results\gameplay-03-feedback-GAMEP-c2a0b-ject-counts-no-fake-OFFLINE-chromium\error-context.md
+
+
+  2 failed
+    [chromium] › tests\gameplay-03-feedback.spec.ts:564:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) HUD sampled while LIVE inside the canvas frame; echo page font floor in CSS px 
+    [chromium] › tests\gameplay-03-feedback.spec.ts:608:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize 800->1920->1280 and reopen rebuild exact object counts; no fake OFFLINE 
+  2 passed (47.3s)

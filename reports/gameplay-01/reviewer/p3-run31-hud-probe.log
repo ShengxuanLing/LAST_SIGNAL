@@ -1,0 +1,54 @@
+{
+ "zoom": 0.8,
+ "canvas": {
+  "w": 800,
+  "h": 450
+ },
+ "canvasScale": 0.625,
+ "pick": {
+  "txtSignal": {
+   "text": "RELAY ACTIVE · EXIT OPEN",
+   "fontSize": 17,
+   "scaleX": 1.25,
+   "scaleY": 1.25,
+   "boundsH": 21.25,
+   "boundsW": 281.25,
+   "renderedGamePx_h": 17,
+   "cssIfCounterScaled": 10.625,
+   "cssIfNotCounterScaled": null
+  },
+  "txtEcho": {
+   "text": "ECHO OFF · PAUSE > ECHO COMPANION",
+   "fontSize": 17,
+   "scaleX": 1.25,
+   "scaleY": 1.25,
+   "boundsH": 21.25,
+   "boundsW": 386.25,
+   "renderedGamePx_h": 17,
+   "cssIfCounterScaled": 10.625,
+   "cssIfNotCounterScaled": null
+  },
+  "txtSignalDetail": {
+   "text": "T SCAN · Y JAM · R TOGGLE · LINK ON",
+   "fontSize": 17,
+   "scaleX": 1.25,
+   "scaleY": 1.25,
+   "boundsH": 21.25,
+   "boundsW": 410,
+   "renderedGamePx_h": 17,
+   "cssIfCounterScaled": 10.625,
+   "cssIfNotCounterScaled": null
+  },
+  "txtVitals": {
+   "text": "EX-17 · VITALS",
+   "fontSize": 16,
+   "scaleX": 1.25,
+   "scaleY": 1.25,
+   "boundsH": 20,
+   "boundsW": 187.5,
+   "renderedGamePx_h": 16,
+   "cssIfCounterScaled": 10,
+   "cssIfNotCounterScaled": null
+  }
+ }
+}

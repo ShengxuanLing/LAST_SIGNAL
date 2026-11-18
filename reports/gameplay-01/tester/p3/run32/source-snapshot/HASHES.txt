@@ -1,0 +1,19 @@
+run=run32 (G1-a HUD measurement fix + G2 exit-code record; run31 superseded for the HUD number only)
+spec=tests/gameplay-03-feedback.spec.ts
+before_run31=3544ee6e1b196c85da9cd62b8b0abac00a54e0638bdcf481faa98615a91bd180
+before_run32=3544ee6e1b196c85da9cd62b8b0abac00a54e0638bdcf481faa98615a91bd180
+after=d446a7683560236199638b3a15af92204e31ae781a239255221921bc0b3c254c
+archived=d446a7683560236199638b3a15af92204e31ae781a239255221921bc0b3c254c
+spec_src=d446a7683560236199638b3a15af92204e31ae781a239255221921bc0b3c254c
+helpers=none (spec is self-contained)
+product_src=UNCHANGED (archived under source-snapshot/src):
+  11af218697007584f9ea336aacd26a35d1ac3d67d915b2dc3cf665999e714e75 *src/scenes/GameScene.ts
+  ed3a1078824aa0deb3a81be65bb5dfaec9a98b54314ae0658f37356e5a24a14e *src/scenes/PauseScene.ts
+  3fd1258255796b345d2f81b548e605acbb699204ab1b56c8f9e3ed92103cc7ec *src/ui/menuKit.ts
+  7c1e9bd9bf6b79086286e5d1f5aab3b013a45ad12d10bf486e4ee40222302b71 *src/ui/feedback.ts
+  717e87e604f3b96bd0b3621f21e7bce7b4a5da8ec226b305875f6aceea503592 *src/ui/feedback.test.ts
+tree=D:/tmp/ls-p3-accept HEAD=0083e2077960ef2caf76f731145ae5ccd3407a2a port=5492
+result=7 passed (1.3m), skip 0, exit_code=0 (see logs/p3-ui.log last line EXIT=0)
+typecheck_exit_code=0, 0 error TS, stdout 0 bytes (see logs/typecheck.log)
+hud_800=g1-a corrected: zoom=0.8 scaleY=1.25 canvasScale=0.625 -> 16px=10.0CSS, 17px=10.625CSS, 20 lines
+run30/run31=retained untouched; run31 p3-hud-live-800.json tinyCss is a superseded measurement (see run31/MEASUREMENT_SUPERSEDED.md)
