@@ -8,6 +8,7 @@ import { RNG } from '../core/random';
 import { Player } from '../entities/Player';
 import { Enemy } from '../entities/Enemy';
 import { Boss } from '../entities/Boss';
+import { circleContact, wallContact } from './projectileCollision';
 import { RoomDepth } from '../world/roomdepth';
 import { WorldRenderer } from '../world/WorldRenderer';
 import type { RunCheckpoint, SaveData } from '../types';
@@ -44,17 +45,14 @@ export class World {
 
   private roomDepth = new RoomDepth();
   private callbacks: WorldCallbacks;
-  private rng: RNG;
+  readonly rng: RNG;
   private enemyIdCounter = 1;
   private projIdCounter = 1;
-  private roomClearedHandlers: Array<(r: RoomInfo) => void> = [];
   private currentRoomId = -1;
   private enteredRooms = new Set<number>();
   public renderer: WorldRenderer | null = null;
   private _minX = 0;
   private _minY = 0;
-  private _maxX = 0;
-  private _maxY = 0;
   private portal: { spr: Phaser.GameObjects.Sprite; targetRoom: number; wx: number; wy: number } | null = null;
 
   constructor(scene: Phaser.Scene, map: MapData, save: SaveData, callbacks: WorldCallbacks) {
@@ -63,7 +61,8 @@ export class World {
     this.callbacks = callbacks;
     this.rng = new RNG(map.seed * 7919 + 1);
     this.roomDepth.build(map);
-    this._computeBounds();
+    this._minX = map.tiles[0][0].x;
+    this._minY = map.tiles[0][0].y;
     // Build the renderer first: Player/Enemy/Boss project() in their constructors and
     // need the renderer's offset to place their sprites on the first frame.
     this.renderer = new WorldRenderer(scene, map);
@@ -90,7 +89,7 @@ export class World {
 
   /** Number of rooms whose survey ink has been drawn (visual observation state). */
   surveyedRooms(): number {
-    return this.map.rooms.filter((r) => this.renderer?.isObserved(r.id)).length;
+    return this.renderer?.surveyedRooms ?? 0;
   }
 
   id(): number { return this.enemyIdCounter++; }
@@ -108,9 +107,10 @@ export class World {
 
   /** Project a world-grid coordinate to screen space using the renderer's map offset. */
   worldToScreen(x: number, y: number): Vec2 {
-    const off = this.renderer ? { x: this.renderer._offX, y: this.renderer._offY } : { x: 0, y: 0 };
-    const iso = isoToScreen(x, y);
-    return { x: iso.x + off.x, y: iso.y + off.y };
+    const point = isoToScreen(x, y);
+    point.x += this.renderer?._offX ?? 0;
+    point.y += this.renderer?._offY ?? 0;
+    return point;
   }
 
   /** Inverse of worldToScreen: a display-space point back to a world-grid coordinate. */
@@ -122,54 +122,36 @@ export class World {
 
   // ---------- Collision ----------
 
-  private _computeBounds(): void {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    const tiles = this.map.tiles;
-    for (let gy = 0; gy < tiles.length; gy++) {
-      for (let gx = 0; gx < tiles[gy].length; gx++) {
-        const t = tiles[gy][gx];
-        minX = Math.min(minX, t.x); minY = Math.min(minY, t.y);
-        maxX = Math.max(maxX, t.x); maxY = Math.max(maxY, t.y);
-      }
-    }
-    this._minX = minX; this._minY = minY; this._maxX = maxX; this._maxY = maxY;
-  }
-
   tileAt(worldX: number, worldY: number): Tile {
     // tiles[] is indexed [gy][gx] where the tile at that cell has world coord
     // (minX + gx, minY + gy). So map the absolute world coord back to an index by
     // subtracting the offset first.
     const gx = Math.floor(worldX) - this._minX;
     const gy = Math.floor(worldY) - this._minY;
-    if (gy < 0 || gy >= this.map.tiles.length) return { x: gx, y: gy, type: 'wall', height: 0 };
-    const row = this.map.tiles[gy];
-    if (!row) return { x: gx, y: gy, type: 'wall', height: 0 };
-    if (gx < 0 || gx >= row.length) return { x: gx, y: gy, type: 'wall', height: 0 };
-    return row[gx];
+    return this.map.tiles[gy]?.[gx] ?? { x: Math.floor(worldX), y: Math.floor(worldY), type: 'wall', height: 0 };
   }
 
   isWalkable(worldX: number, worldY: number, radius = 0.5): boolean {
-    // sample the four corners of the entity's bounding circle-ish square
-    const samples = [
-      { x: worldX - radius, y: worldY - radius },
-      { x: worldX + radius, y: worldY - radius },
-      { x: worldX - radius, y: worldY + radius },
-      { x: worldX + radius, y: worldY + radius }
-    ];
-    for (const s of samples) {
-      const t = this.tileAt(s.x, s.y);
-      if (t.type === 'wall' || t.type === 'lava' || t.type === 'water') return false;
-    }
-    return true;
+    const left = Math.floor(worldX - radius) - this._minX;
+    const right = Math.floor(worldX + radius) - this._minX;
+    const top = Math.floor(worldY - radius) - this._minY;
+    const bottom = Math.floor(worldY + radius) - this._minY;
+    return this.canEnterCell(left, top) && this.canEnterCell(right, top) &&
+      this.canEnterCell(left, bottom) && this.canEnterCell(right, bottom);
+  }
+
+  private canEnterCell(x: number, y: number): boolean {
+    const type = this.map.tiles[y]?.[x]?.type;
+    return type === 'floor' || type === 'spawn' || type === 'debris';
   }
 
   // ---------- Room tracking ----------
 
-  currentRoom(): RoomInfo | null {
+  currentRoom(): Room | null {
     const px = this.player.x, py = this.player.y;
     for (const r of this.map.rooms) {
       if (px >= r.gx && px < r.gx + r.w && py >= r.gy && py < r.gy + r.h) {
-        return { id: r.id, kind: r.kind, gx: r.gx, gy: r.gy, w: r.w, h: r.h };
+        return r;
       }
     }
     return null;
@@ -183,9 +165,8 @@ export class World {
       this.onEnterRoom(room);
     }
     // clear when all enemies in room dead
-    const inRoom = this.enemies.filter((e) => e.data.spawnRoom === room.id && e.alive);
     const r = this.map.rooms[room.id];
-    if (r.spawned && inRoom.length === 0 && !r.cleared) {
+    if (r.spawned && !r.cleared && this.boss?.spawnRoom !== room.id && !this.enemies.some((e) => e.data.spawnRoom === room.id && e.alive)) {
       r.cleared = true;
       this.callbacks.onRoomCleared(room);
     }
@@ -200,8 +181,10 @@ export class World {
       this.renderer.observeRoom(room.id, p.x, p.y);
     }
     if (!r.spawned) {
-      if (r.kind === 'boss') this.spawnBoss(r);
-      else this.spawnForRoom(r);
+      if (r.kind === 'boss') {
+        this.spawnBoss(r);
+        r.spawned = true;
+      } else this.spawnForRoom(r);
       if (r.kind === 'resource' || r.kind === 'shop') this.spawnResourceLoot(r);
       this.callbacks.onRoomEntered(room);
     }
@@ -229,20 +212,7 @@ export class World {
     // target room. The old code searched around the midpoint between room centres
     // with `isWalkable(..., 8)`, which requires a 16x16 open square and therefore
     // almost never matches; the portal then stayed at a wall/void midpoint.
-    let best = {
-      x: r.gx + Math.floor(r.w / 2),
-      y: r.gy + Math.floor(r.h / 2)
-    };
-    let bestD = Infinity;
-    for (const row of this.map.tiles) {
-      for (const tile of row) {
-        if (tile.x < r.gx || tile.x >= r.gx + r.w) continue;
-        if (tile.y < r.gy || tile.y >= r.gy + r.h) continue;
-        if (!this.isWalkable(tile.x, tile.y, 0.5)) continue;
-        const dd = (tile.x - targetCenter.x) ** 2 + (tile.y - targetCenter.y) ** 2;
-        if (dd < bestD) { bestD = dd; best = { x: tile.x, y: tile.y }; }
-      }
-    }
+    const best = this.findWalkableInRoom(r, targetCenter);
 
     if (this.portal) { this.portal.spr.destroy(); this.portal = null; }
     // Display at the visual centre of the chosen cell; interaction still uses (best.x, best.y).
@@ -290,17 +260,19 @@ export class World {
    * placePortal); integer grid coords are returned so Player/Boss collision
    * checks sample the same tiles we validated here.
    */
-  private findWalkableInRoom(r: Room): Vec2 {
-    const cx = r.gx + r.w / 2, cy = r.gy + r.h / 2;
-    let best: Vec2 = { x: r.gx + Math.floor(r.w / 2), y: r.gy + Math.floor(r.h / 2) };
-    let bestD = Infinity;
-    for (const row of this.map.tiles) {
-      for (const tile of row) {
-        if (tile.x < r.gx || tile.x >= r.gx + r.w) continue;
-        if (tile.y < r.gy || tile.y >= r.gy + r.h) continue;
-        if (!this.isWalkable(tile.x, tile.y, 0.5)) continue;
-        const dd = (tile.x - cx) ** 2 + (tile.y - cy) ** 2;
-        if (dd < bestD) { bestD = dd; best = { x: tile.x, y: tile.y }; }
+  private findWalkableInRoom(r: Room, target?: Vec2, avoidPlayer = false): Vec2 {
+    const center = { x: r.gx + Math.floor(r.w / 2), y: r.gy + Math.floor(r.h / 2) };
+    const tx = target?.x ?? r.gx + r.w / 2;
+    const ty = target?.y ?? r.gy + r.h / 2;
+    let best = center;
+    let bestDistance = Infinity;
+    for (let y = r.gy; y < r.gy + r.h; y++) {
+      for (let x = r.gx; x < r.gx + r.w; x++) {
+        const distance = (x - tx) ** 2 + (y - ty) ** 2;
+        if (distance >= bestDistance || !this.isWalkable(x, y)) continue;
+        if (avoidPlayer && (x - this.player.x) ** 2 + (y - this.player.y) ** 2 < 9) continue;
+        best = { x, y };
+        bestDistance = distance;
       }
     }
     return best;
@@ -309,20 +281,7 @@ export class World {
   /** Boss spawn near the room centre, but never on top of the player. */
   private findBossSpawnInRoom(r: Room): Vec2 {
     const center = this.findWalkableInRoom(r);
-    const px = this.player.wx, py = this.player.wy;
-    let best = center;
-    let bestCenterD = Infinity;
-    for (const row of this.map.tiles) {
-      for (const tile of row) {
-        if (tile.x < r.gx || tile.x >= r.gx + r.w) continue;
-        if (tile.y < r.gy || tile.y >= r.gy + r.h) continue;
-        if (!this.isWalkable(tile.x, tile.y, 0.5)) continue;
-        if (Math.hypot(tile.x - px, tile.y - py) < 3) continue;
-        const centerD = (tile.x - center.x) ** 2 + (tile.y - center.y) ** 2;
-        if (centerD < bestCenterD) { bestCenterD = centerD; best = { x: tile.x, y: tile.y }; }
-      }
-    }
-    return best;
+    return this.findWalkableInRoom(r, center, true);
   }
 
   tryInteract(player: Player): void {
@@ -345,10 +304,10 @@ export class World {
     const depth = this.roomDepth.of(r.id);
     const count = r.kind === 'elite' ? 4 + depth : r.kind === 'shop' ? 1 : 2 + depth;
     r.spawned = true;
-    // spawn away from player within room
+    const rowSpacing = (r.h - 6) / Math.max(1, Math.ceil(count / 3) - 1);
     for (let i = 0; i < count; i++) {
       const ex = r.gx + 3 + (i % 3) * (r.w - 6) / 3;
-      const ey = r.gy + 3 + Math.floor(i / 3) * (r.h - 6);
+      const ey = r.gy + 3 + Math.floor(i / 3) * rowSpacing;
       const kind = this.pickEnemyForRoom(r, depth);
       this.spawnEnemy(kind, ex, ey, r.id, depth);
     }
@@ -368,7 +327,7 @@ export class World {
   private spawnResourceLoot(r: Room): void {
     const n = r.kind === 'shop' ? 3 : 2 + (this.roomDepth.of(r.id) % 3);
     for (let i = 0; i < n; i++) {
-      const x = r.gx + 2 + (i + 1) * 2;
+      const x = r.gx + 2 + (i + 1) * (r.w - 4) / (n + 1);
       const y = r.gy + 2 + (i % 2) * 2;
       const kind = this.rng.int(0, 1) === 0 ? 'currency' : 'health';
       this.spawnLoot(x, y, kind, kind, kind === 'currency' ? 10 : 0);
@@ -526,23 +485,14 @@ export class World {
     this.player.updateView(dt);
     this.updateFx(dt);
     this.updateCamera(dt);
-    if (this.renderer) {
-      this.renderer.update(dt);
-      this.renderer.updateLight(this.player.wx, this.player.wy);
-    }
+    this.renderer?.update(dt);
     this.shakeAmount = Math.max(0, this.shakeAmount - dt * 10);
   }
 
-  /** Shortest distance from point P to segment AB; used for swept projectile hits. */
-  private segmentPointDistance(ax: number, ay: number, bx: number, by: number, px: number, py: number): number {
-    const dx = bx - ax, dy = by - ay;
-    const l2 = dx * dx + dy * dy;
-    if (l2 <= 1e-9) return Math.hypot(px - ax, py - ay);
-    let t = ((px - ax) * dx + (py - ay) * dy) / l2;
-    t = Math.max(0, Math.min(1, t));
-    const cx = ax + t * dx, cy = ay + t * dy;
-    return Math.hypot(px - cx, py - cy);
-  }
+  private readonly projectileWall = (x: number, y: number): boolean => {
+    const tile = this.map.tiles[y - this._minY]?.[x - this._minX];
+    return !tile || tile.type === 'wall';
+  };
 
   /** Remove a projectile's display sprite exactly once (reset()/other paths may have done it already). */
   private destroyProjectileSprite(p: { spr: Phaser.GameObjects.Sprite; data: ProjectileData }): void {
@@ -550,70 +500,80 @@ export class World {
   }
 
   private updateProjectiles(dt: number): void {
-    const remaining: Array<{ spr: Phaser.GameObjects.Sprite; data: ProjectileData }> = [];
-    for (const p of this.projectiles) {
-      const prevX = p.data.pos.x;
-      const prevY = p.data.pos.y;
-      p.data.pos.x += p.data.vel.x * dt;
-      p.data.pos.y += p.data.vel.y * dt;
-      p.data.lifetime -= dt;
-      const s = this.worldToScreen(p.data.pos.x, p.data.pos.y);
-      p.spr.setPosition(s.x, s.y);
-      const t = this.tileAt(p.data.pos.x, p.data.pos.y);
-      const hitWall = t.type === 'wall';
-      const expired = p.data.lifetime <= 0 || hitWall ||
-        p.data.pos.x < -40 || p.data.pos.x > this.map.width + 40 ||
-        p.data.pos.y < -40 || p.data.pos.y > this.map.height + 40;
-      if (expired) {
-        if (hitWall) this.vfx.impact(s.x, s.y - BOLT_HEIGHT, p.data.side === 'enemy' ? INK.hostile : INK.known, false, 3);
-        // lifetime / hitWall / out-of-bounds: the entry leaves the array, so the sprite must go too.
-        this.destroyProjectileSprite(p);
+    let kept = 0;
+    for (const projectile of this.projectiles) {
+      const { data, spr } = projectile;
+      if (data.lifetime <= 0) {
+        this.destroyProjectileSprite(projectile);
         continue;
       }
-      // Swept collision: a fast bullet can cross a small hitbox between frames.
-      const hit = (tx: number, ty: number, targetRadius: number): boolean =>
-        this.segmentPointDistance(prevX, prevY, p.data.pos.x, p.data.pos.y, tx, ty)
-          <= targetRadius + p.data.radius;
-      // collisions
-      let alive = true;
-      if (p.data.side === 'player') {
-        for (const e of this.enemies) {
-          if (e._hp <= 0 || p.data.hitSet.has(e._id)) continue;
-          if (hit(e.x, e.y, e.getRadius())) {
-            const dmg = p.data.damage;
-            e.hit(dmg, p.data.pos);
-            this.vfx.impact(s.x, s.y - BOLT_HEIGHT, INK.known, p.data.crit, p.data.crit ? 6 : 4);
-            this.addDamageNumber(e.x, e.y, dmg, p.data.crit, e._id, e.headPx());
-            this.callbacks.onStats({ enemies: 0, items: 0, dmg: dmg });
-            if (e._hp <= 0) this.killEnemy(e);
-            if (p.data.pierce > 0) { p.data.pierce--; p.data.hitSet.add(e._id); }
-            else { alive = false; break; }
+      const travel = Math.min(dt, data.lifetime);
+      const dx = data.vel.x * travel, dy = data.vel.y * travel;
+      const { x, y } = data.pos;
+      const wall = wallContact(x, y, dx, dy, this.projectileWall);
+      let stop = wall;
+      if (data.side === 'player') {
+        stop = Math.min(wall, this.hitTargets(data, dx, dy, wall));
+      } else if (this.player.alive) {
+        const hit = circleContact(x, y, dx, dy, this.player.x, this.player.y,
+          this.player.getRadius() + data.radius);
+        if (hit < wall) {
+          stop = hit;
+          const hx = x + dx * hit, hy = y + dy * hit;
+          if (this.player.hurt(data.damage, hx, hy)) {
+            const s = this.worldToScreen(hx, hy);
+            this.vfx.impact(s.x, s.y - BOLT_HEIGHT, INK.hostile, false, 5);
           }
-        }
-        if (this.boss && this.boss._hp > 0 && !p.data.hitSet.has(this.boss._id)) {
-          if (hit(this.boss.x, this.boss.y, this.boss.getRadius() + 1)) {
-            const dmg = p.data.damage;
-            this.boss.hit(dmg, p.data.pos);
-            this.vfx.impact(s.x, s.y - BOLT_HEIGHT, INK.known, p.data.crit, p.data.crit ? 6 : 4);
-            this.addDamageNumber(this.boss.x, this.boss.y, dmg, p.data.crit, this.boss._id, 64);
-            this.callbacks.onStats({ enemies: 0, items: 0, dmg: dmg });
-            if (this.boss._hp <= 0) this.killBoss();
-            if (p.data.pierce > 0) { p.data.pierce--; p.data.hitSet.add(this.boss._id); }
-            else { alive = false; }
-          }
-        }
-      } else {
-        if (this.player.alive && hit(this.player.x, this.player.y, this.player.getRadius())) {
-          if (this.player.hurt(p.data.damage, p.data.pos.x, p.data.pos.y)) this.vfx.impact(s.x, s.y - BOLT_HEIGHT, INK.hostile, false, 5);
-          alive = false;
         }
       }
-      // Anything that is no longer alive (hit an enemy / boss / player, without pierce)
-      // also has to release its sprite instead of becoming a ghost on screen.
-      if (alive) remaining.push(p);
-      else this.destroyProjectileSprite(p);
+      const t = Math.min(1, stop);
+      data.pos.x = x + dx * t;
+      data.pos.y = y + dy * t;
+      const s = this.worldToScreen(data.pos.x, data.pos.y);
+      if (stop === wall && wall <= 1) {
+        this.vfx.impact(s.x, s.y - BOLT_HEIGHT, data.side === 'enemy' ? INK.hostile : INK.known, false, 3);
+      }
+      data.lifetime -= dt;
+      if (stop <= 1 || data.lifetime <= 0) this.destroyProjectileSprite(projectile);
+      else {
+        spr.setPosition(s.x, s.y);
+        this.projectiles[kept++] = projectile;
+      }
     }
-    this.projectiles = remaining;
+    this.projectiles.length = kept;
+  }
+
+  private hitTargets(shot: ProjectileData, dx: number, dy: number, wall: number): number {
+    const hits: Array<{ target: Enemy | Boss; time: number }> = [];
+    const collect = (target: Enemy | Boss, radius: number) => {
+      if (!target.alive || shot.hitSet.has(target._id)) return;
+      const time = circleContact(shot.pos.x, shot.pos.y, dx, dy, target.x, target.y, radius + shot.radius);
+      if (time < wall) hits.push({ target, time });
+    };
+    for (const enemy of this.enemies) collect(enemy, enemy.getRadius());
+    if (this.boss) collect(this.boss, this.boss.getRadius() + 1);
+    if (hits.length > 1) hits.sort((a, b) => a.time - b.time);
+
+    for (const { target, time } of hits) {
+      const point = { x: shot.pos.x + dx * time, y: shot.pos.y + dy * time };
+      const hp = target._hp;
+      target.hit(shot.damage, point);
+      const damage = hp - Math.max(0, target._hp);
+      if (damage > 0) {
+        const s = this.worldToScreen(point.x, point.y);
+        this.vfx.impact(s.x, s.y - BOLT_HEIGHT, INK.known, shot.crit, shot.crit ? 6 : 4);
+        this.addDamageNumber(target.x, target.y, damage, shot.crit, target._id, target instanceof Enemy ? target.headPx() : 64);
+        this.callbacks.onStats({ enemies: 0, items: 0, dmg: damage });
+        if (!target.alive) {
+          if (target instanceof Boss) this.killBoss();
+          else this.killEnemy(target);
+        }
+      }
+      if (shot.pierce <= 0) return time;
+      shot.pierce--;
+      shot.hitSet.add(target._id);
+    }
+    return Infinity;
   }
 
   private updateLoot(dt: number): void {
@@ -657,9 +617,8 @@ export class World {
     // Bolts (player pulse / hostile) and hostile telegraphs, read from live state.
     const bolts: BoltView[] = [];
     for (const p of this.projectiles) {
-      const a = this.worldToScreen(p.data.pos.x, p.data.pos.y);
-      const b = this.worldToScreen(p.data.pos.x + p.data.vel.x * 0.01, p.data.pos.y + p.data.vel.y * 0.01);
-      bolts.push({ x: a.x, y: a.y, vx: b.x - a.x, vy: b.y - a.y, enemy: p.data.side === 'enemy', kind: (p.spr as any).__kind ?? 'pulse' });
+      const velocity = isoToScreen(p.data.vel.x * 0.01, p.data.vel.y * 0.01);
+      bolts.push({ x: p.spr.x, y: p.spr.y, vx: velocity.x, vy: velocity.y, enemy: p.data.side === 'enemy', kind: (p.spr as any).__kind ?? 'pulse' });
     }
     const tele: TelegraphView[] = [];
     const ps = this.player.sprite;
@@ -722,7 +681,7 @@ export class World {
     this.callbacks.onStats({ enemies: 1, items: 0, dmg: 0 });
     this.player.addXp(200);
     const bx = this.player.x, by = this.player.y;
-    for (let i = 0; i < 12; i++) this.spawnLoot(bx + (Math.random() - 0.5) * 120, by + (Math.random() - 0.5) * 120, 'currency', 'currency', 10);
+    for (let i = 0; i < 12; i++) this.spawnLoot(bx + this.rng.range(-60, 60), by + this.rng.range(-60, 60), 'currency', 'currency', 10);
     audio.bossroar();
     this.callbacks.onBossWin();
   }
@@ -752,13 +711,18 @@ export class World {
     this.callbacks.onLevelUp(level);
   }
 
+  safeCheckpointRoom(room = this.currentRoom()): Room | null {
+    if (!room?.cleared || !this.player.alive || this.won || this.boss ||
+        this.enemies.some(enemy => enemy.alive) ||
+        this.map.rooms.some(entry => entry.spawned && !entry.cleared)) return null;
+    return room;
+  }
+
   captureCheckpoint(id: string, seed: number, stats: RunCheckpoint['stats']): RunCheckpoint | null {
-    const room = this.currentRoom();
-    if (!room || !this.map.rooms[room.id].cleared || !this.player.alive ||
-        this.won || this.boss || this.enemies.some((enemy) => enemy.alive) ||
-        this.map.rooms.some((entry) => entry.spawned && !entry.cleared)) return null;
+    const room = this.safeCheckpointRoom();
+    if (!room) return null;
     return {
-      id, seed, stats, roomId: room.id,
+      id, seed, mapVersion: this.map.mapVersion, stats, roomId: room.id,
       position: { x: this.player.x, y: this.player.y },
       clearedRooms: this.map.rooms.filter((entry) => entry.cleared).map((entry) => entry.id),
       portalTarget: this.currentRoomId === room.id ? this.portal?.targetRoom ?? null : null,

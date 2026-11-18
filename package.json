@@ -7,11 +7,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:economy": "vite build --config vite.economy.config.ts --outDir dist-economy",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "playwright": "playwright test"
+    "playwright": "playwright test",
+    "test:preview": "playwright test -c playwright.preview.config.ts"
   },
   "dependencies": {
     "phaser": "^3.90.0"

@@ -39,7 +39,7 @@ docs: 补充 README 操作表
 ```bash
 npm ci               # 用 package-lock.json 安装锁定版本依赖
 npm run typecheck    # tsc --noEmit 类型检查
-npm test             # Vitest 单测（src/core/runtime.test.ts，15 个用例）
+npm test             # Vitest 单测
 npm run test:watch   # Vitest 监听模式
 npm run build        # 生产构建（输出 dist/）
 npm run playwright   # Playwright 端到端回归
@@ -47,24 +47,9 @@ npm run playwright   # Playwright 端到端回归
 
 > 请从仓库根目录执行以上命令。`tests/runtime-bugs.spec.ts` 会读取项目源码做静态断言；如从其他目录运行 Playwright，请设置 `LAST_SIGNAL_ROOT` 指向仓库根目录。
 
-### 双 Vite dev server（运行 e2e 前必须）
-部分 Playwright 用例对端口有硬约束，运行 `npm run playwright` 前**必须同时启动两个 Vite dev server**：
+### 浏览器回归
 
-- `tests/audit.spec.ts`、`tests/gameplay.spec.ts`、`tests/checkpoint.spec.ts`、`tests/runtime-bugs.spec.ts` 走 `http://localhost:5173/`（默认 `PORT=5173`）。`tests/checkpoint.spec.ts` 为局内检查点续局 / 永久天赋隔离的端到端回归，务必随其余 5173 用例一起运行。
-- `tests/canvas.spec.ts` 硬编码 `http://localhost:5199/`。
-
-```bash
-# 终端 1
-npm run dev                  # 占用 5173（vite.config.ts server.port 5173）
-
-# 终端 2
-npm run dev -- --port 5199   # Vite CLI 覆盖端口为 5199
-
-# 终端 3：把截图产物指向仓库外目录，避免污染仓库
-LS_SHOT_DIR=</path/outside/repo> npm run playwright
-```
-
-> `PORT` 环境变量用于覆盖 `playwright.config.ts` 的默认 `baseURL`（默认 5173），需要时设置即可；但 `canvas.spec.ts` 的 `5199` 是源码硬编码，无法用 `PORT` 改变。
+首次运行前执行 `npx playwright install chromium`。随后执行 `npm run playwright`，Playwright 会启动并在结束时关闭 Vite。本地已有同端口的服务时会复用它。默认端口为 5173，可通过 `PORT` 更改。设置 `LS_SHOT_DIR` 可指定截图目录。
 
 ## 3. 不要提交的内容
 

@@ -8,6 +8,7 @@ const WHALE_FOOT_Y = 0.99;
 export class WhaleCharacterEffects {
   private wakeTime = 0;
   private stride = 0;
+  private wasDashing = false;
   private readonly shadow: Phaser.GameObjects.Ellipse;
 
   constructor(private readonly sprite: Phaser.GameObjects.Sprite) {
@@ -24,7 +25,8 @@ export class WhaleCharacterEffects {
     const moving = Math.hypot(dx, dy) > 0.01;
     this.stride = moving ? this.stride + dt * 18 : 0;
     this.sprite.setOrigin(this.sprite.originX, WHALE_FOOT_Y + Math.sin(this.stride) * 0.02);
-    this.wakeTime = Math.max(0, this.wakeTime - dt);
+    this.wakeTime = dashing && !this.wasDashing ? 0 : Math.max(0, this.wakeTime - dt);
+    this.wasDashing = dashing;
     if (!moving) return;
     this.face(dx, dy);
     if (this.wakeTime > 0) return;

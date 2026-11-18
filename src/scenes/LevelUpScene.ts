@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { GAME, basePlayerData } from '../config/game';
+import { bindMenuButton } from '../core/menuButton';
+import { GAME } from '../config/game';
 import { UPGRADES, UPGRADE_LIST, applyUpgrade } from '../config/upgrades';
 import { PlayerData } from '../types';
 import { GameScene } from './GameScene';
@@ -22,8 +23,7 @@ export class LevelUpScene extends Phaser.Scene {
     this.buttons = [];
     this.onClose = config.onClose ?? null;
     const parent = this.scene.get<GameScene>('GameScene');
-    const data = parent?.world?.player?.data as PlayerData | undefined;
-    this.player = data ?? ({ ...basePlayerData(), level: config?.level ?? 1, upgrades: [] } as unknown as PlayerData);
+    this.player = parent.world.player.data;
     const lvl = config?.level ?? this.player.level;
 
     // weighted selection excluding maxed upgrades
@@ -32,8 +32,16 @@ export class LevelUpScene extends Phaser.Scene {
       const current = prog?.level ?? 0;
       return current < d.maxLevel;
     });
-    const weights = pool.map((d) => d.weight);
-    this.choices = this.pickWeighted(pool, weights, 3).map((d) => d.key);
+    this.choices = [];
+    while (pool.length && this.choices.length < 3) {
+      const def = parent.world.rng.pickWeighted(pool.map(item => ({ item, weight: item.weight })));
+      this.choices.push(def.key);
+      pool.splice(pool.indexOf(def), 1);
+    }
+    if (this.choices.length === 0) {
+      this.time.delayedCall(0, () => this.onClose?.());
+      return;
+    }
 
     // header
     this.add.text(GAME.WINDOW_W / 2, 120, `LEVEL ${lvl}`, {
@@ -54,7 +62,7 @@ export class LevelUpScene extends Phaser.Scene {
       const glow = this.add.rectangle(x, 320, 230, 300, 0x33e0ff, 0).setOrigin(0.5, 0.5).setInteractive();
       glow.on('pointerover', () => panel.setFillStyle(0x16303a, 1));
       glow.on('pointerout', () => panel.setFillStyle(0x0d1822, 0.9));
-      glow.on('pointerdown', () => this.choose(key));
+      bindMenuButton(this, glow, def.name + '. ' + def.description, () => this.choose(key));
       const shortcut = `keydown-${['ONE', 'TWO', 'THREE'][i]}`;
       const onKey = (event: KeyboardEvent) => {
         if (!event.repeat) this.choose(key);
@@ -116,26 +124,6 @@ export class LevelUpScene extends Phaser.Scene {
     return lines.slice(0, 4).join('\n');
   }
 
-  private pickWeighted<T>(items: T[], weights: number[], n: number): T[] {
-    const out: T[] = [];
-    const remainingItems = items.slice();
-    const remainingWeights = weights.slice();
-    const count = Math.min(n, remainingItems.length);
-    for (let i = 0; i < count; i++) {
-      const total = remainingWeights.reduce((a, b) => a + b, 0);
-      let r = Math.random() * total;
-      let idx = 0;
-      for (let j = 0; j < remainingWeights.length; j++) {
-        r -= remainingWeights[j];
-        if (r <= 0) { idx = j; break; }
-      }
-      out.push(remainingItems[idx]);
-      remainingItems.splice(idx, 1);
-      remainingWeights.splice(idx, 1);
-    }
-    return out;
-  }
-
   // 10px per character is intentionally conservative: Linux CI font fallback can be
   // wider than Windows Consolas, and descriptions must stay inside the 230px card.
   private wrapText(text: Phaser.GameObjects.Text, x: number, y: number, width: number, charWidth = 10): void {
@@ -164,7 +152,6 @@ export class LevelUpScene extends Phaser.Scene {
     if (prog) prog.level = newLevel;
     else this.player.upgrades.push({ key, level: newLevel });
     const parent = this.scene.get<GameScene>('GameScene');
-    parent?.saveCheckpoint();
     // Hand control back to the parent: it (re)opens the next pending level-up or
     // resumes the game. We must not set parent.paused/alpha directly here.
     this.time.delayedCall(120, () => {

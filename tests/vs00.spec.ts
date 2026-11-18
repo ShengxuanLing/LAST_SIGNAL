@@ -2,7 +2,6 @@ import { test, expect, type Page } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 
-const PORT = Number(process.env.PORT ?? 5173);
 const SHOT_DIR = path.resolve(process.env.LS_SHOT_DIR ?? 'screens');
 const SLICE_KEY = 'last_signal_station_zero_vs00_v1';
 const MAIN_KEY = 'last_signal_save_v1';
@@ -16,7 +15,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function open(page: Page): Promise<void> {
-  await page.goto(`http://localhost:${PORT}/station-zero.html`);
+  await page.goto('/station-zero.html');
   await page.waitForSelector('body[data-vs00-ready="1"]', { timeout: 15000 });
 }
 
@@ -98,7 +97,7 @@ test('E1: real Scan -> Jam -> WASD through the door (default, no fixture)', asyn
   await page.screenshot({ path: path.join(SHOT_DIR, 'vs00-full-flow.png') });
 
   // No LLM / no external calls: every request stays on the local dev origin.
-  for (const url of requests) expect(url.startsWith(`http://localhost:${PORT}/`)).toBe(true);
+  for (const url of requests) expect(new URL(url).origin).toBe(new URL(page.url()).origin);
   expect(consoleErrors).toEqual([]);
 });
 

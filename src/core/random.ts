@@ -5,19 +5,11 @@ export class RNG {
   private state: number;
 
   constructor(seed: number) {
-    this.state = this._hashSeed(seed);
+    this.state = seed >>> 0;
   }
 
   static fromSeed(seed: number): RNG {
     return new RNG(seed);
-  }
-
-  private _hashSeed(seed: number): number {
-    // SplitMix64-style finalizer to disperse low-entropy seeds.
-    let z = (seed >>> 0) + 0x9e3779b97f4a7c15 >>> 0;
-    z = (z ^ (z >>> 30)) * 0xbf58476d1ce4e5b9 >>> 0;
-    z = (z ^ (z >>> 27)) * 0x94d049bb133111eb >>> 0;
-    return (z ^ (z >>> 31)) >>> 0;
   }
 
   private _next(): number {
@@ -76,7 +68,7 @@ export class RNG {
 
   /** Reset to a specific seed without constructing a new object. */
   seed(seed: number): void {
-    this.state = this._hashSeed(seed);
+    this.state = seed >>> 0;
   }
 
   snapshot(): number { return this.state; }

@@ -1,13 +1,18 @@
 import Phaser from 'phaser';
+import { bindMenuButton } from '../core/menuButton';
 import { GAME, SAVE_VERSION } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import { formatDuration } from '../core/formatDuration';
-import { APPEARANCES, availableAvatars, resolveAvatar } from '../core/PlayerAppearance';
+import { APPEARANCES, resolveAvatar } from '../core/PlayerAppearance';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { PERMANENT_TALENT_CAP, PERMANENT_TALENTS } from '../systems/SaveSystem';
 
+import { AVATARS, type MapVersion } from '../types';
+import type { PreloadScene } from './PreloadScene';
+
 interface MenuConfig {
+  mapVersion?: MapVersion;
   view?: 'checkpoint' | 'permanent' | 'replace';
   notice?: string;
   seed?: number;
@@ -21,10 +26,9 @@ export class MainMenuScene extends Phaser.Scene {
     const bg = this.textures.get('bg');
     if (bg) this.add.image(GAME.WINDOW_W / 2, GAME.WINDOW_H / 2, bg);
 
-    // Animated scanline overlay
+    // Static scanline overlay
     this.scanlines = this.add.graphics();
     this.drawScanlines();
-    this._scanTween();
 
     const cx = GAME.WINDOW_W / 2;
     const title = this.add.text(cx, 150, 'LAST SIGNAL', {
@@ -36,6 +40,7 @@ export class MainMenuScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5);
 
     const save = saveSystem.load();
+    audio.setVolumes(save.settings.masterVolume, save.settings.sfxVolume);
     if (config.view === 'permanent') {
       this.line(cx, 260, `PERMANENT CORES: ${save.permanent.cores}`, '#ffd233');
       this.line(cx, 292, 'Earn one core per boss victory. Talents apply to new runs.');
@@ -67,7 +72,7 @@ export class MainMenuScene extends Phaser.Scene {
     if (config.view === 'replace') {
       this.line(cx, 287, 'STARTING OVER REPLACES THE CURRENT RUN CHECKPOINT.', '#ff8a3c');
       this.line(cx, 323, 'Permanent cores, talents and weapon unlocks are kept.');
-      this._button(cx, 400, 'REPLACE AND START', 360, () => this.scene.start('GameScene', { seed: config.seed }), 0x5a2a3a);
+      this._button(cx, 400, 'REPLACE AND START', 360, () => this.scene.start('GameScene', { seed: config.seed, mapVersion: config.mapVersion }), 0x5a2a3a);
       this._button(cx, 460, 'BACK', 360, () => this.scene.restart({}), 0x274a55);
       return;
     }
@@ -101,13 +106,11 @@ export class MainMenuScene extends Phaser.Scene {
     const preview = this.add.image(avatarX, 406, appearance.textures[0]);
     preview.setScale((avatar === 'operator' ? 74 : 124) / preview.height);
     this._button(avatarX, 490, `${appearance.label} ↻`, 238, () => {
-      const avatars = availableAvatars(this.textures);
+      const { unavailable } = this.scene.get<PreloadScene>('PreloadScene');
+      const avatars = AVATARS.filter(choice => !unavailable.has(choice));
       if (avatars.length <= 1) { this._flash('CHARACTER ART UNAVAILABLE'); return; }
-      const latest = saveSystem.load();
-      const current = resolveAvatar(latest.settings.avatar, this.textures);
-      latest.settings.avatar = avatars[(avatars.indexOf(current) + 1) % avatars.length];
-      if (saveSystem.save(latest)) this.scene.restart({});
-      else this._flash('APPEARANCE NOT SAVED');
+      const next = avatars[(avatars.indexOf(avatar) + 1) % avatars.length];
+      this.scene.start('PreloadScene', { avatar: next });
     }, 0x274a55);
     if (config.notice) this._flash(config.notice);
 
@@ -133,17 +136,6 @@ export class MainMenuScene extends Phaser.Scene {
     }
   }
 
-  private _scanTween(): void {
-    let phase = 0;
-    this.time.addEvent({
-      delay: 40, repeat: -1,
-      callback: () => {
-        phase = (phase + 1) % 5;
-        this.drawScanlines();
-      }
-    });
-  }
-
   private _button(cx: number, y: number, label: string, w: number, cb: () => void, color: number, dim = false): void {
     const fillAlpha = dim ? 0.16 : 0.35;
     const g = this.add.rectangle(cx, y, w, 46, color, fillAlpha).setOrigin(0.5, 0.5)
@@ -153,7 +145,7 @@ export class MainMenuScene extends Phaser.Scene {
       color: dim ? '#5a7480' : '#eafaff', fontStyle: 'bold', letterSpacing: dim ? 1 : 3
     }).setOrigin(0.5, 0.5);
     const hit = this.add.rectangle(cx, y, w, 46, 0x000000, 0).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    hit.on('pointerdown', () => { audio.ui(); cb(); });
+    bindMenuButton(this, hit, label, () => { audio.resume(); audio.ui(); cb(); }, dim);
     hit.on('pointerover', () => { g.setFillStyle(color, dim ? 0.26 : 0.6); });
     hit.on('pointerout', () => { g.setFillStyle(color, fillAlpha); });
   }
@@ -163,7 +155,4 @@ export class MainMenuScene extends Phaser.Scene {
     this.time.addEvent({ delay: 1800, callback: () => t.destroy() });
   }
 
-  update(): void {
-    if (this.scanlines) this.drawScanlines();
-  }
 }

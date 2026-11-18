@@ -4,19 +4,27 @@
 // add a few extra edges for loops, then carve L-shaped corridors. Walls fill the rest.
 // No softlocks by construction: every room is reachable from the start.
 import { RNG } from '../core/random';
-import { MapData, Room, Tile, TileType } from '../types';
+import { MapData, MapVersion, Room, Tile, TileType } from '../types';
 import { GAME } from '../config/game';
+
+// Preserve the original floating-point seed conversion for existing checkpoints.
+function legacySeed(seed: number): number {
+  let z = ((seed >>> 0) + 0x9e3779b97f4a7c15) >>> 0;
+  z = ((z ^ (z >>> 30)) * 0xbf58476d1ce4e5b9) >>> 0;
+  z = ((z ^ (z >>> 27)) * 0x94d049bb133111eb) >>> 0;
+  return (z ^ (z >>> 31)) >>> 0;
+}
 
 export class MapGenerator {
   private rng: RNG;
-  private CELL_STEP = 0;
 
-  constructor(private seed: number) {
-    this.rng = new RNG(seed);
+  constructor(private seed: number, private readonly mapVersion: MapVersion = 2) {
+    this.rng = new RNG(mapVersion === 1 ? legacySeed(seed) : seed);
   }
 
   reseed(seed: number): void {
-    this.rng.seed(seed);
+    this.seed = seed;
+    this.rng.seed(this.mapVersion === 1 ? legacySeed(seed) : seed);
   }
 
   generate(): MapData {
@@ -28,6 +36,7 @@ export class MapGenerator {
     const { tiles, doorways } = this._buildTiles(rooms, floorCells);
     return {
       seed: this.seed,
+      mapVersion: this.mapVersion,
       width: tiles[0].length,
       height: tiles.length,
       tiles,
@@ -39,7 +48,6 @@ export class MapGenerator {
 
   private _placeRooms(count: number): Room[] {
     const step = GAME.ROOM_MAX + 4;
-    this.CELL_STEP = step;
     const placed: Room[] = [];
     const used = new Set<string>();
     let guard = 0;
@@ -211,7 +219,7 @@ export function assignRoles(_gen: MapGenerator, rooms: Room[], _order: number[])
     if (rooms[0]) rooms[0].kind = 'start';
     return;
   }
-  const depth = roomDepth({ rooms, seed: 0, width: 0, height: 0, tiles: [], doorways: [], roomsOrder: [] });
+  const depth = roomDepth({ rooms });
   const byDepth = [...rooms].sort((a, b) => depth.get(a.id)! - depth.get(b.id)!);
   byDepth[0].kind = 'start';
   const boss = byDepth[byDepth.length - 1];
@@ -232,7 +240,7 @@ export function assignRoles(_gen: MapGenerator, rooms: Room[], _order: number[])
   }
 }
 
-export function roomDepth(map: MapData, startId = 0): Map<number, number> {
+export function roomDepth(map: Pick<MapData, 'rooms'>, startId = 0): Map<number, number> {
   const depth = new Map<number, number>();
   depth.set(startId, 0);
   const queue = [startId];

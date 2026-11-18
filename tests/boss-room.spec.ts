@@ -2,6 +2,51 @@ import { test, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 
+test('calibration improves live shots and a piercing boss kill finishes the run', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
+  await page.getByRole('button', { name: 'NEW RUN', exact: true }).press('Enter');
+  await page.waitForFunction(() => (window as any).__game.scene.isActive('GameScene'));
+  const shots = await page.evaluate(() => {
+    const scene = (window as any).__game.scene.getScene('GameScene');
+    const { world } = scene;
+    const player = world.player;
+    player.data.critChance = 0;
+    player.setFireHeld(true);
+    function shoot(level: number, reduction: number) {
+      player.fireTimer = 0;
+      player.data.weapons[0].level = level;
+      player.data.cooldownReduced = reduction;
+      player.update(0);
+      const { data } = world.projectiles.at(-1);
+      return { damage: data.damage, range: data.lifetime, interval: player.fireTimer };
+    }
+    const base = shoot(1, 0);
+    player.data.pierceCount = 1;
+    const upgraded = shoot(2, 0.08);
+    player.setFireHeld(false);
+    const bossRoom = world.map.rooms.find((r: any) => r.kind === 'boss');
+    world.onEnterRoom(bossRoom);
+    const boss = world.boss;
+    boss._hp = 1;
+    world.onEnterRoom(bossRoom);
+    const sameBoss = world.boss === boss && world.boss._hp === 1;
+    const { data } = world.projectiles.at(-1);
+    data.pos = { x: boss.x, y: boss.y };
+    world.updateProjectiles(0);
+    return { base, upgraded, sameBoss, won: world.won };
+  });
+  expect(shots.upgraded.damage).toBeGreaterThan(shots.base.damage);
+  expect(shots.upgraded.range).toBeGreaterThan(shots.base.range);
+  expect(shots.upgraded.interval).toBeCloseTo(0.92 / 6.8);
+  expect(shots.sameBoss).toBe(true);
+  expect(shots.won).toBe(true);
+  await page.waitForFunction(() => (window as any).__game.scene.isActive('GameOverScene'));
+  expect(errors).toEqual([]);
+});
+
 const SHOT_DIR = path.resolve(process.env.LS_SHOT_DIR ?? 'screens');
 
 // Boss-room regression: a real kind==='boss' room of the seed-1 map, player and
@@ -17,9 +62,8 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 
   mkdirSync(SHOT_DIR, { recursive: true });
-  await page.goto('http://localhost:5173/');
-  await page.waitForFunction(() => !!(window as any).__game, { timeout: 10000 });
-  await page.waitForTimeout(1000);
+  await page.goto('/');
+  await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
 
   // Stop every active scene, then start a fresh deterministic run.
   await page.evaluate(() => {
@@ -29,14 +73,14 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
   });
   await page.waitForFunction(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs = g.scene.getScene('GameScene');
     return !!(gs && gs.world && gs.world.player && g.scene.isActive('GameScene'));
   }, { timeout: 10000 });
   await page.waitForTimeout(300);
 
   const setup = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs = g.scene.getScene('GameScene');
     const w = gs.world, pl = w.player, cam = gs.cameras.main;
 
     // A real room from the generated map (not a fabricated boss-room object).
@@ -103,7 +147,7 @@ test('boss room: player, camera bounds and shake stay sane after addShake(18)', 
 
   const m = await page.evaluate(() => {
     const g: any = (window as any).__game;
-    const gs: any = Object.values(g.scene.scenes).find((s: any) => s?.constructor?.name === 'GameScene');
+    const gs = g.scene.getScene('GameScene');
     const w = gs.world, pl = w.player, cam = gs.cameras.main;
 
     // Invert the live camera transform (scroll + zoom + shake) to get the

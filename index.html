@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="./signal.svg">
     <title>LAST SIGNAL</title>
     <meta name="description" content="LAST SIGNAL — 2.5D isometric sci-fi roguelite" />
     <script>
@@ -28,8 +29,8 @@
     </style>
   </head>
   <body>
-    <div id="game"></div>
-    <div id="loader">INITIALIZING LAST SIGNAL...</div>
+    <main id="game" aria-label="LAST SIGNAL"></main>
+    <div id="loader" role="status">INITIALIZING LAST SIGNAL...</div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

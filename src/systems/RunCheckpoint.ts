@@ -21,6 +21,7 @@ function isUint32(value: number): boolean {
 
 export function validateCheckpoint(run: RunCheckpoint | undefined): run is RunCheckpoint {
   if (!run || typeof run.id !== 'string' || !run.id || !isUint32(run.seed) || !isUint32(run.rngState)) return false;
+  if (run.mapVersion !== undefined && run.mapVersion !== 1 && run.mapVersion !== 2) return false;
   if (!isRoomId(run.roomId) || !Number.isFinite(run.position?.x) || !Number.isFinite(run.position?.y)) return false;
   if (!Array.isArray(run.clearedRooms) || !run.clearedRooms.every(isRoomId) || !run.clearedRooms.includes(run.roomId)) return false;
   if (run.portalTarget !== null && !isRoomId(run.portalTarget)) return false;

@@ -141,12 +141,11 @@ export class Boss {
 
   private summonDrones(): void {
     for (let i = 0; i < 3; i++) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = this.world.rng.range(0, Math.PI * 2);
       const ex = this.x + Math.cos(angle) * 6;
       const ey = this.y + Math.sin(angle) * 6;
       if (this.world.isWalkable(ex, ey)) {
-        const e = this.world.spawnEnemy('drone', ex, ey, this.spawnRoom, 3);
-        e._id = this._id + 100 + i;
+        this.world.spawnEnemy('drone', ex, ey, this.spawnRoom, 3);
       }
     }
     audio.wave();

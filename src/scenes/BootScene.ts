@@ -8,8 +8,6 @@ export class BootScene extends Phaser.Scene {
 
   create(): void {
     GraphicsFactory.create(this);
-    const loader = document.getElementById('loader');
-    if (loader) (loader as HTMLElement).style.display = 'none';
     this.scene.start('PreloadScene');
   }
 }

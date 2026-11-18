@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import regression from './playwright.config';
 
 // ART-RENAISSANCE visual baseline / comparison capture.
 // Separate from playwright.config.ts on purpose: the default `npm run playwright`
@@ -6,8 +7,9 @@ import { defineConfig, devices } from '@playwright/test';
 //
 //   node node_modules/@playwright/test/cli.js test -c playwright.art.config.ts
 //   ART_PHASE=before|after   (default before)  -> reports/art/<phase>/
-//   PORT=5173                 Vite dev or preview server must already be running.
+//   PORT=5173                 Local server port.
 export default defineConfig({
+  webServer: regression.webServer,
   testDir: './tests/art',
   testMatch: /.*\.capture\.ts$/,
   timeout: 240000,
@@ -16,7 +18,8 @@ export default defineConfig({
   reporter: [['line']],
   outputDir: './test-results/art',
   use: {
-    baseURL: `http://localhost:${process.env.PORT ?? 5173}/`,
+    baseURL: regression.use?.baseURL,
+    channel: regression.use?.channel,
     viewport: { width: 1280, height: 720 },
     deviceScaleFactor: 1,
     launchOptions: { args: ['--no-sandbox', '--disable-dev-shm-usage', '--enable-precise-memory-info'] }

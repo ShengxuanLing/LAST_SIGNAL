@@ -155,7 +155,7 @@ test('loss recap shows run stats and retries the same seed', async ({ page }) =>
     game.enemiesKilled = 3;
     game.itemsCollected = 5;
     game.damageDealt = 79.6;
-    game.runStart = game.time.now - 65000;
+    game.elapsedSeconds = 65;
     game.world.onPlayerDeath();
   });
   await waitForScene(page, 'GameOverScene');
@@ -274,6 +274,84 @@ test('resume reuses the checkpoint id and restores saved HP / run-scoped progres
   expect(fresh.run.id, 'NEW RUN generates a fresh id (not the resumed one)').not.toBe(before.run.id);
 
   expect(errors).toEqual([]);
+});
+
+test('multiple levels finish before a safe save and a maxed build can keep playing', async ({ page }) => {
+  await page.goto('/');
+  await waitForScene(page, 'MainMenuScene');
+  await clickButton(page, 'NEW RUN');
+  await waitForScene(page, 'GameScene');
+  await page.evaluate(() => {
+    const scene = (window as any).__game.scene.getScene('GameScene');
+    scene.world.player.addXp(120);
+  });
+  await waitForScene(page, 'LevelUpScene');
+  const original = await readSave(page);
+  await page.keyboard.press('1');
+  await page.waitForFunction(() => {
+    const game = (window as any).__game;
+    return game.scene.isActive('LevelUpScene') && !game.scene.getScene('LevelUpScene').chosen &&
+      game.scene.getScene('GameScene').world.player.data.upgrades.length > 0;
+  });
+  expect((await readSave(page)).run.player.level).toBe(original.run.player.level);
+  await page.keyboard.press('1');
+  await expect.poll(async () => (await readSave(page)).run.player.level).toBe(3);
+  await page.evaluate(async () => {
+    const scene = (window as any).__game.scene.getScene('GameScene');
+    const { UPGRADE_LIST } = await import('/src/config/upgrades.ts');
+    scene.world.player.data.upgrades = UPGRADE_LIST.map((u: any) => ({ key: u.key, level: u.maxLevel }));
+    scene.world.player.addXp(scene.world.player.data.xpToNext);
+  });
+  await page.waitForFunction(() => !(window as any).__game.scene.getScene('GameScene').paused);
+  await expect.poll(async () => (await readSave(page)).run.player.level).toBe(4);
+});
+
+test('an unversioned checkpoint resumes on its original floor and retries the same layout', async ({ page }) => {
+  await page.goto('/');
+  await waitForScene(page, 'MainMenuScene');
+  await clickButton(page, 'NEW RUN');
+  await waitForScene(page, 'GameScene');
+  await page.evaluate((key) => {
+    const save = JSON.parse(localStorage.getItem(key)!);
+    Object.assign(save.run, { seed: 424242, roomId: 0, clearedRooms: [0],
+      position: { x: 8, y: 45 }, portalTarget: null });
+    delete save.run.mapVersion;
+    localStorage.setItem(key, JSON.stringify(save));
+  }, SAVE_KEY);
+  await page.reload();
+  await waitForScene(page, 'MainMenuScene');
+  await clickButton(page, 'CONTINUE');
+  await waitForScene(page, 'GameScene');
+  expect((await readSave(page)).run).toMatchObject({
+    mapVersion: 1, seed: 424242, position: { x: 8, y: 45 }
+  });
+  await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.onPlayerDeath());
+  await waitForScene(page, 'GameOverScene');
+  await clickButton(page, 'RETRY SAME SEED');
+  await waitForScene(page, 'GameScene');
+  expect((await readSave(page)).run).toMatchObject({ mapVersion: 1, seed: 424242 });
+});
+
+test('recovers the first checkpoint after storage becomes writable', async ({ page }) => {
+  await page.goto('/');
+  await waitForScene(page, 'MainMenuScene');
+  await page.evaluate(() => {
+    const write = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'last_signal_save_v1') {
+        Storage.prototype.setItem = write;
+        throw new Error('Temporary write failure');
+      }
+      write.call(this, key, value);
+    };
+  });
+  await clickButton(page, 'NEW RUN');
+  await waitForScene(page, 'GameScene');
+  await expect.poll(async () => (await readSave(page))?.run?.clearedRooms).toEqual([0]);
+  await page.reload();
+  await waitForScene(page, 'MainMenuScene');
+  await clickButton(page, 'CONTINUE');
+  await waitForScene(page, 'GameScene');
 });
 
 test('death routes to Game Over and clears the run checkpoint', async ({ page }) => {

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TerrainChunks } from './TerrainChunks';
 import { MapData, Room, Tile } from '../types';
 import { GAME } from '../config/game';
 import { CSS, DEPTH, INK, FONT, TIME, rgba } from '../art/survey/tokens';
@@ -6,7 +7,7 @@ import { visualRng, tileNoise, visualSeed } from '../art/survey/visualRng';
 
 // ART-RENAISSANCE AR-02 · Direction A "SURVEY INK".
 // Two layers:
-//  * worldLayer (depth -1): one baked Canvas of graphite MASS — floor plates, tall back
+//  * worldLayer (depth -1): sparse baked chunks of graphite MASS — floor plates, tall back
 //    walls (90 px) with formwork / ribs / seepage, low front slabs (30 px "plate
 //    thickness"), facility props and stencils. No ink lines: unobserved space is mass only.
 //  * per-room INK images (depth -0.5): bone survey linework (grid, 4-tile seams, wall
@@ -29,44 +30,42 @@ const ROOM_CODE: Record<string, string> = {
 interface InkLayer { image: Phaser.GameObjects.Image; observed: boolean; reveal: number; cx: number; cy: number; radius: number; mask?: Phaser.GameObjects.Graphics; ring?: Phaser.GameObjects.Graphics }
 
 export class WorldRenderer {
-  private layer: Phaser.GameObjects.Sprite;
+  readonly layer: Phaser.GameObjects.Rectangle;
   private light: Phaser.GameObjects.Sprite;
-  private _lightCtx: CanvasRenderingContext2D;
   // Stable reference so the prerender listener can be removed on shutdown.
   private readonly _lightLock = () => this._lockLightToScreen();
   public _offX = 0;
   public _offY = 0;
-  private walkable = new Set<string>();
-  private roomFloor = new Map<string, number>();
+  // One entry per tile: -2 for wall, -1 for corridor floor, otherwise its room id.
+  private readonly floorRegion: Int16Array;
+  private readonly gridX: number;
+  private readonly gridY: number;
   private ink = new Map<number, InkLayer>();
   private readonly seed: number;
 
   constructor(public scene: Phaser.Scene, public map: MapData) {
+    this.gridX = map.tiles[0][0].x;
+    this.gridY = map.tiles[0][0].y;
+    this.floorRegion = new Int16Array(map.width * map.height).fill(-2);
     this.seed = visualSeed(map.seed, -1, 'WORLD');
-    const src = this._buildTexture();
-    if (scene.textures.exists('worldLayer')) scene.textures.remove('worldLayer');
-    scene.textures.addCanvas('worldLayer', src);
-    this.layer = scene.add.sprite(0, 0, 'worldLayer');
-    this.layer.setDepth(DEPTH.world);
-    this.layer.setOrigin(0, 0);
+    this.layer = this._buildTerrain();
     // Screen-space overlay: vignette only. AR-02 removed the screen-centre glow —
     // light now comes from world objects (ADD pools owned by actor views, 03 §1 rule 4).
     if (scene.textures.exists('worldLight')) scene.textures.remove('worldLight');
     const lightTex = scene.textures.createCanvas('worldLight', GAME.WINDOW_W, GAME.WINDOW_H)!;
-    const lightCanvas = lightTex.getCanvas()!;
-    this._lightCtx = lightCanvas.getContext('2d')!;
-    this._paintVignette(this._lightCtx);
+    this._paintVignette(lightTex.context);
     lightTex.refresh();
     this.light = scene.add.sprite(0, 0, 'worldLight');
     this.light.setOrigin(0, 0).setScrollFactor(0);
     this.light.setDepth(DEPTH.light);
-    // Align for the first frame; prerender + updateLight re-align on every later frame.
+    // Align for the first frame; prerender re-align on every later frame.
     this._lockLightToScreen();
     this.scene.events.on('prerender', this._lightLock);
     this.scene.events.once('shutdown', () => {
       this.scene.events.off('prerender', this._lightLock);
       for (const roomId of this.ink.keys()) this.scene.textures.remove(`inkRoom_${roomId}`);
       this.ink.clear();
+      this.scene.textures.remove('worldLight');
     });
   }
 
@@ -120,12 +119,9 @@ export class WorldRenderer {
     ctx.fillRect(0, 0, cw, ch);
   }
 
-  /** Kept for API compatibility (World.update): the overlay is static now. */
-  updateLight(_gx: number, _gy: number): void {
-    this._lockLightToScreen();
-  }
-
   // ---------------------------------------------------------------- observation
+
+  get surveyedRooms(): number { return this.ink.size; }
 
   isObserved(roomId: number): boolean { return !!this.ink.get(roomId)?.observed; }
 
@@ -189,29 +185,30 @@ export class WorldRenderer {
 
   /** Visual centre of the collision cell (x, y). */
   private cell(gx: number, gy: number): { x: number; y: number } {
-    return this.projector()(gx + 0.5, gy + 0.5);
+    return { x: (gx - gy) * GAME.TILE_W / 2 + this._offX,
+      y: (gx + gy + 1) * GAME.TILE_H / 2 + this._offY };
   }
 
-  private _bounds(): { minGX: number; maxGX: number; minGY: number; maxGY: number } {
-    let minGX = Infinity, maxGX = -Infinity, minGY = Infinity, maxGY = -Infinity;
-    for (const row of this.map.tiles) for (const t of row) {
-      minGX = Math.min(minGX, t.x); maxGX = Math.max(maxGX, t.x);
-      minGY = Math.min(minGY, t.y); maxGY = Math.max(maxGY, t.y);
-    }
-    return { minGX, maxGX, minGY, maxGY };
+  private tileIndex(x: number, y: number): number {
+    return (y - this.gridY) * this.map.width + x - this.gridX;
   }
 
-  private key(gx: number, gy: number): string { return `${gx},${gy}`; }
-  private isWalk(gx: number, gy: number): boolean { return this.walkable.has(this.key(gx, gy)); }
-  private roomAt(gx: number, gy: number): number { return this.roomFloor.get(this.key(gx, gy)) ?? -1; }
+  private roomAt(x: number, y: number): number {
+    if (x < this.gridX || x >= this.gridX + this.map.width ||
+        y < this.gridY || y >= this.gridY + this.map.height) return -2;
+    return this.floorRegion[this.tileIndex(x, y)];
+  }
+
+  private isWalk(x: number, y: number): boolean { return this.roomAt(x, y) >= -1; }
 
   private wallKind(gx: number, gy: number): 'none' | 'tall' | 'slab' | 'rim' {
     if (this.isWalk(gx, gy)) return 'none';
     let near = false, roomNear = false;
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-      if (!this.isWalk(gx + dx, gy + dy)) continue;
+      const region = this.roomAt(gx + dx, gy + dy);
+      if (region < -1) continue;
       near = true;
-      if (this.roomAt(gx + dx, gy + dy) >= 0) roomNear = true;
+      if (region >= 0) roomNear = true;
     }
     if (!near) return 'none';
     const front = this.isWalk(gx + 1, gy) || this.isWalk(gx, gy + 1) || this.isWalk(gx + 1, gy + 1);
@@ -222,54 +219,60 @@ export class WorldRenderer {
 
   // ---------------------------------------------------------------- mass bake
 
-  private _buildTexture(): HTMLCanvasElement {
-    const { minGX, maxGX, minGY, maxGY } = this._bounds();
+  private _buildTerrain(): Phaser.GameObjects.Rectangle {
+    const minGX = this.gridX, minGY = this.gridY;
+    const maxGX = minGX + this.map.width - 1, maxGY = minGY + this.map.height - 1;
     const halfW = GAME.TILE_W / 2, halfH = GAME.TILE_H / 2;
     const isoX = (x: number, y: number) => (x - y) * halfW;
     const isoY = (x: number, y: number) => (x + y) * halfH;
     const w = (isoX(maxGX, minGY) - isoX(minGX, maxGY)) + 96;
     const h = (isoY(maxGX, maxGY) - isoY(minGX, minGY)) + 96 + RISE_H;
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.ceil(w);
-    canvas.height = Math.ceil(h);
-    const g = canvas.getContext('2d')!;
-    // L0 void: env.shadow with very low-frequency grain.
-    g.fillStyle = CSS.shadow;
-    g.fillRect(0, 0, canvas.width, canvas.height);
+    const terrain = new TerrainChunks(this.scene, w, h, this.map.seed);
     this._offX = -isoX(minGX, maxGY) + 48;
     this._offY = -isoY(minGX, minGY) + 48 + RISE_H;
-    const grain = visualRng(this.map.seed, -1, 'VOID');
-    g.fillStyle = rgba(CSS.massLight, 0.35);
-    for (let i = 0, n = Math.floor(canvas.width * canvas.height / 9000); i < n; i++) {
-      g.fillRect(Math.floor(grain.float() * canvas.width), Math.floor(grain.float() * canvas.height), 1, 1);
-    }
 
-    for (const row of this.map.tiles) for (const t of row) if (t.type !== 'wall') this.walkable.add(this.key(t.x, t.y));
-    for (const d of this.map.doorways) this.walkable.add(this.key(d.x, d.y));
+    for (const row of this.map.tiles) for (const t of row) if (t.type !== 'wall') this.floorRegion[this.tileIndex(t.x, t.y)] = -1;
+    const doorways = new Set<number>();
+    for (const d of this.map.doorways) {
+      const index = this.tileIndex(d.x, d.y);
+      doorways.add(index);
+      this.floorRegion[index] = -1;
+    }
     for (const r of this.map.rooms) {
       for (let y = r.gy; y < r.gy + r.h; y++) for (let x = r.gx; x < r.gx + r.w; x++) {
-        if (this.isWalk(x, y)) this.roomFloor.set(this.key(x, y), r.id);
+        if (this.isWalk(x, y)) this.floorRegion[this.tileIndex(x, y)] = r.id;
       }
     }
-    const isDoorway = (gx: number, gy: number) => this.map.doorways.some((d) => d.x === gx && d.y === gy);
 
-    const tiles: Tile[] = [];
-    for (const row of this.map.tiles) for (const t of row) tiles.push(t);
-    tiles.sort((a, b) => (a.x + a.y) - (b.x + b.y) || a.x - b.x);
-
-    for (const t of tiles) {
-      const { x: cx, y: cy } = this.cell(t.x, t.y);
-      if (t.type === 'wall') {
-        const kind = this.wallKind(t.x, t.y);
-        if (kind === 'tall') this._drawTallWall(g, cx, cy, halfW, halfH, t);
-        else if (kind === 'slab') this._drawWall(g, cx, cy, halfW, halfH, SLAB_H, false);
-        else if (kind === 'rim') this._drawWall(g, cx, cy, halfW, halfH, CORRIDOR_H, true);
-      } else {
-        this._drawFloor(g, cx, cy, halfW, halfH, t, isDoorway(t.x, t.y));
+    // Diagonals give the same back-to-front order as sorting all tiles by x+y, then x.
+    const rows = this.map.tiles;
+    const cols = rows[0].length;
+    for (let sum = 0; sum < rows.length + cols - 1; sum++) {
+      for (let x = Math.max(0, sum - rows.length + 1); x <= Math.min(sum, cols - 1); x++) {
+        const t = rows[sum - x][x];
+        const kind = t.type === 'wall' ? this.wallKind(t.x, t.y) : 'floor';
+        if (kind === 'none') continue;
+        const { x: cx, y: cy } = this.cell(t.x, t.y);
+        const rise = kind === 'tall' ? RISE_H : 0;
+        const slab = kind === 'slab' ? SLAB_H : kind === 'rim' ? CORRIDOR_H : 0;
+        terrain.paint(cx - halfW - 2, cy - halfH - rise - 2, cx + halfW + 2, cy + halfH + slab + 2, g => {
+          if (kind === 'tall') this._drawTallWall(g, cx, cy, halfW, halfH, t);
+          else if (kind === 'floor') this._drawFloor(g, cx, cy, halfW, halfH, t, doorways.has(this.tileIndex(t.x, t.y)));
+          else this._drawWall(g, cx, cy, halfW, halfH, slab, kind === 'rim');
+        });
       }
     }
-    for (const room of this.map.rooms) this._drawRoomDressing(g, room);
-    return canvas;
+    const project = this.projector();
+    for (const r of this.map.rooms) {
+      // Include props, lettering and raised walls around the projected floor diamond.
+      const left = project(r.gx, r.gy + r.h).x - 96;
+      const right = project(r.gx + r.w, r.gy).x + 96;
+      const top = project(r.gx, r.gy).y - RISE_H - 64;
+      const bottom = project(r.gx + r.w, r.gy + r.h).y + 64;
+      terrain.paint(left, top, right, bottom, g => this._drawRoomDressing(g, r));
+    }
+    terrain.bake();
+    return terrain.bounds;
   }
 
   private _diamond(g: CanvasRenderingContext2D, cx: number, cy: number, hw: number, hh: number): void {
@@ -404,7 +407,7 @@ export class WorldRenderer {
   /** Text painted on a wall face. dir = +1 for left faces (slope +0.5), -1 for right faces. */
   private _stencil(g: CanvasRenderingContext2D, x: number, y: number, text: string, dir: 1 | -1, size: number, color: string): void {
     g.save();
-    g.setTransform(1, 0.5 * dir, 0, 1, x, y);
+    g.transform(1, 0.5 * dir, 0, 1, x, y);
     g.font = `bold ${size}px ${FONT.mono}`;
     g.fillStyle = color;
     g.textBaseline = 'alphabetic';
@@ -478,7 +481,7 @@ export class WorldRenderer {
       this._stencil(g, p.x - halfW + 6, p.y - 24, `R-${String(room.id).padStart(2, '0')}`, 1, 10, rgba(CSS.known, 0.18));
       // hazard chevrons near the run end (worn paint)
       const e = this.cell(runL[runL.length - 1].x, runL[runL.length - 1].y);
-      g.save(); g.setTransform(1, 0.5, 0, 1, e.x - halfW + 4, e.y - 70);
+      g.save(); g.transform(1, 0.5, 0, 1, e.x - halfW + 4, e.y - 70);
       g.fillStyle = rgba(CSS.unknown, 0.13);
       for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(k * 7, 0); g.lineTo(k * 7 + 4, 0); g.lineTo(k * 7 + 10, 8); g.lineTo(k * 7 + 6, 8); g.closePath(); g.fill(); }
       g.restore();
@@ -516,7 +519,7 @@ export class WorldRenderer {
   private _observationRack(g: CanvasRenderingContext2D, c: { x: number; y: number }): void {
     const p = this.cell(c.x, c.y);
     // face runs from B (p.x, p.y+16) to R (p.x+32, p.y): slope -0.5
-    g.save(); g.setTransform(1, -0.5, 0, 1, p.x + 3, p.y + 16);
+    g.save(); g.transform(1, -0.5, 0, 1, p.x + 3, p.y + 16);
     g.fillStyle = '#121619'; g.fillRect(0, -66, 26, 60);
     g.strokeStyle = '#3a4248'; g.lineWidth = 1.5; g.strokeRect(0, -66, 26, 60);
     for (const y of [-48, -30]) { g.beginPath(); g.moveTo(0, y); g.lineTo(26, y); g.stroke(); }
@@ -545,7 +548,7 @@ export class WorldRenderer {
   /** Hibernation pod against the back wall; 17 tally scratches beside it (awakening count). */
   private _wakePod(g: CanvasRenderingContext2D, c: { x: number; y: number }): void {
     const p = this.cell(c.x, c.y);
-    g.save(); g.setTransform(1, -0.5, 0, 1, p.x + 2, p.y + 16);
+    g.save(); g.transform(1, -0.5, 0, 1, p.x + 2, p.y + 16);
     g.fillStyle = '#20262b'; g.beginPath(); g.ellipse(14, -36, 13, 30, 0, 0, Math.PI * 2); g.fill();
     g.strokeStyle = '#4a5157'; g.lineWidth = 1.5; g.stroke();
     g.fillStyle = '#0c0f11'; g.beginPath(); g.ellipse(14, -38, 8, 21, 0, 0, Math.PI * 2); g.fill();
@@ -555,7 +558,7 @@ export class WorldRenderer {
     g.restore();
     // 17 tally marks scratched into the adjacent face (3 x 5 + 2).
     const q = this.cell(c.x, c.y - 1);
-    g.save(); g.setTransform(1, -0.5, 0, 1, q.x + 4, q.y + 16);
+    g.save(); g.transform(1, -0.5, 0, 1, q.x + 4, q.y + 16);
     g.strokeStyle = rgba(CSS.known, 0.2); g.lineWidth = 1;
     let x = 0;
     for (let i = 0; i < 17; i++) {
@@ -568,7 +571,7 @@ export class WorldRenderer {
 
   private _gateFrame(g: CanvasRenderingContext2D, c: { x: number; y: number }): void {
     const p = this.cell(c.x, c.y);
-    g.save(); g.setTransform(1, 0.5, 0, 1, p.x - 32 - 20, p.y - 10);
+    g.save(); g.transform(1, 0.5, 0, 1, p.x - 32 - 20, p.y - 10);
     g.strokeStyle = '#3a4248'; g.lineWidth = 4; g.strokeRect(0, -74, 58, 74);
     g.fillStyle = '#0c0f11'; g.fillRect(4, -70, 50, 70);
     g.fillStyle = rgba(CSS.unknown, 0.12);
@@ -578,7 +581,7 @@ export class WorldRenderer {
 
   private _sampleCabinets(g: CanvasRenderingContext2D, c: { x: number; y: number }, rng: { float(): number }): void {
     const p = this.cell(c.x, c.y);
-    g.save(); g.setTransform(1, -0.5, 0, 1, p.x + 2, p.y + 16);
+    g.save(); g.transform(1, -0.5, 0, 1, p.x + 2, p.y + 16);
     for (let k = 0; k < 2; k++) {
       g.fillStyle = '#1b2025'; g.fillRect(k * 14, -54, 12, 50);
       g.strokeStyle = '#3a4248'; g.lineWidth = 1; g.strokeRect(k * 14, -54, 12, 50);
@@ -669,7 +672,7 @@ export class WorldRenderer {
     g.beginPath(); g.moveTo(a.x + off.x, a.y + off.y); g.lineTo(b.x + off.x, b.y + off.y); g.stroke();
     for (const p of [a, b]) { g.beginPath(); g.moveTo(p.x + off.x * 0.4, p.y + off.y * 0.4); g.lineTo(p.x + off.x * 1.4, p.y + off.y * 1.4); g.stroke(); }
     const mx = (a.x + b.x) / 2 + off.x, my = (a.y + b.y) / 2 + off.y;
-    g.save(); g.setTransform(1, 0.5, 0, 1, mx - 22, my + 12);
+    g.save(); g.transform(1, 0.5, 0, 1, mx - 22, my + 12);
     g.font = `10px ${FONT.mono}`; g.fillStyle = rgba(CSS.known, 0.7);
     g.fillText(`${room.w.toFixed(1)} m`, 0, 0);
     g.restore();
@@ -678,7 +681,7 @@ export class WorldRenderer {
     const off2 = { x: 9, y: 18 };
     g.beginPath(); g.moveTo(c0.x + off2.x, c0.y + off2.y); g.lineTo(c1.x + off2.x, c1.y + off2.y); g.stroke();
     for (const p of [c0, c1]) { g.beginPath(); g.moveTo(p.x + off2.x * 0.4, p.y + off2.y * 0.4); g.lineTo(p.x + off2.x * 1.4, p.y + off2.y * 1.4); g.stroke(); }
-    g.save(); g.setTransform(1, -0.5, 0, 1, (c0.x + c1.x) / 2 + off2.x + 2, (c0.y + c1.y) / 2 + off2.y + 14);
+    g.save(); g.transform(1, -0.5, 0, 1, (c0.x + c1.x) / 2 + off2.x + 2, (c0.y + c1.y) / 2 + off2.y + 14);
     g.font = `10px ${FONT.mono}`; g.fillStyle = rgba(CSS.known, 0.7);
     g.fillText(`${room.h.toFixed(1)} m`, 0, 0);
     g.restore();

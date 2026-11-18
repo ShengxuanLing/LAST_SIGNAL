@@ -60,19 +60,19 @@ function isPersistedSliceState(value: unknown): value is PersistedSliceState {
   if (v.schema !== SLICE_SCHEMA || v.version !== 1 || v.roomId !== 'station-zero-r1') return false;
   if (!isInt(v.energy, 0, 100)) return false;
   if (!isInt(v.tick, 0, Number.MAX_SAFE_INTEGER)) return false;
-  if (!DOOR_STATES.includes(String(v.doorState))) return false;
+  if (typeof v.doorState !== 'string' || !DOOR_STATES.includes(v.doorState)) return false;
   if (typeof v.manualOpenIntent !== 'boolean') return false;
   if (typeof v.sealSourcePresent !== 'boolean') return false;
   if (typeof v.passed !== 'boolean') return false;
   const r = v.remaining;
   if (!r || typeof r !== 'object') return false;
   const rem = r as Record<string, unknown>;
-  if (!isInt(rem.jam, 0, 360)) return false;
-  if (!isInt(rem.jamCooldown, 0, 480)) return false;
-  if (!isInt(rem.scanCooldown, 0, 120)) return false;
-  if (!isInt(rem.scanReveal, 0, 480)) return false;
-  if (!isInt(rem.safeClear, 0, 60)) return false;
-  if (!isInt(rem.regenAcc, 0, 11)) return false;
+  if (!isInt(rem.jam, 0, SLICE.JAM_DURATION_TICKS)) return false;
+  if (!isInt(rem.jamCooldown, 0, SLICE.JAM_CD_TICKS)) return false;
+  if (!isInt(rem.scanCooldown, 0, SLICE.SCAN_CD_TICKS)) return false;
+  if (!isInt(rem.scanReveal, 0, SLICE.SCAN_REVEAL_TICKS)) return false;
+  if (!isInt(rem.safeClear, 0, SLICE.SAFE_CLEAR_DELAY_TICKS)) return false;
+  if (!isInt(rem.regenAcc, 0, SLICE.REGEN_TICKS - 1)) return false;
   const doorPassable =
     (rem.jam as number) > 0 ||
     v.doorState === 'JAMMED_OPEN' ||

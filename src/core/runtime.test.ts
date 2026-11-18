@@ -30,12 +30,15 @@ function save(): SaveData {
 }
 
 describe('run and permanent saves', () => {
-  function storage(initial?: unknown) {
+  function storage(initial?: unknown, readable = () => true) {
     const data = new Map<string, string>();
     if (initial) data.set(SAVE_KEY, JSON.stringify(initial));
     const store: Storage = {
       get length() { return data.size; },
-      getItem: (key) => data.get(key) ?? null,
+      getItem: (key) => {
+        if (!readable()) throw new Error('Storage read failed');
+        return data.get(key) ?? null;
+      },
       setItem: (key, value) => { data.set(key, value); },
       removeItem: (key) => { data.delete(key); },
       clear: () => data.clear(),
@@ -52,6 +55,18 @@ describe('run and permanent saves', () => {
       stats: { kills: 3, items: 2, damage: 70, elapsedSeconds: 20 }
     };
   }
+
+  it('preserves an unreadable profile when settings or a new run are written', () => {
+    let readable = false;
+    const run = checkpoint();
+    const system = storage({ ...save(), run }, () => readable);
+    expect(system.updateSettings({ avatar: 'whale' })).toBe(false);
+    expect(system.writeCheckpoint({ ...run, id: 'run-b' }, null)).toBe(false);
+    readable = true;
+    expect(system.updateSettings({ sfxVolume: 0.3 })).toBe(true);
+    expect(system.updateSettings({ screenShake: false })).toBe(true);
+    expect(system.load()).toMatchObject({ run, settings: { screenShake: false, sfxVolume: 0.3 } });
+  });
 
   it('migrates the previous profile without turning old ranks into currency', () => {
     const previous = save();
@@ -87,6 +102,24 @@ describe('run and permanent saves', () => {
     expect(system.writeCheckpoint(run, undefined)).toBe(true);
     expect(system.finishRun(run.id, false, run.seed, run.stats)).toBe(true);
     expect(system.load().permanent).toMatchObject({ cores: 0, bossesDefeated: 1, damageBonus: 1, runs: 2 });
+  });
+
+  it('repairs invalid settings and stats independently and preserves a valid run', () => {
+    const original = save();
+    const system = storage({
+      ...original, run: checkpoint(),
+      settings: { ...original.settings, masterVolume: -1, sfxVolume: 0.4 },
+      stats: { ...original.stats, enemiesKilled: -7, damageDealt: 24 }
+    });
+    const loaded = system.load();
+    expect(loaded.settings).toMatchObject({ masterVolume: 0.7, sfxVolume: 0.4 });
+    expect(loaded.stats).toMatchObject({ enemiesKilled: 0, damageDealt: 24 });
+    expect(loaded.run?.id).toBe('run-a');
+    loaded.settings.masterVolume = Infinity;
+    expect(system.save(loaded)).toBe(false);
+    expect(system.getSettings().masterVolume).toBe(0.7);
+    system.clear();
+    expect(system.getSettings().sfxVolume).toBe(0.8);
   });
 
   it('discardCheckpoint removes the run only when the id matches', () => {

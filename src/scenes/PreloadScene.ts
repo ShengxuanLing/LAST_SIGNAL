@@ -1,11 +1,11 @@
 /// <reference types="vite/client" />
 import Phaser from 'phaser';
-import { GAME } from '../config/game';
-import { WHALE_TEXTURE, WHALE_SIDE_TEXTURE, WHALE_REAR_TEXTURE } from '../core/WhaleCharacter';
+import { saveSystem } from '../systems/SaveSystem';
+import type { Avatar } from '../types';
 import whaleFront from '../assets/whale/front.png?url';
 import whaleSide from '../assets/whale/side.png?url';
 import whaleBack from '../assets/whale/back.png?url';
-import { APPEARANCES, type DirectionalAvatar } from '../core/PlayerAppearance';
+import { APPEARANCES, resolveAvatar } from '../core/PlayerAppearance';
 import claudeFront from '../assets/claude/front.webp?url';
 import claudeLeft from '../assets/claude/left.webp?url';
 import claudeRight from '../assets/claude/right.webp?url';
@@ -19,7 +19,8 @@ import gptFront from '../assets/gpt/front.webp?url';
 import gptLeft from '../assets/gpt/left.webp?url';
 import gptRight from '../assets/gpt/right.webp?url';
 
-const avatarImages: Record<DirectionalAvatar, [string, string, string]> = {
+const avatarImages: Record<Exclude<Avatar, 'operator'>, [string, string, string]> = {
+  whale: [whaleFront, whaleSide, whaleBack],
   claude: [claudeFront, claudeLeft, claudeRight],
   grok: [grokFront, grokLeft, grokRight],
   gemini: [geminiFront, geminiLeft, geminiRight],
@@ -29,32 +30,42 @@ const avatarImages: Record<DirectionalAvatar, [string, string, string]> = {
 export class PreloadScene extends Phaser.Scene {
   constructor() { super('PreloadScene'); }
 
+  readonly unavailable = new Set<Avatar>();
+  private requested: Avatar = 'operator';
+  private selecting = false;
+
+  init(config: { avatar?: Avatar } = {}): void {
+    this.selecting = config.avatar !== undefined;
+    this.requested = config.avatar ?? saveSystem.getSettings().avatar ?? 'operator';
+  }
+
   preload(): void {
-    this.load.image(WHALE_TEXTURE, whaleFront);
-    this.load.image(WHALE_SIDE_TEXTURE, whaleSide);
-    this.load.image(WHALE_REAR_TEXTURE, whaleBack);
-    for (const avatar of Object.keys(avatarImages) as DirectionalAvatar[]) {
-      APPEARANCES[avatar].textures.forEach((key, index) => this.load.image(key, avatarImages[avatar][index]));
-    }
+    if (this.requested === 'operator') return;
+    const urls = avatarImages[this.requested];
+    APPEARANCES[this.requested].textures.forEach((key, index) => {
+      if (!this.textures.exists(key)) this.load.image(key, urls[index]);
+    });
+    const loader = document.getElementById('loader');
+    if (!loader || !this.load.list.size) return;
+    loader.style.display = 'flex';
+    const progress = (fraction: number) => {
+      loader.textContent = `LOADING ${APPEARANCES[this.requested].label} · ${Math.round(fraction * 100)}%`;
+    };
+    progress(0);
+    this.load.on(Phaser.Loader.Events.PROGRESS, progress);
+    this.events.once('shutdown', () => this.load.off(Phaser.Loader.Events.PROGRESS, progress));
   }
 
   create(): void {
-    const cx = GAME.WINDOW_W / 2, cy = GAME.WINDOW_H / 2;
-    this.add.text(cx, cy - 40, 'LAST SIGNAL', {
-      fontFamily: 'monospace', fontSize: '48px', color: '#33e0ff',
-      fontStyle: 'bold', letterSpacing: 6
-    }).setOrigin(0.5, 0.5);
-    this.add.text(cx, cy - 6, 'INITIALIZING COMBAT SYSTEMS', {
-      fontFamily: 'monospace', fontSize: '16px', color: '#8fb8c8'
-    }).setOrigin(0.5, 0.5);
-
-    // Transition after textures have finished loading.
-    const bw = 320, bh = 12, bx = cx - bw / 2, by = cy + 20;
-    this.add.rectangle(bx, by, bw, bh, 0x0d1822).setOrigin(0.5, 0.5);
-    const bar = this.add.rectangle(bx, by, 2, bh, 0x33e0ff).setOrigin(0, 0.5);
-    const t = this.add.tween({
-      targets: bar, scaleX: bw / 2, duration: 600, ease: 'Cubic.easeOut',
-      onComplete: () => this.scene.start('MainMenuScene')
-    });
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = 'none';
+    let notice: string | undefined;
+    if (resolveAvatar(this.requested, this.textures) !== this.requested) {
+      this.unavailable.add(this.requested);
+      notice = 'CHARACTER ART UNAVAILABLE';
+    } else if (this.selecting) {
+      if (!saveSystem.updateSettings({ avatar: this.requested })) notice = 'APPEARANCE NOT SAVED';
+    }
+    this.scene.start('MainMenuScene', { notice });
   }
 }

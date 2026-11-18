@@ -4,13 +4,26 @@ import { test, expect } from '@playwright/test';
 // right, stats) must render at on-screen positions and stay locked as the camera moves.
 // Regression: camera world-space culling previously cut the far-right HUD texts.
 test('full HUD renders and stays locked during camera movement', async ({ page }) => {
-  await page.goto('http://localhost:5199/');
-  await page.waitForTimeout(1500);
+  await page.goto('/');
+  await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
   await page.evaluate(() => {
     const g: any = (window as any).__game;
     g.scene.start('GameScene', { seed: 42 });
   });
-  await page.waitForTimeout(1800);
+  await page.waitForFunction(() => (window as any).__game.scene.getScene('GameScene')?.world?.clock > 0);
+  const terrain = await page.evaluate(() => {
+    const game = (window as any).__game;
+    const bounds = game.scene.getScene('GameScene').world.renderer.layer;
+    const textures = game.textures.getTextureKeys().filter((key: string) => key.startsWith('terrain-'));
+    const pixels = textures.reduce((sum: number, key: string) => {
+      const canvas = game.textures.get(key).getSourceImage();
+      return sum + canvas.width * canvas.height;
+    }, 0);
+    return { chunks: textures.length, pixels, fullMapPixels: bounds.width * bounds.height };
+  });
+  console.log('Terrain backing pixels', terrain);
+  expect(terrain.chunks).toBeGreaterThan(1);
+  expect(terrain.pixels).toBeLessThan(terrain.fullMapPixels / 2);
 
   const sampleHUD = async () => {
     await page.evaluate(() => {

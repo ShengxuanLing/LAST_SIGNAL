@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Avatar, PlayerData, ProjectileData, Vec2 } from '../types';
 import { basePlayerData, GAME } from '../config/game';
-import { WEAPONS } from '../config/weapons';
+import { WEAPONS, clampLevel, weaponCooldown } from '../config/weapons';
 import { clamp } from '../core/random';
 import { IsoMath } from '../core/iso';
 import { isoToScreen } from '../core/iso';
@@ -30,11 +30,13 @@ export class Player {
 
   private fireTimer = 0;
   private dashTimer = 0;
+  private dashCooldownRemaining = 0;
   private invuln = 0;
   private hurtTimer = 0;
   private keys: any = null;
   private cursors: any = null;
   private aimYaw = 0;
+  private readonly pointerWorld = new Phaser.Math.Vector2();
   private whaleEffects?: WhaleCharacterEffects;
   private readonly avatar: Avatar;
   /** AR-02 visual controller (frames, shadow, mast lamp). Community art is never modified. */
@@ -149,7 +151,7 @@ export class Player {
 
   aimFromPointer(pointer: Phaser.Input.Pointer): void {
     const cam = this.world.scene.cameras.main;
-    const wp = cam.getWorldPoint(pointer.x, pointer.y);
+    const wp = cam.getWorldPoint(pointer.x, pointer.y, this.pointerWorld);
     if (!wp) return;
     // Bullets live in grid space, so invert the display -> iso -> grid chain before
     // computing the aim angle; only then does the shot follow the mouse direction.
@@ -190,9 +192,19 @@ export class Player {
     let sx = ((this.input.right ? 1 : 0) - (this.input.left ? 1 : 0));
     let sy = ((this.input.down ? 1 : 0) - (this.input.up ? 1 : 0));
     const mag = Math.hypot(sx, sy);
-    let speed = this.data.speed;
+    this.dashCooldownRemaining = Math.max(0, this.dashCooldownRemaining - dt);
+    if (this.cursors?.space.isDown && this.dashCooldownRemaining === 0 && mag > 0) {
+      this.dashTimer = this.data.dashDuration;
+      this.dashCooldownRemaining = this.data.dashCooldown;
+      this.invuln = Math.max(this.invuln, this.data.dashDuration + 0.05);
+      this.world.addShake(4);
+      audio.ui();
+      this.world.onDash();
+    }
+    const dashTime = Math.min(this.dashTimer, dt);
+    this.dashTimer -= dashTime;
+    const speed = this.data.speed * (dt > 0 ? 1 + 1.6 * dashTime / dt : 1);
     let vx = 0, vy = 0;
-    if (this.dashTimer > 0) { speed = this.data.speed * 2.6; this.dashTimer -= dt; }
     if (mag > 0) {
       sx /= mag; sy /= mag;
       // screen vector -> world vector via inverse of our iso projection
@@ -210,18 +222,8 @@ export class Player {
     const ny = this.wy + vy * dt;
     if (this.isWalkable(this.wx, ny)) this.wy = ny;
 
-    // dash
-    if (this.cursors && this.cursors.space.isDown
-      && this.dashTimer <= 0 && mag > 0) {
-      this.dashTimer = this.data.dashDuration;
-      this.invuln = Math.max(this.invuln, this.data.dashDuration + 0.05);
-      this.world.addShake(4);
-      audio.ui();
-      this.world.onDash();
-    }
-
     this.project();
-    this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, this.dashTimer > 0);
+    this.whaleEffects?.move(dt, this.sprite.x - previousX, this.sprite.y - previousY, dashTime > 0);
     if (this.avatar !== 'operator' && this.avatar !== 'whale') {
       faceAvatar(this.sprite, this.avatar, this.sprite.x - previousX, this.sprite.y - previousY);
     }
@@ -241,12 +243,6 @@ export class Player {
     this.input.right = down(k.D);
   }
 
-  private fireCooldown(): number {
-    const w = this.weapon;
-    const red = Math.min(0.9, this.data.cooldownReduced);
-    return (1 / w.baseRate) / (1 - red);
-  }
-
   private tryFire(): void {
     if (!this.fireHeld() || !this.alive) return;
     if (this.fireTimer > 0) return;
@@ -261,14 +257,18 @@ export class Player {
       if (ws.reloading) return;
       if (ws.ammo <= 0) { ws.reloading = true; ws.reloadTimer = w.reloadTime ?? 1; return; }
     }
-    this.fireTimer = this.fireCooldown();
-    if (ws.magazine > 0) ws.ammo--;
+    const level = clampLevel(ws.level);
+    this.fireTimer = weaponCooldown(w, level, this.data.cooldownReduced);
+    if (ws.magazine > 0 && --ws.ammo === 0) {
+      ws.reloading = true;
+      ws.reloadTimer = w.reloadTime ?? 1;
+    }
     this.world.spawnProjectile(0, this.x, this.y, this.aimYaw, {
-      damage: w.baseDamage * this.data.damage,
+      damage: w.levelDamage(level) * this.data.damage,
       speed: w.baseProjectileSpeed / GAME.PIXEL_TO_TILE, critBase: w.critBase, critDamage: this.data.critDamage,
       critChance: this.data.critChance,
       pierce: this.data.pierceCount + (w.kind === 'plasma' ? 2 : 0),
-      lifetime: w.baseRange / w.baseProjectileSpeed, kind: w.kind,
+      lifetime: w.levelRange(level) / w.baseProjectileSpeed, kind: w.kind,
       magazine: ws.magazine, shots: w.kind === 'scatter' ? 5 : 1, spread: w.baseSpread
     }, 'player');
     if (this.whaleEffects) {

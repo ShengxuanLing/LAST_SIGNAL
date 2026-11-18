@@ -13,7 +13,6 @@ import path from 'node:path';
 // input and asserts the whole core loop. Every step must pass with no pageerror
 // or console error.
 
-const PORT = Number(process.env.PORT ?? 5173);
 const SEED = 424242;
 const SHOT_DIR = process.env.LS_SHOT_DIR
   ? path.resolve(process.env.LS_SHOT_DIR)
@@ -68,7 +67,7 @@ test('fixed-seed playability regression: menu -> movement -> fire -> kill -> loo
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 
   mkdirSync(SHOT_DIR, { recursive: true });
-  await page.goto(`http://localhost:${PORT}/`);
+  await page.goto('/');
   await page.waitForFunction(() => !!(window as any).__game, { timeout: 10000 });
   await page.waitForTimeout(1300);
 
@@ -482,7 +481,7 @@ test('P2 regression: boss bullets, screen-locked light, unlocked weapons, single
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   mkdirSync(SHOT_DIR, { recursive: true });
 
-  await page.goto(`http://localhost:${PORT}/`);
+  await page.goto('/');
   await page.waitForFunction(() => !!(window as any).__game, { timeout: 10000 });
   await page.waitForTimeout(1300);
 

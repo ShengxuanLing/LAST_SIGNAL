@@ -18,15 +18,13 @@ const reward = document.querySelector<HTMLParagraphElement>('#supply-reward')!;
 
 class SupplyTerminal {
   private readonly roomIds: Set<number>;
-  private readonly cleared: Set<number>;
   private readonly listeners = new AbortController();
   private rewardTimer = 0;
-  private checkpointPending = false;
 
   constructor(private readonly scene: GameScene) {
     const { rooms } = scene.world.map;
     this.roomIds = terminalRooms(rooms);
-    this.cleared = new Set(rooms.filter((room) => room.cleared).map((room) => room.id));
+    scene.events.on('room-cleared', this.payReward, this);
     scene.events.on(Phaser.Scenes.Events.POST_UPDATE, this.update, this);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this);
     scene.input.keyboard?.on('keydown-G', this.open, this);
@@ -40,53 +38,33 @@ class SupplyTerminal {
     this.update();
   }
 
-  private safeRoom(): Room | undefined {
-    const { world } = this.scene;
-    const current = world.currentRoom();
-    if (!current || !world.player.alive || world.won || world.boss ||
-        world.enemies.some((enemy) => enemy.alive) ||
-        world.map.rooms.some((room) => room.spawned && !room.cleared)) return;
-    const room = world.map.rooms[current.id];
-    if (room.cleared) return room;
+  private payReward(room: Room): void {
+    const payout = clearReward(room);
+    if (!payout) return;
+    // GameScene saves the cleared room and its credits together after this event.
+    this.scene.world.player.data.currency += payout;
+    reward.textContent = `+${payout} credits · room cleared`;
+    reward.hidden = false;
+    window.clearTimeout(this.rewardTimer);
+    this.rewardTimer = window.setTimeout(() => { reward.hidden = true; }, 3000);
   }
 
   private update(): void {
     const { scene } = this;
     const { world } = scene;
-    if (!world.player.alive || world.won) {
-      controls.hidden = true;
-      return;
-    }
-    let payout = 0;
-    for (const room of world.map.rooms) {
-      if (!room.cleared || this.cleared.has(room.id)) continue;
-      this.cleared.add(room.id);
-      payout += clearReward(room);
-    }
-    if (payout > 0) {
-      world.player.data.currency += payout;
-      this.checkpointPending = true;
-      reward.textContent = `+${payout} credits · room cleared`;
-      reward.hidden = false;
-      window.clearTimeout(this.rewardTimer);
-      this.rewardTimer = window.setTimeout(() => { reward.hidden = true; }, 3000);
-    }
-
-    const safe = scene.paused ? undefined : this.safeRoom();
-    if (this.checkpointPending && safe) {
-      scene.saveCheckpoint();
-      this.checkpointPending = false;
-    }
     const current = world.currentRoom();
-    controls.hidden = scene.paused || !current || !this.roomIds.has(current.id);
-    openButton.hidden = controls.hidden || !safe;
+    const visible = !scene.paused && world.player.alive && !world.won &&
+      !!current && this.roomIds.has(current.id);
+    const safe = visible && !!world.safeCheckpointRoom(current);
+    if (controls.hidden === visible) controls.hidden = !visible;
+    if (openButton.hidden === safe) openButton.hidden = !safe;
     const message = controls.hidden || safe ? '' : 'Supply terminal · clear remaining threats';
     if (hint.textContent !== message) hint.textContent = message;
   }
 
   private open = (): void => {
     if (dialog.open || this.scene.paused || !this.scene.scene.isActive()) return;
-    const room = this.safeRoom();
+    const room = this.scene.world.safeCheckpointRoom();
     if (!room || !this.roomIds.has(room.id)) return;
 
     this.scene.fireHeld = false;
@@ -138,7 +116,7 @@ class SupplyTerminal {
   }
 
   private purchase(roomId: number, index: number): void {
-    if (!dialog.open || this.safeRoom()?.id !== roomId) return;
+    if (!dialog.open || this.scene.world.safeCheckpointRoom()?.id !== roomId) return;
     const { player } = this.scene.world;
     const before = player.data;
     const supply = suppliesFor(before, this.scene.seed, roomId)[index];
@@ -147,7 +125,6 @@ class SupplyTerminal {
 
     player.data = purchased;
     if (this.scene.saveCheckpoint()) {
-      this.checkpointPending = false;
       feedback.textContent = `Purchased ${supply.name}.`;
       audio.ui();
     } else {
@@ -159,6 +136,7 @@ class SupplyTerminal {
 
   private destroy(): void {
     this.listeners.abort();
+    this.scene.events.off('room-cleared', this.payReward, this);
     this.scene.events.off(Phaser.Scenes.Events.POST_UPDATE, this.update, this);
     this.scene.input.keyboard?.off('keydown-G', this.open, this);
     window.clearTimeout(this.rewardTimer);

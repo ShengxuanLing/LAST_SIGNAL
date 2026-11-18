@@ -74,11 +74,14 @@ export const WEAPONS: Record<string, WeaponDef> = {
 
 export const WEAPON_LIST = Object.values(WEAPONS);
 
+export function weaponCooldown(def: WeaponDef, level: number, reduction: number): number {
+  return (1 - clamp(reduction, 0, 0.9)) / def.levelRate(level);
+}
+
 export function weaponDps(def: WeaponDef, level = 1, cooldownReduction = 0): number {
   const dmg = def.levelDamage(level);
-  const fireRate = def.levelRate(level) / (1 - cooldownReduction);
   // effective dps ignoring range/penetration; a rough comparison metric
-  return dmg * fireRate;
+  return dmg / weaponCooldown(def, level, cooldownReduction);
 }
 
 export function clampLevel(l: number): number {

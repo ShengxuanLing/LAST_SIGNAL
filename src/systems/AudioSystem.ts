@@ -7,6 +7,7 @@ export class AudioSystem {
   private masterVol = 0.7;
   private sfxVol = 0.8;
   private enabled = false;
+  private readonly noiseBuffers = new Map<number, AudioBuffer>();
 
   ensureContext(): void {
     if (this.ctx) return;
@@ -24,7 +25,7 @@ export class AudioSystem {
 
   resume(): void {
     this.ensureContext();
-    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.ctx?.state === 'suspended') void this.ctx.resume().catch(() => {});
   }
 
   setVolumes(master: number, sfx: number): void {
@@ -61,9 +62,13 @@ export class AudioSystem {
   private noise(t0: number, dur: number, peak = 0.3, filterFreq = 1200): void {
     if (!this.enabled || !this.ctx || !this.sfx) return;
     const ctx = this.ctx;
-    const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    let buffer = this.noiseBuffers.get(dur);
+    if (!buffer) {
+      buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+      this.noiseBuffers.set(dur, buffer);
+    }
     const src = ctx.createBufferSource();
     src.buffer = buffer;
     const filt = ctx.createBiquadFilter();
@@ -82,7 +87,8 @@ export class AudioSystem {
     if (!this.enabled) return;
     const t = this.ctx!.currentTime;
     switch (kind) {
-      case 'pulse': this.tone(880, 'square', t, 0.08, 0.18, 440); break;      case 'scatter': this.tone(220, 'sawtooth', t, 0.12, 0.2, 120); this.noise(t, 0.06, 0.12, 800); break;
+      case 'pulse': this.tone(880, 'square', t, 0.08, 0.18, 440); break;
+      case 'scatter': this.tone(220, 'sawtooth', t, 0.12, 0.2, 120); this.noise(t, 0.06, 0.12, 800); break;
       case 'plasma': this.tone(160, 'sine', t, 0.2, 0.25, 80); break;
       case 'arc': this.tone(1400, 'square', t, 0.06, 0.15, 300); this.noise(t, 0.05, 0.08, 2600); break;
     }

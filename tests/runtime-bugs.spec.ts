@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import { mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-const PORT = Number(process.env.PORT ?? 5173);
 const SHOT_DIR = process.env.LS_SHOT_DIR
   ? path.resolve(process.env.LS_SHOT_DIR)
   : path.resolve('screens');
@@ -40,7 +39,7 @@ test('runtime bug regressions: viewport scaling, text rendering, wall alignment,
 
   mkdirSync(SHOT_DIR, { recursive: true });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`http://localhost:${PORT}/`);
+  await page.goto('/');
   await page.waitForFunction(() => !!(window as any).__game, { timeout: 10000 });
   await page.waitForTimeout(1000);
   await page.evaluate(() => {
@@ -249,7 +248,7 @@ test('cleared room always offers an exit portal, even when every room is visited
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`http://localhost:${PORT}/`);
+  await page.goto('/');
   await page.waitForFunction(() => !!(window as any).__game, { timeout: 10000 });
   await page.waitForTimeout(1000);
   await page.evaluate(() => {

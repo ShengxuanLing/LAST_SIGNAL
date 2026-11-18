@@ -10,6 +10,7 @@ import { PauseScene } from './scenes/PauseScene';
 
 export const game = new Phaser.Game({
   type: Phaser.CANVAS,
+  audio: { noAudio: true },
   backgroundColor: '#05070c',
   scale: {
     mode: Phaser.Scale.FIT,

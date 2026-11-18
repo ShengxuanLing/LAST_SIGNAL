@@ -50,6 +50,10 @@ function setText(el: HTMLElement, value: string): void {
   if (el.textContent !== value) el.textContent = value;
 }
 
+function setData(el: HTMLElement, key: string, value: string): void {
+  if (el.dataset[key] !== value) el.dataset[key] = value;
+}
+
 export class SliceScene extends Phaser.Scene {
   private model!: SliceModel;
   private playerSprite!: Phaser.GameObjects.Image;
@@ -152,7 +156,7 @@ export class SliceScene extends Phaser.Scene {
     window.addEventListener('blur', this.onWindowBlur);
     document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.teardown, this);
-    document.body.dataset.vs00Ready = '1';
+    setData(document.body, 'vs00Ready', '1');
     this.refreshHud();
   }
 
@@ -190,8 +194,9 @@ export class SliceScene extends Phaser.Scene {
         }
       }
     }
-    this.renderEntities();
-    this.refreshHud();
+    const snapshot = this.model.snapshot();
+    this.renderEntities(snapshot);
+    this.refreshHud(snapshot);
   }
 
   // ---------- input / actions (buttons and keys share these entry points) ----------
@@ -474,14 +479,14 @@ export class SliceScene extends Phaser.Scene {
     }
   }
 
-  private renderEntities(): void {
+  private renderEntities(snapshot: SliceSnapshot): void {
     const p = this.toScreen(this.px, this.py);
     this.playerSprite.setPosition(p.x, p.y);
     this.playerSprite.setDepth(500 + this.px + this.py);
 
     this.doorGfx.clear();
     this.markerGfx.clear();
-    const snapshot = this.model.snapshot();
+
     this.drawScanSweep(snapshot.tick);
     this.guardSprite.setVisible((snapshot.corridor?.guardHp ?? 0) > 0);
     if (snapshot.corridor) {
@@ -569,9 +574,9 @@ export class SliceScene extends Phaser.Scene {
 
   private refreshCorridorHud(snapshot: SliceSnapshot): void {
     const c = snapshot.corridor;
-    this.labReadout.hidden = !!c;
-    this.corridorReadout.hidden = !c;
-    this.jamGuardButton.hidden = !c;
+    if (this.labReadout.hidden !== !!c) this.labReadout.hidden = !!c;
+    if (this.corridorReadout.hidden !== !c) this.corridorReadout.hidden = !c;
+    if (this.jamGuardButton.hidden !== !c) this.jamGuardButton.hidden = !c;
     setText(this.jamButton, c ? '压制中继器' : '压制');
     const interact = c ? '切换中继器' : '开门尝试';
     setText(this.interactButton, interact);
@@ -584,30 +589,30 @@ export class SliceScene extends Phaser.Scene {
     const bridgeTime = c.bridgeRemainingTicks > 0 ? ` · ${seconds(c.bridgeRemainingTicks)} 秒` : '';
     const shore = c.bridge === 'UNSTABLE' && c.onBridge ? ` · 退往${c.lastShore === 'west' ? '西' : '东'}岸` : '';
     setText(this.bridgeReadout, BRIDGE_LABEL[c.bridge] + bridgeTime + shore);
-    this.bridgeReadout.dataset.state = c.bridge;
-    this.bridgeReadout.dataset.ticks = String(c.bridgeRemainingTicks);
-    this.bridgeReadout.dataset.passable = c.bridgePassable ? '1' : '0';
+    setData(this.bridgeReadout, 'state', c.bridge);
+    setData(this.bridgeReadout, 'ticks', String(c.bridgeRemainingTicks));
+    setData(this.bridgeReadout, 'passable', c.bridgePassable ? '1' : '0');
     const status = c.relay === 'JAMMED' ? `压制中 ${seconds(snapshot.jamRemainingTicks)} 秒` : c.powered ? '有供电' : '失去供电';
     const control = c.canInteract ? ' · F 可切换' : '';
     const cooldown = snapshot.jamCooldownTicks > 0 ? ` · 冷却 ${seconds(snapshot.jamCooldownTicks)} 秒` : '';
     setText(this.relayReadout,
       `中继器 ${c.manualEnabled ? '开' : '关'} · ${status} · 输出 ${c.effectiveOutput ? 'ON' : 'OFF'}${control}${cooldown}`);
-    this.relayReadout.dataset.state = c.relay;
-    this.relayReadout.dataset.output = c.effectiveOutput ? '1' : '0';
-    this.relayReadout.dataset.jamTicks = String(snapshot.jamRemainingTicks);
-    this.relayReadout.dataset.cooldownTicks = String(snapshot.jamCooldownTicks);
+    setData(this.relayReadout, 'state', c.relay);
+    setData(this.relayReadout, 'output', c.effectiveOutput ? '1' : '0');
+    setData(this.relayReadout, 'jamTicks', String(snapshot.jamRemainingTicks));
+    setData(this.relayReadout, 'cooldownTicks', String(snapshot.jamCooldownTicks));
     const guard = c.guard;
     const guardStatus = guard.link === 'DEAD' ? '守卫已清除'
       : guard.link === 'JAMMED' ? `守卫压制中 ${seconds(guard.jamRemainingTicks)} 秒`
       : guard.behavior === 'INVESTIGATING' ? '守卫正在调查' : '守卫在场';
     setText(this.healthReadout, `HP ${c.hp} / ${CORRIDOR.maxHp} · ${guardStatus}`);
-    this.healthReadout.dataset.hp = String(c.hp);
-    this.healthReadout.dataset.guard = String(c.guardHp);
-    this.healthReadout.dataset.guardLink = guard.link;
-    this.healthReadout.dataset.guardShared = guard.sharedConnected ? '1' : '0';
-    this.healthReadout.dataset.guardJamTicks = String(guard.jamRemainingTicks);
-    this.healthReadout.dataset.guardJamUntil = guard.jamRemainingTicks ? String(snapshot.tick + guard.jamRemainingTicks) : '';
-    this.healthReadout.dataset.onBridge = c.onBridge ? '1' : '0';
+    setData(this.healthReadout, 'hp', String(c.hp));
+    setData(this.healthReadout, 'guard', String(c.guardHp));
+    setData(this.healthReadout, 'guardLink', guard.link);
+    setData(this.healthReadout, 'guardShared', guard.sharedConnected ? '1' : '0');
+    setData(this.healthReadout, 'guardJamTicks', String(guard.jamRemainingTicks));
+    setData(this.healthReadout, 'guardJamUntil', guard.jamRemainingTicks ? String(snapshot.tick + guard.jamRemainingTicks) : '');
+    setData(this.healthReadout, 'onBridge', c.onBridge ? '1' : '0');
 
     const reveal = snapshot.corridorReveal;
     const details: string[] = [];
@@ -622,51 +627,50 @@ export class SliceScene extends Phaser.Scene {
     setText(this.els.scan, reveal
       ? `扫描：${details.length > 0 ? details.join(' · ') : '范围内未发现可操作目标。'}`
       : '未扫描。按 Z 观察中继器的连接。');
-    this.els.scan.dataset.revealed = reveal ? '1' : '0';
-    this.els.scan.dataset.link = reveal?.relay && reveal.bridge ? '1' : '0';
+    setData(this.els.scan, 'revealed', reveal ? '1' : '0');
+    setData(this.els.scan, 'link', reveal?.relay && reveal.bridge ? '1' : '0');
     setText(this.els.complete, c.hp === 0 ? '本局失败 · 可重开' : c.crossed ? '已到达东岸 · 走廊完成 ✓' : '失稳走廊 · 前往东岸');
-    this.els.complete.dataset.complete = c.crossed && c.hp > 0 ? '1' : '0';
-    this.els.complete.dataset.crossedTick = c.crossedAtTick?.toString() ?? '';
+    setData(this.els.complete, 'complete', c.crossed && c.hp > 0 ? '1' : '0');
+    setData(this.els.complete, 'crossedTick', c.crossedAtTick?.toString() ?? '');
   }
 
-  private refreshHud(): void {
+  private refreshHud(s = this.model.snapshot()): void {
     if (!this.els) return;
-    const s = this.model.snapshot();
-    this.els.energy.textContent = `${s.energy} / ${SLICE.ENERGY_MAX}`;
-    this.els.energy.dataset.energy = String(s.energy);
-    this.els.door.textContent = DOOR_LABEL[s.doorState];
-    this.els.door.dataset.state = s.doorState;
+    setText(this.els.energy, `${s.energy} / ${SLICE.ENERGY_MAX}`);
+    setData(this.els.energy, 'energy', String(s.energy));
+    setText(this.els.door, DOOR_LABEL[s.doorState]);
+    setData(this.els.door, 'state', s.doorState);
 
     const base = [this.notice || this.model.lastResult.message, this.storageWarning].filter(Boolean).join(' · ');
-    this.els.feedback.textContent = s.paused ? `【已暂停】${base}` : base;
-    this.els.feedback.dataset.code = this.model.lastResult.code;
-    this.els.feedback.dataset.cost = String(this.model.lastResult.cost);
+    setText(this.els.feedback, s.paused ? `【已暂停】${base}` : base);
+    setData(this.els.feedback, 'code', this.model.lastResult.code);
+    setData(this.els.feedback, 'cost', String(this.model.lastResult.cost));
 
-    this.els.position.textContent = `${this.px.toFixed(1)}, ${this.py.toFixed(1)}`;
-    this.els.position.dataset.x = this.px.toFixed(1);
-    this.els.position.dataset.y = this.py.toFixed(1);
-    document.body.dataset.sliceRoom = s.corridor ? 'corridor' : 'lab';
+    setText(this.els.position, `${this.px.toFixed(1)}, ${this.py.toFixed(1)}`);
+    setData(this.els.position, 'x', this.px.toFixed(1));
+    setData(this.els.position, 'y', this.py.toFixed(1));
+    setData(document.body, 'sliceRoom', s.corridor ? 'corridor' : 'lab');
     this.refreshCorridorHud(s);
     if (s.corridor) return;
 
     const reveal = s.reveal;
     if (!reveal) {
-      this.els.scan.textContent = '未扫描。按 Z 或点“扫描”。';
+      setText(this.els.scan, '未扫描。按 Z 或点“扫描”。');
     } else if (!reveal.doorReceiver && !reveal.sealSource) {
-      this.els.scan.textContent = '扫描：范围内未发现可操作目标（空扫仍消耗 10）。';
+      setText(this.els.scan, '扫描：范围内未发现可操作目标（空扫仍消耗 10）。');
     } else {
       const bits: string[] = [];
       if (reveal.doorReceiver) bits.push('门接收器（存在）');
       if (reveal.sealSource) bits.push('封锁载波（存在）');
       if (reveal.link) bits.push('连接：源 → 门接收器');
-      this.els.scan.textContent = `扫描：${bits.join(' · ')}`;
+      setText(this.els.scan, `扫描：${bits.join(' · ')}`);
     }
-    this.els.scan.dataset.revealed = reveal ? '1' : '0';
-    this.els.scan.dataset.doorReceiver = reveal?.doorReceiver ? '1' : '0';
-    this.els.scan.dataset.sealSource = reveal?.sealSource ? '1' : '0';
-    this.els.scan.dataset.link = reveal?.link ? '1' : '0';
+    setData(this.els.scan, 'revealed', reveal ? '1' : '0');
+    setData(this.els.scan, 'doorReceiver', reveal?.doorReceiver ? '1' : '0');
+    setData(this.els.scan, 'sealSource', reveal?.sealSource ? '1' : '0');
+    setData(this.els.scan, 'link', reveal?.link ? '1' : '0');
 
-    this.els.complete.textContent = s.passed ? '已通过门：原型完成 ✓' : '尚未通过门';
-    this.els.complete.dataset.complete = s.passed ? '1' : '0';
+    setText(this.els.complete, s.passed ? '已通过门：原型完成 ✓' : '尚未通过门');
+    setData(this.els.complete, 'complete', s.passed ? '1' : '0');
   }
 }

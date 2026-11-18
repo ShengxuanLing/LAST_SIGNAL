@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { AVATARS, type Avatar } from '../types';
+import type { Avatar } from '../types';
 import { WHALE_REAR_TEXTURE, WHALE_SIDE_TEXTURE, WHALE_TEXTURE } from './WhaleCharacter';
 
 export const APPEARANCES = {
@@ -12,10 +12,6 @@ export const APPEARANCES = {
 } as const satisfies Record<Avatar, { label: string; textures: readonly string[]; feet?: readonly number[] }>;
 
 export type DirectionalAvatar = Exclude<Avatar, 'operator' | 'whale'>;
-
-export function availableAvatars(textures: Phaser.Textures.TextureManager): Avatar[] {
-  return AVATARS.filter((avatar) => APPEARANCES[avatar].textures.every((key) => textures.exists(key)));
-}
 
 export function resolveAvatar(avatar: Avatar | undefined, textures: Phaser.Textures.TextureManager): Avatar {
   return avatar && APPEARANCES[avatar].textures.every((key) => textures.exists(key)) ? avatar : 'operator';

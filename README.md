@@ -36,10 +36,10 @@
 以下特性均来自 `0.1.0` 真实源码（已逐文件复核）：
 
 - **主菜单**：`NEW RUN` 开始新的随机地牢。已有一局时，会先确认是否替换检查点。`LOAD RUN` 查看检查点，`CONTINUE` 直接恢复。
-- **角色外观**：在主菜单右侧循环选择 Operator、鲸鱼娘、Claude 娘、Grok 娘、Gemini 娘和 GPT 娘。五位 Q 版角色使用随游戏打包的 GitHub 社区精灵，选择随浏览器存档保存。[鲸鱼娘署名](docs/WHALE_CHAN.md) · [Claude 娘署名](docs/CLAUDE_CHAN.md) · [Grok、Gemini 与 GPT 娘署名](public/ai-roster/NOTICE.txt)
-- **等距房间与地图**：`src/world/MapGenerator.ts` 生成房间深度（RoomDepth）结构，`WorldRenderer` 把整张地图烘焙成单张等距纹理；带小地图（minimap）与相机跟随 / 缩放（`CAM_ZOOM_MIN 0.8` ~ `CAM_ZOOM_MAX 1.25`）。
+- **角色外观**：在主菜单右侧循环选择 Operator、鲸鱼娘、Claude 娘、Grok 娘、Gemini 娘和 GPT 娘。五位 Q 版角色使用随游戏打包的 GitHub 社区精灵，所选角色的三张图片按需加载，选择随浏览器存档保存。[鲸鱼娘署名](docs/WHALE_CHAN.md) · [Claude 娘署名](docs/CLAUDE_CHAN.md) · [Grok、Gemini 与 GPT 娘署名](public/ai-roster/NOTICE.txt)
+- **等距房间与地图**：`src/world/MapGenerator.ts` 按种子生成可复现的房间布局，`WorldRenderer` 按区域烘焙地形；带小地图（minimap）与相机跟随 / 缩放（`CAM_ZOOM_MIN 0.8` ~ `CAM_ZOOM_MAX 1.25`）。
 - **战斗**：鼠标瞄准、按住左键射击；`SPACE` 冲刺（dash）；敌人含 drone / stalker / hunter / sentinel 四型（随房间深度解锁更强类型），掉落资源 / 经验 / 信用点（credits）。
-- **武器系统**：4 把武器（Pulse Rifle / Scatter Gun / Plasma Cannon / Arc Drone），`Q` / `E` 切换，`F` 与场景互动物（传送门 / 拾取）交互；弹匣耗尽自动换弹。
+- **武器系统**。使用 `Q` / `E` 切换已持有的武器。四把武器分别为 Pulse Rifle、Scatter Gun、Plasma Cannon 和 Arc Drone。弹匣耗尽后自动换弹。
 - **升级与成长**：击杀获得经验，升级时从加权池中随机给 3 选 1 升级卡（共 12 项局内升级）。击败 Boss 可获得 1 枚永久核心，在主菜单的 `PERMANENT TALENTS` 中购买生命、伤害或护甲天赋。永久天赋在新开局时生效。
 - **Boss 房**：深层房间生成三阶段 Boss（含激光、环形弹幕与召唤无人机），击破后进入胜利结算。
 - **暂停 / 局内统计 / 结算**：`ESC` 暂停并显示当前武器与升级；死亡进入 GameOver 结算页。
@@ -91,11 +91,13 @@ npm run preview   # 预览生产构建
 | 射击 | 按住鼠标左键 |
 | 冲刺（dash） | `SPACE` |
 | 切换武器 | `Q`（上一把）/ `E`（下一把） |
-| 场景交互（传送门 / 拾取） | `F` |
+| 使用传送门 | 靠近信标后按 `F` |
+| 拾取掉落 | 靠近后自动拾取 |
 | 打开 / 关闭物品面板 | `I`，点击 `EQUIP` 或按 `1`–`4` 装备对应武器 |
 | 暂停 / 继续 | `ESC` |
 | 选择升级 | 点击升级卡或按卡片标出的数字键 |
 | 开始游戏 | 主菜单点击 `NEW RUN` |
+| 菜单键盘导航 | `Tab` / `Shift+Tab` 移动焦点，`Enter` / 空格确认 |
 
 > 弹匣耗尽后会自动换弹，无需手动操作。
 
@@ -103,22 +105,15 @@ npm run preview   # 预览生产构建
 
 ```bash
 npm run typecheck   # tsc --noEmit，类型检查
-npm test            # Vitest 单测（src/core/runtime.test.ts，15 个用例）
+npm test            # Vitest 单元测试
 npm run test:watch  # Vitest 监听模式
 
-npm run playwright  # Playwright 端到端回归（tests/ 下 audit/canvas/gameplay/checkpoint/boss-room/runtime-bugs）
+npx playwright install chromium  # 首次安装测试浏览器
+npm run playwright  # 自动启动 Vite 并运行浏览器回归
+npm run build && npm run test:preview  # 使用生产构建验证主要流程
 ```
 
-运行 Playwright 前**需同时启动两个 Vite dev server**（见 `CONTRIBUTING.md`）：
-
-- `tests/audit.spec.ts`、`tests/gameplay.spec.ts` 走 `http://localhost:5173/`（默认 `PORT=5173`）。
-- `tests/canvas.spec.ts` 硬编码 `http://localhost:5199/`。
-
-```bash
-npm run dev                    # 终端 1：5173
-npm run dev -- --port 5199     # 终端 2：5199
-LS_SHOT_DIR=</path/out> npm run playwright   # 把截图输出指向仓库外目录
-```
+可用 `PORT` 指定测试端口，或用 `LS_SHOT_DIR` 指定截图目录。
 
 ## 项目结构
 

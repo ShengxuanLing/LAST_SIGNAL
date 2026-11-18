@@ -7,9 +7,20 @@
 | 商品 | 价格 | 效果 |
 | --- | ---: | --- |
 | Repair kit | 16 | 恢复最多 35 点生命。 |
-| Weapon calibration | 28 | 当前武器升一级，最高 10 级。 |
+| Weapon calibration | 28 | 提高当前武器的伤害、射速和射程，最高 10 级。 |
 | 临时武器 | 40 | 获得并装备终端展示的武器。货品由地图种子和房间决定。 |
 
 购买会立即保存到安全检查点。信用点、已购武器和校准等级都属于当前一局。Boss 奖励的永久核心仍用于主菜单的永久天赋。原版和补给终端入口在相同浏览器地址下共用检查点。
 
-生产构建使用 `npm run build -- --config vite.economy.config.ts`。生成的 `dist` 同时包含 `index.html` 和 `economy.html`。
+运行 `npm run build:economy` 将补给版输出到 `dist-economy/`。
+
+在 PowerShell 中可直接验证发行版的购买、保存失败时的退款和恢复流程。
+
+```powershell
+npm run build:economy
+$env:LS_PREVIEW_MODE = 'economy'
+npm run test:preview
+Remove-Item Env:LS_PREVIEW_MODE
+```
+
+原有的生产构建命令是 `npm run build -- --config vite.economy.config.ts`。生成的 `dist` 同时包含 `index.html` 和 `economy.html`。

@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     ...base.build,
     rollupOptions: {
+      ...base.build?.rollupOptions,
       input: {
         game: fileURLToPath(new URL('./index.html', import.meta.url)),
         economy: fileURLToPath(new URL('./economy.html', import.meta.url))

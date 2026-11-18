@@ -20,12 +20,22 @@ function playerState(page: Page) {
 
 test('whale appearance persists and responds to real movement and shots', async ({ page }) => {
   const errors: string[] = [];
+  const images: string[] = [];
+  page.on('response', response => {
+    const url = new URL(response.url());
+    if (['http:', 'https:'].includes(url.protocol) && /^image\/(png|webp)/.test(response.headers()['content-type'] ?? '')) {
+      images.push(url.pathname);
+    }
+  });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
+  expect(images, 'the default operator needs no community images').toEqual([]);
   await page.mouse.click(1000, 490);
   await expect.poll(() => page.evaluate((key) =>
     JSON.parse(localStorage.getItem(key) ?? '{}').settings?.avatar, SAVE_KEY)).toBe('whale');
+  expect(images).toHaveLength(3);
+  expect(images.every(url => url.endsWith('.png'))).toBe(true);
 
   await page.reload();
   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
@@ -47,7 +57,8 @@ test('whale appearance persists and responds to real movement and shots', async 
     texture: 'whale-chan-rear', effects: expect.arrayContaining(['whale-wake'])
   });
   await page.keyboard.down('Space');
-  await expect.poll(async () => (await playerState(page)).effects).toContain('whale-dash');
+  await page.waitForFunction(() => (window as any).__game.scene.getScene('GameScene')
+    .children.getByName('whale-dash'));
   await page.keyboard.up('Space');
   await page.keyboard.up('w');
 

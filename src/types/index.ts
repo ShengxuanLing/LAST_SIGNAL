@@ -69,7 +69,10 @@ export interface Room {
   connectedTo: number[]; cleared: boolean; spawned: boolean;
 }
 
+export type MapVersion = 1 | 2;
+
 export interface MapData {
+  mapVersion: MapVersion;
   seed: number; width: number; height: number;
   tiles: Tile[][]; rooms: Room[]; doorways: Vec2[]; roomsOrder: number[];
 }
@@ -94,6 +97,8 @@ export interface UpgradeProgress { key: string; level: number; }
 export interface HudData { show: boolean; fps: number; roomIndex: number; roomTotal: number; }
 
 export interface RunCheckpoint {
+  /** Absent in checkpoints created with the original map generator. */
+  mapVersion?: MapVersion;
   id: string;
   seed: number;
   roomId: number;

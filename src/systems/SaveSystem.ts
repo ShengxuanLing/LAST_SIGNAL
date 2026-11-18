@@ -33,9 +33,21 @@ function emptySave(): SaveData {
 const PERMANENT_NUMBERS = [
   'maxHpBonus', 'speedBonus', 'damageBonus', 'critChanceBonus',
   'armorBonus', 'xpBonus', 'currencyBonus', 'runs', 'bossesDefeated', 'bestSeed'
-];
-const SETTINGS_NUMBERS = ['masterVolume', 'sfxVolume', 'mouseDpi'];
-const STATS_NUMBERS = ['enemiesKilled', 'itemsCollected', 'damageDealt', 'playTimeSeconds'];
+] as const;
+const SETTINGS_NUMBERS = ['masterVolume', 'sfxVolume', 'mouseDpi'] as const;
+const STATS_NUMBERS = ['enemiesKilled', 'itemsCollected', 'damageDealt', 'playTimeSeconds'] as const;
+
+function nonnegative(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+function validSetting(key: typeof SETTINGS_NUMBERS[number], value: unknown): value is number {
+  return nonnegative(value) && (key === 'mouseDpi' ? value > 0 : value <= 1);
+}
+
+function stringList(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(item => typeof item === 'string');
+}
 
 function isAvatar(value: unknown): value is Avatar {
   return AVATARS.some((avatar) => avatar === value);
@@ -48,15 +60,14 @@ export function validate(data: any): data is SaveData {
   const p = data.permanent;
   if (!p || typeof p !== 'object' || !Number.isSafeInteger(p.cores) || p.cores < 0) return false;
   for (const k of PERMANENT_NUMBERS) {
-    const v = (p as any)[k];
-    if (typeof v !== 'number' || !Number.isFinite(v)) return false;
+    if (!nonnegative(p[k])) return false;
   }
-  if (!Array.isArray(p.unlockedWeapons) || !Array.isArray(p.unlockedAbilities)) return false;
+  if (!stringList(p.unlockedWeapons) || !stringList(p.unlockedAbilities)) return false;
 
   const s = data.settings;
   if (!s || typeof s !== 'object') return false;
   for (const k of SETTINGS_NUMBERS) {
-    if (typeof (s as any)[k] !== 'number') return false;
+    if (!validSetting(k, s[k])) return false;
   }
   if (typeof s.fullscreen !== 'boolean' || typeof s.screenShake !== 'boolean') return false;
   if (s.avatar !== undefined && !isAvatar(s.avatar)) return false;
@@ -64,7 +75,7 @@ export function validate(data: any): data is SaveData {
   const st = data.stats;
   if (!st || typeof st !== 'object') return false;
   for (const k of STATS_NUMBERS) {
-    if (typeof (st as any)[k] !== 'number') return false;
+    if (!nonnegative(st[k])) return false;
   }
   return true;
 }
@@ -86,16 +97,16 @@ export class SaveSystem {
   }
 
   load(): SaveData {
-    const result = this._load();
-    this.settingsCache = result.settings;
+    const result = this._load() ?? emptySave();
+    this.settingsCache = { ...result.settings };
     return result;
   }
 
-  private _load(): SaveData {
+  private _load(): SaveData | null {
     const store = this.useStorage();
-    if (!store) return emptySave();
+    if (!store) return null;
     let raw: string | null = null;
-    try { raw = store.getItem(SAVE_KEY); } catch { raw = null; }
+    try { raw = store.getItem(SAVE_KEY); } catch { return null; }
     if (!raw) return emptySave();
     let parsed: any;
     try { parsed = JSON.parse(raw); } catch {
@@ -116,28 +127,21 @@ export class SaveSystem {
     const s = parsed?.settings ?? {};
     const st = parsed?.stats ?? {};
     base.permanent.cores = Number.isSafeInteger(p.cores) && p.cores >= 0 ? p.cores : 0;
-    base.permanent.maxHpBonus = typeof p.maxHpBonus === 'number' ? p.maxHpBonus : base.permanent.maxHpBonus;
-    base.permanent.speedBonus = typeof p.speedBonus === 'number' ? p.speedBonus : base.permanent.speedBonus;
-    base.permanent.damageBonus = typeof p.damageBonus === 'number' ? p.damageBonus : base.permanent.damageBonus;
-    base.permanent.critChanceBonus = typeof p.critChanceBonus === 'number' ? p.critChanceBonus : base.permanent.critChanceBonus;
-    base.permanent.armorBonus = typeof p.armorBonus === 'number' ? p.armorBonus : base.permanent.armorBonus;
-    base.permanent.xpBonus = typeof p.xpBonus === 'number' ? p.xpBonus : base.permanent.xpBonus;
-    base.permanent.currencyBonus = typeof p.currencyBonus === 'number' ? p.currencyBonus : base.permanent.currencyBonus;
-    base.permanent.unlockedWeapons = Array.isArray(p.unlockedWeapons) ? p.unlockedWeapons : base.permanent.unlockedWeapons;
-    base.permanent.unlockedAbilities = Array.isArray(p.unlockedAbilities) ? p.unlockedAbilities : base.permanent.unlockedAbilities;
-    base.permanent.runs = typeof p.runs === 'number' ? p.runs : base.permanent.runs;
-    base.permanent.bossesDefeated = typeof p.bossesDefeated === 'number' ? p.bossesDefeated : base.permanent.bossesDefeated;
-    base.permanent.bestSeed = typeof p.bestSeed === 'number' ? p.bestSeed : base.permanent.bestSeed;
-    base.settings.masterVolume = typeof s.masterVolume === 'number' ? s.masterVolume : base.settings.masterVolume;
-    base.settings.sfxVolume = typeof s.sfxVolume === 'number' ? s.sfxVolume : base.settings.sfxVolume;
-    base.settings.mouseDpi = typeof s.mouseDpi === 'number' ? s.mouseDpi : base.settings.mouseDpi;
+    for (const key of PERMANENT_NUMBERS) {
+      if (nonnegative(p[key])) base.permanent[key] = p[key];
+    }
+    for (const key of ['unlockedWeapons', 'unlockedAbilities'] as const) {
+      if (Array.isArray(p[key])) base.permanent[key] = p[key].filter((item: unknown) => typeof item === 'string');
+    }
+    for (const key of SETTINGS_NUMBERS) {
+      if (validSetting(key, s[key])) base.settings[key] = s[key];
+    }
     base.settings.fullscreen = typeof s.fullscreen === 'boolean' ? s.fullscreen : base.settings.fullscreen;
     base.settings.screenShake = typeof s.screenShake === 'boolean' ? s.screenShake : base.settings.screenShake;
     if (isAvatar(s.avatar)) base.settings.avatar = s.avatar;
-    base.stats.enemiesKilled = typeof st.enemiesKilled === 'number' ? st.enemiesKilled : base.stats.enemiesKilled;
-    base.stats.itemsCollected = typeof st.itemsCollected === 'number' ? st.itemsCollected : base.stats.itemsCollected;
-    base.stats.damageDealt = typeof st.damageDealt === 'number' ? st.damageDealt : base.stats.damageDealt;
-    base.stats.playTimeSeconds = typeof st.playTimeSeconds === 'number' ? st.playTimeSeconds : base.stats.playTimeSeconds;
+    for (const key of STATS_NUMBERS) {
+      if (nonnegative(st[key])) base.stats[key] = st[key];
+    }
     // A run checkpoint is independent of the save's version/schema. If the save
     // was outdated/invalid but the embedded run still validates, keep it so a
     // version bump never silently destroys an in-progress run.
@@ -156,7 +160,7 @@ export class SaveSystem {
     if (!validate(data) || (data.run !== undefined && !validateCheckpoint(data.run))) return false;
     try {
       store.setItem(SAVE_KEY, JSON.stringify(data));
-      this.settingsCache = data.settings;
+      this.settingsCache = { ...data.settings };
       return true;
     } catch {
       // Storage full or unavailable — failure is non-fatal to gameplay.
@@ -171,23 +175,32 @@ export class SaveSystem {
 
   /** Force a re-read of settings from storage (call after a settings change has been saved). */
   refreshSettings(): void {
-    this.settingsCache = this.load().settings;
+    this.load();
   }
 
-  writeCheckpoint(run: RunCheckpoint, expectedId: string | undefined): boolean {
-    const save = this.load();
+  updateSettings(changes: Partial<SaveData['settings']>): boolean {
+    const save = this._load();
+    if (!save) return false;
+    Object.assign(save.settings, changes);
+    return this.save(save);
+  }
+
+  writeCheckpoint(run: RunCheckpoint, expectedId: string | null | undefined): boolean {
+    const save = this._load();
+    if (!save) return false;
     // Contract:
     //  - expectedId === undefined  -> replace ANY existing on-disk run (new run / first write).
+    //  - expectedId === null       -> only create a checkpoint if the slot is still empty.
     //  - expectedId is a string     -> only write when save.run?.id === expectedId
     //                                 (guards against writing over a different active run).
-    if (expectedId !== undefined && save.run?.id !== expectedId) return false;
+    if (expectedId !== undefined && (save.run?.id ?? null) !== expectedId) return false;
     save.run = run;
     return this.save(save);
   }
 
   finishRun(id: string, won: boolean, seed: number, stats: RunCheckpoint['stats']): boolean {
-    const save = this.load();
-    if (save.run?.id !== id) return false;
+    const save = this._load();
+    if (!save || save.run?.id !== id) return false;
     delete save.run;
     save.permanent.runs += 1;
     save.stats.enemiesKilled += stats.kills;
@@ -204,16 +217,16 @@ export class SaveSystem {
   }
 
   buyTalent(key: PermanentTalent): boolean {
-    const save = this.load();
-    if (save.permanent.cores < 1 || save.permanent[key] >= PERMANENT_TALENT_CAP) return false;
+    const save = this._load();
+    if (!save || save.permanent.cores < 1 || save.permanent[key] >= PERMANENT_TALENT_CAP) return false;
     save.permanent.cores -= 1;
     save.permanent[key] += 1;
     return this.save(save);
   }
 
   discardCheckpoint(id: string): void {
-    const save = this.load();
-    if (save.run?.id !== id) return;
+    const save = this._load();
+    if (!save || save.run?.id !== id) return;
     delete save.run;
     this.save(save);
   }
@@ -221,7 +234,10 @@ export class SaveSystem {
   clear(): void {
     const store = this.useStorage();
     if (!store) return;
-    try { store.removeItem(SAVE_KEY); } catch { /* ignore */ }
+    try {
+      store.removeItem(SAVE_KEY);
+      this.settingsCache = null;
+    } catch { /* Storage may be unavailable. */ }
   }
 }
 

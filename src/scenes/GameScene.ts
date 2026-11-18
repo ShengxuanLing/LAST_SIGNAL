@@ -1,19 +1,17 @@
 import Phaser from 'phaser';
 import { GAME } from '../config/game';
-import { MapGenerator, assignRoles, guaranteeReachable, roomDepth } from '../world/MapGenerator';
+import { MapGenerator, guaranteeReachable } from '../world/MapGenerator';
 import { World, WorldCallbacks, RoomInfo } from '../world/World';
-import { WEAPONS } from '../config/weapons';
-import { UPGRADES } from '../config/upgrades';
-import { saveSystem, game } from '../main';
+import { saveSystem } from '../systems/SaveSystem';
 import { audio } from '../systems/AudioSystem';
 import { formatDuration } from '../core/formatDuration';
-import { Player } from '../entities/Player';
-import type { RunCheckpoint } from '../types';
+import type { MapData, MapVersion, RunCheckpoint } from '../types';
 import { CSS, DEPTH, FONT, INK, TIME } from '../art/survey/tokens';
 
 interface SceneConfig {
   seed?: number;
   resume?: boolean;
+  mapVersion?: MapVersion;
 }
 
 export class GameScene extends Phaser.Scene {
@@ -22,12 +20,18 @@ export class GameScene extends Phaser.Scene {
   }
   world!: World;
   private cam!: Phaser.Cameras.Scene2D.Camera;
-  private keys!: Phaser.Input.Keyboard.Key;
+  private readonly cameraPoint = new Phaser.Math.Vector2();
   fireHeld = false;
   paused = false;
 
   // HUD elements (AR-02: one per-frame Graphics + texts, Direction A field-manual style)
   private hud!: Phaser.GameObjects.Graphics;
+  private minimap!: Phaser.GameObjects.RenderTexture;
+  private minimapRoom = -2;
+  private minimapSurveyed = -1;
+  private minimapScale = 1;
+  private minimapOffsetX = 0;
+  private minimapOffsetY = 0;
   private hpShown = -1;
   private previousHp = -1;
   private hpLossFlash = 0;
@@ -46,11 +50,13 @@ export class GameScene extends Phaser.Scene {
   private timer!: Phaser.GameObjects.Text;
   private txtVitals!: Phaser.GameObjects.Text;
 
-  private runStart = 0;
+  private elapsedSeconds = 0;
   private enemiesKilled = 0;
   private itemsCollected = 0;
   private damageDealt = 0;
   private runId = '';
+  private expectedCheckpointId: string | null = null;
+  private retrySaveAfter = 0;
   private checkpointDirty = false;
   private runFinished = false;
   // Pending level-up levels. When one XP gain crosses several levels, addXp()
@@ -73,10 +79,9 @@ export class GameScene extends Phaser.Scene {
       this.scene.start('MainMenuScene', { notice: 'NO CHECKPOINT AVAILABLE' });
       return;
     }
-    // A resumed run keeps the checkpoint's id; a brand-new run gets a fresh id.
-    // A NEW RUN must not carry over a previous run's id, and its first checkpoint
-    // write replaces the old on-disk run (see the undefined expectedId below).
     this.runId = checkpoint ? checkpoint.id : crypto.getRandomValues(new Uint32Array(4)).join('-');
+    this.expectedCheckpointId = save.run?.id ?? null;
+    this.retrySaveAfter = 0;
     this.checkpointDirty = false;
     this.runFinished = false;
     this.pendingLevels = [];
@@ -84,9 +89,9 @@ export class GameScene extends Phaser.Scene {
     this.enemiesKilled = checkpoint?.stats.kills ?? 0;
     this.itemsCollected = checkpoint?.stats.items ?? 0;
     this.damageDealt = checkpoint?.stats.damage ?? 0;
-    this.runStart = this.time.now - (checkpoint?.stats.elapsedSeconds ?? 0) * 1000;
+    this.elapsedSeconds = checkpoint?.stats.elapsedSeconds ?? 0;
     this.seed = (checkpoint?.seed ?? config?.seed ?? Math.floor(Math.random() * 1e9)) >>> 0;
-    const map = this.buildMap(this.seed);
+    const map = this.buildMap(this.seed, checkpoint ? checkpoint.mapVersion ?? 1 : config?.mapVersion);
     const callbacks: WorldCallbacks = {
       onLevelUp: (level) => this.onLevelUp(level),
       onDeath: () => this.onDeath(),
@@ -110,22 +115,11 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (!checkpoint) this.world.updateRoom();
-    const firstCheckpoint = this.world.captureCheckpoint(this.runId, this.seed, this.runStats());
-    if (firstCheckpoint) {
-      // First write replaces any existing on-disk checkpoint (expectedId ===
-      // undefined) so a NEW RUN clears the old run and a RESUME re-saves the same
-      // id. Later writes pass this.runId so they can only touch the active run.
-      saveSystem.writeCheckpoint(firstCheckpoint, undefined);
-    }
-    this.checkpointDirty = false;
+    this.saveCheckpoint();
 
-    // Camera bounds must follow the real isometric world layer, not the tile-grid
-    // size: WorldRenderer bakes the whole map into one texture whose width/height
-    // are far larger than map.width * TILE_W / map.height * TILE_H. The old grid
-    // based bounds clamped scrollY and pushed the player/boss/map off the bottom
-    // of the screen in deep (boss) rooms.
+    // The camera follows projected terrain bounds, including raised walls.
     this.cam = this.cameras.main;
-    const layer = (this.world.renderer as any).layer as { width: number; height: number };
+    const layer = this.world.renderer!.layer;
     const pad = 200;
     this.cam.setBounds(-pad, -pad, layer.width + pad * 2, layer.height + pad * 2);
     // Keep bounds clamping enabled (setBounds already sets it; be explicit).
@@ -133,8 +127,6 @@ export class GameScene extends Phaser.Scene {
     this.cam.setZoom(GAME.CAM_ZOOM_MIN);
 
     // Input
-    this.keys = this.input.keyboard!.addKey('SPACE');
-    this.input.keyboard!.on('keydown_SPACE', () => {});
     this.input.keyboard!.on('keydown-ESC', (event: KeyboardEvent) => {
       if (!event.repeat) this.onPause();
     });
@@ -148,28 +140,35 @@ export class GameScene extends Phaser.Scene {
     });
     this.input.keyboard!.on('keydown-Q', () => this.switchWeapon(-1));
     this.input.keyboard!.on('keydown-E', () => this.switchWeapon(1));
-    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (p.button === 0) this.fireHeld = true; });
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (p.button === 0 && !this.paused) this.fireHeld = true; });
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => { if (p.button === 0) this.fireHeld = false; });
+
+    const releaseFire = () => {
+      this.fireHeld = false;
+      this.world.player.setFireHeld(false);
+    };
+    this.input.on('pointerupoutside', releaseFire);
+    this.game.events.on(Phaser.Core.Events.BLUR, releaseFire);
+    this.events.once('shutdown', () => this.game.events.off(Phaser.Core.Events.BLUR, releaseFire));
 
     this.setupHud();
     // Snap the camera once. In Phaser 3.90 zoom is about the viewport center, so
     // getScroll() (which also clamps to setBounds) is the scroll that centers the
     // player; scrollX/Y must not be set to the player's world position directly.
     const px = this.world.player.sprite.x, py = this.world.player.sprite.y;
-    const start = this.cam.getScroll(px, py);
+    const start = this.cam.getScroll(px, py, this.cameraPoint);
     this.cam.setScroll(start.x, start.y);
+    audio.setVolumes(save.settings.masterVolume, save.settings.sfxVolume);
     audio.ensureContext();
   }
 
-  private buildMap(seed: number): any {
-    const gen = new MapGenerator(seed);
+  private buildMap(seed: number, version: MapVersion = 2): MapData {
+    const gen = new MapGenerator(seed, version);
     const map = gen.generate();
-    assignRoles(gen, map.rooms, map.roomsOrder);
     if (!guaranteeReachable(map)) {
       // extremely unlikely; retry with offset seed
-      const gen2 = new MapGenerator(seed ^ 0x5bd1e995);
+      const gen2 = new MapGenerator(seed ^ 0x5bd1e995, version);
       const m2 = gen2.generate();
-      assignRoles(gen2, m2.rooms, m2.roomsOrder);
       return m2;
     }
     return map;
@@ -192,6 +191,9 @@ export class GameScene extends Phaser.Scene {
     const mono = (size: number, color: string, bold = false) =>
       ({ fontFamily: FONT.mono, fontSize: `${size}px`, color, fontStyle: bold ? 'bold' : 'normal' });
     // One Graphics for every HUD shape; pinned at screen (0,0) by lockHud.
+    this.minimap = add.renderTexture(0, 0, 194, 132).setOrigin(0).setDepth(HUD_DEPTH);
+    this.minimapRoom = -2;
+    this.minimapSurveyed = -1;
     this.hud = add.graphics().setDepth(HUD_DEPTH);
     (this.hud as any).originX = 0; (this.hud as any).originY = 0;
     this.hpShown = -1; this.previousHp = -1; this.hpLossFlash = 0;
@@ -216,13 +218,14 @@ export class GameScene extends Phaser.Scene {
   private lockHud(): void {
     const z = this.cam.zoom || 1;
     const iz = 1 / z;
-    const world = (sx: number, sy: number) => this.cam.getWorldPoint(sx, sy);
+    const world = (sx: number, sy: number) => this.cam.getWorldPoint(sx, sy, this.cameraPoint);
     // Place each element's origin at its on-screen target via the camera's own
     // transform, so it stays fixed on screen regardless of scroll/zoom.
     const place = (o: { x: number; y: number; scaleX: number; scaleY: number }, tx: number, ty: number) => {
       const w = world(tx, ty);
       o.x = w.x; o.y = w.y; o.scaleX = iz; o.scaleY = iz;
     };
+    place(this.minimap, GAME.WINDOW_W - 205, GAME.WINDOW_H - 141);
     place(this.hud, 0, 0);
     place(this.txtVitals, 20, 14);
     place(this.txtHp, 230, 25);
@@ -262,25 +265,26 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.paused) return;
     const dt = Math.max(0, delta) / 1000;
-    this.world.update(dt);
-    if (!this.paused && this.checkpointDirty) this.saveCheckpoint();
-
-    // aim from last pointer
-    const ptr = this.input.activePointer;
-    this.world.player.aimFromPointer(ptr);
+    if (!this.runFinished) this.elapsedSeconds += dt;
+    this.world.player.aimFromPointer(this.input.activePointer);
     this.world.player.setFireHeld(this.fireHeld);
+    this.world.update(dt);
+    if (!this.paused && this.checkpointDirty && this.time.now >= this.retrySaveAfter) this.saveCheckpoint();
 
     // camera follows player (Phaser 3.90: Camera.follow removed -> manual scroll lerp)
     const px = this.world.player.sprite.x, py = this.world.player.sprite.y;
-    const t = this.cam.getScroll(px, py);
-    this.cam.scrollX += (t.x - this.cam.scrollX) * GAME.CAM_LERP;
-    this.cam.scrollY += (t.y - this.cam.scrollY) * GAME.CAM_LERP;
+    const t = this.cam.getScroll(px, py, this.cameraPoint);
+    const follow = 1 - Math.pow(1 - GAME.CAM_LERP, dt * 60);
+    this.cam.scrollX += (t.x - this.cam.scrollX) * follow;
+    this.cam.scrollY += (t.y - this.cam.scrollY) * follow;
 
-    // camera zoom out toward boss arenas
-    // camera zoom toward boss arenas (manual; zoomTo() is broken in Phaser 3.90)
+    // Match the original 60 Hz camera response at other refresh rates.
     const room = this.world.currentRoom();
     const targetZoom = room && (room.kind === 'boss') ? GAME.CAM_ZOOM_MAX : GAME.CAM_ZOOM_MIN;
-    this.cam.zoom = this.cam.zoom + (targetZoom - this.cam.zoom) * 0.05;
+    if (this.cam.zoom !== targetZoom) {
+      const zoomBlend = 1 - Math.pow(0.95, dt * 60);
+      this.cam.zoom += (targetZoom - this.cam.zoom) * zoomBlend;
+    }
 
     // Now that the camera scroll/zoom have settled this frame, lock the screen-space HUD
     // to it so it neither trails the camera nor rescales with zoom.
@@ -299,8 +303,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Hairline frame corner ticks (survey-manual frame language, A4). */
-  private ticks(x0: number, y0: number, x1: number, y1: number, len = 6, alpha = 0.55): void {
-    const g = this.hud;
+  private ticks(x0: number, y0: number, x1: number, y1: number, len = 6, alpha = 0.55, g = this.hud): void {
     g.lineStyle(1, INK.known, alpha);
     for (const [x, y, sx, sy] of [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]]) {
       g.lineBetween(x, y, x + sx * len, y); g.lineBetween(x, y, x, y + sy * len);
@@ -350,7 +353,7 @@ export class GameScene extends Phaser.Scene {
     this.txtXp.setText(`XP ${p.data.xp}/${p.data.xpToNext}`);
     this.txtCurrency.setText(`CREDITS ${p.data.currency}`);
     this.txtLevel.setText(`LV ${p.data.level}`);
-    const secs = Math.floor((this.time.now - this.runStart) / 1000);
+    const secs = Math.floor(this.elapsedSeconds);
     this.timer.setText(`T+${formatDuration(Math.max(0, secs))}`);
 
     // ---- weapon / room / hostiles (top-right)
@@ -373,30 +376,40 @@ export class GameScene extends Phaser.Scene {
       g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.strokePath();
     }
 
-    const settings = saveSystem.getSettings();
-    audio.setVolumes(settings.masterVolume, settings.sfxVolume);
   }
 
   /** Survey map: observed rooms solid, unobserved inferred (dashed), executor = cyan dot. */
   private refreshMinimap(): void {
-    const g = this.hud;
-    const map = this.world.map;
-    const rooms = map.rooms;
+    const room = this.world.currentRoom()?.id ?? -1;
+    const surveyed = this.world.surveyedRooms();
+    if (room !== this.minimapRoom || surveyed !== this.minimapSurveyed) {
+      this.drawMinimap(room);
+      this.minimapRoom = room;
+      this.minimapSurveyed = surveyed;
+      this.txtMap.setText(`SURVEY MAP · ${surveyed}/${this.world.map.rooms.length}`);
+    }
+    this.hud.fillStyle(INK.interact, 1);
+    this.hud.fillCircle(this.minimapOffsetX + this.world.player.x * this.minimapScale,
+      this.minimapOffsetY + this.world.player.y * this.minimapScale, 2.5);
+  }
+
+  private drawMinimap(cur: number): void {
+    const g = this.make.graphics({}, false);
+    const rooms = this.world.map.rooms;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const r of rooms) { minX = Math.min(minX, r.gx); minY = Math.min(minY, r.gy); maxX = Math.max(maxX, r.gx + r.w); maxY = Math.max(maxY, r.gy + r.h); }
-    const box = { x: GAME.WINDOW_W - 196, y: GAME.WINDOW_H - 114, w: 176, h: 96 };
+    const box = { x: 9, y: 27, w: 176, h: 96 };
     const s = Math.min(box.w / Math.max(1, maxX - minX), box.h / Math.max(1, maxY - minY));
     const ox = box.x + (box.w - (maxX - minX) * s) / 2 - minX * s;
     const oy = box.y + (box.h - (maxY - minY) * s) / 2 - minY * s;
     g.fillStyle(INK.panel, 0.55); g.fillRect(box.x - 8, box.y - 26, box.w + 16, box.h + 34);
-    this.ticks(box.x - 8, box.y - 26, box.x + box.w + 8, box.y + box.h + 8);
+    this.ticks(box.x - 8, box.y - 26, box.x + box.w + 8, box.y + box.h + 8, 6, 0.55, g);
     g.lineStyle(1, INK.known, 0.25);
     for (const r of rooms) for (const c of r.connectedTo) {
       if (c < r.id) continue;
       const t = rooms[c];
       g.lineBetween(ox + (r.gx + r.w / 2) * s, oy + (r.gy + r.h / 2) * s, ox + (t.gx + t.w / 2) * s, oy + (t.gy + t.h / 2) * s);
     }
-    const cur = this.world.currentRoom()?.id;
     for (const r of rooms) {
       const x = ox + r.gx * s, y = oy + r.gy * s, w = Math.max(4, r.w * s), h = Math.max(4, r.h * s);
       if (this.world.renderer?.isObserved(r.id)) {
@@ -413,9 +426,11 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
-    g.fillStyle(INK.interact, 1);
-    g.fillCircle(ox + this.world.player.x * s, oy + this.world.player.y * s, 2.5);
-    this.txtMap.setText(`SURVEY MAP · ${this.world.surveyedRooms()}/${rooms.length}`);
+    this.minimap.clear().draw(g);
+    g.destroy();
+    this.minimapScale = s;
+    this.minimapOffsetX = GAME.WINDOW_W - 205 + ox;
+    this.minimapOffsetY = GAME.WINDOW_H - 141 + oy;
   }
 
   private refreshBoss(): void {
@@ -435,7 +450,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateStats(): void {
-    const secs = Math.floor((this.time.now - this.runStart) / 1000);
+    const secs = Math.floor(this.elapsedSeconds);
     this.txtStats.setText(`KILLS ${this.enemiesKilled} · LOOT ${this.itemsCollected} · DMG ${Math.round(this.damageDealt)} · ${secs}s`);
   }
 
@@ -444,16 +459,19 @@ export class GameScene extends Phaser.Scene {
       kills: this.enemiesKilled,
       items: this.itemsCollected,
       damage: this.damageDealt,
-      elapsedSeconds: Math.max(0, Math.floor((this.time.now - this.runStart) / 1000))
+      elapsedSeconds: Math.max(0, Math.floor(this.elapsedSeconds))
     };
   }
 
   saveCheckpoint(): boolean {
-    if (this.runFinished) return false;
+    if (this.runFinished || this.levelUpActive) return false;
     const checkpoint = this.world.captureCheckpoint(this.runId, this.seed, this.runStats());
     if (!checkpoint) return false;
-    this.checkpointDirty = false;
-    return saveSystem.writeCheckpoint(checkpoint, this.runId);
+    const saved = saveSystem.writeCheckpoint(checkpoint, this.expectedCheckpointId);
+    this.checkpointDirty = !saved;
+    if (saved) this.expectedCheckpointId = this.runId;
+    else this.retrySaveAfter = this.time.now + 2000;
+    return saved;
   }
 
   private onLevelUp(level: number): void {
@@ -467,6 +485,7 @@ export class GameScene extends Phaser.Scene {
     if (level === undefined) return;
     this.levelUpActive = true;
     audio.levelup();
+    this.fireHeld = false;
     this.paused = true;
     this.cameras.main.setAlpha(0.5);
     this.scene.launch('LevelUpScene', { level, onClose: () => this.onLevelUpClosed() });
@@ -482,6 +501,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.paused = false;
       this.cameras.main.setAlpha(1);
+      this.checkpointDirty = true;
     }
   }
 
@@ -496,6 +516,7 @@ export class GameScene extends Phaser.Scene {
     // The start room is marked cleared on create so a fresh run can be persisted;
     // do not flash a combat banner or play the clear cue for this synthetic event.
     if (room.kind === 'start') return;
+    this.events.emit('room-cleared', room);
     audio.wave();
     this.banner('ROOM CLEARED', `R-${String(room.id).padStart(2, '0')}`, CSS.interact);
   }
@@ -509,7 +530,7 @@ export class GameScene extends Phaser.Scene {
     const stats = this.runStats();
     saveSystem.finishRun(this.runId, false, this.seed, stats);
     this.scene.stop('LevelUpScene');
-    this.scene.start('GameOverScene', { seed: this.seed, stats, won: false });
+    this.scene.start('GameOverScene', { seed: this.seed, mapVersion: this.world.map.mapVersion, stats, won: false });
   }
 
   private onBossWin(): void {
@@ -533,7 +554,7 @@ export class GameScene extends Phaser.Scene {
       callback: () => {
         this.scene.stop('PauseScene');
         this.scene.stop('LevelUpScene');
-        this.scene.start('GameOverScene', { seed: this.seed, stats, won: true, coreAwarded });
+        this.scene.start('GameOverScene', { seed: this.seed, mapVersion: this.world.map.mapVersion, stats, won: true, coreAwarded });
       }
     });
   }
@@ -541,6 +562,7 @@ export class GameScene extends Phaser.Scene {
   private onPause(): void {
     if (this.paused) return;
     this.saveCheckpoint();
+    this.fireHeld = false;
     this.paused = true;
     this.scene.launch('PauseScene', { mode: 'pause' });
   }
@@ -559,6 +581,7 @@ export class GameScene extends Phaser.Scene {
 
   private toggleInventory(): void {
     if (this.paused) return;
+    this.fireHeld = false;
     this.paused = true;
     this.scene.launch('PauseScene', { mode: 'inventory' });
   }

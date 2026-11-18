@@ -141,12 +141,17 @@ test('route B reaches the east shore within one guard Jam from the real entrance
   await expect(page.getByTestId('vs00-door-state')).toHaveAttribute('data-state', 'JAMMED_OPEN');
   await walk(page, east, async () => (await room.getAttribute('data-slice-room')) === 'corridor');
   await expect(relay).toHaveAttribute('data-cooldown-ticks', '0', { timeout: 10000 });
+  // Held movement can continue until the browser receives keyup after the transition.
+  // Walk back to the entrance before starting the timed crossing.
+  if (await coordinate(page, 'x') > 2.6) {
+    await walk(page, ['KeyW', 'KeyA'], async () => (await coordinate(page, 'x')) <= 2.5);
+  }
   expect(await coordinate(page, 'x')).toBeLessThanOrEqual(2.6);
   expect(await coordinate(page, 'y')).toBe(10.5);
   const labCheckpoint = await readSave(page);
   expect(labCheckpoint.corridor).toBeUndefined();
 
-  const elapsed = page.evaluate(() => new Promise<number>((resolve) => {
+  const timing = await page.evaluateHandle(() => ({ elapsed: new Promise<number>((resolve) => {
     const guard = document.querySelector('[data-testid="vs01-health"]')!;
     const eastShore = document.querySelector('[data-testid="vs00-complete"]')!;
     let started: number | undefined;
@@ -159,7 +164,7 @@ test('route B reaches the east shore within one guard Jam from the real entrance
     });
     observer.observe(guard, { attributes: true, attributeFilter: ['data-guard-link'] });
     observer.observe(eastShore, { attributes: true, attributeFilter: ['data-complete'] });
-  }));
+  }) }));
   await page.keyboard.press('g');
   await expect(feedback).toHaveAttribute('data-cost', '25');
   const jamUntil = Number(await health.getAttribute('data-guard-jam-until'));
@@ -176,9 +181,11 @@ test('route B reaches the east shore within one guard Jam from the real entrance
   } finally {
     for (const key of east) await page.keyboard.up(key);
   }
-  const duration = await elapsed;
+  const duration = await timing.evaluate(({ elapsed }) => elapsed);
+  await timing.dispose();
   const elapsedTicks = Number(await complete.getAttribute('data-crossed-tick')) - (jamUntil - 360);
   console.log(`Route B reached SAFE_E in ${duration.toFixed(0)}ms / ${elapsedTicks} logic ticks`);
+  expect(duration).toBeGreaterThan(0);
   expect(duration).toBeLessThanOrEqual(6000);
   expect(elapsedTicks).toBeGreaterThan(0);
   expect(elapsedTicks).toBeLessThanOrEqual(360);

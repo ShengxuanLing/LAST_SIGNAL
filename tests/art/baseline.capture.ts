@@ -332,6 +332,8 @@ test('AR-00 visual baseline capture', async ({ page, browserName }) => {
     save.settings = { ...(save.settings ?? {}), avatar: 'whale' };
     localStorage.setItem(key, JSON.stringify(save));
   }, MAIN_KEY);
+  await page.reload();
+  await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
   await startRun(page, SEED);
   const whaleInfo = await enterRoom(page, combatId, { fire: true });
   if (whaleInfo.aim) await page.mouse.move(whaleInfo.aim.x, whaleInfo.aim.y);

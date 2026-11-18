@@ -1,14 +1,15 @@
 import Phaser from 'phaser';
+import { bindMenuButton } from '../core/menuButton';
 import { GAME } from '../config/game';
 import { saveSystem } from '../main';
 import { audio } from '../systems/AudioSystem';
 import { formatDuration } from '../core/formatDuration';
-import type { RunCheckpoint } from '../types';
+import type { MapVersion, RunCheckpoint } from '../types';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOverScene'); }
 
-  create(config: { seed: number; stats?: RunCheckpoint['stats']; won?: boolean; coreAwarded?: boolean }): void {
+  create(config: { seed: number; mapVersion?: MapVersion; stats?: RunCheckpoint['stats']; won?: boolean; coreAwarded?: boolean }): void {
     const won = config?.won === true;
     const { kills, damage, items, elapsedSeconds } = config?.stats ?? {
       kills: 0, damage: 0, items: 0, elapsedSeconds: 0
@@ -43,9 +44,9 @@ export class GameOverScene extends Phaser.Scene {
     }
 
     this._button(GAME.WINDOW_W / 2, 500, won ? 'NEW RUN' : 'RETRY SAME SEED', () => {
-      const nextSeed = won ? undefined : seed;
-      if (saveSystem.load().run) this.scene.start('MainMenuScene', { view: 'replace', seed: nextSeed });
-      else this.scene.start('GameScene', { seed: nextSeed });
+      const nextRun = won ? {} : { seed, mapVersion: config.mapVersion };
+      if (saveSystem.load().run) this.scene.start('MainMenuScene', { view: 'replace', ...nextRun });
+      else this.scene.start('GameScene', nextRun);
     }, 0x33e0ff);
     this._button(GAME.WINDOW_W / 2, 560, 'MAIN MENU', () => this.scene.start('MainMenuScene', {}), 0x274a55);
   }
@@ -55,7 +56,7 @@ export class GameOverScene extends Phaser.Scene {
     const g = this.add.rectangle(cx, y, w, 46, color, 0.35).setOrigin(0.5, 0.5).setStrokeStyle(2, 0x33e0ff, 0.7);
     const t = this.add.text(cx, y, label, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff', fontStyle: 'bold', letterSpacing: 3 }).setOrigin(0.5, 0.5);
     const hit = this.add.rectangle(cx, y, w, 46, 0x000000, 0).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    hit.on('pointerdown', () => { audio.ui(); cb(); });
+    bindMenuButton(this, hit, label, () => { audio.ui(); cb(); });
     hit.on('pointerover', () => g.setFillStyle(color, 0.6));
     hit.on('pointerout', () => g.setFillStyle(color, 0.35));
   }

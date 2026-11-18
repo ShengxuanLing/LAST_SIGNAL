@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { bindMenuButton } from '../core/menuButton';
 import { DEFAULT_SETTINGS, GAME } from '../config/game';
 import { UPGRADES } from '../config/upgrades';
 import { WEAPONS } from '../config/weapons';
@@ -9,7 +10,7 @@ import { GameScene } from './GameScene';
 export class PauseScene extends Phaser.Scene {
   constructor() { super('PauseScene'); }
 
-  create(config?: { mode?: 'pause' | 'inventory' }): void {
+  create(config?: { mode?: 'pause' | 'inventory' | 'settings' }): void {
     const mode = config?.mode ?? 'pause';
     const parent = this.scene.get<GameScene>('GameScene');
     const player = parent.world.player;
@@ -39,6 +40,10 @@ export class PauseScene extends Phaser.Scene {
       this.input.keyboard?.off('keydown-I', closeFromKey);
     });
 
+    if (mode === 'settings') {
+      this.showSettings();
+      return;
+    }
     if (mode === 'inventory') {
       this.add.text(GAME.WINDOW_W / 2, 90, 'INVENTORY', { fontFamily: 'monospace', fontSize: '30px', color: '#33e0ff', fontStyle: 'bold' }).setOrigin(0.5, 0.5);
 
@@ -58,13 +63,13 @@ export class PauseScene extends Phaser.Scene {
         const y = 186 + i * 44;
         const name = this.add.text(120, y, def?.name ?? w.key, { fontFamily: 'monospace', fontSize: '18px' });
         this.add.text(120, y + 20, `level ${w.level} · ${w.magazine > 0 ? `${w.ammo}/${w.magazine}` : '∞ energy'}`, { fontFamily: 'monospace', fontSize: '13px', color: '#8fb8c8' });
-        const equip = this.add.text(420, y, '', {
+        const equip = this.add.text(420, y, 'EQUIP', {
           fontFamily: 'monospace', fontSize: '13px', padding: { x: 8, y: 3 }
         }).setOrigin(0.5, 0);
         equip.on('pointerdown', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
           event.stopPropagation();
-          equipWeapon(w.key);
         });
+        const button = bindMenuButton(this, equip, `Equip ${def?.name ?? w.key}`, () => equipWeapon(w.key));
         const shortcut = shortcuts[i];
         if (shortcut) {
           const eventName = `keydown-${shortcut}`;
@@ -76,6 +81,7 @@ export class PauseScene extends Phaser.Scene {
         }
         return () => {
           const active = player.data.weaponKey === w.key;
+          button.disabled = active;
           name.setColor(active ? '#ffd233' : '#cfe8ef');
           equip.setText(active ? 'EQUIPPED' : 'EQUIP')
             .setColor(active ? '#7ff0ff' : '#eafaff')
@@ -121,7 +127,7 @@ export class PauseScene extends Phaser.Scene {
       this.add.text(GAME.WINDOW_W / 2, 150, 'PAUSED', { fontFamily: 'monospace', fontSize: '48px', color: '#33e0ff', fontStyle: 'bold', letterSpacing: 6 }).setOrigin(0.5, 0.5);
       this._button(GAME.WINDOW_W / 2, 300, 'RESUME', close, 0x33e0ff);
       this._button(GAME.WINDOW_W / 2, 360, 'INVENTORY', () => this.scene.restart({ mode: 'inventory' }), 0x274a55);
-      this._button(GAME.WINDOW_W / 2, 420, 'SETTINGS', () => this.showSettings(), 0x274a55);
+      this._button(GAME.WINDOW_W / 2, 420, 'SETTINGS', () => this.scene.restart({ mode: 'settings' }), 0x274a55);
       this._button(GAME.WINDOW_W / 2, 480, 'QUIT TO MENU', () => {
         parent.saveCheckpoint();
         // scene.start() only shuts down the calling scene; GameScene would stay
@@ -138,11 +144,8 @@ export class PauseScene extends Phaser.Scene {
 
   private showSettings(): void {
     const save = saveSystem.load();
-    // Transparent input blocker: Phaser input is top-only, so this swallows clicks
-    // that would otherwise land on the pause-menu buttons underneath.
-    const blocker = this.add.rectangle(0, 0, GAME.WINDOW_W, GAME.WINDOW_H, 0x000000, 0)
-      .setOrigin(0, 0).setInteractive();
-    const panel = this.add.rectangle(GAME.WINDOW_W / 2, 403, 780, 310, 0x0d1822);
+    this.add.rectangle(GAME.WINDOW_W / 2, 403, 780, 310, 0x0d1822);
+    this.add.text(GAME.WINDOW_W / 2, 208, 'SETTINGS', { fontFamily: 'monospace', fontSize: '32px', color: '#33e0ff' }).setOrigin(0.5);
     const wrap = this.add.container(GAME.WINDOW_W / 2, 300);
 
     const vol = this.add.text(0, 0, `MASTER ${Math.round(save.settings.masterVolume * 100)}%`, { fontFamily: 'monospace', fontSize: '18px', color: '#eafaff' }).setOrigin(0.5, 0.5);
@@ -166,45 +169,41 @@ export class PauseScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     shake.setText(`SCREEN SHAKE ${screenShake ? 'ON' : 'OFF'}`);
     wrap.add(shake);
-    const apply = () => {
+    const apply = (changes: Partial<typeof save.settings>) => {
       vol.setText(`MASTER ${Math.round(master * 100)}%`);
       sfx.setText(`SFX ${Math.round(sfxVol * 100)}%`);
       audio.setVolumes(master, sfxVol);
-      const latest = saveSystem.load();
-      latest.settings.masterVolume = master;
-      latest.settings.sfxVolume = sfxVol;
-      latest.settings.screenShake = screenShake;
-      saveSystem.save(latest);
+      hint.setText(saveSystem.updateSettings(changes) ? 'ESC RESUME' : 'SETTINGS COULD NOT BE SAVED');
     };
     const step = (v: number, delta: number) => Math.max(0, Math.min(1, Math.round((v + delta) * 10) / 10));
-    masterLeft.on('pointerdown', () => { master = step(master, -0.1); apply(); audio.ui(); });
-    masterRight.on('pointerdown', () => { master = step(master, 0.1); apply(); audio.ui(); });
-    sfxLeft.on('pointerdown', () => { sfxVol = step(sfxVol, -0.1); apply(); audio.ui(); });
-    sfxRight.on('pointerdown', () => { sfxVol = step(sfxVol, 0.1); apply(); audio.ui(); });
+    bindMenuButton(this, masterLeft, 'Decrease master volume', () => { master = step(master, -0.1); apply({ masterVolume: master }); audio.ui(); });
+    bindMenuButton(this, masterRight, 'Increase master volume', () => { master = step(master, 0.1); apply({ masterVolume: master }); audio.ui(); });
+    bindMenuButton(this, sfxLeft, 'Decrease effects volume', () => { sfxVol = step(sfxVol, -0.1); apply({ sfxVolume: sfxVol }); audio.ui(); });
+    bindMenuButton(this, sfxRight, 'Increase effects volume', () => { sfxVol = step(sfxVol, 0.1); apply({ sfxVolume: sfxVol }); audio.ui(); });
 
-    shake.on('pointerdown', () => {
+    const shakeButton = bindMenuButton(this, shake, 'Screen shake', () => {
       screenShake = !screenShake;
+      shakeButton.setAttribute('aria-pressed', String(screenShake));
       shake.setText(`SCREEN SHAKE ${screenShake ? 'ON' : 'OFF'}`);
-      apply();
+      apply({ screenShake });
       audio.ui();
     });
+    shakeButton.setAttribute('aria-pressed', String(screenShake));
     const reset = this.add.text(0, 105, 'RESET AUDIO', {
       fontFamily: 'monospace', fontSize: '14px', color: '#eafaff', backgroundColor: '#274a55'
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    reset.on('pointerdown', () => {
+    wrap.add(reset);
+    bindMenuButton(this, reset, 'Reset audio', () => {
       master = DEFAULT_SETTINGS.masterVolume;
       sfxVol = DEFAULT_SETTINGS.sfxVolume;
-      apply();
+      apply({ masterVolume: master, sfxVolume: sfxVol });
       audio.ui();
     });
     const hint = this.add.text(0, 175, 'ESC RESUME', { fontFamily: 'monospace', fontSize: '12px', color: '#8fb8c8' }).setOrigin(0.5);
     const back = this.add.text(0, 140, 'BACK', { fontFamily: 'monospace', fontSize: '14px', color: '#8fb8c8', backgroundColor: '#0d1822' }).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    wrap.add([reset, hint, back]);
-    back.on('pointerdown', () => {
+    wrap.add([hint, back]);
+    bindMenuButton(this, back, 'Back', () => {
       audio.ui();
-      blocker.destroy();
-      panel.destroy();
-      wrap.destroy();
       this.scene.restart({ mode: 'pause' });
     });
   }
@@ -214,7 +213,7 @@ export class PauseScene extends Phaser.Scene {
     const g = this.add.rectangle(cx, y, w, 46, color, 0.35).setOrigin(0.5, 0.5).setStrokeStyle(2, 0x33e0ff, 0.7);
     const t = this.add.text(cx, y, label, { fontFamily: 'monospace', fontSize: '20px', color: '#eafaff', fontStyle: 'bold', letterSpacing: 3 }).setOrigin(0.5, 0.5);
     const hit = this.add.rectangle(cx, y, w, 46, 0x000000, 0).setOrigin(0.5, 0.5).setInteractive({ useHandCursor: true });
-    hit.on('pointerdown', () => { audio.ui(); cb(); });
+    bindMenuButton(this, hit, label, () => { audio.ui(); cb(); });
     hit.on('pointerover', () => g.setFillStyle(color, 0.6));
     hit.on('pointerout', () => g.setFillStyle(color, 0.35));
   }
