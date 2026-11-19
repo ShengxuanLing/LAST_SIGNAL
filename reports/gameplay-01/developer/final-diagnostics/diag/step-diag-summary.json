@@ -1,0 +1,25 @@
+{
+  "total": 308,
+  "stationaryStart": {
+    "x": 116.93796313525117,
+    "y": 45.93013566349308
+  },
+  "stationary": {
+    "x": 117.53957173360968,
+    "y": 46.370008926700486
+  },
+  "final": {
+    "x": 117.53957173360968,
+    "y": 46.370008926700486,
+    "hp": 49,
+    "owner": "human",
+    "aiEnabled": false,
+    "keys": {
+      "up": false,
+      "down": false,
+      "left": false,
+      "right": false
+    },
+    "pendingCommands": 0
+  }
+}

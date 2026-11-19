@@ -1,0 +1,262 @@
+{
+  "dir": "reports/gameplay-01/developer/p4-recovery/diag",
+  "runs": [
+    {
+      "label": "run2",
+      "windowMs": 2579,
+      "frames": 49,
+      "movers": 4,
+      "moversAllKnockback": true,
+      "nonzeroMoveIntents": 0,
+      "keysHeld": false,
+      "hurts": 4,
+      "heals": 1,
+      "queuedCommands": [
+        "heal-player"
+      ],
+      "owners": [
+        "human"
+      ],
+      "aiEnabled": [
+        false
+      ],
+      "startMark": {
+        "x": 115.7446988970496,
+        "y": 46.64370143404313,
+        "hp": 57,
+        "owner": "human",
+        "keys": {
+          "up": false,
+          "down": false,
+          "left": false,
+          "right": false
+        },
+        "lastIntentOwner": "human"
+      },
+      "endMark": {
+        "x": 116.13038040315445,
+        "y": 47.64124280761161,
+        "hp": 85,
+        "owner": "human",
+        "keys": {
+          "up": false,
+          "down": false,
+          "left": false,
+          "right": false
+        },
+        "lastIntentOwner": "human"
+      },
+      "posDelta": [
+        0.385682,
+        0.997541
+      ],
+      "hpEqual": false,
+      "assertOutcome": "skipped-hp-differs",
+      "thrown": null,
+      "moverRows": [
+        {
+          "t": 24680,
+          "dx": 0.3644,
+          "dy": -0.0885,
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "ev": {
+            "hurt": 1,
+            "heal": 0,
+            "loot": 0,
+            "death": 0
+          },
+          "hp": [
+            57,
+            36
+          ],
+          "nearestEnemyTiles": 0.694,
+          "queued": []
+        },
+        {
+          "t": 24997,
+          "dx": 0.1277,
+          "dy": 0.3526,
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "ev": {
+            "hurt": 1,
+            "heal": 0,
+            "loot": 0,
+            "death": 0
+          },
+          "hp": [
+            36,
+            28
+          ],
+          "nearestEnemyTiles": 0.956,
+          "queued": []
+        },
+        {
+          "t": 25668,
+          "dx": -0.11,
+          "dy": 0.3585,
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "ev": {
+            "hurt": 1,
+            "heal": 0,
+            "loot": 0,
+            "death": 0
+          },
+          "hp": [
+            100,
+            93
+          ],
+          "nearestEnemyTiles": 1.331,
+          "queued": []
+        },
+        {
+          "t": 26664,
+          "dx": 0.0036,
+          "dy": 0.375,
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "ev": {
+            "hurt": 1,
+            "heal": 0,
+            "loot": 0,
+            "death": 0
+          },
+          "hp": [
+            93,
+            85
+          ],
+          "nearestEnemyTiles": 1.692,
+          "queued": []
+        }
+      ]
+    },
+    {
+      "label": "run3",
+      "windowMs": 2606,
+      "frames": 56,
+      "movers": 3,
+      "moversAllKnockback": true,
+      "nonzeroMoveIntents": 0,
+      "keysHeld": false,
+      "hurts": 3,
+      "heals": 1,
+      "queuedCommands": [
+        "heal-player"
+      ],
+      "owners": [
+        "human"
+      ],
+      "aiEnabled": [
+        false
+      ],
+      "startMark": {
+        "x": 114.72017770035495,
+        "y": 45.8962455481995,
+        "hp": 41,
+        "owner": "human",
+        "keys": {
+          "up": false,
+          "down": false,
+          "left": false,
+          "right": false
+        },
+        "lastIntentOwner": "human"
+      },
+      "endMark": {
+        "x": 114.44405928746156,
+        "y": 46.155308309012725,
+        "hp": 72,
+        "owner": "human",
+        "keys": {
+          "up": false,
+          "down": false,
+          "left": false,
+          "right": false
+        },
+        "lastIntentOwner": "human"
+      },
+      "posDelta": [
+        -0.276118,
+        0.259063
+      ],
+      "hpEqual": false,
+      "assertOutcome": "skipped-hp-differs",
+      "thrown": null,
+      "moverRows": [
+        {
+          "t": 22936,
+          "dx": -0.1432,
+          "dy": 0.3466,
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "ev": {
+            "hurt": 1,
+            "heal": 0,
+            "loot": 0,
+            "death": 0
+          },
+          "hp": [
+            41,
+            33
+          ],
+          "nearestEnemyTiles": 0.656,
+          "queued": []
+        },
+        {
+          "t": 23577,
+          "dx": -0.268,
+          "dy": 0.2623,
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "ev": {
+            "hurt": 1,
+            "heal": 0,
+            "loot": 0,
+            "death": 0
+          },
+          "hp": [
+            100,
+            93
+          ],
+          "nearestEnemyTiles": 0.297,
+          "queued": []
+        },
+        {
+          "t": 24310,
+          "dx": 0.1351,
+          "dy": -0.3498,
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "ev": {
+            "hurt": 1,
+            "heal": 0,
+            "loot": 0,
+            "death": 0
+          },
+          "hp": [
+            93,
+            72
+          ],
+          "nearestEnemyTiles": 0.672,
+          "queued": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+cmd: npx vite-node diag/guard-hole.check.mts
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+at: 2026-11-18T23:07:09+01:00
+{
+  "rule": "resolvePlayerHit knockback (24 px / PIXEL_TO_TILE 64 = 0.375 tiles), real heal-player command",
+  "moveIntent": {
+    "x": 0,
+    "y": 0
+  },
+  "keysHeld": "none (neutral intent only)",
+  "sample1": {
+    "hp": 100,
+    "x": 8.5,
+    "y": 45.5
+  },
+  "sample2": {
+    "hp": 100,
+    "x": 8.875,
+    "y": 45.5
+  },
+  "afterHit": {
+    "hp": 94,
+    "x": 8.875,
+    "y": 45.5
+  },
+  "hpEqual": true,
+  "movedDistanceTiles": 0.375,
+  "guardWouldSkip": false,
+  "verdict": "COUNTEREXAMPLE: equal HP at both samples while the player was knocked back"
+}
+EXIT=0

@@ -1,0 +1,330 @@
+[
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\AI_DISABLE_DRIFT_DIAG.md",
+        "sha256":  "193d25e5970dfbb2d63057ae23b4e3da2a7a99896d2024d587facf4c1b58f46c"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\AI_DISABLE_DRIFT_DIAG.v2.md",
+        "sha256":  "421e009ef3b64e915225be00a2b45aa04573a5fb83fc68b2be467f4e29c86808"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\BOSS_VOLLEY_DIAG.md",
+        "sha256":  "928565176266036aa6e31470b096fd4f8a2195fca95a19bc1011d9801e02b164"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\ai-native-world.diag.p4v4.spec.ts",
+        "sha256":  "0230ebd42e0734ec37602d2ad1c50d33fe5708b902c692b0e8e68ca837bbe046"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\ai-native-world.diag2.p4v4.spec.ts",
+        "sha256":  "ba80279adae8d3425d5968e987d6eb107a6ae9e28763979771c70ebe07430f05"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\AI_DISABLE_DRIFT_DIAG.md",
+        "sha256":  "fbf2a958efeab0c2520f37cffe1b9718c5bcff294a7ffb216f03791e002d8e28"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\analysis-run2-run3.json",
+        "sha256":  "ef9b05fc361826770d1e855b1fe9720b730788e11d73f206c0adc10c26e8f954"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\analyze-traces.mjs",
+        "sha256":  "a1d7b67034ae1d2aea65ae42fcc12679955727e72e7675541d6af2b8f11e7d60"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\audit-boss-volley.diag.p4v4.spec.ts",
+        "sha256":  "b5ca85c9605e8269f07e6e89838df86b2c8f45f99d4dabc32a34bfaeb29d413a"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\boss-run1.log.txt",
+        "sha256":  "a89833aa676d17906ee80a2580f7b36cf410f25146905f21b928554797441d71"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\boss-run2.log.txt",
+        "sha256":  "bef855cce51d965b5e593e91bdf0fa07f15bbdadc0b9ebbf6236bc79ff63995a"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\boss-volley-bossrun1.json",
+        "sha256":  "324be1af13eb1a5759caa5d8d5225ca7f5c892d03c3e3be7fe342232a580b0ac"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\boss-volley-bossrun2.json",
+        "sha256":  "14a7633a2036913e96c32767dff515bd8fceeb18c9698c7ed68bf6267e20ab82"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\boss-volley-check.log.txt",
+        "sha256":  "ec592b611e748ede7bd0236c8f2dbf73f923297205c23a573f5e9799428f8f12"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\boss-volley.check.mts",
+        "sha256":  "059e2e5e4dd10d324db7015bc02fdd828c823022d167e4fb452b6da61b321f2c"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\diag-run1.log.txt",
+        "sha256":  "c755e6f4fc24de284e32eb9d57f401518302cac48cefb53cddbd06862ca3c08e"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\diag2-run2.log.txt",
+        "sha256":  "0ac92ccec0093bbdf5cf8b07ac011730b70b4fdff3e3dc52e393e91d714f4c7d"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\diag2-run3.log.txt",
+        "sha256":  "d184d10b6683f28425cf072ca84c85ccf4bf2d809df1c589b5e3006ca933f79d"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\guard-hole.check.mts",
+        "sha256":  "6453240c89348f62740f711982aab6e279f9673ac6976abadf8d48874fd34801"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\guard-hole.check.v2.mts",
+        "sha256":  "568c1f01549a216813146a3ee9ebb01d25fcbf8cc516eda6153204b489c11b8f"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\guard-hole.log.txt",
+        "sha256":  "ffed001945cb807b0b3c2fe51dbfffdaceb52bd96c042d0ac347ff9bbcac9681"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\guard-hole.v2.log.txt",
+        "sha256":  "899d4e7b9d2611bcad774d2eb27d9f4e07de287138864706a4b0a61727d6de3b"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\per-tick-summary-run2.json",
+        "sha256":  "728367f54d07af2d42d99afaea3db1e7e3d35f01bcee4f4f9be91b759f3f6325"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\per-tick-summary-run3.json",
+        "sha256":  "f2f8efda4bdd580609eb62ce33dbecaab5392bd7ca682c0925f2e8fab01a19f6"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\per-tick-trace-run2.json",
+        "sha256":  "9cca777d09e7dc0fa286ef0afe9f045a96284df4a18899ca27da6793808babdb"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\per-tick-trace-run3.json",
+        "sha256":  "b64a8f037be9bdba1201b367c1dd7e739888af0eaa326751f08ce7d8f2f121b1"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\pw.bossdiag.config.ts",
+        "sha256":  "ac2e84925e85ec15b60cefd70e1435bf48dc84f29334cae7b4c2b6cf4975ab12"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\pw.diag.config.ts",
+        "sha256":  "f89e348275440482229ab862d8a3a148d9f38fb1e2f01f0edc5402ec9883c90e"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\pw.diag2.config.ts",
+        "sha256":  "898eca80421bff7f6f842c199c87a20640e1fe7b5411f0b1ef14dd2ce6180c2f"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\step-diag-summary.json",
+        "sha256":  "bc0e72531682aff9a95959d9b1687604864a8bdbf7cb27a4e29e147489e3129f"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\step-diag.json",
+        "sha256":  "03a5e49a181e9e3a870bfe22c0088b1077656c8789a40b0fd7cdf8c93e07e04e"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\_patch_boss_diag.py",
+        "sha256":  "2e2993d5710bd613fd93ba566d1c0e6eea98cdec575e58d94c1595c11156579b"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\_patch_diag2.py",
+        "sha256":  "ba7d39777b5c6a794629bc1428416c196a1c3caf8109ad7ac2507d537e602495"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\ai-active-hud-1280x720.png",
+        "sha256":  "80b4a4a2edfe5759df8fe16fab0d788d857819a99676fd9bb994a2c4bd82acce"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\ai-run-00.png",
+        "sha256":  "e4786bca825443497cd4580241bb479ed06124d198b2528d4214d4e405f8d35e"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\ai-run-03.png",
+        "sha256":  "40faeabeea34cc1ba6e54d5bbfa6818a45b0810e8c85065a4d2893ee688b164d"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\ai-run-06.png",
+        "sha256":  "4f85fc72c8fd851af44abf4300d6928e0518eff41f3eb6a42a1c537120c1608e"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\ai-run-09.png",
+        "sha256":  "7dafd79005c3fa2d25e2bf55a90aa9adb2ff0f48277a5b0f7720337cecb66d13"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\ai-run-12.png",
+        "sha256":  "2c52520be958eef4c62253933af538a0cf271297de2144ef20c437d0a896ccdd"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\ai-run-15.png",
+        "sha256":  "a842848e89e700dd3cc95565236f4809585800df5a793fe01a0b112be1a7ddbc"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\ai-run-18.png",
+        "sha256":  "c7b089c20786660bc70cf00b1bc8629155c74ee1a8ee0078c1a11c483fd09779"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\death-ownership-1280x720.png",
+        "sha256":  "a1c14e9678a7a8d5c4deb9aa6f3e74d0ee8e1a5b1cf22464b3083f4fdee5d61a"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\hud-human-1280x720.png",
+        "sha256":  "8d83ebf14b47624495a1bb64797692391cdf6f09ec4bed8e8096c07a0e4ea412"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\levelup-ai-paused-1280x720.png",
+        "sha256":  "fe8500aff8966daab9c87a62c14181374a500a75e5c06169040f3de730776ddd"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\operation-log-control-flow-1280x720.json",
+        "sha256":  "2c105ef069f6c6b9567f388183cbd3c4d4b9a0f9ee226db1fb5c3ba2e0887881"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\pause-ai-entry-1280x720.png",
+        "sha256":  "a55cba21d6fc496ffda4242a3e3bfdf604416850b38baf19caf5d17a4e4edcf7"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence\\pause-ai-off-1280x720.png",
+        "sha256":  "423df91342698f37253c3680450ef789250ea0b51aea8eae39d9dc890c79c112"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\ai-active-hud-1280x720.png",
+        "sha256":  "46db74e89e41c1ffd08218a218e23d1179dcbc567bd6d9de5848c8873e1ee0e4"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\ai-run-00.png",
+        "sha256":  "bd87418b5f93b3f39715e6eb31da0f840710e61394874fcc73d374d5624a5902"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\ai-run-03.png",
+        "sha256":  "94dad2e65165ed2cfb1d7aa0477cbcbf27ba9f27430b45a769f68d139ccb38a4"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\ai-run-06.png",
+        "sha256":  "97fdb967ebf5d14dce2ce8a6cd3c1a6022eb21bc66a705a56cb6db22b05f51e7"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\ai-run-09.png",
+        "sha256":  "3a1b72a04bf29ac69f34b1f19c8cf063eaa79b67dea0419a32596c61d438d70b"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\ai-run-12.png",
+        "sha256":  "b80d9b088f8c6a2bbf22ecb6937492240c68c67a1757a5233e736835b58850ab"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\ai-run-15.png",
+        "sha256":  "b6aebfbb0eab9b805c8b08d0b215adb1aa83732eedb7b52182cdb987c3164fe7"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\ai-run-18.png",
+        "sha256":  "762d751cb8c8cd110488e5956a7688d415df1785571f6a27753f8869d13c6d5b"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\death-ownership-1280x720.png",
+        "sha256":  "2930b9ad59a5aaa24b41a9500f368a1d0588dd7156d38e469141dda66e46952a"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\hud-human-1280x720.png",
+        "sha256":  "876e5d0de04d9fdbdefe6dda4bfc79ca6aef828b0c289941096bc5cbd865e3f1"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\levelup-ai-paused-1280x720.png",
+        "sha256":  "dce918f3339817d64cf593606994fabdc7f287c11a06e1b1339cf4a4b37a3959"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\operation-log-control-flow-1280x720.json",
+        "sha256":  "3423ff1695b4a921efa68c7d3d5fcc8face031aab69319a5c9b5db5960979bdb"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\pause-ai-entry-1280x720.png",
+        "sha256":  "22a352c3586015df0c277e72564f697aa3757f5a7f52c651703587634b2d5a5f"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence2\\pause-ai-off-1280x720.png",
+        "sha256":  "df50dae878d487276f12d73c73bef1a0e34cfa3772edb5eba116f9930579d8cf"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\ai-active-hud-1280x720.png",
+        "sha256":  "6397c746fa71f168a6982e4bae8bcac0951d257f372e9c6b2d312073a0520d45"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\ai-run-00.png",
+        "sha256":  "5070b1b238b7cf78eaa594b96a880d18fab5ba9164476d1312f73ec9c3dd45c7"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\ai-run-03.png",
+        "sha256":  "11119c75649c0d9a57e1153c3e1c319e5e59179c2c49125246a46a6c34fe79d2"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\ai-run-06.png",
+        "sha256":  "e33c48779604e6ce4898f1295d75ace75103a617ad2e801fb4959aa4dea57925"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\ai-run-09.png",
+        "sha256":  "3257d1a0004181b262c373c17953dc89cb85ba3e8e64ec1ae86595da90d40371"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\ai-run-12.png",
+        "sha256":  "ed2669c19f91cf587d566e5576a3817026d06be116d791d43f404c587197373d"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\ai-run-15.png",
+        "sha256":  "502675b5a138d56b2b373541748447f28184c25f143463e7dfab8745eb4ef5ab"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\ai-run-18.png",
+        "sha256":  "c9d5b9d9d220676962ee0de592777e6dd25f88c22677af129b3d0f7e646e4791"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\death-ownership-1280x720.png",
+        "sha256":  "1ff985baf30825a0e4299b4c7d449690a27605866b1785d481ea6c2bdd47d845"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\hud-human-1280x720.png",
+        "sha256":  "d30ba5712aad3cf0023002dc9b0b8a60f3d5429c061b8cf53bb94bf6d9b272fb"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\levelup-ai-paused-1280x720.png",
+        "sha256":  "a8247428af9c936ac2134b66ed571cb93b47980e9fd823742b3d68cfd5cf3d2f"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\operation-log-control-flow-1280x720.json",
+        "sha256":  "bad78ad29968c6c4524fd945b4898e15e24687fbea8a4d0e38f308dd7c0b6b3a"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\pause-ai-entry-1280x720.png",
+        "sha256":  "809ed8718e0ec3c9922a5bfe8d1e8bdde42b38d7b9d663a6d8216070a0cbd405"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\evidence3\\pause-ai-off-1280x720.png",
+        "sha256":  "55b15591a193706af70098b48b06f25e05ab3aef9046a1951e90838c9367f1c5"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\pw-results\\.last-run.json",
+        "sha256":  "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\pw-results-boss\\.last-run.json",
+        "sha256":  "491a4d5d5b28f04079dfa66312318514e50470baf8cafcff728823c31b75457e"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\pw-results-boss\\audit-boss-volley.diag.p4v-fb668-ked-weapons-single-UI-sound-chromium\\error-context.md",
+        "sha256":  "fbf353cbbdd725b90f2d3d0c7e8046c106f2de5856427b476376f49ea9726bbf"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\pw-results2\\.last-run.json",
+        "sha256":  "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\shots-boss\\p2-boss-barrage.png",
+        "sha256":  "cbea8d82450763811358fcf933b2e5366e9cb7adcc4e85e311cd20ac665377e5"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\shots-boss\\p2-light-after-camera-move.png",
+        "sha256":  "be26845faaff806cfc21791e2a9efb94ba9fb38ded4552c8b55ff26ba74be721"
+    },
+    {
+        "file":  "reports\\gameplay-01\\developer\\final-diagnostics\\diag\\shots-boss\\p2-light-before-camera-move.png",
+        "sha256":  "3bcecdd7398e89350fe49aef8adaae2277e1963f2ff7fd85ec9981a6f4621025"
+    }
+]

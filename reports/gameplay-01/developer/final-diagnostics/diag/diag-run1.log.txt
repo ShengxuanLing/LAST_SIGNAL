@@ -1,0 +1,12 @@
+cmd: PORT=5471 npx playwright test -c diag/pw.diag.config.ts -g "shared control path"
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+World sha256: 349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+spec copy sha256: 0230ebd42e0734ec37602d2ad1c50d33fe5708b902c692b0e8e68ca837bbe046
+at: 2026-11-18T23:02:52+01:00
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › reports\gameplay-01\developer\p4-recovery\diag\ai-native-world.diag.p4v4.spec.ts:273:3 › AI-NATIVE-02 P1 real World › shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit
+  1 passed (1.1m)
+EXIT=0

@@ -1,0 +1,32 @@
+cmd: PORT=5471 LS_DIAG_TAG=bossrun2 npx playwright test -c diag/pw.bossdiag.config.ts -g "P2 regression"  (bounded attempt 2/2)
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+World sha256: 349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+at: 2026-11-19T00:06:43+01:00
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › reports\gameplay-01\developer\p4-recovery\diag\audit-boss-volley.diag.p4v4.spec.ts:580:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+  1) [chromium] › reports\gameplay-01\developer\p4-recovery\diag\audit-boss-volley.diag.p4v4.spec.ts:580:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound 
+
+    Error: laser(3) + shockwave(12) bullets created
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 15
+    Received: 16
+
+      815 |     writeFileSync(path.join(DIAG_DIR, `boss-volley-${RUN_TAG}.json`), JSON.stringify(bossInit, null, 2));
+      816 |   }
+    > 817 |   expect(bossInit.count, 'laser(3) + shockwave(12) bullets created').toBe(15);
+          |                                                                      ^
+      818 |   const maxSpeed = Math.max(...bossInit.speeds);
+      819 |   const minSpeed = Math.min(...bossInit.speeds);
+      820 |   expect(minSpeed, 'Boss bullets still have velocity (phase-1 guarantee)').toBeGreaterThan(0);
+        at D:\Project\LAST_SIGNAL\.cindy-worktrees\serene-leakey\reports\gameplay-01\developer\p4-recovery\diag\audit-boss-volley.diag.p4v4.spec.ts:817:70
+
+    Error Context: reports\gameplay-01\developer\p4-recovery\diag\pw-results-boss\audit-boss-volley.diag.p4v-fb668-ked-weapons-single-UI-sound-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › reports\gameplay-01\developer\p4-recovery\diag\audit-boss-volley.diag.p4v4.spec.ts:580:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound 
+EXIT=1

@@ -1,0 +1,53 @@
+{
+  "purpose": "Preserve early shared-cwd test outputs before restoring unrelated tracked reports to HEAD; original evidence is copied, not deleted.",
+  "files": [
+    {
+      "path": "reports/ai-native-02/c2/parity/parity-initial.json",
+      "saved_sha256": "c27118ba5daf496b5d0cfb524918d9f03e8c17f1799c350590ef503f426916a9",
+      "head_sha256": "c27118ba5daf496b5d0cfb524918d9f03e8c17f1799c350590ef503f426916a9",
+      "bytes": 2432905
+    },
+    {
+      "path": "reports/ai-native-02/c2/parity/parity-rendered.json",
+      "saved_sha256": "518f15fc6df23bb1b5e45fcda60bbf15557e29edf5be8909e47f0d07f4e8f7bc",
+      "head_sha256": "518f15fc6df23bb1b5e45fcda60bbf15557e29edf5be8909e47f0d07f4e8f7bc",
+      "bytes": 30258
+    },
+    {
+      "path": "reports/ai-native-02/c2/parity/parity-sequence.json",
+      "saved_sha256": "47053f4ad7f3953dd4473ef5f394aa67150d371b03d35913d5a882be2e3b4cec",
+      "head_sha256": "47053f4ad7f3953dd4473ef5f394aa67150d371b03d35913d5a882be2e3b4cec",
+      "bytes": 795
+    },
+    {
+      "path": "reports/ai-native-02/c2-fixes-round2/parity-kill/kill-initial.json",
+      "saved_sha256": "65eac70ed70e4a0a807658a0d66435638acdd09017a577d3cd47ec55f2a45b44",
+      "head_sha256": "65eac70ed70e4a0a807658a0d66435638acdd09017a577d3cd47ec55f2a45b44",
+      "bytes": 2433143
+    },
+    {
+      "path": "reports/ai-native-02/c2-fixes-round2/parity-kill/kill-rendered.json",
+      "saved_sha256": "9f87b877cfc00e2779613215879979bc52e41953f170e2bc7b4acf5c3b29c3fe",
+      "head_sha256": "9f87b877cfc00e2779613215879979bc52e41953f170e2bc7b4acf5c3b29c3fe",
+      "bytes": 47836
+    },
+    {
+      "path": "reports/ai-native-02/c2-fixes-round2/parity-kill/kill-sequence.json",
+      "saved_sha256": "f526cb8566b4b32de716b3ceeff96890e31b99a2531cb6831fd15c5c7d1674c5",
+      "head_sha256": "f526cb8566b4b32de716b3ceeff96890e31b99a2531cb6831fd15c5c7d1674c5",
+      "bytes": 683
+    },
+    {
+      "path": "reports/ai-native-02/c3c/parity/rendered.json",
+      "saved_sha256": "ac1e77548459858a95e36a32302531d8357c9ccf9d6ff093d5e5926436bf5afd",
+      "head_sha256": "ac1e77548459858a95e36a32302531d8357c9ccf9d6ff093d5e5926436bf5afd",
+      "bytes": 12099
+    },
+    {
+      "path": "reports/ai-native-02/c3c/parity/sequence.json",
+      "saved_sha256": "c1ca1e74d99cf96a3d68b22ab9ef2c7c26af15d580ba3a0755666c2bb3c597fa",
+      "head_sha256": "c1ca1e74d99cf96a3d68b22ab9ef2c7c26af15d580ba3a0755666c2bb3c597fa",
+      "bytes": 4827
+    }
+  ]
+}

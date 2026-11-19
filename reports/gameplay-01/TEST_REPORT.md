@@ -7,7 +7,12 @@ every number below is a real run on the frozen bytes, with its absolute log.
 concurrency, typecheck 0, surface 1/1, build OK, fresh parity 3/3.**
 **HUMAN ACCEPTANCE: PENDING** — every runner here is an agent (non-blind driver) or a labelled
 `autoOwner`/seed fixture. Nothing in this report is a human playtest, and the project is **not**
-declared a whole-project PASS. P5 is still plan-only.
+declared a whole-project PASS. P5 layering: the final **stability regression + metrics
+collection for P5 were executed** (they are part of run11), and the balance / playtest write-ups
+exist in `docs/gameplay/GAMEPLAY_01_BALANCE.md` (the initial delivery was `0813c94e…`; its final documentation adds the test-generation boundary) and
+`docs/gameplay/HUMAN_PLAYTEST.md` (sha256 `a9fd8a789fbb4feb…`), with the recorded decision that the
+sample is too small to tune any number. What is **only a proposal** is the new enemy / resource
+**presets** described in `docs/gameplay/P5_VARIANTS_PLAN.md` — not implemented, not shipped.
 
 ---
 
@@ -19,7 +24,7 @@ declared a whole-project PASS. P5 is still plan-only.
 | HEAD | `3819621c5faab56b114b6e5a560f8fe78c17709d` |
 | product sources | `manifest.v4.json` ten files, sha verified equal (see `HASHES-PRE-RUN.txt`) |
 | `World.ts` | `349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64` (`= main d55e502` logic) |
-| pre-run conditions | `listeners 5199/5494 = 0` (only my own dev servers stopped), host CPU 27 %, 3 node processes |
+| pre-run conditions | `listeners 5199/5494 = 0` (only my own dev servers stopped), unit log header host CPU 28 % |
 | pre/post hash check | every spec and source re-hashed after the run: `archived_identical=true` |
 | archive | `reports/gameplay-01/tester/p4-final/run11-final-155/` (`HASHES-PRE-RUN.txt` holds freeze + post-run verification) |
 
@@ -36,8 +41,8 @@ declared a whole-project PASS. P5 is still plan-only.
 | `tests/gameplay-04-headless-restore.spec.ts` | `22ae61f769fe18a6debe72790628f97b90667dc9f2b3be94aa20863217e4bf55` |
 | `tests/uiNav.ts` | `1cc431ab756ff56f2f2dc4ca52f50a4db1a1f22615fee7322d3492b13be3dd1c` |
 
-`audit` and `ai-native-world` are the two bytes still to be integrated by the Lead; the other six
-are already committed in main (`2b67106`). Copies: `spec-snapshot/` (byte-identical) and the full
+`audit` and `ai-native-world` were integrated by the Lead in `a487b98`; the other six
+were already committed in the feature branch at `2b67106`. Copies: `spec-snapshot/` (byte-identical) and the full
 tester diff against `HEAD` in `run11-final-155/diff/`.
 
 ## 2. Gates — command → real result → absolute log
@@ -47,7 +52,7 @@ All logs live in `D:/Project/LAST_SIGNAL/reports/gameplay-01/tester/p4-final/run
 | # | command | result | exit | log | time (UTC) |
 |---|---|---|---|---|---|
 | 1 | `npm test` (**default** concurrency, original 20 s/15 s budgets) | **PASS 73 files / 859 tests**, 0 skipped | **0** | `1-unit-default.log.txt` | 23:15:02 → 23:18:37 |
-| 2 | `npx tsc --noEmit` (sources only; project tsconfig excludes `tests/`) | **PASS**, 0 bytes stdout | **0** | `2-typecheck.log.txt` | 23:19 |
+| 2 | `npx tsc --noEmit` (sources only; project tsconfig excludes `tests/`) | **PASS**, 0 bytes stdout | **0** | `2-typecheck.log.txt` | 23:18:41 → 23:18:53 |
 | 3a | `npm run test:mcp-surface` (bundle built this round) | **PASS 1/1** | **0** | `3a-mcp-surface.log.txt` | 23:19 |
 | 3b | `npm run build` | **OK**, built in 10.5 s | **0** | `3b-build.log.txt` | 23:19 |
 | 4 | `PORT=5199 npx playwright test --workers=1` (dual Vite 5199 + 5494 on this tree, all 155) | **PASS 155/155**, 0 skipped, 0 did-not-run | **0** | `4-full-playwright.log.txt` | 23:19 → 23:43 |
@@ -89,8 +94,9 @@ These are five different byte sets; they are never stitched into one "155 pass".
 - Early phase records (P0 `7aa8b51`, P1 `c7e03c5`, early P2/P3 trees) are historical: their exact
   bytes are not reconstructible today and early model-run records were lost at the time. Nothing
   here retro-fixes those; they stay as recorded.
-- No model call was made in run11 (or any run of this round). Real-model evidence, where it exists,
-  belongs to earlier reviewer/developer records and is not re-claimed here.
+- The Tester's run11 made no model calls. Reviewer separately ran a v4 real-ECHO smoke
+  (2 model requests, `reviewer/real-model-v4/`); it is not part of run11's gates.
+  Earlier real-model experiments retain their own version and evidence boundaries.
 
 ## 4. Coverage map P0 → P5 (what is actually tested, and where)
 
@@ -104,7 +110,7 @@ model, **M** = real model call, **R** = reviewer evidence.
 | **P2** | ECHO local cooperation: one in-flight action, confirm/reject boundary, restore contract (single pending / exact queue / unknown-source guard), legacy save, 5 viewports | **E** `gameplay-02-echo-coop.spec.ts` (`4bc6288f`), evidence `p2-echo-coop.json` (single-pending, reject, low-risk gate, restore-contract, viewport, legacy-save, save-reload boundary/instant); **H** `src/ai-native/worldHeadlessRestoreSafety.test.ts` + `worldHeadlessFrameAuthored.test.ts`; **U** echo/audit suites | the LLM `CONNECTED` variant is not exercised; `OFF` records are no-connection samples, not disconnection tests; restore contract verified for the four documented entry points only |
 | **P3** | feedback surfaces F1–F8 (real button states, live HUD sampling, CSS font floors, resize/reopen, queue honesty, disabled focus, audit window) | **E** `gameplay-03-feedback.spec.ts` (`d446a768`), evidence `p3-*.json` (six viewports, HUD 800/1280 with `scaleY×zoom=1`, echo detail, audit window, LLM footer); prior targeted archive `tester/p3/run32` | Done state only at 1280×720; pending only at 800/1920; pointer-only edges untested |
 | **P4** | Demo-03 cooperative level: real 3-seed × HumanOnly/HumanEcho clears, natural door jam with exact event cost, F blocked while JAMMED, expiry restore, route switch, ECHO proposal→owner confirm on the next processed tick, reject/no-connection, checkpoint reload vs raw frame replay, portal centre | **E** `gameplay-04-coop-level.spec.ts` (`13a83464`) + `gameplay-04-headless-restore.spec.ts` (`22ae61f7`), evidence `p4-route-*`, `p4-layout-3seeds`, `p4-reload-vs-replay`, `p4-reject-noconn`, `p4-r1/r2/r2b`; **H** same-seed `HeadlessWorld` parity (own `map.rooms[id].cleared` + own `room-cleared` event), `fromFrame`/`replay` guard; **R** `reviewer/P4_TEST_REVIEW.md`, `P4_V2/V3/V4_REVIEW.md`; developer `manifest.v4.json` gates | driver is non-blind (reads canonical state to aim/route); owner confirm is an `autoOwner` fixture, not a human click; difficulty/balance not claimed; restored identity across *versions* (R3) untested |
-| **P5** | state presets (variants of existing mechanics) | **plan only**: `docs/gameplay/P5_VARIANTS_PLAN.md`; **not implemented, not tested** | must not be described as shipped |
+| **P5** | final stability regression + metrics collection; balance/playtest write-up; *proposed* new state presets | **executed:** P5's stability regression and metrics collection are part of run11 (155/155), with the balance/playtest documents committed at `docs/gameplay/GAMEPLAY_01_BALANCE.md` (`0813c94e…`) and `docs/gameplay/HUMAN_PLAYTEST.md` (`a9fd8a78…`), whose recorded decision is **no numeric tuning** (sample too small); the low-energy/resource boundary remains a unit/fixture observation only | the new enemy/resource presets in `docs/gameplay/P5_VARIANTS_PLAN.md` are **not implemented** and must not be described as shipped; no new preset was tested; human acceptance pending |
 
 Cross-cutting gates: **U** 859 tests/73 files (default profile), **H** headless parity + restore
 suites, **E** 155 Playwright tests, **R** the reviewer reports listed above.
@@ -115,7 +121,8 @@ suites, **E** 155 Playwright tests, **R** the reviewer reports listed above.
   in P1/P3/P4 is real keyboard/mouse; room clears come from real play (2–4 shots, 1.2–1.9 s).
 - **Labelled fixtures (never used to prove completion):** seed override (menu `scene.start` wrapper),
   `autoOwner` ECHO enable + confirm via the product boundary, the legacy-save field removal in P2,
-  and the audit spec's own boss/weapon setup — each is named in the per-record `fixtures` field.
+  and the audit spec's own boss/weapon dev-test setup. Scenario records label their fixtures;
+  `audit.spec.ts` uses explicit dev-test setup and persisted measurement evidence, not a per-record `fixtures` field.
 - **Not fixtures creating a "quiet" world:** no `clearEnemies`, no teleport, no heal, no enemy freeze,
   no `skip`. The AI-disable window explicitly records the spec's own 100 ms keep-alive
   (`heal-player` in the queue, by type) instead of asserting an empty queue.
@@ -139,12 +146,14 @@ suites, **E** 155 Playwright tests, **R** the reviewer reports listed above.
   `run7-v4-final` (+ `ai-disable-drift/`), `run8-ai-disable`, `run9-ai-disable-final`
   (+ `boss-volley-drift/`), `run10-boss-volley`.
 - Final diff source for review: `run11-final-155/diff/tests.diff` (all tester-owned specs vs HEAD);
-  the two bytes for integration are `audit 6ea30e8b…` and `ai-native-world 855eb948…`.
+  the final `audit 6ea30e8b…` and `ai-native-world 855eb948…` bytes are integrated in `a487b98`.
 
 ## 7. Risks / open items
 
 1. **Human acceptance pending** — no human has played; all evidence is agent/fixture.
-2. **P5 variants not implemented** — plan only.
+2. **P5 is partly done and partly a proposal** — its final stability regression + metrics collection ran in
+   run11 and the balance/playtest docs exist (no numeric tuning: sample too small); the new enemy/resource
+   presets in `docs/gameplay/P5_VARIANTS_PLAN.md` are not implemented and are not claimed as shipped.
 3. **Default-concurrency unit load risk** — B7 CLI tests are wall-clock bound; with two dev servers
    they timed out once (857/859). run11's 859/859 was measured without dev servers. Not claimed
    eliminated; the bounded profile is labelled separately.
@@ -152,8 +161,9 @@ suites, **E** 155 Playwright tests, **R** the reviewer reports listed above.
    `ownerId`) and `ai-native-world.spec.ts` AI-disable (now event-attributed). Both are green on
    the frozen bytes, both have their red evidence archived, neither was loosened.
 5. **Coverage gaps** listed in §5 (R3, extreme fallbacks, pointer edges, `CONNECTED`, balance).
-6. **No model was called** in this round; any real-model claims must point at the earlier reviewer/
-   developer records, not at run11.
+6. **The Tester run11 called no model**; it must not be cited as model evidence. Reviewer separately
+   completed a v4 real-ECHO smoke (`reviewer/real-model-v4/`, archive d55e502, 2 model requests).
+   Its trace has a stale snapshot literal; the provenance sidecars supply the actual version/hash boundary.
 
 ### Evidence directory index (file counts)
 

@@ -1,0 +1,12 @@
+cmd: PORT=5471 LS_DIAG_TAG=bossrun1 npx playwright test -c diag/pw.bossdiag.config.ts -g "P2 regression"
+cwd: /d/Project/LAST_SIGNAL/.cindy-worktrees/serene-leakey
+HEAD: 3819621c5faab56b114b6e5a560f8fe78c17709d
+World sha256: 349544bf5785dad072fb7bc3c904d0c80bb08f4619d7834a598d7e58ec05dc64
+audit.spec sha256: fe43dc48a6164218113b84947860420b1fa3f52196a42697391e10a8b9582eff
+at: 2026-11-19T00:06:00+01:00
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › reports\gameplay-01\developer\p4-recovery\diag\audit-boss-volley.diag.p4v4.spec.ts:580:1 › P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound
+  1 passed (9.1s)
+EXIT=0
