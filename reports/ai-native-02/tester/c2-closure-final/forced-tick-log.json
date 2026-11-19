@@ -1,0 +1,241 @@
+{
+  "meta": {
+    "url": "http://localhost:5294/",
+    "target": "ae72a67"
+  },
+  "checks": [
+    {
+      "n": "onResume-forces-exactly-one-tick-0-0",
+      "ok": true,
+      "d": {
+        "pauseMs": 0,
+        "accumulatorMs": 0,
+        "before": 76,
+        "after": 77,
+        "forcedDelta": 1,
+        "pendingBefore": 0,
+        "pendingAfter": 0
+      }
+    },
+    {
+      "n": "onResume-forces-exactly-one-tick-1200-0",
+      "ok": true,
+      "d": {
+        "pauseMs": 1200,
+        "accumulatorMs": 0,
+        "before": 77,
+        "after": 78,
+        "forcedDelta": 1,
+        "pendingBefore": 0,
+        "pendingAfter": 0
+      }
+    },
+    {
+      "n": "onResume-forces-exactly-one-tick-300-250",
+      "ok": true,
+      "d": {
+        "pauseMs": 300,
+        "accumulatorMs": 250,
+        "before": 78,
+        "after": 79,
+        "forcedDelta": 1,
+        "pendingBefore": 0,
+        "pendingAfter": 0
+      }
+    },
+    {
+      "n": "pending-commits-once-onResume",
+      "ok": true,
+      "d": {
+        "c0": 0,
+        "pending0": 1,
+        "after1": {
+          "currency": 50,
+          "pending": 0,
+          "tick": 81
+        },
+        "after2": {
+          "currency": 50,
+          "pending": 0
+        },
+        "secondTickEvents": [
+          "player-moved"
+        ]
+      }
+    },
+    {
+      "n": "upgrade-live-recorded",
+      "ok": true,
+      "d": {
+        "i": 1,
+        "liveUpgrades": [
+          {
+            "key": "critical",
+            "level": 1
+          }
+        ],
+        "pending": 0,
+        "uncommitted": false,
+        "capture": true,
+        "saveUpgrades": [
+          {
+            "key": "critical",
+            "level": 1
+          }
+        ],
+        "tick": 89
+      }
+    },
+    {
+      "n": "upgrade-persisted-to-checkpoint",
+      "ok": true,
+      "d": {
+        "last": {
+          "i": 1,
+          "liveUpgrades": [
+            {
+              "key": "critical",
+              "level": 1
+            }
+          ],
+          "pending": 0,
+          "uncommitted": false,
+          "capture": true,
+          "saveUpgrades": [
+            {
+              "key": "critical",
+              "level": 1
+            }
+          ],
+          "tick": 89
+        },
+        "timeline": [
+          {
+            "i": 0,
+            "liveUpgrades": [],
+            "pending": 1,
+            "uncommitted": true,
+            "capture": false,
+            "saveUpgrades": [],
+            "tick": 85
+          },
+          {
+            "i": 1,
+            "liveUpgrades": [
+              {
+                "key": "critical",
+                "level": 1
+              }
+            ],
+            "pending": 0,
+            "uncommitted": false,
+            "capture": true,
+            "saveUpgrades": [
+              {
+                "key": "critical",
+                "level": 1
+              }
+            ],
+            "tick": 89
+          }
+        ]
+      }
+    },
+    {
+      "n": "no-console-error",
+      "ok": true
+    }
+  ],
+  "steps": [
+    {
+      "name": "onResume-0ms-acc0",
+      "detail": {
+        "pauseMs": 0,
+        "accumulatorMs": 0,
+        "before": 76,
+        "after": 77,
+        "forcedDelta": 1,
+        "pendingBefore": 0,
+        "pendingAfter": 0
+      }
+    },
+    {
+      "name": "onResume-1200ms-acc0",
+      "detail": {
+        "pauseMs": 1200,
+        "accumulatorMs": 0,
+        "before": 77,
+        "after": 78,
+        "forcedDelta": 1,
+        "pendingBefore": 0,
+        "pendingAfter": 0
+      }
+    },
+    {
+      "name": "onResume-300ms-acc250",
+      "detail": {
+        "pauseMs": 300,
+        "accumulatorMs": 250,
+        "before": 78,
+        "after": 79,
+        "forcedDelta": 1,
+        "pendingBefore": 0,
+        "pendingAfter": 0
+      }
+    },
+    {
+      "name": "onResume-pending-commit",
+      "detail": {
+        "c0": 0,
+        "pending0": 1,
+        "after1": {
+          "currency": 50,
+          "pending": 0,
+          "tick": 81
+        },
+        "after2": {
+          "currency": 50,
+          "pending": 0
+        },
+        "secondTickEvents": [
+          "player-moved"
+        ]
+      }
+    },
+    {
+      "name": "upgrade-save-poll",
+      "detail": [
+        {
+          "i": 0,
+          "liveUpgrades": [],
+          "pending": 1,
+          "uncommitted": true,
+          "capture": false,
+          "saveUpgrades": [],
+          "tick": 85
+        },
+        {
+          "i": 1,
+          "liveUpgrades": [
+            {
+              "key": "critical",
+              "level": 1
+            }
+          ],
+          "pending": 0,
+          "uncommitted": false,
+          "capture": true,
+          "saveUpgrades": [
+            {
+              "key": "critical",
+              "level": 1
+            }
+          ],
+          "tick": 89
+        }
+      ]
+    }
+  ],
+  "findings": [],
+  "errors": []
+}

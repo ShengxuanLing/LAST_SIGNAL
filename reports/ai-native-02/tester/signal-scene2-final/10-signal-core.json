@@ -1,0 +1,91 @@
+{
+  "total": 14,
+  "pass": 14,
+  "fail": 0,
+  "results": [
+    {
+      "name": "S01 shared tuning real values",
+      "verdict": "PASS",
+      "command": "SIGNAL_TUNING",
+      "result": "{\"scanCost\":10,\"scanCD\":120,\"jamCost\":25,\"jamCD\":480,\"jamDuration\":360,\"energyMax\":100,\"regenTicks\":12}"
+    },
+    {
+      "name": "S02 one device one room, initial INACTIVE",
+      "verdict": "PASS",
+      "command": "createSignalDevice + signalExitOpen",
+      "result": "{\"deviceId\":\"relay_main\",\"roomId\":7,\"relay\":\"INACTIVE\",\"exitOpen\":false}"
+    },
+    {
+      "name": "S03 ACTIVE gate opens; power off closes (INACTIVE)",
+      "verdict": "PASS",
+      "command": "commitToggleRelay + commitSignalPower",
+      "result": "{\"afterToggle\":\"ACTIVE\",\"openActive\":true,\"afterPower\":\"INACTIVE\",\"openDisabled\":false}"
+    },
+    {
+      "name": "S04 player scan charges 10 energy + 120 CD only on player",
+      "verdict": "PASS",
+      "command": "commitSignalScan(player)",
+      "result": "{\"ok\":true,\"energy\":90,\"cd\":120,\"echoEnergy\":100}"
+    },
+    {
+      "name": "S05 echo jam charges 25 + 480 CD only on echo, relay JAMMED",
+      "verdict": "PASS",
+      "command": "commitSignalJam(echo)",
+      "result": "{\"ok\":true,\"energy\":75,\"cd\":480,\"relay\":\"JAMMED\",\"playerEnergy\":90}"
+    },
+    {
+      "name": "S06 out-of-range / no-LOS => E_PERMISSION, no charge",
+      "verdict": "PASS",
+      "command": "commitSignalScan(far/los)",
+      "result": "{\"far\":\"E_PERMISSION\",\"los\":\"E_PERMISSION\",\"energy\":90}"
+    },
+    {
+      "name": "S07 duplicate scan while CD => E_COOLDOWN, no double charge",
+      "verdict": "PASS",
+      "command": "commitSignalScan(twice)",
+      "result": "{\"code\":\"E_COOLDOWN\",\"energy\":90}"
+    },
+    {
+      "name": "S08 insufficient energy => E_ENERGY_INSUFFICIENT, no charge",
+      "verdict": "PASS",
+      "command": "commitSignalScan(energy=5)",
+      "result": "{\"code\":\"E_ENERGY_INSUFFICIENT\",\"energy\":5}"
+    },
+    {
+      "name": "S09 paused ticks do not regen / decay",
+      "verdict": "PASS",
+      "command": "tickSignalDevice(paused=true) x2",
+      "result": "{\"unchanged\":true}"
+    },
+    {
+      "name": "S10 unpaused 12 ticks => exactly +1 energy",
+      "verdict": "PASS",
+      "command": "12 real ticks",
+      "result": "{\"before\":90,\"after\":91}"
+    },
+    {
+      "name": "S11 JAM suppresses ACTIVE until exact expiry; recovers",
+      "verdict": "PASS",
+      "command": "commitSignalJam + 360 tickSignalDevice",
+      "result": "{\"during\":\"JAMMED\",\"beforeExpiry\":\"JAMMED\",\"afterExpiry\":\"ACTIVE\",\"openAfter\":true,\"jamUntil\":0}"
+    },
+    {
+      "name": "S12 manual toggle cannot override JAM",
+      "verdict": "PASS",
+      "command": "commitSignalJam then commitToggleRelay",
+      "result": "{\"note\":\"JAM must win over manual toggle\"}"
+    },
+    {
+      "name": "S13 no-device run: legacy exit open",
+      "verdict": "PASS",
+      "command": "signalExitOpen(undefined)",
+      "result": "{\"exitOpen\":true}"
+    },
+    {
+      "name": "S14 evidence visible then expires at reveal TTL",
+      "verdict": "PASS",
+      "command": "commitSignalScan + signalEvidenceVisible",
+      "result": "{\"atTick1\":true,\"atExpiry\":false,\"ttl\":480}"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+workdir=/d/tmp/ls-p3-accept specSha=2f343cb347f3677a commit=0083e20
+
+Running 7 tests using 1 worker
+
+[1/7] [chromium] › tests\gameplay-02-echo-coop.spec.ts:292:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry
+[2/7] [chromium] › tests\gameplay-02-echo-coop.spec.ts:345:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command
+[3/7] [chromium] › tests\gameplay-02-echo-coop.spec.ts:368:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it
+[4/7] [chromium] › tests\gameplay-02-echo-coop.spec.ts:407:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 4) rawsim restore: a restored human-local action is busy, not re-confirmable, and commits exactly once
+[5/7] [chromium] › tests\gameplay-02-echo-coop.spec.ts:455:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap
+[6/7] [chromium] › tests\gameplay-02-echo-coop.spec.ts:520:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+[7/7] [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  7 passed (1.7m)

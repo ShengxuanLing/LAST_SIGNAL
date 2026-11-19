@@ -1,0 +1,74 @@
+{
+  "checks": [
+    [
+      "exactly-212-ticks",
+      true
+    ],
+    [
+      "initial-has-echo",
+      true
+    ],
+    [
+      "canonical-state-byte-equal",
+      true
+    ],
+    [
+      "full-events-byte-equal",
+      true
+    ],
+    [
+      "final-tick-equal",
+      true
+    ],
+    [
+      "echo-hp-equal",
+      true
+    ],
+    [
+      "player-hp-equal",
+      true
+    ],
+    [
+      "drones-targets-loot-equal",
+      true
+    ],
+    [
+      "real-kill",
+      true
+    ],
+    [
+      "real-echo-fire",
+      true
+    ],
+    [
+      "real-echo-hurt",
+      true
+    ],
+    [
+      "real-loot-drop-and-pickup",
+      true
+    ],
+    [
+      "echo-attributed-hits",
+      true
+    ]
+  ],
+  "types": [
+    "loot-dropped",
+    "player-moved",
+    "player-fired",
+    "projectile-spawned",
+    "echo-moved",
+    "echo-fired",
+    "drone-step",
+    "currency-gained",
+    "loot-collected",
+    "enemy-hit",
+    "echo-hurt",
+    "enemy-died",
+    "xp-gained",
+    "projectile-wall"
+  ],
+  "stateBytes": 1314,
+  "eventBytes": 77046
+}

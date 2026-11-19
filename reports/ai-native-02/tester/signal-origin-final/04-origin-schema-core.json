@@ -1,0 +1,43 @@
+{
+  "total": 6,
+  "pass": 6,
+  "fail": 0,
+  "results": [
+    {
+      "name": "M01 MCP world_action cannot submit toggle-relay",
+      "verdict": "PASS",
+      "command": "parseWorldActionBatch(toggle-relay)",
+      "result": "{\"ok\":false,\"code\":\"E_SCHEMA\"}"
+    },
+    {
+      "name": "M02 MCP world_action cannot inject originRoomId",
+      "verdict": "PASS",
+      "command": "parseWorldActionBatch(scan+originRoomId)",
+      "result": "{\"ok\":false,\"code\":\"E_SCHEMA\"}"
+    },
+    {
+      "name": "M03 MCP legal v2 scan with actor still parses",
+      "verdict": "PASS",
+      "command": "parseWorldActionBatch(scan)",
+      "result": "{\"ok\":true}"
+    },
+    {
+      "name": "M04 Companion toggle queued BEFORE teleport commits once in old room",
+      "verdict": "PASS",
+      "command": "toggle(originRoomId=dev)+teleport same tick",
+      "result": "{\"relay\":\"ACTIVE\",\"changed\":1}"
+    },
+    {
+      "name": "M05 stale Companion toggle AFTER teleport rejected, ACTIVE/exitOpen unchanged",
+      "verdict": "PASS",
+      "command": "toggle(originRoomId=old) after teleport",
+      "result": "{\"relayBefore\":\"ACTIVE\",\"relayAfter\":\"ACTIVE\",\"openBefore\":true,\"openAfter\":true,\"changed\":0}"
+    },
+    {
+      "name": "M06 human R (no originRoomId) in new room still toggles old-room device",
+      "verdict": "PASS",
+      "command": "human toggle after teleport",
+      "result": "{\"relay\":\"INACTIVE\",\"exitOpen\":false,\"changed\":1}"
+    }
+  ]
+}

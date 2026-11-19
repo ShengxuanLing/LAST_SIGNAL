@@ -1,0 +1,1234 @@
+{
+  "meta": {
+    "base": "http://localhost:5298",
+    "bridge": "http://127.0.0.1:8788",
+    "target": "8ec87587b0b4dba3146016e53bd6592ccb41be96",
+    "build": "test mode, __game verification only"
+  },
+  "checks": [
+    {
+      "n": "authorized",
+      "ok": true,
+      "d": {
+        "tick": 68,
+        "x": 8,
+        "y": 45,
+        "owner": "external",
+        "link": "CONNECTED",
+        "paused": false,
+        "projectiles": 0,
+        "hp": 100
+      }
+    },
+    {
+      "n": "agent-attached",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_d9cdc7bc53346be931f52efd",
+        "epoch": 1,
+        "attached": true
+      }
+    },
+    {
+      "n": "ticks-120-is-not-120-ticks-of-movement",
+      "ok": true,
+      "d": {
+        "oneActionTicks120": 0.162045,
+        "twentyRealTicks": 2.268634,
+        "ticks1": 0.162045
+      }
+    },
+    {
+      "n": "blocked-move-still-reported-applied",
+      "ok": false,
+      "d": {
+        "note": "no wall reached"
+      }
+    },
+    {
+      "n": "fire-ticks-not-honoured-as-duration",
+      "ok": true,
+      "d": {
+        "f1": {
+          "ticks": 1,
+          "receipt": {
+            "status": "applied",
+            "appliedTick": 3161
+          },
+          "maxProjectiles": 2
+        },
+        "f120": {
+          "ticks": 120,
+          "receipt": {
+            "status": "applied",
+            "appliedTick": 3321
+          },
+          "maxProjectiles": 2
+        }
+      }
+    },
+    {
+      "n": "async-degrade-race-reproduced",
+      "ok": true,
+      "d": [
+        {
+          "caught": "TypeError: Cannot read properties of null (reading 'heartbeat')",
+          "errs": [
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')"
+          ]
+        },
+        {
+          "caught": "TypeError: Cannot read properties of null (reading 'heartbeat')",
+          "errs": [
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')"
+          ]
+        },
+        {
+          "caught": "TypeError: Cannot read properties of null (reading 'heartbeat')",
+          "errs": [
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')"
+          ]
+        }
+      ]
+    },
+    {
+      "n": "hard-disconnect-does-not-degrade (finding)",
+      "ok": true,
+      "d": {
+        "pid": 9520,
+        "humanAt": null,
+        "stillExternal": true,
+        "reattachOk": false
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-hard-disconnect",
+      "summary": "SIGKILL of the agent process leaves the rendered link CONNECTED/owner=external; a token holder can attach to the still-authorized session",
+      "pid": 9520,
+      "humanAt": null,
+      "stillExternal": true,
+      "reattachOk": false
+    }
+  ],
+  "steps": [
+    {
+      "name": "ticks",
+      "m1": {
+        "ticks": 1,
+        "queued": "queued",
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 133
+        },
+        "before": {
+          "x": 8,
+          "y": 45,
+          "tick": 124
+        },
+        "after": {
+          "x": 8.114583333333332,
+          "y": 44.88541666666667,
+          "tick": 150
+        },
+        "dx": 0.114583,
+        "dy": -0.114583,
+        "dist": 0.162045,
+        "tickDelta": 26
+      },
+      "m120": {
+        "ticks": 120,
+        "queued": "queued",
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 159
+        },
+        "before": {
+          "x": 8.114583333333332,
+          "y": 44.88541666666667,
+          "tick": 151
+        },
+        "after": {
+          "x": 7.999999999999999,
+          "y": 45,
+          "tick": 176
+        },
+        "dx": -0.114583,
+        "dy": 0.114583,
+        "dist": 0.162045,
+        "tickDelta": 25
+      },
+      "m20x1": {
+        "dist": 2.268634,
+        "tickDelta": 1898,
+        "before": {
+          "x": 7.999999999999999,
+          "y": 45
+        },
+        "after": {
+          "x": 9.60416666666665,
+          "y": 43.3958333333334
+        }
+      }
+    },
+    {
+      "name": "fire-ticks",
+      "f1": {
+        "ticks": 1,
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 3161
+        },
+        "maxProjectiles": 2
+      },
+      "f120": {
+        "ticks": 120,
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 3321
+        },
+        "maxProjectiles": 2
+      }
+    },
+    {
+      "name": "race",
+      "raceRuns": [
+        {
+          "i": 0,
+          "run": {
+            "started": true,
+            "caught": "TypeError: Cannot read properties of null (reading 'heartbeat')",
+            "owner": "human",
+            "status": "YIELDED"
+          },
+          "newErrors": [
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')"
+          ]
+        },
+        {
+          "i": 1,
+          "run": {
+            "started": true,
+            "caught": "TypeError: Cannot read properties of null (reading 'heartbeat')",
+            "owner": "human",
+            "status": "YIELDED"
+          },
+          "newErrors": [
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')"
+          ]
+        },
+        {
+          "i": 2,
+          "run": {
+            "started": true,
+            "caught": "TypeError: Cannot read properties of null (reading 'heartbeat')",
+            "owner": "human",
+            "status": "YIELDED"
+          },
+          "newErrors": [
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')",
+            "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+            "Cannot read properties of null (reading 'heartbeat')"
+          ]
+        }
+      ]
+    }
+  ],
+  "toolLog": [
+    {
+      "tool": "world_list_sessions",
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_action",
+      "n": 1,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 1
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued"
+      ],
+      "tick": 124
+    },
+    {
+      "tool": "world_action",
+      "n": 1,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 120
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued"
+      ],
+      "tick": 151
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 177
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 179
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        },
+        {
+          "type": "move",
+          "ticks": 1
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 179
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2076
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2150
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2237
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2324
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2411
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2484
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2554
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2624
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2716
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2794
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2867
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 2940
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 3011
+    },
+    {
+      "tool": "world_action",
+      "n": 8,
+      "args": [
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        },
+        {
+          "type": "move",
+          "ticks": 4
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 3082
+    },
+    {
+      "tool": "world_action",
+      "n": 1,
+      "args": [
+        {
+          "type": "fire",
+          "ticks": 1
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued"
+      ],
+      "tick": 3153
+    },
+    {
+      "tool": "world_action",
+      "n": 1,
+      "args": [
+        {
+          "type": "fire",
+          "ticks": 120
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued"
+      ],
+      "tick": 3315
+    },
+    {
+      "tool": "world_list_sessions",
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "ok": false,
+      "code": "E_PERMISSION",
+      "tick": null
+    }
+  ],
+  "pageErrors": [
+    "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+    "Cannot read properties of null (reading 'heartbeat')",
+    "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+    "Cannot read properties of null (reading 'heartbeat')",
+    "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+    "Cannot read properties of null (reading 'heartbeat')",
+    "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+    "Cannot read properties of null (reading 'heartbeat')",
+    "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+    "Cannot read properties of null (reading 'heartbeat')",
+    "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+    "Cannot read properties of null (reading 'heartbeat')",
+    "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+    "Cannot read properties of null (reading 'heartbeat')",
+    "console: REJECTION TypeError: Cannot read properties of null (reading 'heartbeat')\n    at dp.afterFrame (http://localhost:5298/assets/main-eT3-XKga.js:57:32506)",
+    "Cannot read properties of null (reading 'heartbeat')"
+  ],
+  "video": "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\tester\\c3b-final\\evidence-blockers\\video\\page@0cf551f90ef530aa6d46c3aabb7a2e93.webm"
+}

@@ -1,0 +1,4 @@
+file=p1-test4.pre-p4.ts.txt
+sha256=3b45b8437d5f4abb13bb19cc10fc4b66c2746119c48b8b3b091d885daafdf2a0
+source=tests/gameplay-01.spec.ts lines 505-700 @ 1a6306f (1a6306f)
+reason=archived before the P4 layout adaptation; NOT deleted, NOT edited in the P3 clone

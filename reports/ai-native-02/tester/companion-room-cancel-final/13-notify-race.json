@@ -1,0 +1,65 @@
+{
+  "total": 5,
+  "pass": 3,
+  "fail": 2,
+  "results": [
+    {
+      "name": "R01 seed unconfirmed suggestion",
+      "verdict": "PASS",
+      "command": "sdk echo_suggest",
+      "result": "{\"ok\":true}"
+    },
+    {
+      "name": "R02 Owner link holds old object",
+      "verdict": "PASS",
+      "command": "companionLink.pending",
+      "result": "ok"
+    },
+    {
+      "name": "R03 portal committed (notify now delayed in flight)",
+      "verdict": "PASS",
+      "command": "portal interact",
+      "result": "{\"roomA\":0,\"roomB\":3,\"notifySent\":1}"
+    },
+    {
+      "name": "R04 RACE: old confirm inside notify-delay window",
+      "verdict": "FAIL",
+      "command": "companionLink.decide(old) inside 4000ms window",
+      "result": "{\"inWindow\":{\"ok\":true,\"error\":\"\",\"pending\":true,\"before\":false},\"snapAfterWindow\":{\"echoProj\":0,\"pendingIntent\":false,\"echoEnergy\":100},\"raced\":true}"
+    },
+    {
+      "name": "R05 after notify lands: old confirm refused; status cancelled",
+      "verdict": "FAIL",
+      "command": "companionLink.decide(old) after notify",
+      "result": "{\"afterNotify\":{\"ok\":false,\"error\":\"E_RETRYABLE companion.decision_exists\"},\"receipt\":{\"suggestionId\":\"sug_ef11c83ccdc51777ebaacd7a\",\"status\":\"applied\",\"decidedAtTick\":40,\"appliedTick\":45}}"
+    }
+  ],
+  "detail": {
+    "delayMs": 4000,
+    "roomA": 0,
+    "roomB": 3,
+    "notifySent": 1,
+    "inWindow": {
+      "ok": true,
+      "error": "",
+      "pending": true,
+      "before": false
+    },
+    "snapAfterWindow": {
+      "echoProj": 0,
+      "pendingIntent": false,
+      "echoEnergy": 100
+    },
+    "raced": true,
+    "afterNotify": {
+      "ok": false,
+      "error": "E_RETRYABLE companion.decision_exists"
+    },
+    "recOld": {
+      "suggestionId": "sug_ef11c83ccdc51777ebaacd7a",
+      "status": "applied",
+      "decidedAtTick": 40,
+      "appliedTick": 45
+    }
+  }
+}

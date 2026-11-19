@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "checkpoint.spec.ts:185 loot/currency lifecycle"
+  },
+  "steps": [
+    {
+      "name": "loot-lifecycle",
+      "detail": {
+        "before": {
+          "currency": 20,
+          "loot": 0,
+          "tick": 74,
+          "pos": {
+            "x": 8,
+            "y": 45
+          }
+        },
+        "queued": {
+          "pending": [
+            "spawn-loot"
+          ],
+          "loot": 0,
+          "currency": 20
+        },
+        "timeline": [
+          {
+            "tick": 81,
+            "loot": 0,
+            "lootViews": 0,
+            "currency": 62,
+            "pending": [],
+            "pos": {
+              "x": 8,
+              "y": 45
+            },
+            "pickupRange": 90,
+            "dist": null
+          }
+        ],
+        "last": {
+          "tick": 81,
+          "loot": 0,
+          "lootViews": 0,
+          "currency": 62,
+          "pending": [],
+          "pos": {
+            "x": 8,
+            "y": 45
+          },
+          "pickupRange": 90,
+          "dist": null
+        },
+        "collected": true
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "spawned-loot-collectability",
+      "detail": {
+        "before": {
+          "currency": 20,
+          "loot": 0,
+          "tick": 74,
+          "pos": {
+            "x": 8,
+            "y": 45
+          }
+        },
+        "queued": {
+          "pending": [
+            "spawn-loot"
+          ],
+          "loot": 0,
+          "currency": 20
+        },
+        "timeline": [
+          {
+            "tick": 81,
+            "loot": 0,
+            "lootViews": 0,
+            "currency": 62,
+            "pending": [],
+            "pos": {
+              "x": 8,
+              "y": 45
+            },
+            "pickupRange": 90,
+            "dist": null
+          }
+        ],
+        "last": {
+          "tick": 81,
+          "loot": 0,
+          "lootViews": 0,
+          "currency": 62,
+          "pending": [],
+          "pos": {
+            "x": 8,
+            "y": 45
+          },
+          "pickupRange": 90,
+          "dist": null
+        },
+        "collected": true
+      },
+      "note": "world.spawnLoot now only queues a spawn-loot command; the drop is created on the next tick and then follows the normal stepLoot magnet/pickup rules"
+    }
+  ],
+  "errors": []
+}

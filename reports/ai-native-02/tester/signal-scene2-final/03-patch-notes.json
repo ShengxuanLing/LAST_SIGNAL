@@ -1,0 +1,55 @@
+{
+  "total": 8,
+  "pass": 8,
+  "fail": 0,
+  "results": [
+    {
+      "name": "PN01 dev ready",
+      "verdict": "PASS",
+      "command": "true",
+      "result": "http://localhost:5392"
+    },
+    {
+      "name": "PN02 ordinary NEW RUN auto-deploys ONE relay (no opt-in)",
+      "verdict": "PASS",
+      "command": "real run entry",
+      "result": "{\"deviceId\":\"relay_main\",\"roomId\":0,\"relay\":\"INACTIVE\"}"
+    },
+    {
+      "name": "PN03 ordinary NEW RUN weapon count = 1 (pulse only)",
+      "verdict": "PASS",
+      "command": "world.player.data.weapons",
+      "result": "{\"weapons\":[\"pulse\"],\"key\":\"pulse\"}"
+    },
+    {
+      "name": "PN04 owner=ai: Q does not fire signal",
+      "verdict": "PASS",
+      "command": "toggleAiControl ON + Q hold",
+      "result": "{\"owner\":\"ai\",\"before\":100,\"after\":100}"
+    },
+    {
+      "name": "PN05 owner→human restored: Q fires signal again (energy consumed)",
+      "verdict": "PASS",
+      "command": "toggleAiControl OFF + Q hold",
+      "result": "{\"owner\":\"human\",\"before\":100,\"after\":97,\"note\":\"energy dropped => signal fired again after owner restored to human\"}"
+    },
+    {
+      "name": "PN06 Q keydown binds switchWeapon(-1) AND signal scan (code-level dual binding)",
+      "verdict": "PASS",
+      "command": "keydown-Q + update Q.isDown",
+      "result": "{\"weaponCount\":1,\"note\":\"1 weapon (pulse) => switchWeapon is a no-op; signal consumes energy. With a 2nd weapon, Q would switch weapon AND consume signal simultaneously.\"}"
+    },
+    {
+      "name": "PN07 E keydown binds switchWeapon(1) AND signal jam (code-level dual binding)",
+      "verdict": "PASS",
+      "command": "keydown-E + update E.isDown",
+      "result": "{\"weaponCount\":1,\"note\":\"1 weapon (pulse) => switchWeapon is a no-op; signal consumes energy. With a 2nd weapon, E would switch weapon AND consume jam simultaneously.\"}"
+    },
+    {
+      "name": "PN08 no page errors",
+      "verdict": "PASS",
+      "command": "page error capture",
+      "result": "[]"
+    }
+  ]
+}

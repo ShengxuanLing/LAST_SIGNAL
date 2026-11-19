@@ -1,0 +1,147 @@
+workdir=/d/tmp/ls-p3-accept devRoot=D:/tmp/ls-p3-accept PORT=5492 commit=0083e20
+
+Running 32 tests using 1 worker
+
+[1/32] [chromium] › tests\gameplay-02-echo-coop.spec.ts:269:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry
+  1) [chromium] › tests\gameplay-02-echo-coop.spec.ts:269:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: page.waitForFunction: Test timeout of 180000ms exceeded.
+
+      89 |   await page.evaluate((k) => localStorage.removeItem(k), SAVE_KEY);
+      90 |   await page.reload();
+    > 91 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'), { timeout: 20000 });
+         |              ^
+      92 |   await page.waitForTimeout(400);
+      93 |   await clickLabel(page, 'MainMenuScene', 'DEMO 01');
+      94 |   await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'), { timeout: 20000 });
+        at bootDemo (D:\tmp\ls-p3-accept\tests\gameplay-02-echo-coop.spec.ts:91:14)
+        at D:\tmp\ls-p3-accept\tests\gameplay-02-echo-coop.spec.ts:270:5
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-2d6b1-page-yields-ONE-queue-entry-chromium\error-context.md
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-2d6b1-page-yields-ONE-queue-entry-chromium\error-context.md
+
+
+[2/32] [chromium] › tests\gameplay-02-echo-coop.spec.ts:322:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command
+  2) [chromium] › tests\gameplay-02-echo-coop.spec.ts:322:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command 
+
+    Error: label "REJECT LOCAL" visible in PauseScene
+
+    expect(received).not.toBeNull()
+
+    Received: null
+
+      79 |     return centre(pick);
+      80 |   }, { key: sceneKey, label });
+    > 81 |   expect(logical, `label "${label}" visible in ${sceneKey}`).not.toBeNull();
+         |                                                                  ^
+      82 |   await clickLogical(page, logical!.x, logical!.y);
+      83 |   await page.waitForTimeout(250);
+      84 | }
+        at clickLabel (D:\tmp\ls-p3-accept\tests\gameplay-02-echo-coop.spec.ts:81:66)
+        at D:\tmp\ls-p3-accept\tests\gameplay-02-echo-coop.spec.ts:331:5
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-bb92c--queued-cooperation-command-chromium\error-context.md
+
+    Error Context: test-results\gameplay-02-echo-coop-GAME-bb92c--queued-cooperation-command-chromium\error-context.md
+
+
+[3/32] [chromium] › tests\gameplay-02-echo-coop.spec.ts:344:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it
+[4/32] [chromium] › tests\gameplay-02-echo-coop.spec.ts:383:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 4) rawsim restore: a restored human-local action is busy, not re-confirmable, and commits exactly once
+[5/32] [chromium] › tests\gameplay-02-echo-coop.spec.ts:431:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 5) ECHO cooperation UI at five viewports: font >= 10 CSS px, no clipped / unexpected overlap
+[6/32] [chromium] › tests\gameplay-02-echo-coop.spec.ts:496:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 6) a legacy save (only the new optional cooperation fields removed) still CONTINUEs and defaults OFF
+[7/32] [chromium] › tests\gameplay-02-echo-coop.spec.ts:559:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+[8/32] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1920x1080
+[9/32] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1920x1080
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1920x1080
+audit 1920x1080: 0 clipped/hidden, 0 overlaps
+
+[10/32] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1600x900
+[11/32] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1600x900
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1600x900
+audit 1600x900: 0 clipped/hidden, 0 overlaps
+
+[12/32] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1366x768
+[13/32] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1366x768
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1366x768
+audit 1366x768: 0 clipped/hidden, 0 overlaps
+
+[14/32] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1280x720
+[15/32] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1280x720
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1280x720
+audit 1280x720: 0 clipped/hidden, 0 overlaps
+
+[16/32] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1024x768
+[17/32] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1024x768
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1024x768
+audit 1024x768: 0 clipped/hidden, 0 overlaps
+
+[18/32] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 800x600
+[19/32] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 800x600
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 800x600
+audit 800x600: 0 clipped/hidden, 0 overlaps
+
+[20/32] [chromium] › tests\ui-menu-layout.spec.ts:712:3 › UI-REWORK-01 menu surfaces › navigation: ESC walks exactly one level back
+[21/32] [chromium] › tests\ui-menu-layout.spec.ts:780:3 › UI-REWORK-01 menu surfaces › functional: settings change, persist and reset; AI local toggle
+[22/32] [chromium] › tests\ui-menu-layout.spec.ts:846:3 › UI-REWORK-01 menu surfaces › functional: ECHO enable, mode and assist arming
+[23/32] [chromium] › tests\ui-menu-layout.spec.ts:909:3 › UI-REWORK-01 menu surfaces › functional: LLM page is honest without a model; failure feedback; no secret leak
+[chromium] › tests\ui-menu-layout.spec.ts:909:3 › UI-REWORK-01 menu surfaces › functional: LLM page is honest without a model; failure feedback; no secret leak
+CONSOLE_ERROR functional-llm: Failed to load resource: net::ERR_UNSAFE_PORT
+
+[24/32] [chromium] › tests\ui-menu-layout.spec.ts:990:3 › UI-REWORK-01 menu surfaces › functional: real pending proposal — Owner CONFIRM commits, REJECT does not
+[chromium] › tests\ui-menu-layout.spec.ts:990:3 › UI-REWORK-01 menu surfaces › functional: real pending proposal — Owner CONFIRM commits, REJECT does not
+CONSOLE_ERROR functional-llm-pending: Failed to load resource: net::ERR_CONNECTION_REFUSED
+
+  3) [chromium] › tests\ui-menu-layout.spec.ts:990:3 › UI-REWORK-01 menu surfaces › functional: real pending proposal — Owner CONFIRM commits, REJECT does not 
+
+    McpError: MCP error -32000: Connection closed
+        at McpError.fromError (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\types.ts:2330:16)
+        at Client._onclose (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\shared\protocol.ts:667:32)
+        at StdioClientTransport._transport.onclose (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\shared\protocol.ts:623:18)
+        at ChildProcess.<anonymous> (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\client\stdio.ts:152:31)
+        at ChildProcess.cp.emit (D:\tmp\ls-p3-accept\node_modules\cross-spawn\lib\enoent.js:34:29)
+
+    Error Context: test-results\ui-menu-layout-UI-REWORK-0-dd2e9-IRM-commits-REJECT-does-not-chromium\error-context.md
+
+
+[25/32] [chromium] › tests\ui-menu-layout.spec.ts:1116:3 › UI-REWORK-01 menu surfaces › boundary: repeated open/close never stacks or leaves hidden controls
+[26/32] [chromium] › tests\ui-menu-layout.spec.ts:1160:3 › UI-REWORK-01 menu surfaces › boundary: keyboard focus, wheel and real click agree
+[27/32] [chromium] › tests\ui-menu-layout.spec.ts:1203:3 › UI-REWORK-01 menu surfaces › audit: shared font stack, disabled controls, resize and destroy stability
+[28/32] [chromium] › tests\ui-menu-layout.spec.ts:1296:3 › UI-REWORK-01 menu surfaces › functional: inventory EQUIP is keyboard reachable and commits on the next tick
+[29/32] [chromium] › tests\ui-menu-layout.spec.ts:1348:3 › UI-REWORK-01 menu surfaces › functional: settings persist across reopen and reset
+[30/32] [chromium] › tests\ui-menu-layout.spec.ts:1385:3 › UI-REWORK-01 menu surfaces › functional: owner re-authorize swaps capability on the same instance and retires old suggestions
+  4) [chromium] › tests\ui-menu-layout.spec.ts:1385:3 › UI-REWORK-01 menu surfaces › functional: owner re-authorize swaps capability on the same instance and retires old suggestions 
+
+    McpError: MCP error -32000: Connection closed
+        at McpError.fromError (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\types.ts:2330:16)
+        at Client._onclose (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\shared\protocol.ts:667:32)
+        at StdioClientTransport._transport.onclose (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\shared\protocol.ts:623:18)
+        at ChildProcess.<anonymous> (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\client\stdio.ts:152:31)
+        at ChildProcess.cp.emit (D:\tmp\ls-p3-accept\node_modules\cross-spawn\lib\enoent.js:34:29)
+
+    Error Context: test-results\ui-menu-layout-UI-REWORK-0-72a42-and-retires-old-suggestions-chromium\error-context.md
+
+
+[31/32] [chromium] › tests\ui-menu-layout.spec.ts:1506:3 › UI-REWORK-01 menu surfaces › functional: an expired proposal is never confirmed
+  5) [chromium] › tests\ui-menu-layout.spec.ts:1506:3 › UI-REWORK-01 menu surfaces › functional: an expired proposal is never confirmed 
+
+    McpError: MCP error -32000: Connection closed
+        at McpError.fromError (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\types.ts:2330:16)
+        at Client._onclose (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\shared\protocol.ts:667:32)
+        at StdioClientTransport._transport.onclose (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\shared\protocol.ts:623:18)
+        at ChildProcess.<anonymous> (D:\tmp\ls-p3-accept\node_modules\@modelcontextprotocol\sdk\src\client\stdio.ts:152:31)
+        at ChildProcess.cp.emit (D:\tmp\ls-p3-accept\node_modules\cross-spawn\lib\enoent.js:34:29)
+
+    Error Context: test-results\ui-menu-layout-UI-REWORK-0-8b0db-proposal-is-never-confirmed-chromium\error-context.md
+
+
+[32/32] [chromium] › tests\ui-menu-layout.spec.ts:1569:3 › UI-REWORK-01 menu surfaces › functional: level-up, death and restart keep the menu honest
+  5 failed
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:269:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 1) single pending: repeated CONFIRM on the real cooperation page yields ONE queue entry 
+    [chromium] › tests\gameplay-02-echo-coop.spec.ts:322:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command 
+    [chromium] › tests\ui-menu-layout.spec.ts:990:3 › UI-REWORK-01 menu surfaces › functional: real pending proposal — Owner CONFIRM commits, REJECT does not 
+    [chromium] › tests\ui-menu-layout.spec.ts:1385:3 › UI-REWORK-01 menu surfaces › functional: owner re-authorize swaps capability on the same instance and retires old suggestions 
+    [chromium] › tests\ui-menu-layout.spec.ts:1506:3 › UI-REWORK-01 menu surfaces › functional: an expired proposal is never confirmed 
+  27 passed (9.9m)

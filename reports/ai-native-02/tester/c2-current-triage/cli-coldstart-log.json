@@ -1,0 +1,197 @@
+{
+  "meta": {
+    "cwd": "D:/Project/AI-NATIVE-02-snapshots/780cece",
+    "target": "59aa852",
+    "note": "cold start = fresh vite-node process"
+  },
+  "runs": [
+    {
+      "run": 1,
+      "readyMs": 3494,
+      "exitCode": 0,
+      "signal": null,
+      "exitAfterQuitMs": 48,
+      "responses": [
+        {
+          "ok": true,
+          "cmd": "create",
+          "tick": 0,
+          "hasObservation": false
+        },
+        {
+          "ok": true,
+          "cmd": "observe",
+          "hasObservation": true
+        },
+        {
+          "ok": true,
+          "cmd": "quit",
+          "hasObservation": false
+        }
+      ],
+      "rawStdoutLines": 3,
+      "stderr": [
+        "[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.",
+        "[headless] channel closed; instances released; exit 0."
+      ]
+    },
+    {
+      "run": 2,
+      "readyMs": 3467,
+      "exitCode": 0,
+      "signal": null,
+      "exitAfterQuitMs": 30,
+      "responses": [
+        {
+          "ok": true,
+          "cmd": "create",
+          "tick": 0,
+          "hasObservation": false
+        },
+        {
+          "ok": true,
+          "cmd": "observe",
+          "hasObservation": true
+        },
+        {
+          "ok": true,
+          "cmd": "quit",
+          "hasObservation": false
+        }
+      ],
+      "rawStdoutLines": 3,
+      "stderr": [
+        "[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.",
+        "[headless] channel closed; instances released; exit 0."
+      ]
+    },
+    {
+      "run": 3,
+      "readyMs": 3479,
+      "exitCode": 0,
+      "signal": null,
+      "exitAfterQuitMs": 45,
+      "responses": [
+        {
+          "ok": true,
+          "cmd": "create",
+          "tick": 0,
+          "hasObservation": false
+        },
+        {
+          "ok": true,
+          "cmd": "observe",
+          "hasObservation": true
+        },
+        {
+          "ok": true,
+          "cmd": "quit",
+          "hasObservation": false
+        }
+      ],
+      "rawStdoutLines": 3,
+      "stderr": [
+        "[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.",
+        "[headless] channel closed; instances released; exit 0."
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "name": "cli-cold-start-readiness",
+      "detail": [
+        {
+          "run": 1,
+          "readyMs": 3494,
+          "exitCode": 0,
+          "signal": null,
+          "exitAfterQuitMs": 48,
+          "responses": [
+            {
+              "ok": true,
+              "cmd": "create",
+              "tick": 0,
+              "hasObservation": false
+            },
+            {
+              "ok": true,
+              "cmd": "observe",
+              "hasObservation": true
+            },
+            {
+              "ok": true,
+              "cmd": "quit",
+              "hasObservation": false
+            }
+          ],
+          "rawStdoutLines": 3,
+          "stderr": [
+            "[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.",
+            "[headless] channel closed; instances released; exit 0."
+          ]
+        },
+        {
+          "run": 2,
+          "readyMs": 3467,
+          "exitCode": 0,
+          "signal": null,
+          "exitAfterQuitMs": 30,
+          "responses": [
+            {
+              "ok": true,
+              "cmd": "create",
+              "tick": 0,
+              "hasObservation": false
+            },
+            {
+              "ok": true,
+              "cmd": "observe",
+              "hasObservation": true
+            },
+            {
+              "ok": true,
+              "cmd": "quit",
+              "hasObservation": false
+            }
+          ],
+          "rawStdoutLines": 3,
+          "stderr": [
+            "[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.",
+            "[headless] channel closed; instances released; exit 0."
+          ]
+        },
+        {
+          "run": 3,
+          "readyMs": 3479,
+          "exitCode": 0,
+          "signal": null,
+          "exitAfterQuitMs": 45,
+          "responses": [
+            {
+              "ok": true,
+              "cmd": "create",
+              "tick": 0,
+              "hasObservation": false
+            },
+            {
+              "ok": true,
+              "cmd": "observe",
+              "hasObservation": true
+            },
+            {
+              "ok": true,
+              "cmd": "quit",
+              "hasObservation": false
+            }
+          ],
+          "rawStdoutLines": 3,
+          "stderr": [
+            "[headless] channel=dev/test (private frames allowed); not MCP, not AI playthrough.",
+            "[headless] channel closed; instances released; exit 0."
+          ]
+        }
+      ],
+      "note": "cold start is ready and the process exits cleanly after quit"
+    }
+  ]
+}

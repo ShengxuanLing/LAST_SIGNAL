@@ -1,0 +1,84 @@
+[
+  {
+    "step": "evidence-fixture",
+    "detail": {
+      "reason": "overlay ownership regression clears hostile shots via the real core test seam + a second weapon fixture",
+      "hpToppedUp": "World.enqueueHeal (real core command, commits on the next tick)",
+      "iframesWritten": false,
+      "hpToppedUpBelow35Pct": true,
+      "injectedWeapon": "scatter",
+      "actor": "test-harness"
+    }
+  },
+  {
+    "step": "inventory-open",
+    "detail": {
+      "mode": "PAUSED",
+      "authorityPaused": true,
+      "fireHeld": false
+    }
+  },
+  {
+    "step": "ui-equip-click",
+    "detail": {
+      "weaponKey": "scatter",
+      "owner": "ai",
+      "fireHeld": false
+    }
+  },
+  {
+    "step": "inventory-close-no-takeover",
+    "detail": {
+      "owner": "ai",
+      "paused": false
+    }
+  },
+  {
+    "step": "inventory-key-takeover",
+    "detail": {
+      "owner": "human",
+      "takeoverCount": 1
+    }
+  },
+  {
+    "step": "inventory-f-takeover",
+    "detail": {
+      "owner": "human",
+      "reason": "human-input"
+    }
+  },
+  {
+    "step": "inventory-pointer-takeover",
+    "detail": {
+      "owner": "human"
+    }
+  },
+  {
+    "step": "levelup-card-ui-click",
+    "detail": {
+      "owner": "ai",
+      "paused": false
+    }
+  },
+  {
+    "step": "pause-settings-ui-click",
+    "detail": {
+      "owner": "ai",
+      "settingsOpened": true
+    }
+  },
+  {
+    "step": "levelup-KeyF-takeover",
+    "detail": {
+      "owner": "human",
+      "reason": "human-input"
+    }
+  },
+  {
+    "step": "levelup-pointer-takeover",
+    "detail": {
+      "owner": "human",
+      "reason": "human-input"
+    }
+  }
+]

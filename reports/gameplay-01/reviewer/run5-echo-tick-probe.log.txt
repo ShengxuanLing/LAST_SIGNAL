@@ -1,0 +1,10 @@
+# run5 ECHO next-tick probe — read-only reviewer evidence
+# cwd=/d/Project/LAST_SIGNAL HEAD=d55e502 date=2026-11-18T19:41:31Z
+# source shas: World.ts=349544bf5785dad0 core.ts=f71523e1ccd04828 worldHeadless.ts=7382d6f090e5da6b
+# probe start (read-only; no product/test change)
+{"name":"A1 single processed tick (deterministic first-tick proof)","confirmOk":true,"pendingAfterConfirm":1,"frozen":null,"ticksInDrainingBatch":1,"scansInBatch":1,"scanEnergy":90,"echoEnergyBefore":100,"echoEnergyAfter":90,"echoEnergyDelta":10,"expectedScanCost":10,"auditEnqueuedTick":2,"auditAppliedTick":3,"auditGap":1,"pendingAfterDrain":0,"echoHpAfter":100}
+{"name":"A2 frozen: confirm, NO processed tick, then 1 tick","confirmOk":true,"pendingAfterConfirm":1,"frozen":{"eventsWhileFrozen":0,"pendingWhileFrozen":1,"echoEnergyWhileFrozen":100,"auditWhileFrozen":[{"tick":2,"result":"enqueued"}]},"ticksInDrainingBatch":1,"scansInBatch":1,"scanEnergy":90,"echoEnergyBefore":100,"echoEnergyAfter":90,"echoEnergyDelta":10,"expectedScanCost":10,"auditEnqueuedTick":2,"auditAppliedTick":3,"auditGap":1,"pendingAfterDrain":0,"echoHpAfter":100}
+{"name":"A3 draining batch of 3 fixed ticks (sampling artefact)","confirmOk":true,"pendingAfterConfirm":1,"frozen":null,"ticksInDrainingBatch":3,"scansInBatch":1,"scanEnergy":90,"echoEnergyBefore":100,"echoEnergyAfter":90,"echoEnergyDelta":10,"expectedScanCost":10,"auditEnqueuedTick":2,"auditAppliedTick":5,"auditGap":3,"pendingAfterDrain":0,"echoHpAfter":100}
+{"name":"A4 draining batch of 15 fixed ticks (MAX_TICKS_PER_FRAME)","confirmOk":true,"pendingAfterConfirm":1,"frozen":null,"ticksInDrainingBatch":15,"scansInBatch":1,"scanEnergy":90,"echoEnergyBefore":100,"echoEnergyAfter":91,"echoEnergyDelta":9,"expectedScanCost":10,"auditEnqueuedTick":2,"auditAppliedTick":17,"auditGap":15,"pendingAfterDrain":0,"echoHpAfter":100}
+# probe done
+# exit=0

@@ -1,0 +1,1304 @@
+{
+  "meta": {
+    "base": "http://localhost:5297",
+    "bridge": "http://127.0.0.1:8787",
+    "target": "8ec87587b0b4dba3146016e53bd6592ccb41be96",
+    "build": "production (no __game)",
+    "tokenTag": "ebdaf1cb1931",
+    "tokenLen": 64
+  },
+  "checks": [
+    {
+      "n": "pre-auth-attach-denied",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.authorization_required"
+      }
+    },
+    {
+      "n": "pre-auth-action-denied",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.authorization_required"
+      }
+    },
+    {
+      "n": "agent-cannot-self-authorize",
+      "ok": true,
+      "d": {
+        "status": 403
+      }
+    },
+    {
+      "n": "prod-no-game-handle",
+      "ok": true
+    },
+    {
+      "n": "prod-token-not-in-dom",
+      "ok": true
+    },
+    {
+      "n": "human-authorize-creates-attachable-session",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "post-commit-observation",
+      "ok": true,
+      "d": {
+        "tick": 149,
+        "roomId": 0,
+        "keys": [
+          "schema",
+          "protocolVersion",
+          "epoch",
+          "tick",
+          "roomId",
+          "player",
+          "drones",
+          "projectiles",
+          "availableActions"
+        ]
+      }
+    },
+    {
+      "n": "observation-no-seed-map-rng",
+      "ok": true,
+      "d": [
+        "schema",
+        "protocolVersion",
+        "epoch",
+        "tick",
+        "roomId",
+        "player",
+        "drones",
+        "projectiles",
+        "availableActions"
+      ]
+    },
+    {
+      "n": "move-batch-accepted-queued",
+      "ok": true,
+      "d": [
+        {
+          "actionId": "aid_a322338c33643d20f19f219b",
+          "status": "queued",
+          "applyByTick": 280
+        },
+        {
+          "actionId": "aid_fdfefc63d1e6ef327e9ab910",
+          "status": "queued",
+          "applyByTick": 280
+        }
+      ]
+    },
+    {
+      "n": "move-actually-committed",
+      "ok": true,
+      "d": {
+        "from": {
+          "x": 8,
+          "y": 45,
+          "tick": 149
+        },
+        "to": {
+          "x": 8.401041666666663,
+          "y": 44.59895833333335,
+          "tick": 193
+        }
+      }
+    },
+    {
+      "n": "aim-actually-committed",
+      "ok": true,
+      "d": {
+        "queued": "queued",
+        "yaw": 0.2889754099925543
+      }
+    },
+    {
+      "n": "fire-creates-real-projectiles",
+      "ok": false,
+      "d": {
+        "note": "no hostile perceived after walking right 12 batches"
+      }
+    },
+    {
+      "n": "interact-accepted",
+      "ok": true,
+      "d": {
+        "actionId": "aid_98dc61e42e546511d0580680",
+        "status": "queued",
+        "applyByTick": 915
+      }
+    },
+    {
+      "n": "pause-voids-rendered-session",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_SESSION_NOT_FOUND",
+        "messageKey": "world.session_unknown"
+      }
+    },
+    {
+      "n": "pause-blocks-new-agent-attach",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.authorization_required"
+      }
+    },
+    {
+      "n": "resume-no-auto-retake",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.authorization_required"
+      }
+    },
+    {
+      "n": "fresh-authorize-after-yield",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "takeover-voids-link",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_SESSION_NOT_FOUND",
+        "messageKey": "world.session_unknown"
+      }
+    },
+    {
+      "n": "fresh-authorize-for-close",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "agent-close-ok",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "closed": true
+      }
+    },
+    {
+      "n": "close-ends-agent-control",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.authorization_required"
+      }
+    },
+    {
+      "n": "close-blocks-attach",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.authorization_required"
+      }
+    },
+    {
+      "n": "fresh-authorize-for-disconnect",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "disconnect-voids-agent",
+      "ok": false,
+      "d": {
+        "ms": null
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": false,
+      "d": [
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "console: Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ]
+    }
+  ],
+  "findings": [],
+  "steps": [
+    {
+      "name": "disconnect",
+      "pid": null,
+      "tickBefore": 1471
+    }
+  ],
+  "toolLog": [
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": true,
+      "ok": false,
+      "code": "E_PERMISSION",
+      "tick": null
+    },
+    {
+      "tool": "world_action",
+      "req": "req_922c26dde7e88a771a4b26d7",
+      "aid": "aid_dbc908e22ded6cd4914f879e",
+      "n": 1,
+      "isError": true,
+      "ok": false,
+      "code": "E_PERMISSION",
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 149
+    },
+    {
+      "tool": "world_action",
+      "req": "req_917d05909aaa0f0a54c05c2a",
+      "aid": "aid_a322338c33643d20f19f219b",
+      "n": 8,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 160
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 172
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 182
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 193
+    },
+    {
+      "tool": "world_action",
+      "req": "req_343c65d416703432a3ff73bb",
+      "aid": "aid_c8602324935bb510eee5e270",
+      "n": 1,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued"
+      ],
+      "tick": 219
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 228
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 237
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 246
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 253
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 255
+    },
+    {
+      "tool": "world_action",
+      "req": "req_4dfec119fc591fc3c6143da8",
+      "aid": "aid_5316b01f8cbcd0fc6745b3dc",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 255
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 298
+    },
+    {
+      "tool": "world_action",
+      "req": "req_3122d600eff209d57fdaa4c6",
+      "aid": "aid_42d81c57b78424dcd2531e32",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 298
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 343
+    },
+    {
+      "tool": "world_action",
+      "req": "req_3112b6baf64532feda130542",
+      "aid": "aid_f6ff4adbdff6cbad40f6d6b6",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 347
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 391
+    },
+    {
+      "tool": "world_action",
+      "req": "req_ca87cd53c2524bf559ceb7dc",
+      "aid": "aid_ebc4e72309d260e9a1a11470",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 391
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 437
+    },
+    {
+      "tool": "world_action",
+      "req": "req_aca157b320f051821581a8fc",
+      "aid": "aid_6077d826da9fe23e57982b73",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 437
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 480
+    },
+    {
+      "tool": "world_action",
+      "req": "req_15a424bd354bb085d20fc134",
+      "aid": "aid_b020f998f9921bc231c4942a",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 480
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 524
+    },
+    {
+      "tool": "world_action",
+      "req": "req_a2752aaa1cddb78258bb113c",
+      "aid": "aid_d55142cd6a0e9fddf778f0fa",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 524
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 570
+    },
+    {
+      "tool": "world_action",
+      "req": "req_66470c611b73d71d05ceef8c",
+      "aid": "aid_c26024c789f5b81e2287285c",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 570
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 614
+    },
+    {
+      "tool": "world_action",
+      "req": "req_f485a222b140e3c0a5c7227a",
+      "aid": "aid_9914f62d9ae958ff940b237f",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 614
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 658
+    },
+    {
+      "tool": "world_action",
+      "req": "req_f863f91b56a0993899648819",
+      "aid": "aid_7abc73723bb50a2466bc38a8",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 658
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 703
+    },
+    {
+      "tool": "world_action",
+      "req": "req_c904b4b73d2f6f4f6ad7ec7d",
+      "aid": "aid_c671502eab1920c3189dfab0",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 708
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 752
+    },
+    {
+      "tool": "world_action",
+      "req": "req_f15607a99ffffdb6b70c57e4",
+      "aid": "aid_9089c59062fd6e4c58e7ee43",
+      "n": 6,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 752
+    },
+    {
+      "tool": "world_action",
+      "req": "req_0b9257b87875bcfda4c567fb",
+      "aid": "aid_98dc61e42e546511d0580680",
+      "n": 1,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued"
+      ],
+      "tick": 795
+    },
+    {
+      "tool": "world_action",
+      "req": "req_e0d0c22de223d74b6a83aad6",
+      "aid": "aid_226cfd2c8b03aa18dc5d117a",
+      "n": 8,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 795
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": true,
+      "ok": false,
+      "code": "E_SESSION_NOT_FOUND",
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": true,
+      "ok": false,
+      "code": "E_PERMISSION",
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": true,
+      "ok": false,
+      "code": "E_PERMISSION",
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 1020
+    },
+    {
+      "tool": "world_action",
+      "req": "req_e74bd822d80f38c3998a439a",
+      "aid": "aid_274216f854aaf6702b5c4d53",
+      "n": 8,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued",
+        "queued"
+      ],
+      "tick": 1023
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": true,
+      "ok": false,
+      "code": "E_SESSION_NOT_FOUND",
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 1185
+    },
+    {
+      "tool": "world_close",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": true,
+      "ok": false,
+      "code": "E_PERMISSION",
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": true,
+      "ok": false,
+      "code": "E_PERMISSION",
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_observe",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 1471
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "req": null,
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    }
+  ],
+  "errors": [],
+  "video": "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\tester\\c3b-final\\evidence-prod\\video\\page@8d4f3c945ca937a4ec1f107baa38f197.webm",
+  "pageErrors": [
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)",
+    "console: Failed to load resource: the server responded with a status of 409 (Conflict)"
+  ]
+}

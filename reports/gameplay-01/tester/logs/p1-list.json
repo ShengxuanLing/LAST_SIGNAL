@@ -1,0 +1,3012 @@
+{
+  "config": {
+    "argv": [
+      "D:\\nodejs\\node.exe",
+      "D:\\tmp\\ls-p1-accept\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--list",
+      "--reporter=json"
+    ],
+    "configFile": "D:\\tmp\\ls-p1-accept\\playwright.config.ts",
+    "rootDir": "D:/tmp/ls-p1-accept/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/tmp/ls-p1-accept/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "D:/tmp/ls-p1-accept/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "D:\\tmp\\ls-p1-accept\\test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "name": "chromium",
+        "testDir": "D:\\tmp\\ls-p1-accept\\tests",
+        "snapshotDir": "D:\\tmp\\ls-p1-accept\\tests",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 60000,
+        "use": {
+          "baseURL": "http://localhost:5173/",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "launchOptions": {
+            "args": [
+              "--no-sandbox",
+              "--disable-dev-shm-usage"
+            ]
+          },
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.0",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "ai-character-roster.spec.ts",
+      "file": "ai-character-roster.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "grok loads its three community sprites in a playable run",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "16e07ddfe4993d8c8d14-2ae39aa8231aff6f4c8b",
+          "file": "ai-character-roster.spec.ts",
+          "line": 5,
+          "column": 3
+        },
+        {
+          "title": "gemini loads its three community sprites in a playable run",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "16e07ddfe4993d8c8d14-5dadafad96e75f610f2d",
+          "file": "ai-character-roster.spec.ts",
+          "line": 5,
+          "column": 3
+        },
+        {
+          "title": "gpt loads its three community sprites in a playable run",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "16e07ddfe4993d8c8d14-1411a5a9457ec8f1bff0",
+          "file": "ai-character-roster.spec.ts",
+          "line": 5,
+          "column": 3
+        }
+      ]
+    },
+    {
+      "title": "ai-native-world.spec.ts",
+      "file": "ai-native-world.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "AI-NATIVE-02 P1 real World",
+          "file": "ai-native-world.spec.ts",
+          "line": 269,
+          "column": 6,
+          "specs": [
+            {
+              "title": "shared control path, AI run, disable/takeover, level-up takeover, pause/death/restart/exit",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-0f277640f01341c8784a",
+              "file": "ai-native-world.spec.ts",
+              "line": 272,
+              "column": 3
+            },
+            {
+              "title": "HUD fully visible, non-overlapping and scaled geometry at 1920x1080",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-3a39287b255f79494874",
+              "file": "ai-native-world.spec.ts",
+              "line": 728,
+              "column": 5
+            },
+            {
+              "title": "HUD fully visible, non-overlapping and scaled geometry at 1366x768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-1b6892823822b7c1a1c6",
+              "file": "ai-native-world.spec.ts",
+              "line": 728,
+              "column": 5
+            },
+            {
+              "title": "HUD fully visible, non-overlapping and scaled geometry at 1280x720",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-3399ef4f9607aef5c268",
+              "file": "ai-native-world.spec.ts",
+              "line": 728,
+              "column": 5
+            },
+            {
+              "title": "HUD fully visible, non-overlapping and scaled geometry at 1024x768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-50d0c68628ac8205788a",
+              "file": "ai-native-world.spec.ts",
+              "line": 728,
+              "column": 5
+            },
+            {
+              "title": "HUD fully visible, non-overlapping and scaled geometry at 800x600",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-0209dc7b4b0b2b1b317c",
+              "file": "ai-native-world.spec.ts",
+              "line": 728,
+              "column": 5
+            },
+            {
+              "title": "F-04/F-05: inventory/pause/level-up overlay ownership, UI clicks vs fire/F takeover",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-f306c08229d46658c626",
+              "file": "ai-native-world.spec.ts",
+              "line": 809,
+              "column": 3
+            },
+            {
+              "title": "F-01/F-02: perception radius, occlusion, unexplored rooms, boss/portal and bounded canWalk",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-8c2319e0c64e867b90e8",
+              "file": "ai-native-world.spec.ts",
+              "line": 1005,
+              "column": 3
+            },
+            {
+              "title": "C1: rendered World applies the shared pure rules (movement, aim, pulse fire, drone FSM, hit)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-48786e404c9606da9b65",
+              "file": "ai-native-world.spec.ts",
+              "line": 1169,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "P3-a echo companion",
+          "file": "ai-native-world.spec.ts",
+          "line": 1305,
+          "column": 6,
+          "specs": [
+            {
+              "title": "enable via pause, follow/hold, confirm-before-fire, real damage",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "f0cec260630f25c0660e-62282156a13660d7bf74",
+              "file": "ai-native-world.spec.ts",
+              "line": 1306,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "audit.spec.ts",
+      "file": "audit.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "fixed-seed playability regression: menu -> movement -> fire -> kill -> loot -> upgrade -> pause -> teleport",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "45efdff6a4d2e1f7e786-6e10f2888721be3bb99f",
+          "file": "audit.spec.ts",
+          "line": 66,
+          "column": 1
+        },
+        {
+          "title": "P2 regression: boss bullets, screen-locked light, unlocked weapons, single UI sound",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "45efdff6a4d2e1f7e786-150797e035b190276f95",
+          "file": "audit.spec.ts",
+          "line": 575,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "boss-room.spec.ts",
+      "file": "boss-room.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "boss room: player, camera bounds and shake stay sane after addShake(18)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "bd21dfa54d3dbcac97c9-a91e0fd01168bb578ca8",
+          "file": "boss-room.spec.ts",
+          "line": 15,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "c2-parity.spec.ts",
+      "file": "c2-parity.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "AI-NATIVE-02 C2 fixed-tick core",
+          "file": "c2-parity.spec.ts",
+          "line": 41,
+          "column": 6,
+          "specs": [
+            {
+              "title": "subframe, 15-tick cap, pause freeze and no catch-up",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-cbf60e47da73a91295b6",
+              "file": "c2-parity.spec.ts",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "controlled intent queue: Rendered canonical state/events for Node parity",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-1216b0c636f2afb4273c",
+              "file": "c2-parity.spec.ts",
+              "line": 104,
+              "column": 3
+            },
+            {
+              "title": "B6/H2: real kill rewards, events and post-kill shot parity fixture",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-1f5566f6be2a81a24b8f",
+              "file": "c2-parity.spec.ts",
+              "line": 171,
+              "column": 3
+            },
+            {
+              "title": "B11: loot magnet uses pixel->tile units; far 20/40/85 tiles stay, near loot collects",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-6905ea8b128a09bd940e",
+              "file": "c2-parity.spec.ts",
+              "line": 251,
+              "column": 3
+            },
+            {
+              "title": "F-08: restoreCheckpoint uses a deep copy of the incoming frame",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-67dc45fdef9398a97d09",
+              "file": "c2-parity.spec.ts",
+              "line": 362,
+              "column": 3
+            },
+            {
+              "title": "B1-B4: normal stepFrame damages all enemy kinds/Boss; laser/setter/player-hit authority",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-f4f68d4a9650d6fefe21",
+              "file": "c2-parity.spec.ts",
+              "line": 392,
+              "column": 3
+            },
+            {
+              "title": "H10: non-Boss enemy-hit consumes hit flash state",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-d0df8eedab1edfe3de19",
+              "file": "c2-parity.spec.ts",
+              "line": 500,
+              "column": 3
+            },
+            {
+              "title": "B4: blocked hit is not a hurt fact; two lethal queued hits yield one death",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-7c00cc10e809cc81a4fe",
+              "file": "c2-parity.spec.ts",
+              "line": 539,
+              "column": 3
+            },
+            {
+              "title": "H3: checkpoint capture/restore preserves core tick/rng/nextProjectileId",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ecbcc8118166bca4b686-811a54e3c7a219e8ac53",
+              "file": "c2-parity.spec.ts",
+              "line": 580,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "c3b-external-link.spec.ts",
+      "file": "c3b-external-link.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "human authorization links the rendered world to the bridge; actions commit on a real tick",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-400de592aa9576df12c0",
+          "file": "c3b-external-link.spec.ts",
+          "line": 85,
+          "column": 1
+        },
+        {
+          "title": "takeover / overlay / agent disconnect yield the link; no automatic re-take",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-612a12fb6aa7fb613f07",
+          "file": "c3b-external-link.spec.ts",
+          "line": 211,
+          "column": 1
+        },
+        {
+          "title": "ticks=1 vs ticks=120 differ in REAL core ticks and real displacement",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-f5b54064e7b2dbec86ca",
+          "file": "c3b-external-link.spec.ts",
+          "line": 300,
+          "column": 1
+        },
+        {
+          "title": "fire honours real cooldown / ammo / real projectiles; interact is one legal commit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-a9fae2ba9fa053bf7873",
+          "file": "c3b-external-link.spec.ts",
+          "line": 374,
+          "column": 1
+        },
+        {
+          "title": "blocked legal move still gets a receipt but cannot fake displacement",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-c084f9a6b655a31892ee",
+          "file": "c3b-external-link.spec.ts",
+          "line": 444,
+          "column": 1
+        },
+        {
+          "title": "Rendered probe: hidden / far / other-room enemy projectiles are NOT in the observation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-f0055130171fba7d2340",
+          "file": "c3b-external-link.spec.ts",
+          "line": 486,
+          "column": 1
+        },
+        {
+          "title": "takeover while a long action is in flight: no pageerror, no ACK after the new epoch",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-127ddca2e3af5c7ddc5c",
+          "file": "c3b-external-link.spec.ts",
+          "line": 562,
+          "column": 1
+        },
+        {
+          "title": "Rendered effects: a real drone takes REAL damage from a ticks-long fire action",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-5971161a0e0fa77ae05c",
+          "file": "c3b-external-link.spec.ts",
+          "line": 590,
+          "column": 1
+        },
+        {
+          "title": "a queued stop preempts the ACTIVE long action; other actions keep FIFO",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "69720bbf4fafb90ed017-345cd9dbc0a758a50b29",
+          "file": "c3b-external-link.spec.ts",
+          "line": 655,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "c3b-hard-disconnect.spec.ts",
+      "file": "c3b-hard-disconnect.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "SIGKILL of the agent process expires the lease, yields the link and forbids auto re-attach",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "5f9a3382f9200d27d8b4-82aaa0e8a167cd7bd29a",
+          "file": "c3b-hard-disconnect.spec.ts",
+          "line": 100,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "c3b-link-form.spec.ts",
+      "file": "c3b-link-form.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the form is reachable without the console, masks the token and isolates typing",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "845cf546e62c1d859803-26d317ca6a69e75cf2a6",
+          "file": "c3b-link-form.spec.ts",
+          "line": 64,
+          "column": 1
+        },
+        {
+          "title": "AUTHORIZE from the form links the rendered world; a wrong token shows a REAL error",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "845cf546e62c1d859803-da6945bfea0c3681596e",
+          "file": "c3b-link-form.spec.ts",
+          "line": 107,
+          "column": 1
+        },
+        {
+          "title": "the connection form fits and stays usable at five viewports",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "845cf546e62c1d859803-26cb68a06c715ebd770c",
+          "file": "c3b-link-form.spec.ts",
+          "line": 142,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "c3c-bridge-reclaim.spec.ts",
+      "file": "c3c-bridge-reclaim.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "browser reload -> LOST -> a NEW human AUTHORIZE reclaims the session without restarting the bridge",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "6b867b02bae016188533-16347b431e76f0a5e9e6",
+          "file": "c3c-bridge-reclaim.spec.ts",
+          "line": 91,
+          "column": 1
+        },
+        {
+          "title": "a live connected link cannot be silently replaced (duplicate still 409)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "6b867b02bae016188533-1a3dd015618f7ebdc436",
+          "file": "c3c-bridge-reclaim.spec.ts",
+          "line": 146,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "c3c-headless-parity.spec.ts",
+      "file": "c3c-headless-parity.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Rendered canonical/events export (real kill + loot) for headless parity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "878165f740e6082d7f1a-c5d17ec9af31ed398a6a",
+          "file": "c3c-headless-parity.spec.ts",
+          "line": 33,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "canvas.spec.ts",
+      "file": "canvas.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "full HUD renders and stays locked during camera movement",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "d65359ccff3355b68920-75fd892992c2da2214fc",
+          "file": "canvas.spec.ts",
+          "line": 8,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "checkpoint.spec.ts",
+      "file": "checkpoint.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "inventory equips an owned weapon and the safe checkpoint restores the selection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "2318db75e0c613437198-e08eb5236498c020baa6",
+          "file": "checkpoint.spec.ts",
+          "line": 71,
+          "column": 1
+        },
+        {
+          "title": "number keys select an upgrade when four choices are eligible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "2318db75e0c613437198-ce17dbff4c01b006681e",
+          "file": "checkpoint.spec.ts",
+          "line": 152,
+          "column": 1
+        },
+        {
+          "title": "loss recap shows run stats and retries the same seed",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "2318db75e0c613437198-2742c0bc15c04cd0d167",
+          "file": "checkpoint.spec.ts",
+          "line": 172,
+          "column": 1
+        },
+        {
+          "title": "resume reuses the checkpoint id and restores saved HP / run-scoped progress",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "2318db75e0c613437198-56f1666baa78abb7baec",
+          "file": "checkpoint.spec.ts",
+          "line": 197,
+          "column": 1
+        },
+        {
+          "title": "death routes to Game Over and clears the run checkpoint",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "2318db75e0c613437198-376010d92f88a36395bc",
+          "file": "checkpoint.spec.ts",
+          "line": 316,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "claude-character.spec.ts",
+      "file": "claude-character.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Claude can be selected, restored and shown in both side-facing views",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "73b2d6113323fd8e3eb3-4520d74406069a816626",
+          "file": "claude-character.spec.ts",
+          "line": 10,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "companion-room-cancel.spec.ts",
+      "file": "companion-room-cancel.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "real portal retires old-room suggestions: no stale confirm, no execution; new room works once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "5135db8e6054fd1da4b0-9c5ae316fb04d99f2716",
+          "file": "companion-room-cancel.spec.ts",
+          "line": 123,
+          "column": 1
+        },
+        {
+          "title": "pause/resume with no room change never cancels a live proposal",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "5135db8e6054fd1da4b0-76d4819e5de9528fac61",
+          "file": "companion-room-cancel.spec.ts",
+          "line": 279,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "companion-room-race.spec.ts",
+      "file": "companion-room-race.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "T1 delayed room notification 4000ms: old confirm refused synchronously; receipt never applied",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "2357013bd2af512e6c55-e9e7e71a37ec9a698e6b",
+          "file": "companion-room-race.spec.ts",
+          "line": 208,
+          "column": 1
+        },
+        {
+          "title": "T2 decision response delayed 6s while the room changes: server ok, renderer refuses to apply",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "2357013bd2af512e6c55-e1ff2d4395569da5924e",
+          "file": "companion-room-race.spec.ts",
+          "line": 303,
+          "column": 1
+        },
+        {
+          "title": "T3 A->B->C with the first notification delayed: no rollback, newest room usable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "2357013bd2af512e6c55-26c4573f3f1944acae18",
+          "file": "companion-room-race.spec.ts",
+          "line": 358,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "echo-portal-migration.spec.ts",
+      "file": "echo-portal-migration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "ordinary portal: the ECHO migrates with the protagonist in the same transition, assist cleared",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "46babb2a2ce9669e9605-1a6af9d4db17097fac48",
+          "file": "echo-portal-migration.spec.ts",
+          "line": 75,
+          "column": 1
+        },
+        {
+          "title": "NEGATIVE CONTROL: a teleport without migration leaves the echo where it was",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "46babb2a2ce9669e9605-4fbf54f2230fabdd4174",
+          "file": "echo-portal-migration.spec.ts",
+          "line": 122,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "economy.spec.ts",
+      "file": "economy.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "earns and spends run credits, with purchases restored from the checkpoint",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "c3f9faea062a9b8a719e-d43104d2ad27a849b696",
+          "file": "economy.spec.ts",
+          "line": 11,
+          "column": 1
+        },
+        {
+          "title": "a failed checkpoint save keeps the purchase pending and completes once after recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "c3f9faea062a9b8a719e-363b8d82ff18bdcd6976",
+          "file": "economy.spec.ts",
+          "line": 123,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "gameplay-01.spec.ts",
+      "file": "gameplay-01.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GAMEPLAY-01 P1 · DEMO 01 (Linked Sentry) acceptance",
+          "file": "gameplay-01.spec.ts",
+          "line": 309,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1) real menu entry: relay ACTIVE, linked drones, T/Y costs and jam expiry",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 240000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\tmp\\ls-p1-accept\\tests\\gameplay-01.spec.ts",
+                        "line": 309,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6363833fe861da81c674-0af32e74592dc67114c6",
+              "file": "gameplay-01.spec.ts",
+              "line": 317,
+              "column": 3
+            },
+            {
+              "title": "2) route A reached by real walking + F after real combat (no teleport, no rescue)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 240000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\tmp\\ls-p1-accept\\tests\\gameplay-01.spec.ts",
+                        "line": 309,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6363833fe861da81c674-5cd8d63cab14b13d89fa",
+              "file": "gameplay-01.spec.ts",
+              "line": 386,
+              "column": 3
+            },
+            {
+              "title": "3) route B: manual relay OFF (R) selects the other authored route",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 240000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\tmp\\ls-p1-accept\\tests\\gameplay-01.spec.ts",
+                        "line": 309,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6363833fe861da81c674-1fb2e754fde271e6988e",
+              "file": "gameplay-01.spec.ts",
+              "line": 420,
+              "column": 3
+            },
+            {
+              "title": "4) standing at the door: natural Y is range-rejected, fixture jam cannot pass",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 240000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\tmp\\ls-p1-accept\\tests\\gameplay-01.spec.ts",
+                        "line": 309,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6363833fe861da81c674-646332ab3b7e349da66a",
+              "file": "gameplay-01.spec.ts",
+              "line": 450,
+              "column": 3
+            },
+            {
+              "title": "5) save -> page reload -> CONTINUE restores room, relay and route target",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 240000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\tmp\\ls-p1-accept\\tests\\gameplay-01.spec.ts",
+                        "line": 309,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6363833fe861da81c674-1af1d50806154d310cf1",
+              "file": "gameplay-01.spec.ts",
+              "line": 565,
+              "column": 3
+            },
+            {
+              "title": "6) three seeds: DEMO 01 either sets up the authored scene or reports it visibly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 240000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\tmp\\ls-p1-accept\\tests\\gameplay-01.spec.ts",
+                        "line": 309,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6363833fe861da81c674-b8f110b616f14ea1b467",
+              "file": "gameplay-01.spec.ts",
+              "line": 594,
+              "column": 3
+            },
+            {
+              "title": "7) HUD + menu at five viewports: readable font, no clipped / unexpected overlap",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 240000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "D:\\tmp\\ls-p1-accept\\tests\\gameplay-01.spec.ts",
+                        "line": 309,
+                        "column": 6
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6363833fe861da81c674-e8bf2bb792e509cf3460",
+              "file": "gameplay-01.spec.ts",
+              "line": 615,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "gameplay.spec.ts",
+      "file": "gameplay.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "menu + gameplay render",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "a8475ef9564cfbc88065-465e853f941593af41b4",
+          "file": "gameplay.spec.ts",
+          "line": 17,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "p3a-echo-parity.spec.ts",
+      "file": "p3a-echo-parity.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Rendered echo canonical/events export for Headless byte parity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "5f145120b2184e93a8ab-0f02a5d0af73e7ea2165",
+          "file": "p3a-echo-parity.spec.ts",
+          "line": 39,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "p3a-enemy-target.spec.ts",
+      "file": "p3a-enemy-target.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "legacy hunter legally targets and damages the echo, then re-selects the player",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "988d2ea0a5291789ef0f-35099c5d6ba565544a17",
+          "file": "p3a-enemy-target.spec.ts",
+          "line": 47,
+          "column": 1
+        },
+        {
+          "title": "all legacy enemy kinds and the Boss can legally select and hurt the echo",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "988d2ea0a5291789ef0f-50ed0128048d96460e7f",
+          "file": "p3a-enemy-target.spec.ts",
+          "line": 149,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "p3a-restore.spec.ts",
+      "file": "p3a-restore.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "restore clears echo assist/memory/intent, keeps HP, and old saves need new confirmation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "282a23220932dc031366-27534a5876984fdbbff3",
+          "file": "p3a-restore.spec.ts",
+          "line": 28,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "p3b-companion-owner.spec.ts",
+      "file": "p3b-companion-owner.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "real form: paused session survives 15s, official SDK observes/suggests, Owner confirm drives a real tick",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "0ed68936fe8cf13857e4-3692a6b47a937033a1cd",
+          "file": "p3b-companion-owner.spec.ts",
+          "line": 76,
+          "column": 1
+        },
+        {
+          "title": "Agent hard-kill degrades the companion; a fresh Owner grant reconnects (no auto-reconnect)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "0ed68936fe8cf13857e4-f7a356a103879518b16f",
+          "file": "p3b-companion-owner.spec.ts",
+          "line": 176,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "purchase-ledger.spec.ts",
+      "file": "purchase-ledger.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "processed purchase id is persisted and cannot be replayed (rendered + restore)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "60c06dcb865b12ebf635-0153dcc03d9a94eb6058",
+          "file": "purchase-ledger.spec.ts",
+          "line": 51,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "resume-no-step.spec.ts",
+      "file": "resume-no-step.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "pause resume does not advance: real onResume/onLevelUpClosed + sub-tick update",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "ad5b1bde903a8888f7c2-8e5109020efb1b7c51ce",
+          "file": "resume-no-step.spec.ts",
+          "line": 26,
+          "column": 1
+        },
+        {
+          "title": "level-up close path does not advance; upgrade commits once on a real tick",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "ad5b1bde903a8888f7c2-2d0040c58098799471cf",
+          "file": "resume-no-step.spec.ts",
+          "line": 75,
+          "column": 1
+        },
+        {
+          "title": "inventory close path commits the equipped weapon once via normal frames",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "ad5b1bde903a8888f7c2-600a37cb6a53b2a878d9",
+          "file": "resume-no-step.spec.ts",
+          "line": 124,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "runtime-bugs.spec.ts",
+      "file": "runtime-bugs.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "runtime bug regressions: viewport scaling, text rendering, wall alignment, projectile cleanup",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "f0d6dee58afe9f20b79f-afa52c26ecfd98f6f313",
+          "file": "runtime-bugs.spec.ts",
+          "line": 36,
+          "column": 1
+        },
+        {
+          "title": "cleared room always offers an exit portal, even when every room is visited",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "f0d6dee58afe9f20b79f-310c2b9eac7c9d09aceb",
+          "file": "runtime-bugs.spec.ts",
+          "line": 246,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "sector-dungeon.spec.ts",
+      "file": "sector-dungeon.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "sector run locks encounters, descends all six decks and resumes from the same deck",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "ce10372e0b1b659ef04e-ac9e5aaf0c5f9121a3f3",
+          "file": "sector-dungeon.spec.ts",
+          "line": 77,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "signal-coop-e2e.spec.ts",
+      "file": "signal-coop-e2e.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Signal cooperation chain: default no relay → opt-in → device → Companion suggest → Owner CONFIRM → echo energy → ACTIVE → portal → next room",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "397e2f45e55efc432446-173eb1fc146bcbaea0df",
+          "file": "signal-coop-e2e.spec.ts",
+          "line": 134,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "signal-human-crossroom.spec.ts",
+      "file": "signal-human-crossroom.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "human R in a new room still controls the relay left in the old room",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "21b55c9ad7184cf5e8cd-5c4f17c55861bef4d77f",
+          "file": "signal-human-crossroom.spec.ts",
+          "line": 37,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "signal-rendered-parity.spec.ts",
+      "file": "signal-rendered-parity.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Rendered signal export for Headless parity (scan/jam/toggle/echo/real damage)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "933ece41b2066a71a71c-4a67cffe7b29adade1c6",
+          "file": "signal-rendered-parity.spec.ts",
+          "line": 36,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "signal-sdk-negative.spec.ts",
+      "file": "signal-sdk-negative.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "official MCP SDK: v1 scan is refused, actor=echo is E_PERMISSION, actor=player really commits",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "13d80aa544bc73ade4bd-c78aea5ae21cd83b0fe0",
+          "file": "signal-sdk-negative.spec.ts",
+          "line": 146,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "supply-transaction.spec.ts",
+      "file": "supply-transaction.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "supply purchase commits on close, saves once, and blocks duplicate clicks",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "d6ee2814ad4314fcdb36-2c16c7f2273eafc280b7",
+          "file": "supply-transaction.spec.ts",
+          "line": 64,
+          "column": 1
+        },
+        {
+          "title": "insufficient credits disables every supply offer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "d6ee2814ad4314fcdb36-29060e6c13ae3063c147",
+          "file": "supply-transaction.spec.ts",
+          "line": 114,
+          "column": 1
+        },
+        {
+          "title": "uncommitted purchase is discarded on reload and keeps the last checkpoint",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "d6ee2814ad4314fcdb36-60d8b8aafa6e4a8ab37e",
+          "file": "supply-transaction.spec.ts",
+          "line": 131,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "ui-menu-layout.spec.ts",
+      "file": "ui-menu-layout.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "UI-REWORK-01 menu surfaces",
+          "file": "ui-menu-layout.spec.ts",
+          "line": 676,
+          "column": 6,
+          "specs": [
+            {
+              "title": "capture 1920x1080",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-07e2f0a583ca1b8f7cf5",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 681,
+              "column": 5
+            },
+            {
+              "title": "audit 1920x1080",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-f19566c5aac50bd23d2b",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 691,
+              "column": 5
+            },
+            {
+              "title": "capture 1600x900",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-fafd18a2e4d612998036",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 681,
+              "column": 5
+            },
+            {
+              "title": "audit 1600x900",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-5d08a1c008cfb2e927e6",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 691,
+              "column": 5
+            },
+            {
+              "title": "capture 1366x768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-5a2292c6fc736ab6a280",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 681,
+              "column": 5
+            },
+            {
+              "title": "audit 1366x768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-eeac9184eed54f03258d",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 691,
+              "column": 5
+            },
+            {
+              "title": "capture 1280x720",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-18742b5dc6cb3d7d4a46",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 681,
+              "column": 5
+            },
+            {
+              "title": "audit 1280x720",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-586890049f3c6d8750ae",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 691,
+              "column": 5
+            },
+            {
+              "title": "capture 1024x768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-e18e6786910e9b0a9e35",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 681,
+              "column": 5
+            },
+            {
+              "title": "audit 1024x768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-c55c6700d0ea28da083e",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 691,
+              "column": 5
+            },
+            {
+              "title": "capture 800x600",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-d06f3d6a9c8e978184b8",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 681,
+              "column": 5
+            },
+            {
+              "title": "audit 800x600",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-e81a6ffe8101258a0924",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 691,
+              "column": 5
+            },
+            {
+              "title": "navigation: ESC walks exactly one level back",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-768d7d200afcf4b850fa",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 712,
+              "column": 3
+            },
+            {
+              "title": "functional: settings change, persist and reset; AI local toggle",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-4119910232f3d0c3d228",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 780,
+              "column": 3
+            },
+            {
+              "title": "functional: ECHO enable, mode and assist arming",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-5ba7db6574cad5d654d5",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 846,
+              "column": 3
+            },
+            {
+              "title": "functional: LLM page is honest without a model; failure feedback; no secret leak",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-44a58e566189ff40a825",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 909,
+              "column": 3
+            },
+            {
+              "title": "functional: real pending proposal — Owner CONFIRM commits, REJECT does not",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-a9995c2b3477139256a3",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 990,
+              "column": 3
+            },
+            {
+              "title": "boundary: repeated open/close never stacks or leaves hidden controls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-4ef37c7d87c403483feb",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 1116,
+              "column": 3
+            },
+            {
+              "title": "boundary: keyboard focus, wheel and real click agree",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-be99c754dacfb089e885",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 1160,
+              "column": 3
+            },
+            {
+              "title": "audit: shared font stack, disabled controls, resize and destroy stability",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-b17c4e98e5e2b8c216f2",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 1203,
+              "column": 3
+            },
+            {
+              "title": "functional: inventory EQUIP is keyboard reachable and commits on the next tick",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-349c714a484694369a24",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 1296,
+              "column": 3
+            },
+            {
+              "title": "functional: settings persist across reopen and reset",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-c53e35e37c40bb24c759",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 1348,
+              "column": 3
+            },
+            {
+              "title": "functional: owner re-authorize swaps capability on the same instance and retires old suggestions",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-e7b627e7142f18910520",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 1385,
+              "column": 3
+            },
+            {
+              "title": "functional: an expired proposal is never confirmed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-52241544ec560339c92b",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 1506,
+              "column": 3
+            },
+            {
+              "title": "functional: level-up, death and restart keep the menu honest",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 300000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5dc5764a5ccf0d9a043e-25d7d3c6265725034516",
+              "file": "ui-menu-layout.spec.ts",
+              "line": 1569,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "vs00.spec.ts",
+      "file": "vs00.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1: real Scan -> Jam -> WASD through the door (default, no fixture)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-fc6807f28cd7f94243c4",
+          "file": "vs00.spec.ts",
+          "line": 70,
+          "column": 1
+        },
+        {
+          "title": "E2: Jam expiry while standing in the doorway never clamps the player",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-88593037b08ac77af9a5",
+          "file": "vs00.spec.ts",
+          "line": 105,
+          "column": 1
+        },
+        {
+          "title": "E3: Pause freezes movement and timers; resume does not catch up",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-530806427184457b1f9e",
+          "file": "vs00.spec.ts",
+          "line": 130,
+          "column": 1
+        },
+        {
+          "title": "E4: energy-insufficient feedback from a storage fixture, then natural recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-c4104032c16cef0e7405",
+          "file": "vs00.spec.ts",
+          "line": 152,
+          "column": 1
+        },
+        {
+          "title": "E5: save/reload keeps main+economy key byte-identical; restart clears only the slice key",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-42cf4c19d7016c6c9fee",
+          "file": "vs00.spec.ts",
+          "line": 174,
+          "column": 1
+        },
+        {
+          "title": "E6: a rejected save is preserved, never overwritten by Save or by completion auto-save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-438ead544d8f2a071cb9",
+          "file": "vs00.spec.ts",
+          "line": 204,
+          "column": 1
+        },
+        {
+          "title": "E7: storage write failure surfaces an explicit message and stays playable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-3555544cb7c25305c04d",
+          "file": "vs00.spec.ts",
+          "line": 224,
+          "column": 1
+        },
+        {
+          "title": "E9: near the sealed door, F reports E_LINK_UNAVAILABLE without opening it",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-9fd1b9e0cdac61da470a",
+          "file": "vs00.spec.ts",
+          "line": 240,
+          "column": 1
+        },
+        {
+          "title": "E8: reload after completion restores a passed-consistent position, not the spawn",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "434ca7c4e74a62572eb2-9623e3b61105c8b9ba4c",
+          "file": "vs00.spec.ts",
+          "line": 256,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "vs01.spec.ts",
+      "file": "vs01.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "each action key event is handled once when Scan and Jam arrive in the same frame",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8b80755e81a707e1a7ce-ebd7b4acd02d5843ccd8",
+          "file": "vs01.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "VS-01 follows real keyboard input from the lab to a safe collapse and across the rebuilt bridge",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8b80755e81a707e1a7ce-e62f8d96d2638a1b7092",
+          "file": "vs01.spec.ts",
+          "line": 43,
+          "column": 1
+        },
+        {
+          "title": "route B reaches the east shore within one guard Jam from the real entrance",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8b80755e81a707e1a7ce-b9536030acdd547b6967",
+          "file": "vs01.spec.ts",
+          "line": 131,
+          "column": 1
+        },
+        {
+          "title": "a lethal collapse clears the run and permits a fresh start",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8b80755e81a707e1a7ce-3865d3c7c62adbb52588",
+          "file": "vs01.spec.ts",
+          "line": 198,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "whale-character.spec.ts",
+      "file": "whale-character.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "whale appearance persists and responds to real movement and shots",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "08c19d42686e459febd6-27a24eebe8dd3921b242",
+          "file": "whale-character.spec.ts",
+          "line": 21,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "world-sim-cache.spec.ts",
+      "file": "world-sim-cache.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "World.sim invalidates after spawnEnemy and the old snapshot stays frozen",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "10a7f5c38ed8a3e68825-4bc026e34616e88445da",
+          "file": "world-sim-cache.spec.ts",
+          "line": 30,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-17T21:29:41.094Z",
+    "duration": 1037.9140000000002,
+    "expected": 0,
+    "skipped": 125,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

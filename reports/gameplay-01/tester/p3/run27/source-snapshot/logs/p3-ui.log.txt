@@ -1,0 +1,81 @@
+workdir=/d/tmp/ls-p3-accept spec=tests/gameplay-03-feedback.spec.ts PORT=5492 commit=0083e20 specSha=a196c2c2280aa50eba6a747ba6cf32b4f739e8d8891c74c28f4f791b8b05aa35 2026-11-18T01:32:06Z
+
+Running 7 tests using 1 worker
+
+[1/7] [chromium] › tests\gameplay-03-feedback.spec.ts:390:3 › GAMEPLAY-01 P3 · feedback surfaces › 1) six viewports: default local-cooperation page, font floor, no raw ids/ticks/code
+[2/7] [chromium] › tests\gameplay-03-feedback.spec.ts:421:3 › GAMEPLAY-01 P3 · feedback surfaces › 2) proposal → WAITING → real confirm → DONE, and a real resume turns it into an applied audit entry
+  1) [chromium] › tests\gameplay-03-feedback.spec.ts:421:3 › GAMEPLAY-01 P3 · feedback surfaces › 2) proposal → WAITING → real confirm → DONE, and a real resume turns it into an applied audit entry 
+
+    Error: live perception yields a local proposal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      427 |     // let real ticks run until perception yields a proposal, then come back
+      428 |     const gotProposal = await waitForLocalProposal(page);
+    > 429 |     expect(gotProposal, 'live perception yields a local proposal').toBe(true);
+          |                                                                    ^
+      430 |     await openLocalCoop(page);
+      431 |     expect(await echoState(page).then((s) => s.proposal), 'a local proposal appears').not.toBeNull();
+      432 |     const waitingText = (await allTexts(page)).map((t) => t.t).join('\n');
+        at D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:429:68
+
+    Error Context: test-results\gameplay-03-feedback-GAMEP-749c1-into-an-applied-audit-entry-chromium\error-context.md
+
+
+[3/7] [chromium] › tests\gameplay-03-feedback.spec.ts:453:3 › GAMEPLAY-01 P3 · feedback surfaces › 3) pending: CONFIRM/REJECT are disabled, not focusable and not activatable by keyboard
+  2) [chromium] › tests\gameplay-03-feedback.spec.ts:453:3 › GAMEPLAY-01 P3 · feedback surfaces › 3) pending: CONFIRM/REJECT are disabled, not focusable and not activatable by keyboard 
+
+    Error: live perception yields a local proposal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      459 |     // let real ticks run until perception yields a proposal, then come back
+      460 |     const gotProposal = await waitForLocalProposal(page);
+    > 461 |     expect(gotProposal, 'live perception yields a local proposal').toBe(true);
+          |                                                                    ^
+      462 |     await openLocalCoop(page);
+      463 |     await clickButtonByLabel(page, 'CONFIRM (HUMAN)');
+      464 |     const before = await echoState(page);
+        at D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:461:68
+
+    Error Context: test-results\gameplay-03-feedback-GAMEP-3b35c-not-activatable-by-keyboard-chromium\error-context.md
+
+
+[4/7] [chromium] › tests\gameplay-03-feedback.spec.ts:483:3 › GAMEPLAY-01 P3 · feedback surfaces › 4) RECENT ACTIONS: keyboard navigation, audit8 window, BACK/ESC round trip changes nothing
+[5/7] [chromium] › tests\gameplay-03-feedback.spec.ts:527:3 › GAMEPLAY-01 P3 · feedback surfaces › 5) echo detail + HUD geometry and font floor at the compact viewport
+[6/7] [chromium] › tests\gameplay-03-feedback.spec.ts:558:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize and reopen do not duplicate page objects; sources never fake OFFLINE
+  3) [chromium] › tests\gameplay-03-feedback.spec.ts:558:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize and reopen do not duplicate page objects; sources never fake OFFLINE 
+
+    Error: label "AI & COMPANION" visible in PauseScene
+
+    expect(received).not.toBeNull()
+
+    Received: null
+
+      102 |     return centre(pick);
+      103 |   }, { key: sceneKey, label });
+    > 104 |   expect(logical, `label "${label}" visible in ${sceneKey}`).not.toBeNull();
+          |                                                                  ^
+      105 |   await clickLogical(page, logical!.x, logical!.y);
+      106 |   await page.waitForTimeout(250);
+      107 | }
+        at clickLabel (D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:104:66)
+        at openEchoPage (D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:134:3)
+        at openLocalCoop (D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:192:3)
+        at D:\tmp\ls-p3-accept\tests\gameplay-03-feedback.spec.ts:570:5
+
+    Error Context: test-results\gameplay-03-feedback-GAMEP-ca29e--sources-never-fake-OFFLINE-chromium\error-context.md
+
+
+[7/7] [chromium] › tests\gameplay-03-feedback.spec.ts:588:3 › GAMEPLAY-01 P3 · feedback surfaces › 7) LLM page: the footer states the resume rule, with a real screenshot
+  3 failed
+    [chromium] › tests\gameplay-03-feedback.spec.ts:421:3 › GAMEPLAY-01 P3 · feedback surfaces › 2) proposal → WAITING → real confirm → DONE, and a real resume turns it into an applied audit entry 
+    [chromium] › tests\gameplay-03-feedback.spec.ts:453:3 › GAMEPLAY-01 P3 · feedback surfaces › 3) pending: CONFIRM/REJECT are disabled, not focusable and not activatable by keyboard 
+    [chromium] › tests\gameplay-03-feedback.spec.ts:558:3 › GAMEPLAY-01 P3 · feedback surfaces › 6) resize and reopen do not duplicate page objects; sources never fake OFFLINE 
+  4 passed (1.5m)

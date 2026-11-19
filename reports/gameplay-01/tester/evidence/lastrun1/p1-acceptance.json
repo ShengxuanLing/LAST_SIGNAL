@@ -1,0 +1,272 @@
+[
+  {
+    "item": "p1-route-b",
+    "at": "2026-11-17T21:32:03.775Z",
+    "runner": "agent (real R + real walking)",
+    "fixtures": "none",
+    "fight": {
+      "shots": 3,
+      "approaches": 3,
+      "cleared": true,
+      "hp": 100,
+      "died": false,
+      "firstHp": 100,
+      "minEnemies": 0,
+      "diag": [
+        {
+          "t": 23,
+          "enemies": 2,
+          "hp": 100,
+          "player": {
+            "x": 8,
+            "y": 45
+          },
+          "enemy": {
+            "x": 5,
+            "y": 47,
+            "hp": null,
+            "d": 3.6,
+            "screen": {
+              "x": 512,
+              "y": 347
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 1,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 2,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 268,
+          "enemies": 2,
+          "hp": 94,
+          "player": {
+            "x": 7.706738680698889,
+            "y": 45.4656127388152
+          },
+          "enemy": {
+            "x": 5,
+            "y": 47,
+            "hp": null,
+            "d": 3.1,
+            "screen": {
+              "x": 520,
+              "y": 345
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 0,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 2,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 779,
+          "enemies": 1,
+          "hp": 100,
+          "player": {
+            "x": 7.706738680698889,
+            "y": 45.4656127388152
+          },
+          "enemy": {
+            "x": 12,
+            "y": 45,
+            "hp": null,
+            "d": 4.3,
+            "screen": {
+              "x": 761,
+              "y": 409
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 0,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 1,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 1032,
+          "enemies": 1,
+          "hp": 100,
+          "player": {
+            "x": 8.50882201403222,
+            "y": 44.6635294054819
+          },
+          "enemy": {
+            "x": 12,
+            "y": 45,
+            "hp": null,
+            "d": 3.5,
+            "screen": {
+              "x": 739,
+              "y": 409
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 0,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 1,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 1276,
+          "enemies": 1,
+          "hp": 100,
+          "player": {
+            "x": 9.253613680698878,
+            "y": 43.91873773881527
+          },
+          "enemy": {
+            "x": 12,
+            "y": 45,
+            "hp": null,
+            "d": 3,
+            "screen": {
+              "x": 704,
+              "y": 409
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 0,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 1,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 1764,
+          "enemies": 1,
+          "hp": 100,
+          "player": {
+            "x": 9.253613680698878,
+            "y": 43.91873773881527
+          },
+          "enemy": {
+            "x": 12,
+            "y": 45,
+            "hp": null,
+            "d": 3,
+            "screen": {
+              "x": 683,
+              "y": 409
+            }
+          },
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 1,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 1,
+            "targets": 0
+          },
+          "portal": null
+        },
+        {
+          "t": 2235,
+          "enemies": 0,
+          "hp": 100,
+          "player": {
+            "x": 9.253613680698878,
+            "y": 43.91873773881527
+          },
+          "enemy": null,
+          "weapon": {
+            "key": "pulse",
+            "ammo": -1,
+            "magazine": -1,
+            "reloading": false
+          },
+          "projectiles": 1,
+          "roomFlags": {
+            "spawned": true,
+            "pendingEnter": false,
+            "kind": "combat"
+          },
+          "core": {
+            "drones": 0,
+            "targets": 0
+          },
+          "portal": {
+            "target": 2
+          }
+        }
+      ]
+    },
+    "manualOff": false,
+    "routeTarget": 2,
+    "room": {
+      "id": 2,
+      "kind": "resource",
+      "cleared": false
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\shots\\p1-3-route-b.png"
+  }
+]

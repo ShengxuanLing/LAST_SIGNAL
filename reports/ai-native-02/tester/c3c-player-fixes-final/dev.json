@@ -1,0 +1,290 @@
+{
+  "meta": {
+    "target": "8f1ce6c",
+    "surface": "Dev (--dev)"
+  },
+  "checks": [
+    {
+      "n": "dev-has-dev-tools",
+      "ok": true,
+      "d": [
+        "world_headless_dev_batch",
+        "world_headless_dev_compare",
+        "world_headless_dev_export_failure",
+        "world_headless_dev_inspect",
+        "world_headless_dev_load_room",
+        "world_headless_dev_perf",
+        "world_headless_dev_replay",
+        "world_headless_dev_restore",
+        "world_headless_dev_snapshot",
+        "world_headless_dev_spawn_enemies"
+      ]
+    },
+    {
+      "n": "split-step10-not-acked",
+      "ok": true,
+      "d": {
+        "actionId": "aid_20307e56e37e5a50ee4ffcf5",
+        "requestId": "req_3e44c631a45ae011fd7b89ed",
+        "actionType": "move",
+        "startedTick": 0,
+        "executedTicks": 10,
+        "remainingTicks": 110,
+        "durationTicks": 120
+      }
+    },
+    {
+      "n": "split-total-applied-once",
+      "ok": true,
+      "d": [
+        {
+          "actionId": "aid_20307e56e37e5a50ee4ffcf5",
+          "requestId": "req_3e44c631a45ae011fd7b89ed",
+          "startedTick": 0,
+          "appliedTick": 120,
+          "executedTicks": 120
+        }
+      ]
+    },
+    {
+      "n": "split-equals-single-canonical-state",
+      "ok": true,
+      "d": {
+        "equal": true
+      }
+    },
+    {
+      "n": "split-equals-single-canonical-events",
+      "ok": true,
+      "d": {
+        "equal": true
+      }
+    },
+    {
+      "n": "split-equals-single-tick-status",
+      "ok": true,
+      "d": {
+        "aTick": 120,
+        "bTick": 120,
+        "aStatus": "running",
+        "bStatus": "running"
+      }
+    },
+    {
+      "n": "split-fire-not-acked-at-10",
+      "ok": true,
+      "d": {
+        "actionId": "aid_1cfc2727542ab22bda42ad93",
+        "requestId": "req_0142587f4d619af2dcf4f345",
+        "actionType": "fire",
+        "startedTick": 0,
+        "executedTicks": 10,
+        "remainingTicks": 110,
+        "durationTicks": 120
+      }
+    },
+    {
+      "n": "split-fire-equals-single-state",
+      "ok": true,
+      "d": {
+        "equal": true
+      }
+    },
+    {
+      "n": "split-fire-equals-single-events",
+      "ok": true,
+      "d": {
+        "equal": true
+      }
+    },
+    {
+      "n": "restore-bumps-epoch-and-rejects-old",
+      "ok": true,
+      "d": {
+        "newEpoch": 2,
+        "old": 1,
+        "code": "E_STALE_EPOCH"
+      }
+    },
+    {
+      "n": "restore-clears-active-half-action",
+      "ok": true,
+      "d": {
+        "applied": [],
+        "executing": null
+      }
+    },
+    {
+      "n": "replay-complete-same-state-events",
+      "ok": true,
+      "d": {
+        "sameState": true,
+        "sameEvents": true
+      }
+    },
+    {
+      "n": "tampered-replay-first-divergence",
+      "ok": true,
+      "d": {
+        "sameState": false,
+        "firstDivergence": 20
+      }
+    },
+    {
+      "n": "short-batch-runs",
+      "ok": true,
+      "d": 2
+    },
+    {
+      "n": "short-perf-runs",
+      "ok": true,
+      "d": {
+        "wallMs": 1393.24,
+        "events": 6068
+      }
+    },
+    {
+      "n": "dev-cleanup",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "steps": [
+    {
+      "name": "split-move",
+      "a10": {
+        "executed": {
+          "actionId": "aid_20307e56e37e5a50ee4ffcf5",
+          "requestId": "req_3e44c631a45ae011fd7b89ed",
+          "actionType": "move",
+          "startedTick": 0,
+          "executedTicks": 10,
+          "remainingTicks": 110,
+          "durationTicks": 120
+        },
+        "applied": 0
+      },
+      "a110": {
+        "applied": [
+          {
+            "actionId": "aid_20307e56e37e5a50ee4ffcf5",
+            "requestId": "req_3e44c631a45ae011fd7b89ed",
+            "startedTick": 0,
+            "appliedTick": 120,
+            "executedTicks": 120
+          }
+        ],
+        "executing": null
+      },
+      "b120": {
+        "applied": [
+          {
+            "actionId": "aid_07619f6491ff58455c20623a",
+            "requestId": "req_4b553b11337d0965c1c954e7",
+            "startedTick": 0,
+            "appliedTick": 120,
+            "executedTicks": 120
+          }
+        ],
+        "tick": 120,
+        "aTick": 120
+      }
+    },
+    {
+      "name": "split-fire",
+      "c10": {
+        "actionId": "aid_1cfc2727542ab22bda42ad93",
+        "requestId": "req_0142587f4d619af2dcf4f345",
+        "actionType": "fire",
+        "startedTick": 0,
+        "executedTicks": 10,
+        "remainingTicks": 110,
+        "durationTicks": 120
+      },
+      "c110Applied": [
+        {
+          "actionId": "aid_1cfc2727542ab22bda42ad93",
+          "requestId": "req_0142587f4d619af2dcf4f345",
+          "startedTick": 0,
+          "appliedTick": 120,
+          "executedTicks": 120
+        }
+      ],
+      "d120Applied": [
+        {
+          "actionId": "aid_8ec7f0f2d030d5236a87c331",
+          "requestId": "req_9e00bf4017f48cc12d0fd33b",
+          "startedTick": 0,
+          "appliedTick": 120,
+          "executedTicks": 120
+        }
+      ]
+    },
+    {
+      "name": "restore-active",
+      "snapOk": true,
+      "snapCode": null,
+      "hasFrame": true,
+      "restoreOk": true,
+      "restoreCode": null,
+      "half": {
+        "actionId": "aid_8438a683b59ed6258c68b0ad",
+        "requestId": "req_5fe2086ce099186b4132bd85",
+        "actionType": "move",
+        "startedTick": 0,
+        "executedTicks": 10,
+        "remainingTicks": 110,
+        "durationTicks": 120
+      },
+      "newEpoch": 2,
+      "stale": "E_STALE_EPOCH",
+      "appliedAfterRestore": [],
+      "tick": 20,
+      "pos": {
+        "x": 20.5,
+        "y": 42.5
+      },
+      "obsErr": null,
+      "afterRestoreErr": null,
+      "staleOk": false
+    },
+    {
+      "name": "replay",
+      "snap2Ok": true,
+      "hasFrame2": true,
+      "repCode": null,
+      "rep2Code": null,
+      "same": [
+        true,
+        true,
+        null
+      ],
+      "tampered": [
+        false,
+        false,
+        20
+      ]
+    },
+    {
+      "name": "batch-perf",
+      "batch": [
+        {
+          "seed": 11,
+          "status": "cleared",
+          "ticks": 25
+        },
+        {
+          "seed": 22,
+          "status": "cleared",
+          "ticks": 25
+        }
+      ],
+      "perf": {
+        "wallMs": 1393.24,
+        "totalEvents": 6068,
+        "liveCombatTicks": 1840,
+        "sessions": 2
+      }
+    }
+  ]
+}

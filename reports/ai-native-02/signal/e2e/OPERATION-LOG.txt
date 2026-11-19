@@ -1,0 +1,20 @@
+STEP 1 default NEW RUN is legacy: no device, portal open
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/01-default-no-device.png
+STEP 2 explicit Signal Collaboration opt-in is ON
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/02-optin-on.png
+STEP 3 real room enter spawned relay_main INACTIVE (room 3, exit closed)
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/03-relay-spawned-inactive.png
+STEP 3b the gated exit really refused the interact while the relay was INACTIVE
+STEP 4 human OWNER authorized the Companion in the Pause UI
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/04-companion-connected.png
+STEP 5 echo_observe really perceives relay_main (INACTIVE) with its own energy 100/100
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/05-companion-observation.png
+STEP 6 Owner CONFIRM queued exactly one toggle-relay core command (no early state write)
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/06-confirm-queued-toggle.png
+STEP 7 the next real core tick committed the toggle: relay ACTIVE, gated exit open
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/07-relay-active.png
+STEP 8 the confirmed echo scan really charged ONLY the echo account (100 → 90)
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/08-echo-scan-committed.png
+STEP 9 human advanced through the ACTIVE-gated portal (room 3 → 5)
+STEP screenshot D:\Project\LAST_SIGNAL\reports\ai-native-02\signal\e2e\screens/09-next-room-entered.png
+STEP 10 echo_memory / echo_status still served after the whole chain

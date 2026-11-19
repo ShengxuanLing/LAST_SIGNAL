@@ -1,0 +1,136 @@
+[
+  {
+    "item": "lowrisk-owner-gate",
+    "at": "2026-11-17T23:37:49.215Z",
+    "runner": "agent (real pause-menu switches; real AI menu to change the owner)",
+    "fixtures": "none (the AI option is the product dev entry, labelled LOCAL DETERMINISTIC DEMO)",
+    "humanOn": {
+      "flag": true,
+      "saved": true,
+      "owner": "human"
+    },
+    "nonHumanRefused": true,
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p3\\run1\\shots\\p2-3-lowrisk.png"
+  },
+  {
+    "item": "restore-contract",
+    "at": "2026-11-17T23:37:50.278Z",
+    "runner": "agent (headless formal entry, no human)",
+    "fixtures": "fixture: raw sim snapshot + HeadlessWorld.fromSimulationState (the documented v3 restore seam)",
+    "saved": {
+      "kinds": [
+        "signal-scan"
+      ]
+    },
+    "restored": {
+      "busy": {
+        "proposalId": null,
+        "kind": "scan",
+        "target": null,
+        "acceptedTick": null,
+        "roomGeneration": 0,
+        "restored": true
+      },
+      "queue": [
+        "signal-scan"
+      ]
+    },
+    "contract": "restored action is busy (unknown provenance), a new local confirm is refused, unrelated commands kept, exactly one execution"
+  },
+  {
+    "item": "viewport",
+    "at": "2026-11-17T23:38:16.050Z",
+    "runner": "agent",
+    "rows": [
+      {
+        "viewport": "1920x1080",
+        "scale": 1.5,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1366x768",
+        "scale": 1.067,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1280x720",
+        "scale": 1,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1024x768",
+        "scale": 0.8,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "800x600",
+        "scale": 0.625,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      }
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p3\\run1\\shots\\p2-5-viewports.png"
+  },
+  {
+    "item": "legacy-save",
+    "at": "2026-11-17T23:38:35.988Z",
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "fixture: remove ONLY the new optional cooperation fields from a product-written save",
+    "removedFields": [
+      "permanent.echoCooperationOptIn"
+    ],
+    "continued": true,
+    "optIn": false,
+    "echo": true,
+    "pending": null,
+    "note": "a rejection of an arbitrary invalid save would not count as compatibility; this uses a valid save",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p3\\run1\\shots\\p2-6-legacy-save.png"
+  },
+  {
+    "item": "save-reload-boundary",
+    "at": "2026-11-17T23:38:59.492Z",
+    "runner": "agent (real pause-menu clicks + real reload + real CONTINUE)",
+    "fixtures": "none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm",
+    "beforePause": {
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 542,
+      "echoHp": 64,
+      "energy": 100
+    },
+    "confirmed": {
+      "id": "local_544_1",
+      "kind": "scan",
+      "ok": true,
+      "queue": [
+        "signal-scan"
+      ],
+      "applied": false
+    },
+    "after": {
+      "active": [
+        "GameScene"
+      ],
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 585,
+      "echoHp": 64,
+      "energy": 100,
+      "relay": "ACTIVE",
+      "queue": [],
+      "pending": null,
+      "appliedAudit": 0
+    },
+    "contract": "the confirmed-but-uncommitted local action is not persisted, not executed, no busy marker, no fake applied receipt",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p3\\run1\\shots\\p2-7-save-reload.png"
+  }
+]

@@ -1,0 +1,362 @@
+{
+  "meta": {
+    "url": "http://localhost:5293/",
+    "target": "59aa852"
+  },
+  "steps": [
+    {
+      "phase": "after teleport tick",
+      "tick": 52,
+      "room": 0,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=0:cleared=0",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 0,
+      "targets": 0,
+      "drones": 0,
+      "pending": [],
+      "currency": 20
+    },
+    {
+      "phase": "after room-enter tick",
+      "tick": 53,
+      "room": 3,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=1:cleared=1",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 0,
+      "targets": 0,
+      "drones": 0,
+      "pending": [
+        "room-enter"
+      ],
+      "currency": 20
+    },
+    {
+      "phase": "after spawn tick",
+      "tick": 54,
+      "room": 3,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=1:cleared=1",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 3,
+      "targets": 3,
+      "drones": 0,
+      "pending": [],
+      "currency": 30
+    },
+    {
+      "phase": "wait 0",
+      "tick": 66,
+      "room": 3,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=1:cleared=1",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 3,
+      "targets": 3,
+      "drones": 0,
+      "pending": [],
+      "currency": 42
+    },
+    {
+      "phase": "wait 1",
+      "tick": 78,
+      "room": 3,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=1:cleared=1",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 3,
+      "targets": 3,
+      "drones": 0,
+      "pending": [
+        "spawn-enemy-projectile",
+        "move-target"
+      ],
+      "currency": 42
+    },
+    {
+      "phase": "wait 2",
+      "tick": 90,
+      "room": 3,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=1:cleared=1",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 3,
+      "targets": 3,
+      "drones": 0,
+      "pending": [
+        "move-target"
+      ],
+      "currency": 42
+    },
+    {
+      "phase": "wait 3",
+      "tick": 103,
+      "room": 3,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=1:cleared=1",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 3,
+      "targets": 3,
+      "drones": 0,
+      "pending": [
+        "move-target"
+      ],
+      "currency": 42
+    },
+    {
+      "phase": "wait 4",
+      "tick": 115,
+      "room": 3,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=1:cleared=1",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 3,
+      "targets": 3,
+      "drones": 0,
+      "pending": [],
+      "currency": 42
+    },
+    {
+      "phase": "wait 5",
+      "tick": 127,
+      "room": 3,
+      "rooms": [
+        "0:start:spawned=1:cleared=1",
+        "1:combat:spawned=0:cleared=0",
+        "2:resource:spawned=0:cleared=0",
+        "3:combat:spawned=1:cleared=1",
+        "4:boss:spawned=0:cleared=0",
+        "5:elite:spawned=0:cleared=0"
+      ],
+      "aliveEnemies": 3,
+      "targets": 3,
+      "drones": 0,
+      "pending": [],
+      "currency": 42
+    }
+  ],
+  "findings": [
+    {
+      "name": "room-marked-cleared-in-the-tick-before-its-enemies-exist",
+      "evidence": {
+        "clearedWithEnemies": true,
+        "timeline": [
+          {
+            "phase": "after teleport tick",
+            "tick": 52,
+            "room": 0,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=0:cleared=0",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 0,
+            "targets": 0,
+            "drones": 0,
+            "pending": [],
+            "currency": 20
+          },
+          {
+            "phase": "after room-enter tick",
+            "tick": 53,
+            "room": 3,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=1:cleared=1",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 0,
+            "targets": 0,
+            "drones": 0,
+            "pending": [
+              "room-enter"
+            ],
+            "currency": 20
+          },
+          {
+            "phase": "after spawn tick",
+            "tick": 54,
+            "room": 3,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=1:cleared=1",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 3,
+            "targets": 3,
+            "drones": 0,
+            "pending": [],
+            "currency": 30
+          },
+          {
+            "phase": "wait 0",
+            "tick": 66,
+            "room": 3,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=1:cleared=1",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 3,
+            "targets": 3,
+            "drones": 0,
+            "pending": [],
+            "currency": 42
+          },
+          {
+            "phase": "wait 1",
+            "tick": 78,
+            "room": 3,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=1:cleared=1",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 3,
+            "targets": 3,
+            "drones": 0,
+            "pending": [
+              "spawn-enemy-projectile",
+              "move-target"
+            ],
+            "currency": 42
+          },
+          {
+            "phase": "wait 2",
+            "tick": 90,
+            "room": 3,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=1:cleared=1",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 3,
+            "targets": 3,
+            "drones": 0,
+            "pending": [
+              "move-target"
+            ],
+            "currency": 42
+          },
+          {
+            "phase": "wait 3",
+            "tick": 103,
+            "room": 3,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=1:cleared=1",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 3,
+            "targets": 3,
+            "drones": 0,
+            "pending": [
+              "move-target"
+            ],
+            "currency": 42
+          },
+          {
+            "phase": "wait 4",
+            "tick": 115,
+            "room": 3,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=1:cleared=1",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 3,
+            "targets": 3,
+            "drones": 0,
+            "pending": [],
+            "currency": 42
+          },
+          {
+            "phase": "wait 5",
+            "tick": 127,
+            "room": 3,
+            "rooms": [
+              "0:start:spawned=1:cleared=1",
+              "1:combat:spawned=0:cleared=0",
+              "2:resource:spawned=0:cleared=0",
+              "3:combat:spawned=1:cleared=1",
+              "4:boss:spawned=0:cleared=0",
+              "5:elite:spawned=0:cleared=0"
+            ],
+            "aliveEnemies": 3,
+            "targets": 3,
+            "drones": 0,
+            "pending": [],
+            "currency": 42
+          }
+        ]
+      },
+      "note": "updateRoom() marks the room cleared when no live enemy of that room exists. The room-enter command spawns the enemies on the NEXT tick, so the room can be marked cleared in the very tick it is entered (before the enemies exist), then spawn enemies into an already-cleared room. economy safeRoom() then requires \"no alive enemies\" and fails for the opposite reason, and the \"+12 credits · room cleared\" payout fires for a room the player never cleared."
+    }
+  ],
+  "errors": []
+}

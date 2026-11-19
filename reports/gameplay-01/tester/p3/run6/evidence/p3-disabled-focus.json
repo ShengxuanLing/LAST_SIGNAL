@@ -1,0 +1,33 @@
+{
+  "before": {
+    "proposal": null,
+    "pending": null,
+    "queue": [],
+    "audit": 0,
+    "applied": 0
+  },
+  "labels": [
+    "RESUME",
+    "INVENTORY",
+    "SETTINGS",
+    "AI & COMPANION",
+    "QUIT TO MENU"
+  ],
+  "focusOrder": [
+    "INVENTORY",
+    "SETTINGS",
+    "AI & COMPANION",
+    "QUIT TO MENU",
+    "RESUME",
+    "INVENTORY",
+    "SETTINGS",
+    "AI & COMPANION"
+  ],
+  "after": {
+    "proposal": null,
+    "pending": null,
+    "queue": [],
+    "audit": 0,
+    "applied": 0
+  }
+}

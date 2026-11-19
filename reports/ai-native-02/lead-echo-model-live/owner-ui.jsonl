@@ -1,0 +1,2 @@
+{"at":"2026-11-15T17:37:31.101Z","event":"automated Owner CONFIRM + normal 600ms + Pause","state":{"tick":36,"playerHp":100,"echoHp":100,"enemies":[{"id":1,"hp":6}]}}
+{"at":"2026-11-15T17:37:55.343Z","event":"automated Owner CONFIRM + normal 600ms + Pause","state":{"tick":61,"playerHp":100,"echoHp":94,"enemies":[]}}

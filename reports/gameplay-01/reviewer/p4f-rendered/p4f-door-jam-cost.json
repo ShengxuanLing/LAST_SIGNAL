@@ -1,0 +1,33 @@
+{
+  "start": {
+    "portal": {
+      "x": 11.5,
+      "y": 49.5
+    },
+    "relay": {
+      "x": 11.5,
+      "y": 48.5
+    },
+    "player": {
+      "x": 8.5,
+      "y": 45.5
+    },
+    "energy": 100,
+    "relayState": "ACTIVE",
+    "jamCost": null
+  },
+  "atDoor": 0.13,
+  "before": {
+    "energy": 100,
+    "relay": "ACTIVE",
+    "routeTarget": 1,
+    "portal": null
+  },
+  "after": {
+    "energy": 76,
+    "relay": "JAMMED",
+    "routeTarget": null,
+    "portal": null
+  },
+  "delta": 24
+}

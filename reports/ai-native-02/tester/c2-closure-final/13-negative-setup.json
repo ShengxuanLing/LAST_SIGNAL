@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "n": "baseline-valid",
+      "ok": true
+    },
+    {
+      "n": "legacy-no-ledger-valid",
+      "ok": true
+    },
+    {
+      "n": "good-ledger-valid",
+      "ok": true
+    },
+    {
+      "n": "oversized-ledger-rejected",
+      "ok": true
+    },
+    {
+      "n": "duplicate-ledger-rejected",
+      "ok": true
+    },
+    {
+      "n": "invalid-id-ledger-rejected",
+      "ok": true
+    },
+    {
+      "n": "non-array-ledger-rejected",
+      "ok": true
+    }
+  ],
+  "meta": {
+    "target": "ae72a67",
+    "note": "run scripts/c2-kill-parity.ts with cwd=D:\\Project\\AI-NATIVE-02-snapshots\\ae72a67\\.tester-negative and expect FAIL"
+  },
+  "negativeKillDir": "D:\\Project\\AI-NATIVE-02-snapshots\\ae72a67\\.tester-negative"
+}

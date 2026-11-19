@@ -1,0 +1,338 @@
+{
+  "ok": true,
+  "initial": {
+    "echo": null,
+    "relay": "ACTIVE",
+    "echoEnergy": 100,
+    "playerEnergy": 100,
+    "evidence": 0,
+    "echoCooperation": false,
+    "proposal": null,
+    "audit": null,
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "human",
+    "saveEchoCoop": null,
+    "paused": false,
+    "page": "pause",
+    "localSwitchEnabled": null,
+    "localConfirmEnabled": null
+  },
+  "enabled": {
+    "echo": {
+      "hp": 94,
+      "x": 8.625,
+      "y": 45
+    },
+    "relay": "ACTIVE",
+    "echoEnergy": 100,
+    "playerEnergy": 100,
+    "evidence": 0,
+    "echoCooperation": false,
+    "proposal": null,
+    "audit": null,
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "human",
+    "saveEchoCoop": null,
+    "paused": false,
+    "page": "pause",
+    "localSwitchEnabled": null,
+    "localConfirmEnabled": null
+  },
+  "proposalState": {
+    "echo": {
+      "hp": 94,
+      "x": 8.625,
+      "y": 45
+    },
+    "relay": "ACTIVE",
+    "echoEnergy": 100,
+    "playerEnergy": 100,
+    "evidence": 0,
+    "echoCooperation": false,
+    "proposal": {
+      "id": "local_110_1",
+      "kind": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "expiresAtTick": 230,
+      "roomGeneration": 1,
+      "provenance": "local-echo",
+      "cost": {
+        "energy": 10,
+        "resource": "echo-energy"
+      }
+    },
+    "audit": null,
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "human",
+    "saveEchoCoop": null,
+    "paused": true,
+    "page": "local-coop",
+    "localSwitchEnabled": true,
+    "localConfirmEnabled": true
+  },
+  "proposalText": "LOCAL · SCAN · target 8.0,45.0\nSEEN perceived_relay · evidence relay:relay_main · @tick 110\nEXPIRES tick 230 · room gen 1\nEXPECT reveal relay facts\nUNCERTAIN only if still perceived and permitted\nCOST 10 ECHO ENERGY · HUMAN CONFIRM REQUIRED",
+  "confirmedPaused": {
+    "echo": {
+      "hp": 94,
+      "x": 8.625,
+      "y": 45
+    },
+    "relay": "ACTIVE",
+    "echoEnergy": 100,
+    "playerEnergy": 100,
+    "evidence": 0,
+    "echoCooperation": false,
+    "proposal": {
+      "id": "local_110_2",
+      "kind": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "expiresAtTick": 230,
+      "roomGeneration": 1,
+      "provenance": "local-echo",
+      "cost": {
+        "energy": 10,
+        "resource": "echo-energy"
+      }
+    },
+    "audit": {
+      "tick": 110,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "enqueued"
+    },
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "human",
+    "saveEchoCoop": null,
+    "paused": true,
+    "page": "local-coop",
+    "localSwitchEnabled": true,
+    "localConfirmEnabled": true
+  },
+  "after": {
+    "echo": {
+      "hp": 88,
+      "x": 8.25,
+      "y": 45
+    },
+    "relay": "ACTIVE",
+    "echoEnergy": 97,
+    "playerEnergy": 100,
+    "evidence": 1,
+    "echoCooperation": false,
+    "proposal": {
+      "id": "local_110_2",
+      "kind": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "expiresAtTick": 230,
+      "roomGeneration": 1,
+      "provenance": "local-echo",
+      "cost": {
+        "energy": 10,
+        "resource": "echo-energy"
+      }
+    },
+    "audit": {
+      "tick": 111,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "applied"
+    },
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "human",
+    "saveEchoCoop": null,
+    "paused": false,
+    "page": "pause",
+    "localSwitchEnabled": null,
+    "localConfirmEnabled": null
+  },
+  "auditPage": {
+    "echo": {
+      "hp": 88,
+      "x": 8.25,
+      "y": 45
+    },
+    "relay": "ACTIVE",
+    "echoEnergy": 98,
+    "playerEnergy": 100,
+    "evidence": 1,
+    "echoCooperation": false,
+    "proposal": {
+      "id": "local_210_3",
+      "kind": "toggle-relay",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "expiresAtTick": 330,
+      "roomGeneration": 1,
+      "provenance": "local-echo",
+      "cost": {
+        "energy": 0,
+        "resource": "none"
+      }
+    },
+    "audit": {
+      "tick": 111,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "applied"
+    },
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "human",
+    "saveEchoCoop": null,
+    "paused": true,
+    "page": "local-coop",
+    "localSwitchEnabled": true,
+    "localConfirmEnabled": true
+  },
+  "switchedOn": {
+    "echo": {
+      "hp": 88,
+      "x": 8.25,
+      "y": 45
+    },
+    "relay": "ACTIVE",
+    "echoEnergy": 98,
+    "playerEnergy": 100,
+    "evidence": 1,
+    "echoCooperation": true,
+    "proposal": {
+      "id": "local_210_3",
+      "kind": "toggle-relay",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "expiresAtTick": 330,
+      "roomGeneration": 1,
+      "provenance": "local-echo",
+      "cost": {
+        "energy": 0,
+        "resource": "none"
+      }
+    },
+    "audit": {
+      "tick": 111,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "applied"
+    },
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "human",
+    "saveEchoCoop": true,
+    "paused": true,
+    "page": "local-coop",
+    "localSwitchEnabled": true,
+    "localConfirmEnabled": true
+  },
+  "switchedOff": {
+    "echo": {
+      "hp": 88,
+      "x": 8.25,
+      "y": 45
+    },
+    "relay": "ACTIVE",
+    "echoEnergy": 98,
+    "playerEnergy": 100,
+    "evidence": 1,
+    "echoCooperation": false,
+    "proposal": {
+      "id": "local_210_3",
+      "kind": "toggle-relay",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "expiresAtTick": 330,
+      "roomGeneration": 1,
+      "provenance": "local-echo",
+      "cost": {
+        "energy": 0,
+        "resource": "none"
+      }
+    },
+    "audit": {
+      "tick": 111,
+      "provenance": "human-local",
+      "action": "scan",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "applied"
+    },
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "human",
+    "saveEchoCoop": false,
+    "paused": true,
+    "page": "local-coop",
+    "localSwitchEnabled": true,
+    "localConfirmEnabled": true
+  },
+  "aiOwner": {
+    "echo": {
+      "hp": 88,
+      "x": 8.25,
+      "y": 45
+    },
+    "relay": "ACTIVE",
+    "echoEnergy": 98,
+    "playerEnergy": 100,
+    "evidence": 1,
+    "echoCooperation": false,
+    "proposal": null,
+    "audit": {
+      "tick": 210,
+      "provenance": "human-local",
+      "action": "toggle-relay",
+      "target": {
+        "x": 8,
+        "y": 45
+      },
+      "result": "rejected",
+      "code": "E_USER_REJECTED"
+    },
+    "companionLink": false,
+    "companionStatus": "OFF",
+    "owner": "ai",
+    "saveEchoCoop": false,
+    "paused": true,
+    "page": "local-coop",
+    "localSwitchEnabled": false,
+    "localConfirmEnabled": false
+  },
+  "errors": []
+}

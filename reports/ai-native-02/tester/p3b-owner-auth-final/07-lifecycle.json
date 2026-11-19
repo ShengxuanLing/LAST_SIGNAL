@@ -1,0 +1,172 @@
+{
+  "total": 21,
+  "pass": 21,
+  "fail": 0,
+  "results": [
+    {
+      "name": "L1 human handshake issues cap",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "L2 authorize issues rotated cap",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "rotated": true
+      }
+    },
+    {
+      "name": "L3 old handshake cap rejected after authorize",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "code": "E_PERMISSION"
+      }
+    },
+    {
+      "name": "L4 wrong Owner key reauthorization rejected",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "L5 cap unchanged after failed reauthorization",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200
+      }
+    },
+    {
+      "name": "L6 correct key reauthorization issues new cap",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "rotated": true
+      }
+    },
+    {
+      "name": "L7 cap1 dead after swap",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "code": "E_PERMISSION"
+      }
+    },
+    {
+      "name": "L8 cap2 live after swap",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200
+      }
+    },
+    {
+      "name": "L9 agent attach (token only)",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "hasLeaseId": true
+      }
+    },
+    {
+      "name": "L10 agent lease live",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "attached": true
+      }
+    },
+    {
+      "name": "L11 agent lease expired at ~4s (no auto renew)",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "attached": false,
+        "leaseStatus": "unknown",
+        "statusText": "closed"
+      }
+    },
+    {
+      "name": "L12 bridge session invalidated after lease expiry",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "code": "E_PERMISSION"
+      }
+    },
+    {
+      "name": "L13 no automatic reconnect",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "attached": false,
+        "statusText": "closed"
+      }
+    },
+    {
+      "name": "L14 LOST reload re-handshake with same host key, bridge alive",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "newSession": true,
+        "newEpoch": false
+      }
+    },
+    {
+      "name": "L15 agent attach after reload (only human session exists)",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200
+      }
+    },
+    {
+      "name": "L16 C3b Player: handshake needs owner key",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200
+      }
+    },
+    {
+      "name": "L17 C3b Player: renderer observation requires cap",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "L18 C3b Player: agent attach token-only",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200
+      }
+    },
+    {
+      "name": "L19 C3b Player: close requires cap",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "L20 C3b Player: owner close succeeds",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200
+      }
+    },
+    {
+      "name": "L21 C3b Player: attach after close rejected",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403
+      }
+    }
+  ]
+}

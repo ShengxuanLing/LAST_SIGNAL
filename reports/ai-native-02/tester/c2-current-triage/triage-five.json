@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "url": "http://localhost:5293/",
+    "target": "59aa85227dcf3c9dcb87d798aaaa7df15f7a2d6e",
+    "code": "3f97990d7871f099ce86848159b2ffeae00bb10e"
+  },
+  "cases": {
+    "upgradeLevelRecord": {
+      "originalPredicate": "audit:348 expect(after.upgrades - before.upgrades === 1); checkpoint:157 expect.poll(save.run.player.upgrades).toContainEqual({key, level:1}); checkpoint:227 expect.poll(save.run.player.upgrades.length === 1)",
+      "before": {
+        "upgrades": [],
+        "dmg": 1,
+        "hpRegen": 0
+      },
+      "after": {
+        "upgrades": [],
+        "dmg": 1.1,
+        "hpRegen": 0,
+        "pending": [],
+        "tick": 185
+      },
+      "statApplied": true,
+      "levelRecorded": false,
+      "saveUpgrades": [],
+      "verdict": "PRODUCT BUG: the upgrade stat is applied but player.data.upgrades never records {key,level}; core case apply-upgrade calls applyUpgrade(def,data,level) which only runs def.apply(), while the helper applyUpgradeToPlayer() (which pushes the level) is now unused."
+    },
+    "inventoryEquip": {
+      "originalPredicate": "checkpoint:94 expect.poll(inventory).toEqual({weapon:\"scatter\", buttons:[EQUIP@186, EQUIPPED@230, EQUIP@274]})",
+      "before": {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186
+          },
+          {
+            "label": "EQUIP",
+            "y": 230
+          },
+          {
+            "label": "EQUIP",
+            "y": 274
+          }
+        ],
+        "paused": true,
+        "tick": 75,
+        "pending": []
+      },
+      "immediate": {
+        "weapon": "pulse",
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 75,
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186
+          },
+          {
+            "label": "EQUIP",
+            "y": 230
+          },
+          {
+            "label": "EQUIP",
+            "y": 274
+          }
+        ]
+      },
+      "afterTick": {
+        "weapon": "scatter",
+        "pending": [],
+        "tick": 76,
+        "events": [
+          "player-equipped",
+          "player-moved"
+        ]
+      },
+      "afterTickLabels": [
+        {
+          "label": "EQUIPPED",
+          "y": 186
+        },
+        {
+          "label": "EQUIP",
+          "y": 230
+        },
+        {
+          "label": "EQUIP",
+          "y": 274
+        }
+      ],
+      "verdict": "CONTRACT MISMATCH (not a product bug in the equip rule): the equip command commits on the next core tick (weaponKey changes), but the PauseScene EQUIP/EQUIPPED label row is only re-rendered by refreshWeapons() which runs at click time — before the commit — so the row never reflects the committed state while the overlay stays open."
+    },
+    "economyTerminal": {
+      "originalPredicate": "economy:46 expect(terminal).toBeVisible() (after pressing \"g\")",
+      "state": {
+        "before": {
+          "currency": 20,
+          "tick": 51,
+          "pending": []
+        },
+        "after": {
+          "currency": 30,
+          "tick": 54,
+          "pending": []
+        },
+        "room": "combat",
+        "roomId": 3,
+        "rooms": [
+          {
+            "id": 0,
+            "kind": "start",
+            "spawned": true,
+            "cleared": true
+          },
+          {
+            "id": 1,
+            "kind": "combat",
+            "spawned": false,
+            "cleared": false
+          },
+          {
+            "id": 2,
+            "kind": "resource",
+            "spawned": false,
+            "cleared": false
+          },
+          {
+            "id": 3,
+            "kind": "combat",
+            "spawned": true,
+            "cleared": true
+          },
+          {
+            "id": 4,
+            "kind": "boss",
+            "spawned": false,
+            "cleared": false
+          },
+          {
+            "id": 5,
+            "kind": "elite",
+            "spawned": false,
+            "cleared": false
+          }
+        ],
+        "aliveEnemies": 3,
+        "terminalRooms": [
+          5
+        ],
+        "currentIsTerminal": false
+      },
+      "ui": {
+        "dialogOpen": false,
+        "bodyHasHint": true
+      },
+      "opened": {
+        "opened": false
+      },
+      "safeRoomCondition": "economy safeRoom(): current room cleared AND no alive enemies AND no room in the map with spawned && !cleared",
+      "verdict": "CONTRACT MISMATCH in the test fixture, but the underlying condition is a product rule: the test only advances through the portal, so the destination room still has live enemies and other rooms are spawned&&!cleared, so safeRoom() legitimately returns undefined and the terminal never opens. A legal sync point must actually clear the room (kill the enemies through the real damage path) — adding more stepFrame calls cannot satisfy it."
+    }
+  },
+  "findings": [],
+  "errors": []
+}

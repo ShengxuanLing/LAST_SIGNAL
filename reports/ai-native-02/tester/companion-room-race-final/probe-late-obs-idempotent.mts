@@ -1,0 +1,28 @@
+// Independent Tester — c233e5c late old observation / idempotent same-room probe.
+import { WorldGateway } from 'D:/Project/AI-NATIVE-02-snapshots/c233e5c/src/ai-native/worldGateway.ts';
+import { CompanionGateway } from 'D:/Project/AI-NATIVE-02-snapshots/c233e5c/src/ai-native/companionGateway.ts';
+const OUT='D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/companion-room-race-final';
+const R:any[]=[];
+const rec=(n:string,p:boolean,cmd:string,result:string)=>{R.push({name:n,verdict:p?'PASS':'FAIL',command:cmd,result});console.log(`${p?'PASS':'FAIL'} | ${n} | cmd=${cmd} | ${result}`);};
+const wg=new WorldGateway(); const cg=new CompanionGateway(wg);
+const linked=wg.linkSession({authorized:true,origin:'http://localhost:5392',nowMs:Date.now()}) as any;
+const s=linked.session as string, e=linked.epoch as number;
+cg.authorize(s,e,'human');
+const obs=(tick:number,roomId:number|null)=>({epoch:e,tick,roomId,player:{x:0,y:0},echo:{x:0,y:0,hp:100,maxHp:100,aimYaw:0},drones:[{id:1,x:1,y:0,hp:5}],schema:'last_signal.echo-observation.v1',perception:{center:{x:0,y:0},radiusTiles:12,requiresExplored:true,requiresLineOfSight:true},targets:[]});
+const p1=cg.pushObservation(s,e,obs(10,0));
+rec('L01 room A observation accepted',p1.ok===true,'pushObservation(roomId=0)',JSON.stringify({ok:p1.ok}));
+const rc=cg.roomChanged(s,e,1,20,1);
+rec('L02 committed room A->B bumps generation',rc.ok===true&&(rc.value as any).generation===1,'roomChanged(room=1,seq=1)',JSON.stringify({ok:rc.ok,value:rc.value}));
+const stale=cg.pushObservation(s,e,obs(21,0));
+rec('L03 late OLD-room observation refused E_STALE_GENERATION (cannot pollute new room)',stale.ok===false&&(stale as any).code==='E_STALE_GENERATION','pushObservation(roomId=0 after room 1)',JSON.stringify({ok:stale.ok,code:(stale as any).code,messageKey:(stale as any).messageKey}));
+const fresh=cg.pushObservation(s,e,obs(22,1));
+rec('L04 new-room observation accepted (agent may observe new room)',fresh.ok===true,'pushObservation(roomId=1)',JSON.stringify({ok:fresh.ok}));
+const dup=cg.roomChanged(s,e,1,23,2);
+rec('L05 same-room repeat idempotent: no generation bump',dup.ok===true&&(dup.value as any).generation===1&&((dup.value as any).cancelled as any[]).length===0,'roomChanged(room=1,seq=2)',JSON.stringify({value:dup.value}));
+const late=cg.roomChanged(s,e,2,24,1);
+rec('L06 out-of-order report (roomSeq=1 <= gen=1) cannot rollback/new room',late.ok===true&&(late.value as any).stale===true&&(late.value as any).roomId===1,'roomChanged(room=2,seq=1)',JSON.stringify({value:late.value}));
+const st=cg.status(s,e);
+rec('L07 status room stays at newest committed room (1)',st.ok===true&&(st.value as any).status?.roomId===1,'companionGateway.status',JSON.stringify({roomId:(st.value as any).status?.roomId,generation:(st.value as any).status?.roomGeneration}));
+const summary={total:R.length,pass:R.filter(r=>r.verdict==='PASS').length,fail:R.filter(r=>r.verdict==='FAIL').length,results:R};
+console.log('SUMMARY',JSON.stringify({total:summary.total,pass:summary.pass,fail:summary.fail}));
+require('node:fs').writeFileSync(`${OUT}/09-late-obs-idempotent.json`,JSON.stringify(summary,null,2));

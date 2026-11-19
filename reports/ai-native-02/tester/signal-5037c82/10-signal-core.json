@@ -1,0 +1,109 @@
+{
+  "total": 17,
+  "pass": 17,
+  "fail": 0,
+  "results": [
+    {
+      "name": "S01 shared tuning real values",
+      "verdict": "PASS",
+      "command": "SIGNAL_TUNING",
+      "result": "{\"scanCost\":10,\"scanCD\":120,\"jamCost\":25,\"jamCD\":480,\"jamDuration\":360,\"energyMax\":100,\"regenTicks\":12,\"evidenceTTL\":300}"
+    },
+    {
+      "name": "S02 no device => legacy exit open, no signal key",
+      "verdict": "PASS",
+      "command": "signalExitOpen(undefined)+validSignalDevice",
+      "result": "{\"exitOpen\":true}"
+    },
+    {
+      "name": "S03 one device one room INACTIVE",
+      "verdict": "PASS",
+      "command": "createSignalDevice+signalExitOpen",
+      "result": "{\"deviceId\":\"relay_main\",\"roomId\":7,\"relay\":\"INACTIVE\",\"exitOpen\":false}"
+    },
+    {
+      "name": "S04 toggle ACTIVE opens gate; toggle off closes",
+      "verdict": "PASS",
+      "command": "commitToggleRelay x2",
+      "result": "{\"afterOn\":\"ACTIVE\",\"openActive\":true,\"afterOff\":\"INACTIVE\"}"
+    },
+    {
+      "name": "S05 player scan: player -10 + CD120, echo unchanged",
+      "verdict": "PASS",
+      "command": "commitSignalScan(player)",
+      "result": "{\"ok\":true,\"energy\":90,\"cd\":120,\"echoEnergy\":100}"
+    },
+    {
+      "name": "S06 echo scan: echo -10 + CD120, player unchanged",
+      "verdict": "PASS",
+      "command": "commitSignalScan(echo)",
+      "result": "{\"ok\":true,\"energy\":90,\"playerEnergy\":90}"
+    },
+    {
+      "name": "S07 echo actor cannot drain player account",
+      "verdict": "PASS",
+      "command": "actor->account mapping (echo drains echo, not player)",
+      "result": "{\"playerEnergy\":90,\"echoEnergy\":90}"
+    },
+    {
+      "name": "S08 echo jam: echo -25 + CD480, relay JAMMED",
+      "verdict": "PASS",
+      "command": "commitSignalJam(echo)",
+      "result": "{\"ok\":true,\"energy\":65,\"relay\":\"JAMMED\"}"
+    },
+    {
+      "name": "S09 far/no-LOS => E_PERMISSION, no charge",
+      "verdict": "PASS",
+      "command": "commitSignalScan(far/los)",
+      "result": "{\"far\":\"E_PERMISSION\",\"los\":\"E_PERMISSION\",\"energy\":90}"
+    },
+    {
+      "name": "S10 duplicate scan in CD => E_COOLDOWN, no double charge",
+      "verdict": "PASS",
+      "command": "commitSignalScan(twice)",
+      "result": "{\"code\":\"E_COOLDOWN\",\"energy\":90}"
+    },
+    {
+      "name": "S11 insufficient energy => E_ENERGY_INSUFFICIENT, no charge",
+      "verdict": "PASS",
+      "command": "commitSignalScan(energy=5)",
+      "result": "{\"code\":\"E_ENERGY_INSUFFICIENT\",\"energy\":5}"
+    },
+    {
+      "name": "S12 paused ticks no regen/decay",
+      "verdict": "PASS",
+      "command": "tickSignalResources(paused=true)x2",
+      "result": "{\"unchanged\":true}"
+    },
+    {
+      "name": "S13 unpaused 12 ticks => exactly +1 energy",
+      "verdict": "PASS",
+      "command": "12 real ticks",
+      "result": "{\"before\":90,\"after\":91}"
+    },
+    {
+      "name": "S14 JAM suppresses until exact expiry then ACTIVE recovers",
+      "verdict": "PASS",
+      "command": "jam + 360 ticks",
+      "result": "{\"during\":\"JAMMED\",\"beforeExpiry\":\"JAMMED\",\"after\":\"ACTIVE\",\"open\":true}"
+    },
+    {
+      "name": "S15 toggle cannot override JAM",
+      "verdict": "PASS",
+      "command": "jam then toggle",
+      "result": "{\"relay\":\"JAMMED\",\"manualEnabled\":true}"
+    },
+    {
+      "name": "S16 invalid/empty actor => E_PERMISSION (v1-style without actor rejected)",
+      "verdict": "PASS",
+      "command": "commitSignalScan(invalid actor)",
+      "result": "{\"ok\":false,\"code\":\"E_PERMISSION\"}"
+    },
+    {
+      "name": "S17 validSignalDevice strict reject",
+      "verdict": "PASS",
+      "command": "validSignalDevice",
+      "result": "{\"empty\":false,\"null\":false}"
+    }
+  ]
+}

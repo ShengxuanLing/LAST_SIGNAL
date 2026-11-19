@@ -1,0 +1,121 @@
+{
+  "schema": "last-signal.lead-signal-run.bootstrap.v1",
+  "at": "2026-11-16T00:13:16.239Z",
+  "repo": "D:\\Project\\LAST_SIGNAL",
+  "commit": "363eb173207bb5adaa0a21cd1af348dc92f29827",
+  "branch": "feat/ai-native-world-integration",
+  "ports": {
+    "vite": 5301,
+    "control": 5302
+  },
+  "urls": {
+    "game": "http://localhost:5301",
+    "bridge": "http://127.0.0.1:5577",
+    "control": "http://127.0.0.1:5302"
+  },
+  "credentials": {
+    "tokenFile": "C:\\Users\\Rafae\\AppData\\Local\\Temp\\last-signal-c3b-69ribQ\\bridge.token",
+    "tokenAcl": "win32:icacls-inheritance-removed+grant-only-current-user-sid(S-1-5-21-162…)",
+    "ownerKeyFile": "C:\\Users\\Rafae\\AppData\\Local\\Temp\\last-signal-owner-JUG2M8\\owner.key",
+    "ownerKeyAcl": "win32:icacls-inheritance-removed+grant-only-current-user-sid(S-1-5-21-162…)+win32:icacls-inheritance-removed+grant-only-current-user-sid(S-1-5-21-162…)",
+    "controlTokenFile": "C:\\Users\\Rafae\\AppData\\Local\\Temp\\last-signal-c3b-AjFKbQ\\bridge.token",
+    "note": "只记录路径与 ACL；TOKEN / OWNER PAIRING KEY 明文从不写入任何文件或日志"
+  },
+  "agentEnvAllowlist": [
+    "LAST_SIGNAL_WORLD_BRIDGE_URL",
+    "LAST_SIGNAL_WORLD_TOKEN_FILE"
+  ],
+  "fixtures": [
+    {
+      "item": "player.reset(portal.wx, portal.wy)",
+      "why": "把主角摆到本房间传送门上，避免脚本寻路（不是 AI 移动）"
+    },
+    {
+      "item": "clear room hostiles (enemies=3, drones=0)",
+      "why": "让 Lead 的模型回合在可观察、可控的房间里进行；只清当前房间普通敌人，不改 HP/资源/伤害/无敌",
+      "detail": "drones 未被清除（如存在仍留在 sim.drones 中，暂停期间不行动）"
+    },
+    {
+      "item": "echo enable order (in-room, real UI)",
+      "why": "先真实过门、再 ENABLE ECHO，否则 echo 会被墙卡在上一房间而无法感知继电器（无 teleport，无坐标写入）",
+      "detail": "{\"hasRelay\":true,\"echo\":{\"x\":26,\"y\":46},\"player\":{\"x\":25,\"y\":46}}"
+    }
+  ],
+  "echoSeesRelayAtBootstrap": true,
+  "milestones": [
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\01-new-run-legacy-no-device.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\02-optin-on.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\03-room-with-relay-inactive.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\04-echo-enabled-in-room.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\05-echo-sees-relay.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\06-masked-owner-form-filled.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\07-companion-connected-and-paused.png"
+  ],
+  "stateAtEndOfBootstrap": {
+    "tick": 172,
+    "roomId": 3,
+    "roomKind": "combat",
+    "pauseOpen": true,
+    "companionStatus": "CONNECTED",
+    "hasEcho": true,
+    "echoPos": {
+      "x": 26,
+      "y": 46
+    },
+    "echoHp": 100,
+    "playerHp": 100,
+    "enemies": 0,
+    "drones": 0,
+    "hasPortal": true,
+    "portal": {
+      "x": 31,
+      "y": 44
+    },
+    "player": {
+      "x": 25,
+      "y": 46
+    },
+    "signal": {
+      "deviceId": "relay_main",
+      "relay": "INACTIVE",
+      "manualEnabled": false,
+      "powered": true,
+      "jammedUntilTick": 0,
+      "playerEnergy": 100,
+      "echoEnergy": 100,
+      "playerScanCD": 0,
+      "playerJamCD": 0,
+      "echoScanCD": 0,
+      "echoJamCD": 0,
+      "evidence": 0
+    },
+    "exitOpen": false,
+    "pendingCommands": [],
+    "session": "ses_8ae2730ee76829dad806124b",
+    "epoch": 1
+  },
+  "observationProof": {
+    "ok": true,
+    "status": "connected",
+    "lastObservationTick": 172,
+    "pending": 0,
+    "receipts": [],
+    "memoryEntries": 4
+  },
+  "receiptsAtEndOfBootstrap": {
+    "ok": true,
+    "status": "connected",
+    "lastObservationTick": 172,
+    "pending": 0,
+    "receipts": [],
+    "memoryEntries": 4
+  },
+  "evidence": {
+    "screenshots": "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots",
+    "video": "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\video",
+    "ownerUiLog": "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\owner-ui.jsonl",
+    "bootstrapLog": "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\bootstrap.log"
+  },
+  "modelActionsPerformed": 0,
+  "suggestionsMade": 0
+}

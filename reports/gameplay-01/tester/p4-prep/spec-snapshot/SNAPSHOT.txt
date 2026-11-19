@@ -1,0 +1,5 @@
+spec=tests/gameplay-04-coop-level.spec.ts
+sha256=aa6b22988755ba0a21e8d94ce2494072feba23001596cf5f4279572335e36d57
+list=9 tests (6 route runs: seeds 20261117/18/19 × HumanOnly/HumanEcho; reject+offline; reload-vs-replay; portal-centre 3 seeds)
+status=NOT RUN (no frozen P4 manifest; dirty 4-file candidate is not an acceptance snapshot)
+tsc=isolated typecheck PASS (tsconfig pinned to the spec file)

@@ -1,0 +1,42 @@
+﻿[
+    {
+        "path":  "reports/ai-native-02/c2-fixes-round2/parity-kill/kill-initial.json",
+        "generatedSha256":  "16c8303911a26ab0b8af226230e92b0d0af1a605eb6e34b0711cf1cdf2d5dd0e",
+        "backup":  "reports/gameplay-01/evidence-preservation/reports/ai-native-02/c2-fixes-round2/parity-kill/kill-initial.json",
+        "restoreFrom":  "7aa8b51",
+        "status":  "generated version preserved; tracked bytes restored from 7aa8b51",
+        "restoredSha256":  "65eac70ed70e4a0a807658a0d66435638acdd09017a577d3cd47ec55f2a45b44"
+    },
+    {
+        "path":  "reports/ai-native-02/c2-fixes-round2/parity-kill/kill-rendered.json",
+        "generatedSha256":  "049cf768cfffbc3d942cb0185c08b336209e76df048ad53466e9ea868f01d8e7",
+        "backup":  "reports/gameplay-01/evidence-preservation/reports/ai-native-02/c2-fixes-round2/parity-kill/kill-rendered.json",
+        "restoreFrom":  "7aa8b51",
+        "status":  "generated version preserved; tracked bytes restored from 7aa8b51",
+        "restoredSha256":  "9f87b877cfc00e2779613215879979bc52e41953f170e2bc7b4acf5c3b29c3fe"
+    },
+    {
+        "path":  "reports/ai-native-02/c2/parity/parity-initial.json",
+        "generatedSha256":  "9cb78c723eef89ad8e2cb9d38e9af9c69f684474044229adb18104cd5d40a6f1",
+        "backup":  "reports/gameplay-01/evidence-preservation/reports/ai-native-02/c2/parity/parity-initial.json",
+        "restoreFrom":  "7aa8b51",
+        "status":  "generated version preserved; tracked bytes restored from 7aa8b51",
+        "restoredSha256":  "c27118ba5daf496b5d0cfb524918d9f03e8c17f1799c350590ef503f426916a9"
+    },
+    {
+        "path":  "reports/ai-native-02/c2/parity/parity-rendered.json",
+        "generatedSha256":  "2f0a083e3789b23687281b18bf5ae43cf8225e78f140a015541d548219615f6f",
+        "backup":  "reports/gameplay-01/evidence-preservation/reports/ai-native-02/c2/parity/parity-rendered.json",
+        "restoreFrom":  "7aa8b51",
+        "status":  "generated version preserved; tracked bytes restored from 7aa8b51",
+        "restoredSha256":  "518f15fc6df23bb1b5e45fcda60bbf15557e29edf5be8909e47f0d07f4e8f7bc"
+    },
+    {
+        "path":  "reports/ai-native-02/c3c/parity/rendered.json",
+        "generatedSha256":  "8070279df72b15acec3346fd1119a7668e6a431e289b9363a8f125812c3f7467",
+        "backup":  "reports/gameplay-01/evidence-preservation/reports/ai-native-02/c3c/parity/rendered.json",
+        "restoreFrom":  "7aa8b51",
+        "status":  "generated version preserved; tracked bytes restored from 7aa8b51",
+        "restoredSha256":  "ac1e77548459858a95e36a32302531d8357c9ccf9d6ff093d5e5926436bf5afd"
+    }
+]

@@ -1,0 +1,53 @@
+workdir=/d/tmp/ls-p3-accept specSha=8aa12c9eda2840c8
+
+Running 25 tests using 1 worker
+
+[1/25] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1920x1080
+[2/25] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1920x1080
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1920x1080
+audit 1920x1080: 0 clipped/hidden, 0 overlaps
+
+[3/25] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1600x900
+[4/25] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1600x900
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1600x900
+audit 1600x900: 0 clipped/hidden, 0 overlaps
+
+[5/25] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1366x768
+[6/25] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1366x768
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1366x768
+audit 1366x768: 0 clipped/hidden, 0 overlaps
+
+[7/25] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1280x720
+[8/25] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1280x720
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1280x720
+audit 1280x720: 0 clipped/hidden, 0 overlaps
+
+[9/25] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 1024x768
+[10/25] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1024x768
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 1024x768
+audit 1024x768: 0 clipped/hidden, 0 overlaps
+
+[11/25] [chromium] › tests\ui-menu-layout.spec.ts:681:5 › UI-REWORK-01 menu surfaces › capture 800x600
+[12/25] [chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 800x600
+[chromium] › tests\ui-menu-layout.spec.ts:691:5 › UI-REWORK-01 menu surfaces › audit 800x600
+audit 800x600: 0 clipped/hidden, 0 overlaps
+
+[13/25] [chromium] › tests\ui-menu-layout.spec.ts:712:3 › UI-REWORK-01 menu surfaces › navigation: ESC walks exactly one level back
+[14/25] [chromium] › tests\ui-menu-layout.spec.ts:780:3 › UI-REWORK-01 menu surfaces › functional: settings change, persist and reset; AI local toggle
+[15/25] [chromium] › tests\ui-menu-layout.spec.ts:846:3 › UI-REWORK-01 menu surfaces › functional: ECHO enable, mode and assist arming
+[16/25] [chromium] › tests\ui-menu-layout.spec.ts:909:3 › UI-REWORK-01 menu surfaces › functional: LLM page is honest without a model; failure feedback; no secret leak
+[chromium] › tests\ui-menu-layout.spec.ts:909:3 › UI-REWORK-01 menu surfaces › functional: LLM page is honest without a model; failure feedback; no secret leak
+CONSOLE_ERROR functional-llm: Failed to load resource: net::ERR_UNSAFE_PORT
+
+[17/25] [chromium] › tests\ui-menu-layout.spec.ts:990:3 › UI-REWORK-01 menu surfaces › functional: real pending proposal — Owner CONFIRM commits, REJECT does not
+[18/25] [chromium] › tests\ui-menu-layout.spec.ts:1116:3 › UI-REWORK-01 menu surfaces › boundary: repeated open/close never stacks or leaves hidden controls
+[19/25] [chromium] › tests\ui-menu-layout.spec.ts:1160:3 › UI-REWORK-01 menu surfaces › boundary: keyboard focus, wheel and real click agree
+[20/25] [chromium] › tests\ui-menu-layout.spec.ts:1203:3 › UI-REWORK-01 menu surfaces › audit: shared font stack, disabled controls, resize and destroy stability
+[21/25] [chromium] › tests\ui-menu-layout.spec.ts:1296:3 › UI-REWORK-01 menu surfaces › functional: inventory EQUIP is keyboard reachable and commits on the next tick
+[22/25] [chromium] › tests\ui-menu-layout.spec.ts:1348:3 › UI-REWORK-01 menu surfaces › functional: settings persist across reopen and reset
+[23/25] [chromium] › tests\ui-menu-layout.spec.ts:1385:3 › UI-REWORK-01 menu surfaces › functional: owner re-authorize swaps capability on the same instance and retires old suggestions
+[24/25] [chromium] › tests\ui-menu-layout.spec.ts:1506:3 › UI-REWORK-01 menu surfaces › functional: an expired proposal is never confirmed
+[25/25] [chromium] › tests\ui-menu-layout.spec.ts:1569:3 › UI-REWORK-01 menu surfaces › functional: level-up, death and restart keep the menu honest
+  Slow test file: [chromium] › tests\ui-menu-layout.spec.ts (5.3m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  25 passed (5.3m)

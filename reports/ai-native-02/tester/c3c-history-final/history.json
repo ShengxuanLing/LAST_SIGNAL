@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "target": "4cb59e9",
+    "probe": "history-event-immutability"
+  },
+  "checks": [
+    {
+      "n": "step-events-equal-snapshot1",
+      "ok": true
+    },
+    {
+      "n": "history-prefix-unchanged",
+      "ok": true,
+      "d": {
+        "firstDiff": null,
+        "diffs": []
+      }
+    },
+    {
+      "n": "projectile-events-unchanged",
+      "ok": true,
+      "d": {
+        "mutated": 0,
+        "sample": []
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-history-mutates",
+      "recordedPrefix": 24826,
+      "events1": 172,
+      "events2": 1072,
+      "firstDiff": null,
+      "diffCount": 0,
+      "diffs": [],
+      "projectileEvents": 11,
+      "projectileMutations": [],
+      "projectileMutationCount": 0
+    }
+  ]
+}

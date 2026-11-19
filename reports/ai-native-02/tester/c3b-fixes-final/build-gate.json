@@ -1,0 +1,102 @@
+{
+  "checks": [
+    {
+      "n": "prod-no-game-handle",
+      "ok": true,
+      "d": {
+        "hasGame": false,
+        "canvas": true
+      }
+    },
+    {
+      "n": "prod-boots-canvas",
+      "ok": true,
+      "d": {
+        "hasGame": false,
+        "canvas": true
+      }
+    },
+    {
+      "n": "test-has-game-handle",
+      "ok": true,
+      "d": {
+        "hasGame": true,
+        "canvas": true
+      }
+    },
+    {
+      "n": "test-boots-canvas",
+      "ok": true,
+      "d": {
+        "hasGame": true,
+        "canvas": true
+      }
+    },
+    {
+      "n": "staging-no-game-handle",
+      "ok": true,
+      "d": {
+        "hasGame": false,
+        "canvas": true
+      }
+    },
+    {
+      "n": "staging-boots-canvas",
+      "ok": true,
+      "d": {
+        "hasGame": false,
+        "canvas": true
+      }
+    },
+    {
+      "n": "dev-has-game-handle",
+      "ok": true,
+      "d": {
+        "hasGame": true,
+        "canvas": true
+      }
+    },
+    {
+      "n": "dev-boots-canvas",
+      "ok": true,
+      "d": {
+        "hasGame": true,
+        "canvas": true
+      }
+    }
+  ],
+  "pages": {
+    "prod": {
+      "url": "http://localhost:5302/",
+      "st": {
+        "hasGame": false,
+        "canvas": true
+      },
+      "errs": []
+    },
+    "test": {
+      "url": "http://localhost:5303/",
+      "st": {
+        "hasGame": true,
+        "canvas": true
+      },
+      "errs": []
+    },
+    "staging": {
+      "url": "http://localhost:5304/",
+      "st": {
+        "hasGame": false,
+        "canvas": true
+      },
+      "errs": []
+    },
+    "dev": {
+      "url": "http://localhost:5301/",
+      "st": {
+        "hasGame": true,
+        "canvas": true
+      },
+      "errs": []
+    }
+  }
+}

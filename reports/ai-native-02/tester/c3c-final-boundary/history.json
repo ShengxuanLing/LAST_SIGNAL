@@ -1,0 +1,595 @@
+{
+  "meta": {
+    "target": "4cb59e9",
+    "probe": "history-event-immutability"
+  },
+  "checks": [
+    {
+      "n": "step-events-equal-snapshot1",
+      "ok": true
+    },
+    {
+      "n": "history-prefix-unchanged",
+      "ok": false,
+      "d": {
+        "firstDiff": 123,
+        "diffs": [
+          {
+            "index": 123,
+            "type": "projectile-spawned",
+            "before": {
+              "type": "projectile-spawned",
+              "projectile": {
+                "id": 8,
+                "ownerId": 0,
+                "side": "player",
+                "source": "player",
+                "kind": "pulse",
+                "pos": {
+                  "x": 28.8125,
+                  "y": 42.5
+                },
+                "vel": {
+                  "x": 11.25,
+                  "y": 0
+                },
+                "damage": 12,
+                "lifetime": 0.005555555555554974,
+                "radius": 0.2,
+                "crit": false,
+                "pierce": 0,
+                "hitIds": []
+              }
+            },
+            "after": {
+              "type": "projectile-spawned",
+              "projectile": {
+                "id": 8,
+                "ownerId": 0,
+                "side": "player",
+                "source": "player",
+                "kind": "pulse",
+                "pos": {
+                  "x": 29,
+                  "y": 42.5
+                },
+                "vel": {
+                  "x": 11.25,
+                  "y": 0
+                },
+                "damage": 12,
+                "lifetime": -0.011111111111111693,
+                "radius": 0.2,
+                "crit": false,
+                "pierce": 0,
+                "hitIds": []
+              }
+            }
+          },
+          {
+            "index": 136,
+            "type": "projectile-spawned",
+            "before": {
+              "type": "projectile-spawned",
+              "projectile": {
+                "id": 9,
+                "ownerId": 0,
+                "side": "player",
+                "source": "player",
+                "kind": "pulse",
+                "pos": {
+                  "x": 26.75,
+                  "y": 42.5
+                },
+                "vel": {
+                  "x": 11.25,
+                  "y": 0
+                },
+                "damage": 12,
+                "lifetime": 0.18888888888888827,
+                "radius": 0.2,
+                "crit": false,
+                "pierce": 0,
+                "hitIds": []
+              }
+            },
+            "after": {
+              "type": "projectile-spawned",
+              "projectile": {
+                "id": 9,
+                "ownerId": 0,
+                "side": "player",
+                "source": "player",
+                "kind": "pulse",
+                "pos": {
+                  "x": 29,
+                  "y": 42.5
+                },
+                "vel": {
+                  "x": 11.25,
+                  "y": 0
+                },
+                "damage": 12,
+                "lifetime": -0.011111111111111693,
+                "radius": 0.2,
+                "crit": false,
+                "pierce": 0,
+                "hitIds": []
+              }
+            }
+          },
+          {
+            "index": 149,
+            "type": "projectile-spawned",
+            "before": {
+              "type": "projectile-spawned",
+              "projectile": {
+                "id": 10,
+                "ownerId": 0,
+                "side": "player",
+                "source": "player",
+                "kind": "pulse",
+                "pos": {
+                  "x": 24.6875,
+                  "y": 42.5
+                },
+                "vel": {
+                  "x": 11.25,
+                  "y": 0
+                },
+                "damage": 18,
+                "lifetime": 0.37222222222222157,
+                "radius": 0.2,
+                "crit": true,
+                "pierce": 0,
+                "hitIds": []
+              }
+            },
+            "after": {
+              "type": "projectile-spawned",
+              "projectile": {
+                "id": 10,
+                "ownerId": 0,
+                "side": "player",
+                "source": "player",
+                "kind": "pulse",
+                "pos": {
+                  "x": 29,
+                  "y": 42.5
+                },
+                "vel": {
+                  "x": 11.25,
+                  "y": 0
+                },
+                "damage": 18,
+                "lifetime": -0.011111111111111693,
+                "radius": 0.2,
+                "crit": true,
+                "pierce": 0,
+                "hitIds": []
+              }
+            }
+          },
+          {
+            "index": 162,
+            "type": "projectile-spawned",
+            "before": {
+              "type": "projectile-spawned",
+              "projectile": {
+                "id": 11,
+                "ownerId": 0,
+                "side": "player",
+                "source": "player",
+                "kind": "pulse",
+                "pos": {
+                  "x": 22.625,
+                  "y": 42.5
+                },
+                "vel": {
+                  "x": 11.25,
+                  "y": 0
+                },
+                "damage": 12,
+                "lifetime": 0.555555555555555,
+                "radius": 0.2,
+                "crit": false,
+                "pierce": 0,
+                "hitIds": []
+              }
+            },
+            "after": {
+              "type": "projectile-spawned",
+              "projectile": {
+                "id": 11,
+                "ownerId": 0,
+                "side": "player",
+                "source": "player",
+                "kind": "pulse",
+                "pos": {
+                  "x": 29,
+                  "y": 42.5
+                },
+                "vel": {
+                  "x": 11.25,
+                  "y": 0
+                },
+                "damage": 12,
+                "lifetime": -0.011111111111111693,
+                "radius": 0.2,
+                "crit": false,
+                "pierce": 0,
+                "hitIds": []
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "n": "projectile-events-unchanged",
+      "ok": false,
+      "d": {
+        "mutated": 4,
+        "sample": [
+          {
+            "id": 8,
+            "before": {
+              "id": 8,
+              "pos": {
+                "x": 28.8125,
+                "y": 42.5
+              },
+              "lifetime": 0.005555555555554974
+            },
+            "after": {
+              "id": 8,
+              "pos": {
+                "x": 29,
+                "y": 42.5
+              },
+              "lifetime": -0.011111111111111693
+            }
+          },
+          {
+            "id": 9,
+            "before": {
+              "id": 9,
+              "pos": {
+                "x": 26.75,
+                "y": 42.5
+              },
+              "lifetime": 0.18888888888888827
+            },
+            "after": {
+              "id": 9,
+              "pos": {
+                "x": 29,
+                "y": 42.5
+              },
+              "lifetime": -0.011111111111111693
+            }
+          },
+          {
+            "id": 10,
+            "before": {
+              "id": 10,
+              "pos": {
+                "x": 24.6875,
+                "y": 42.5
+              },
+              "lifetime": 0.37222222222222157
+            },
+            "after": {
+              "id": 10,
+              "pos": {
+                "x": 29,
+                "y": 42.5
+              },
+              "lifetime": -0.011111111111111693
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-history-mutates",
+      "recordedPrefix": 24851,
+      "events1": 172,
+      "events2": 1072,
+      "firstDiff": 123,
+      "diffCount": 4,
+      "diffs": [
+        {
+          "index": 123,
+          "type": "projectile-spawned",
+          "before": {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 8,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 28.8125,
+                "y": 42.5
+              },
+              "vel": {
+                "x": 11.25,
+                "y": 0
+              },
+              "damage": 12,
+              "lifetime": 0.005555555555554974,
+              "radius": 0.2,
+              "crit": false,
+              "pierce": 0,
+              "hitIds": []
+            }
+          },
+          "after": {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 8,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 29,
+                "y": 42.5
+              },
+              "vel": {
+                "x": 11.25,
+                "y": 0
+              },
+              "damage": 12,
+              "lifetime": -0.011111111111111693,
+              "radius": 0.2,
+              "crit": false,
+              "pierce": 0,
+              "hitIds": []
+            }
+          }
+        },
+        {
+          "index": 136,
+          "type": "projectile-spawned",
+          "before": {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 9,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 26.75,
+                "y": 42.5
+              },
+              "vel": {
+                "x": 11.25,
+                "y": 0
+              },
+              "damage": 12,
+              "lifetime": 0.18888888888888827,
+              "radius": 0.2,
+              "crit": false,
+              "pierce": 0,
+              "hitIds": []
+            }
+          },
+          "after": {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 9,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 29,
+                "y": 42.5
+              },
+              "vel": {
+                "x": 11.25,
+                "y": 0
+              },
+              "damage": 12,
+              "lifetime": -0.011111111111111693,
+              "radius": 0.2,
+              "crit": false,
+              "pierce": 0,
+              "hitIds": []
+            }
+          }
+        },
+        {
+          "index": 149,
+          "type": "projectile-spawned",
+          "before": {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 10,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 24.6875,
+                "y": 42.5
+              },
+              "vel": {
+                "x": 11.25,
+                "y": 0
+              },
+              "damage": 18,
+              "lifetime": 0.37222222222222157,
+              "radius": 0.2,
+              "crit": true,
+              "pierce": 0,
+              "hitIds": []
+            }
+          },
+          "after": {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 10,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 29,
+                "y": 42.5
+              },
+              "vel": {
+                "x": 11.25,
+                "y": 0
+              },
+              "damage": 18,
+              "lifetime": -0.011111111111111693,
+              "radius": 0.2,
+              "crit": true,
+              "pierce": 0,
+              "hitIds": []
+            }
+          }
+        },
+        {
+          "index": 162,
+          "type": "projectile-spawned",
+          "before": {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 11,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 22.625,
+                "y": 42.5
+              },
+              "vel": {
+                "x": 11.25,
+                "y": 0
+              },
+              "damage": 12,
+              "lifetime": 0.555555555555555,
+              "radius": 0.2,
+              "crit": false,
+              "pierce": 0,
+              "hitIds": []
+            }
+          },
+          "after": {
+            "type": "projectile-spawned",
+            "projectile": {
+              "id": 11,
+              "ownerId": 0,
+              "side": "player",
+              "source": "player",
+              "kind": "pulse",
+              "pos": {
+                "x": 29,
+                "y": 42.5
+              },
+              "vel": {
+                "x": 11.25,
+                "y": 0
+              },
+              "damage": 12,
+              "lifetime": -0.011111111111111693,
+              "radius": 0.2,
+              "crit": false,
+              "pierce": 0,
+              "hitIds": []
+            }
+          }
+        }
+      ],
+      "projectileEvents": 11,
+      "projectileMutations": [
+        {
+          "id": 8,
+          "before": {
+            "id": 8,
+            "pos": {
+              "x": 28.8125,
+              "y": 42.5
+            },
+            "lifetime": 0.005555555555554974
+          },
+          "after": {
+            "id": 8,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          }
+        },
+        {
+          "id": 9,
+          "before": {
+            "id": 9,
+            "pos": {
+              "x": 26.75,
+              "y": 42.5
+            },
+            "lifetime": 0.18888888888888827
+          },
+          "after": {
+            "id": 9,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          }
+        },
+        {
+          "id": 10,
+          "before": {
+            "id": 10,
+            "pos": {
+              "x": 24.6875,
+              "y": 42.5
+            },
+            "lifetime": 0.37222222222222157
+          },
+          "after": {
+            "id": 10,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          }
+        },
+        {
+          "id": 11,
+          "before": {
+            "id": 11,
+            "pos": {
+              "x": 22.625,
+              "y": 42.5
+            },
+            "lifetime": 0.555555555555555
+          },
+          "after": {
+            "id": 11,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          }
+        }
+      ],
+      "projectileMutationCount": 4
+    }
+  ]
+}

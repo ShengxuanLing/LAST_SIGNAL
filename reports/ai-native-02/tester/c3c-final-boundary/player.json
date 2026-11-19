@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "target": "4cb59e9f64456e4434002256bb2e8f24fbc88bfc",
+    "surface": "Player (no --dev)"
+  },
+  "checks": [
+    {
+      "n": "player-step-schema-has-no-intent",
+      "ok": true,
+      "d": {
+        "session": {
+          "type": "string",
+          "pattern": "^ses_[0-9a-f]{24}$"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "requestId": {
+          "type": "string",
+          "pattern": "^req_[0-9a-f]{24}$"
+        },
+        "ticks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
+    },
+    {
+      "n": "create-ok",
+      "ok": true,
+      "d": {
+        "session": "ses_905fe6431099c731cf84518d"
+      }
+    },
+    {
+      "n": "player-direct-intent-rejected",
+      "ok": true,
+      "d": "MCP error -32602: Input validation error: Invalid arguments for tool world_headless_step: Unrecognized key: \"intent\""
+    },
+    {
+      "n": "rejected-intent-no-tick-no-move",
+      "ok": true,
+      "d": {
+        "before": {
+          "tick": 0,
+          "x": 20.5
+        },
+        "after": {
+          "tick": 0,
+          "x": 20.5
+        }
+      }
+    },
+    {
+      "n": "queue-intact-after-300-rejections",
+      "ok": true,
+      "d": {
+        "applied": [
+          {
+            "actionId": "aid_2985a7f51b8c957ac5b86e53",
+            "requestId": "req_57057bc962a77065bd338266",
+            "startedTick": 0,
+            "appliedTick": 120,
+            "executedTicks": 120
+          }
+        ]
+      }
+    },
+    {
+      "n": "rejected-calls-do-not-charge-quota",
+      "ok": true,
+      "d": {
+        "code": null
+      }
+    },
+    {
+      "n": "cached-replay-no-canonical",
+      "ok": true,
+      "d": {
+        "keys": [
+          "schema",
+          "ok",
+          "session",
+          "epoch",
+          "requestId",
+          "fromTick",
+          "toTick",
+          "ticks",
+          "blockTicks",
+          "status",
+          "executing",
+          "applied",
+          "rejected",
+          "observation",
+          "eventCount",
+          "events",
+          "replayed"
+        ],
+        "hits": []
+      }
+    },
+    {
+      "n": "cached-replay-no-double-advance",
+      "ok": true,
+      "d": {
+        "first": 121,
+        "replay": 121
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "schema",
+      "stepInputKeys": [
+        "session",
+        "epoch",
+        "requestId",
+        "ticks"
+      ]
+    },
+    {
+      "name": "reject-intent",
+      "isError": true,
+      "raw": "MCP error -32602: Input validation error: Invalid arguments for tool world_headless_step: Unrecognized key: \"intent\"",
+      "tickBefore": 0,
+      "tickAfter": 0,
+      "xBefore": 20.5,
+      "xAfter": 20.5
+    },
+    {
+      "name": "queue-intact",
+      "applied": [
+        {
+          "actionId": "aid_2985a7f51b8c957ac5b86e53",
+          "requestId": "req_57057bc962a77065bd338266",
+          "startedTick": 0,
+          "appliedTick": 120,
+          "executedTicks": 120
+        }
+      ],
+      "executing": null,
+      "tick": 120,
+      "moved": 6.7192
+    },
+    {
+      "name": "cached-replay",
+      "replayed": true,
+      "keys": [
+        "schema",
+        "ok",
+        "session",
+        "epoch",
+        "requestId",
+        "fromTick",
+        "toTick",
+        "ticks",
+        "blockTicks",
+        "status",
+        "executing",
+        "applied",
+        "rejected",
+        "observation",
+        "eventCount",
+        "events",
+        "replayed"
+      ],
+      "hits": []
+    }
+  ],
+  "findings": []
+}

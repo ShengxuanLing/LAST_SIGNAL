@@ -1,0 +1,14 @@
+import { HeadlessWorld } from './src/ai-native/worldHeadless';
+let failures=0; const check=(n:string,c:boolean,d?:unknown)=>{if(c)console.log('PASS',n);else{failures++;console.log('FAIL',n,JSON.stringify(d));}};
+const w = new HeadlessWorld({ seed: 424242 });
+(w as any).sim.targets.push({ id: 77, kind: 'hunter', x: 21, y: 42.5, hp: 40, maxHp: 40, armor: 0, radius: 0.5, isBoss: false, xpValue: 8, currencyValue: 3 });
+w.enableEcho();
+w.runSteps([{ ticks: 1, intent: { move: { x: 0, y: 0 }, dash: false, fire: false, aim: null, interact: false } }], 1);
+const view = w.echoView();
+check('echo spawned', !!view);
+const ids = view ? view.drones.map((d: any) => d.id) : [];
+check('headless echoView includes a nearby non-drone target (rendered side would)', ids.includes(77), { ids });
+const canon = w.canonicalState();
+check('canonical includes echo and target', canon.includes('"echo"') && canon.includes('"targets"'));
+console.log(`ECHO_GAP_${failures===0?'PASS':'FAIL'} failures=${failures}`);
+if(failures>0)process.exit(1);

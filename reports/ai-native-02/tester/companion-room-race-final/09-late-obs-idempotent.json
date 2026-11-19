@@ -1,0 +1,49 @@
+{
+  "total": 7,
+  "pass": 7,
+  "fail": 0,
+  "results": [
+    {
+      "name": "L01 room A observation accepted",
+      "verdict": "PASS",
+      "command": "pushObservation(roomId=0)",
+      "result": "{\"ok\":true}"
+    },
+    {
+      "name": "L02 committed room A->B bumps generation",
+      "verdict": "PASS",
+      "command": "roomChanged(room=1,seq=1)",
+      "result": "{\"ok\":true,\"value\":{\"cancelled\":[],\"generation\":1,\"roomId\":1}}"
+    },
+    {
+      "name": "L03 late OLD-room observation refused E_STALE_GENERATION (cannot pollute new room)",
+      "verdict": "PASS",
+      "command": "pushObservation(roomId=0 after room 1)",
+      "result": "{\"ok\":false,\"code\":\"E_STALE_GENERATION\",\"messageKey\":\"companion.observation_stale_room\"}"
+    },
+    {
+      "name": "L04 new-room observation accepted (agent may observe new room)",
+      "verdict": "PASS",
+      "command": "pushObservation(roomId=1)",
+      "result": "{\"ok\":true}"
+    },
+    {
+      "name": "L05 same-room repeat idempotent: no generation bump",
+      "verdict": "PASS",
+      "command": "roomChanged(room=1,seq=2)",
+      "result": "{\"value\":{\"cancelled\":[],\"generation\":1,\"roomId\":1,\"stale\":true}}"
+    },
+    {
+      "name": "L06 out-of-order report (roomSeq=1 <= gen=1) cannot rollback/new room",
+      "verdict": "PASS",
+      "command": "roomChanged(room=2,seq=1)",
+      "result": "{\"value\":{\"cancelled\":[],\"generation\":1,\"roomId\":1,\"stale\":true}}"
+    },
+    {
+      "name": "L07 status room stays at newest committed room (1)",
+      "verdict": "PASS",
+      "command": "companionGateway.status",
+      "result": "{\"roomId\":1,\"generation\":1}"
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "total": 13,
+  "pass": 13,
+  "fail": 0,
+  "results": [
+    {
+      "name": "M01 headless --dev exposes world_signal_status",
+      "verdict": "PASS",
+      "command": "listTools",
+      "result": "[\"world_headless_dev_signal_batch\",\"world_headless_dev_signal_command\",\"world_headless_dev_signal_device\",\"world_signal_status\"]"
+    },
+    {
+      "name": "M02 dev exposes signal command/device/batch (no generic world_signal_scan/jam)",
+      "verdict": "PASS",
+      "command": "listTools signal",
+      "result": "[\"world_headless_dev_signal_batch\",\"world_headless_dev_signal_command\",\"world_headless_dev_signal_device\",\"world_signal_status\"]"
+    },
+    {
+      "name": "M03 world_signal_status no device => unsupported (truthful)",
+      "verdict": "PASS",
+      "command": "world_signal_status (no device)",
+      "result": "{\"ok\":false,\"code\":\"E_NOT_APPLICABLE\",\"messageKey\":\"world.signal_combat_unsupported\"}"
+    },
+    {
+      "name": "M04 headless create session",
+      "verdict": "PASS",
+      "command": "world_headless_create_session",
+      "result": "{\"ok\":true,\"session\":\"ses_7c1f24f24da445277a202e9b\"}"
+    },
+    {
+      "name": "M05 world_signal_status session no device => unsupported",
+      "verdict": "PASS",
+      "command": "world_signal_status (no device)",
+      "result": "{\"ok\":false,\"code\":\"E_NOT_APPLICABLE\"}"
+    },
+    {
+      "name": "M06 dev spawn ONE relay device",
+      "verdict": "PASS",
+      "command": "world_headless_dev_signal_device",
+      "result": "{\"ok\":true}"
+    },
+    {
+      "name": "M07 world_signal_status with device => supported:true",
+      "verdict": "PASS",
+      "command": "world_signal_status (with device)",
+      "result": "{\"ok\":true,\"supported\":true,\"device\":\"relay_main\",\"relay\":\"INACTIVE\",\"playerEnergy\":100,\"echoEnergy\":100}"
+    },
+    {
+      "name": "M08 dev signal-command scan: player -10, evidence, echo untouched",
+      "verdict": "PASS",
+      "command": "world_headless_dev_signal_command signal-scan",
+      "result": "{\"ok\":true,\"playerEnergy\":90,\"echoEnergy\":100,\"evidence\":1,\"relay\":\"INACTIVE\"}"
+    },
+    {
+      "name": "M09 repeat scan blocked by CD (no double charge)",
+      "verdict": "PASS",
+      "command": "repeat signal-scan",
+      "result": "{\"ok\":true,\"playerEnergy\":90,\"note\":\"tool returns ok:true but energy unchanged => blocked by CD\"}"
+    },
+    {
+      "name": "M10 dev signal-command jam: player -25, relay JAMMED, echo untouched",
+      "verdict": "PASS",
+      "command": "signal-jam",
+      "result": "{\"ok\":true,\"relay\":\"JAMMED\",\"playerEnergy\":65,\"echoEnergy\":100}"
+    },
+    {
+      "name": "M11 echo account not impersonating player (player cmds use player acct)",
+      "verdict": "PASS",
+      "command": "actor->account separation",
+      "result": "{\"playerEnergy\":65,\"echoEnergy\":100}"
+    },
+    {
+      "name": "M12 v1-style scan without actor rejected (not silently v2)",
+      "verdict": "PASS",
+      "command": "world_action {type:scan} no actor",
+      "result": "{\"ok\":false,\"isError\":true}"
+    },
+    {
+      "name": "M13 v1 fire action still accepted (v1 unchanged)",
+      "verdict": "PASS",
+      "command": "world_action {type:fire} v1",
+      "result": "{\"ok\":true,\"isError\":false}"
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "total": 19,
+  "secure": 19,
+  "vulnerable": 0,
+  "results": [
+    {
+      "name": "P0 human handshake issues ownerCap",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "C1 agent self-handshake rejected",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 403,
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.owner_pairing_required"
+      }
+    },
+    {
+      "name": "C2 agent fake-key handshake rejected",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 403,
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.owner_pairing_required"
+      }
+    },
+    {
+      "name": "P1 human authorize accepted",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "P1b handshake cap rotated on authorize",
+      "verdict": "SECURE",
+      "observed": {
+        "rotated": true
+      }
+    },
+    {
+      "name": "X2 agent re-authorize/overwrite blocked",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 403,
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "X2b reauthorize w/ real key but no cap blocked",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 403,
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "X4 agent fake observation blocked",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 403,
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "P2 human observation accepted",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "P3 agent suggest (propose-only) accepted",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "X6 agent self-confirm blocked",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 403,
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "X7 agent markApplied blocked",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 403,
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "X9 agent mode flip blocked",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 403,
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "X10 human cap still valid after attacks",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "P4 human confirm accepted",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 200,
+        "ok": true,
+        "decision": "confirm",
+        "applied": false
+      }
+    },
+    {
+      "name": "P5 human markApplied accepted",
+      "verdict": "SECURE",
+      "observed": {
+        "status": 200,
+        "ok": true,
+        "decision": "confirm",
+        "applied": true
+      }
+    },
+    {
+      "name": "Y2 early tick rejected",
+      "verdict": "SECURE",
+      "observed": {
+        "ok": false,
+        "code": "E_STALE_TICK",
+        "messageKey": "companion.tick_before_creation"
+      }
+    },
+    {
+      "name": "Y5 reject cannot markApplied",
+      "verdict": "SECURE",
+      "observed": {
+        "rejectOk": true,
+        "appliedOk": false,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.decision_not_confirmed"
+      }
+    },
+    {
+      "name": "Y5b appliedTick < decidedTick rejected",
+      "verdict": "SECURE",
+      "observed": {
+        "ok": false,
+        "code": "E_STALE_TICK",
+        "messageKey": "companion.applied_tick_invalid"
+      }
+    }
+  ]
+}

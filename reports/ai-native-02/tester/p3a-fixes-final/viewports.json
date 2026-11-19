@@ -1,0 +1,185 @@
+{
+  "checks": [
+    {
+      "n": "pause-and-levelup-no-forced-tick",
+      "ok": true,
+      "d": {
+        "t0": 28,
+        "tp": 28,
+        "tr": 28,
+        "tl": 28,
+        "tlc": 28,
+        "levelUpMethod": true,
+        "echo": true
+      }
+    },
+    {
+      "n": "portal-transition-echo-follows-no-tick-skip",
+      "ok": true,
+      "d": {
+        "before": {
+          "room": 0,
+          "tick": 29,
+          "echo": {
+            "x": 9,
+            "y": 45
+          }
+        },
+        "after": {
+          "room": 3,
+          "tick": 31,
+          "echo": {
+            "x": 9,
+            "y": 45
+          }
+        },
+        "echoTeleportEvents": 2,
+        "delta": 2
+      }
+    },
+    {
+      "n": "checkpoint-echo-deep-copy",
+      "ok": true,
+      "d": {
+        "captured": true,
+        "hasEcho": true,
+        "liveHpUnchanged": true
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": true,
+      "d": []
+    },
+    {
+      "n": "viewport-1920x1080-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "n": "viewport-1366x768-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "n": "viewport-1280x720-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "n": "viewport-1024x768-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "n": "viewport-800x600-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "overlays",
+      "flow": {
+        "t0": 28,
+        "tp": 28,
+        "tr": 28,
+        "tl": 28,
+        "tlc": 28,
+        "levelUpMethod": true,
+        "echo": true
+      }
+    },
+    {
+      "name": "portal",
+      "portal": {
+        "before": {
+          "room": 0,
+          "tick": 29,
+          "echo": {
+            "x": 9,
+            "y": 45
+          }
+        },
+        "after": {
+          "room": 3,
+          "tick": 31,
+          "echo": {
+            "x": 9,
+            "y": 45
+          }
+        },
+        "echoTeleportEvents": 2,
+        "delta": 2
+      }
+    },
+    {
+      "name": "save",
+      "save": {
+        "captured": true,
+        "hasEcho": true,
+        "liveHpUnchanged": true
+      }
+    },
+    {
+      "name": "viewport-1920x1080",
+      "st": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "name": "viewport-1366x768",
+      "st": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "name": "viewport-1280x720",
+      "st": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "name": "viewport-1024x768",
+      "st": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "name": "viewport-800x600",
+      "st": {
+        "echo": true,
+        "hud": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "control": "CONTROL  HUMAN"
+      }
+    }
+  ]
+}

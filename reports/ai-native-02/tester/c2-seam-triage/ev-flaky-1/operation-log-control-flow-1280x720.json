@@ -1,0 +1,875 @@
+[
+  {
+    "step": "evidence-fixture",
+    "detail": {
+      "reason": "avoid unrelated combat death while sampling control transitions; death still tested via real hurt() after clearing i-frames",
+      "onlyIFramesRefreshed": true,
+      "hpUnchanged": true,
+      "coordinatesUnchanged": true,
+      "actor": "test-harness (not the controller)"
+    }
+  },
+  {
+    "step": "human-default",
+    "detail": {
+      "mode": "HUMAN",
+      "txtControl": "CONTROL  HUMAN",
+      "txtAgentLink": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED"
+    }
+  },
+  {
+    "step": "pause-entry",
+    "detail": {
+      "labels": [
+        "PAUSED",
+        "RESUME",
+        "INVENTORY",
+        "SETTINGS",
+        "QUIT TO MENU",
+        "AI CONTROL: OFF",
+        "CONTROL  HUMAN · HUMAN ONLY",
+        "EXTERNAL AGENT  NOT CONNECTED",
+        "ANY MOVE / FIRE INPUT TAKES HUMAN CONTROL",
+        "CONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT"
+      ]
+    }
+  },
+  {
+    "step": "ai-enabled-paused",
+    "detail": {
+      "owner": "ai",
+      "paused": true,
+      "aiEnabled": true
+    }
+  },
+  {
+    "step": "ai-samples",
+    "detail": {
+      "samples": [
+        {
+          "i": 0,
+          "grid": {
+            "x": 9.995241378954283,
+            "y": 45.4988103447386
+          },
+          "action": "TRAVEL",
+          "target": "PORTAL",
+          "room": "start",
+          "enemies": 0,
+          "projectiles": 0,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0.7682212795973847,
+              "y": 0.6401843996644689
+            },
+            "fire": false,
+            "aim": null,
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 100,
+          "damage": 0,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 1,
+          "grid": {
+            "x": 25.166743242212476,
+            "y": 45.9444189192625
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #2 hunter",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 0,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 24.23484477145927,
+              "y": 43.770217487218936
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 100,
+          "damage": 12,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 2,
+          "grid": {
+            "x": 25.166743242212476,
+            "y": 45.9444189192625
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #2 hunter",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 1,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 24.23484477145927,
+              "y": 43.770217487218936
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 100,
+          "damage": 12,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 3,
+          "grid": {
+            "x": 25.166743242212476,
+            "y": 45.9444189192625
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 2,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.6380302093281,
+              "y": 44.03712274141598
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 100,
+          "damage": 30,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 4,
+          "grid": {
+            "x": 25.166743242212476,
+            "y": 45.9444189192625
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 3,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.717264803545195,
+              "y": 43.93440733505329
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 100,
+          "damage": 54,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 5,
+          "grid": {
+            "x": 25.166743242212476,
+            "y": 45.9444189192625
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 3,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.6113196458411,
+              "y": 44.071748859084146
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 100,
+          "damage": 66,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 6,
+          "grid": {
+            "x": 25.31447608502359,
+            "y": 46.28909268843409
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 2,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.676229330884947,
+              "y": 43.98760348367039
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 89,
+          "damage": 78,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 7,
+          "grid": {
+            "x": 25.31447608502359,
+            "y": 46.28909268843409
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 2,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.777811421957185,
+              "y": 43.885430131494786
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 89,
+          "damage": 102,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 8,
+          "grid": {
+            "x": 25.554635262744174,
+            "y": 46.57710062123555
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 1,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.821695242224173,
+              "y": 43.81334693021552
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 78,
+          "damage": 114,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 9,
+          "grid": {
+            "x": 25.554635262744174,
+            "y": 46.57710062123555
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 1,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.897116010956264,
+              "y": 43.72303548337907
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 78,
+          "damage": 126,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 10,
+          "grid": {
+            "x": 25.554635262744174,
+            "y": 46.57710062123555
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 2,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.956310427745077,
+              "y": 43.597190310896984
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 78,
+          "damage": 150,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 11,
+          "grid": {
+            "x": 25.554635262744174,
+            "y": 46.57710062123555
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 3,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.893130965617775,
+              "y": 43.73150754451555
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 78,
+          "damage": 162,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 12,
+          "grid": {
+            "x": 25.554635262744174,
+            "y": 46.57710062123555
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 3,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.924398142110473,
+              "y": 43.66503466696716
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 78,
+          "damage": 162,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 13,
+          "grid": {
+            "x": 25.554635262744174,
+            "y": 46.57710062123555
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #3 sentinel",
+          "room": "combat",
+          "enemies": 3,
+          "projectiles": 3,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 26.997558839291237,
+              "y": 43.50949769143673
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 78,
+          "damage": 192,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 14,
+          "grid": {
+            "x": 25.554635262744174,
+            "y": 46.57710062123555
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #2 hunter",
+          "room": "combat",
+          "enemies": 2,
+          "projectiles": 3,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 24.05120730786347,
+              "y": 43.3417750668723
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 78,
+          "damage": 204,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 15,
+          "grid": {
+            "x": 25.554635262744174,
+            "y": 46.57710062123555
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #2 hunter",
+          "room": "combat",
+          "enemies": 2,
+          "projectiles": 4,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 24.05120730786347,
+              "y": 43.3417750668723
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 78,
+          "damage": 204,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 16,
+          "grid": {
+            "x": 25.20841944779526,
+            "y": 46.60054592314457
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #1 hunter",
+          "room": "combat",
+          "enemies": 1,
+          "projectiles": 2,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 22.093271709112866,
+              "y": 44.0209258828544
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 86.46666666666664,
+          "damage": 234,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 17,
+          "grid": {
+            "x": 25.20841944779526,
+            "y": 46.60054592314457
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #1 hunter",
+          "room": "combat",
+          "enemies": 1,
+          "projectiles": 1,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 22.093271709112866,
+              "y": 44.0209258828544
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 86.61666666666663,
+          "damage": 246,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 18,
+          "grid": {
+            "x": 25.085154297177002,
+            "y": 46.498674077377935
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #1 hunter",
+          "room": "combat",
+          "enemies": 1,
+          "projectiles": 2,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 21.898073854023526,
+              "y": 43.864727939946945
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 86.76666666666662,
+          "damage": 246,
+          "active": [
+            "GameScene"
+          ]
+        },
+        {
+          "i": 19,
+          "grid": {
+            "x": 24.715297475802508,
+            "y": 46.19319536119523
+          },
+          "action": "ENGAGE",
+          "target": "HOSTILE #1 hunter",
+          "room": "combat",
+          "enemies": 1,
+          "projectiles": 3,
+          "intentOwner": "ai",
+          "intent": {
+            "move": {
+              "x": 0,
+              "y": 0
+            },
+            "fire": true,
+            "aim": {
+              "x": 21.511454348957468,
+              "y": 43.54767147049221
+            },
+            "interact": false
+          },
+          "walkable": true,
+          "hp": 87.13333333333327,
+          "damage": 270,
+          "active": [
+            "GameScene"
+          ]
+        }
+      ],
+      "pathLength": 1.7366209503064054,
+      "maxStep": 0.47969919153348395,
+      "movingSamples": 1,
+      "interactSamples": 0,
+      "legalSamples": 20,
+      "portalTransitions": 1,
+      "portalJumps": [
+        {
+          "from": {
+            "x": 9.995241378954283,
+            "y": 45.4988103447386,
+            "room": "start"
+          },
+          "to": {
+            "x": 25.166743242212476,
+            "y": 45.9444189192625
+          },
+          "distance": 15.178044531115859,
+          "room": "combat"
+        }
+      ],
+      "rooms": [
+        "start",
+        "combat"
+      ],
+      "levelUpChoices": 1,
+      "aiPathStats": {
+        "samples": 104,
+        "pathLength": 6.001358808869355,
+        "transitions": 1,
+        "maxStep": 0.4839171149430302,
+        "legalSamples": 104
+      },
+      "boundedWindow": {
+        "min": 20,
+        "max": 80,
+        "exhausted": false
+      }
+    }
+  },
+  {
+    "step": "ai-summary",
+    "detail": {
+      "aiActionCount": 19,
+      "lastAiAction": "ENGAGE",
+      "lastAiTarget": "HOSTILE #1 hunter",
+      "movedTo": {
+        "x": 24.715297475802508,
+        "y": 46.19319536119523
+      },
+      "room": "combat",
+      "enemies": 0,
+      "pathLength": 1.7366209503064054,
+      "maxStep": 0.47969919153348395,
+      "movingSamples": 1,
+      "interactSamples": 0,
+      "portalTransitions": 1,
+      "samples": 20,
+      "aiPathStats": {
+        "samples": 104,
+        "pathLength": 6.001358808869355,
+        "transitions": 1,
+        "maxStep": 0.4839171149430302,
+        "legalSamples": 104
+      },
+      "boundedWaitExhausted": false,
+      "seenRooms": [
+        "start",
+        "combat"
+      ]
+    }
+  },
+  {
+    "step": "observation-whitelist",
+    "detail": {
+      "worldEnemies": 2,
+      "hiddenEnemyId": 5,
+      "hiddenEnemyRoom": 0,
+      "currentRoom": 3,
+      "perceivedIds": [
+        4
+      ],
+      "intentEnemyIds": [
+        4
+      ],
+      "hasTargetRoom": false,
+      "playerHp": 87.39999999999992,
+      "roomKind": "combat"
+    }
+  },
+  {
+    "step": "pause-freeze",
+    "detail": {
+      "paused": "PAUSED",
+      "frozen": {
+        "x": 25.87129379722699,
+        "y": 45.789783145589915
+      },
+      "aiActionCount": 21
+    }
+  },
+  {
+    "step": "manual-disable",
+    "detail": {
+      "owner": "human",
+      "takeoverCount": 1,
+      "reason": "pause-menu"
+    }
+  },
+  {
+    "step": "human-takeover",
+    "detail": {
+      "owner": "human",
+      "takeoverCount": 2,
+      "reason": "human-input",
+      "maxTrackStep": 0.4861359120657464,
+      "track": [
+        {
+          "x": 28.13801000181887,
+          "y": 44.65807058171992
+        },
+        {
+          "x": 28.481760001818877,
+          "y": 44.31432058171993
+        },
+        {
+          "x": 28.768218335152216,
+          "y": 44.02786224838661
+        },
+        {
+          "x": 29.111968335152223,
+          "y": 43.684112248386626
+        },
+        {
+          "x": 29.398426668485563,
+          "y": 43.397653915053304
+        },
+        {
+          "x": 29.74217666848557,
+          "y": 43.05390391505332
+        },
+        {
+          "x": 30.085926668485577,
+          "y": 42.71015391505333
+        }
+      ]
+    }
+  },
+  {
+    "step": "levelup-takeover",
+    "detail": {
+      "active": [
+        "GameScene",
+        "LevelUpScene"
+      ],
+      "owner": "human",
+      "takeoverCount": 3,
+      "reason": "human-input"
+    }
+  },
+  {
+    "step": "levelup-after",
+    "detail": {
+      "owner": "human",
+      "aiEnabled": false,
+      "paused": false
+    }
+  },
+  {
+    "step": "death",
+    "detail": {
+      "active": [
+        "GameOverScene"
+      ],
+      "owner": "human",
+      "aiEnabled": false,
+      "save": {
+        "hasRun": false,
+        "cores": 0
+      }
+    }
+  },
+  {
+    "step": "checkpoint-copy",
+    "detail": {
+      "unchanged": true,
+      "capturedCurrency": 20,
+      "liveCurrency": 27,
+      "capturedHp": 100,
+      "liveHp": 95
+    }
+  },
+  {
+    "step": "restart",
+    "detail": {
+      "owner": "human",
+      "aiEnabled": false,
+      "aiActionCount": 0
+    }
+  },
+  {
+    "step": "scene-exit",
+    "detail": {
+      "active": [
+        "MainMenuScene"
+      ]
+    }
+  }
+]

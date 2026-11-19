@@ -1,0 +1,603 @@
+{
+  "meta": {
+    "target": "212cd5634ea4ef1e775294eab3ccfca8ecff3a1f",
+    "fixtures": "owner/dev spawn + invuln + HP setup; real FSM/core attacks"
+  },
+  "checks": [
+    {
+      "n": "echo-ready-without-assist",
+      "ok": true,
+      "d": {
+        "echo": {
+          "x": 9,
+          "y": 45,
+          "hp": 100
+        },
+        "assist": false,
+        "shots": 0
+      }
+    },
+    {
+      "n": "hunter-echo-hp-drops",
+      "ok": true,
+      "d": {
+        "kind": "hunter",
+        "before": {
+          "echoHp": 100,
+          "playerHp": 100
+        },
+        "hurt": {
+          "echoHp": 88,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "hunter",
+              "tk": "echo",
+              "tid": 1
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": null
+            },
+            {
+              "kind": "hunter",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "stalker",
+              "tk": "player",
+              "tid": null
+            },
+            {
+              "kind": "stalker",
+              "tk": "player",
+              "tid": null
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "locked": {
+          "echoHp": 88,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "hunter",
+              "tk": "echo",
+              "tid": 1
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": null
+            },
+            {
+              "kind": "hunter",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "stalker",
+              "tk": "player",
+              "tid": null
+            },
+            {
+              "kind": "stalker",
+              "tk": "player",
+              "tid": null
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "after": {
+          "echoHp": 88,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false
+        }
+      }
+    },
+    {
+      "n": "hunter-targets-echo",
+      "ok": true,
+      "d": {
+        "targetKind": "echo",
+        "targetId": 1
+      }
+    },
+    {
+      "n": "hunter-player-hp-independent",
+      "ok": true,
+      "d": {
+        "before": 100,
+        "after": 100
+      }
+    },
+    {
+      "n": "hunter-no-fire-without-confirm",
+      "ok": true,
+      "d": {
+        "shots": 0,
+        "assist": false
+      }
+    },
+    {
+      "n": "stalker-echo-hp-drops",
+      "ok": true,
+      "d": {
+        "kind": "stalker",
+        "before": {
+          "echoHp": 100,
+          "playerHp": 100
+        },
+        "hurt": {
+          "echoHp": 86,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "stalker",
+              "tk": "echo",
+              "tid": 1
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "locked": {
+          "echoHp": 86,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "stalker",
+              "tk": "echo",
+              "tid": 1
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "after": {
+          "echoHp": 86,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false
+        }
+      }
+    },
+    {
+      "n": "stalker-targets-echo",
+      "ok": true,
+      "d": {
+        "targetKind": "echo",
+        "targetId": 1
+      }
+    },
+    {
+      "n": "stalker-player-hp-independent",
+      "ok": true,
+      "d": {
+        "before": 100,
+        "after": 100
+      }
+    },
+    {
+      "n": "stalker-no-fire-without-confirm",
+      "ok": true,
+      "d": {
+        "shots": 0,
+        "assist": false
+      }
+    },
+    {
+      "n": "sentinel-echo-hp-drops",
+      "ok": true,
+      "d": {
+        "kind": "sentinel",
+        "before": {
+          "echoHp": 100,
+          "playerHp": 100
+        },
+        "hurt": {
+          "echoHp": 81,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "sentinel",
+              "tk": "echo",
+              "tid": 1
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "locked": {
+          "echoHp": 81,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "sentinel",
+              "tk": "echo",
+              "tid": 1
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "after": {
+          "echoHp": 81,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false
+        }
+      }
+    },
+    {
+      "n": "sentinel-targets-echo",
+      "ok": true,
+      "d": {
+        "targetKind": "echo",
+        "targetId": 1
+      }
+    },
+    {
+      "n": "sentinel-player-hp-independent",
+      "ok": true,
+      "d": {
+        "before": 100,
+        "after": 100
+      }
+    },
+    {
+      "n": "sentinel-no-fire-without-confirm",
+      "ok": true,
+      "d": {
+        "shots": 0,
+        "assist": false
+      }
+    },
+    {
+      "n": "boss-echo-hp-drops",
+      "ok": true,
+      "d": {
+        "before": 83,
+        "hurt": 83
+      }
+    },
+    {
+      "n": "boss-player-hp-independent",
+      "ok": true,
+      "d": {
+        "before": 100,
+        "after": 100
+      }
+    },
+    {
+      "n": "boss-no-fire-without-confirm",
+      "ok": true,
+      "d": {
+        "shots": 0
+      }
+    },
+    {
+      "n": "echo-death-reselects-player",
+      "ok": true,
+      "d": {
+        "echoHp": 0,
+        "playerHp": 64,
+        "shots": 0,
+        "assist": false,
+        "enemies": [
+          {
+            "kind": "hunter",
+            "tk": "player",
+            "tid": 1
+          }
+        ],
+        "targetKind": "player",
+        "targetId": 1,
+        "bossTargetKind": null
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "steps": [
+    {
+      "name": "kind-hunter",
+      "step": {
+        "kind": "hunter",
+        "before": {
+          "echoHp": 100,
+          "playerHp": 100
+        },
+        "hurt": {
+          "echoHp": 88,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "hunter",
+              "tk": "echo",
+              "tid": 1
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": null
+            },
+            {
+              "kind": "hunter",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "stalker",
+              "tk": "player",
+              "tid": null
+            },
+            {
+              "kind": "stalker",
+              "tk": "player",
+              "tid": null
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "locked": {
+          "echoHp": 88,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "hunter",
+              "tk": "echo",
+              "tid": 1
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "sentinel",
+              "tk": "player",
+              "tid": null
+            },
+            {
+              "kind": "hunter",
+              "tk": "player",
+              "tid": 0
+            },
+            {
+              "kind": "stalker",
+              "tk": "player",
+              "tid": null
+            },
+            {
+              "kind": "stalker",
+              "tk": "player",
+              "tid": null
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "after": {
+          "echoHp": 88,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false
+        }
+      }
+    },
+    {
+      "name": "kind-stalker",
+      "step": {
+        "kind": "stalker",
+        "before": {
+          "echoHp": 100,
+          "playerHp": 100
+        },
+        "hurt": {
+          "echoHp": 86,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "stalker",
+              "tk": "echo",
+              "tid": 1
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "locked": {
+          "echoHp": 86,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "stalker",
+              "tk": "echo",
+              "tid": 1
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "after": {
+          "echoHp": 86,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false
+        }
+      }
+    },
+    {
+      "name": "kind-sentinel",
+      "step": {
+        "kind": "sentinel",
+        "before": {
+          "echoHp": 100,
+          "playerHp": 100
+        },
+        "hurt": {
+          "echoHp": 81,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "sentinel",
+              "tk": "echo",
+              "tid": 1
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "locked": {
+          "echoHp": 81,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false,
+          "enemies": [
+            {
+              "kind": "sentinel",
+              "tk": "echo",
+              "tid": 1
+            }
+          ],
+          "targetKind": "echo",
+          "targetId": 1,
+          "bossTargetKind": null
+        },
+        "after": {
+          "echoHp": 81,
+          "playerHp": 100,
+          "shots": 0,
+          "assist": false
+        }
+      }
+    },
+    {
+      "name": "boss",
+      "bossBefore": {
+        "echoHp": 83,
+        "playerHp": 100,
+        "shots": 0,
+        "assist": false,
+        "enemies": [],
+        "targetKind": null,
+        "targetId": null,
+        "bossTargetKind": null
+      },
+      "bossHurt": {
+        "echoHp": 83,
+        "playerHp": 100,
+        "shots": 0,
+        "assist": false,
+        "enemies": [],
+        "targetKind": null,
+        "targetId": null,
+        "bossTargetKind": null
+      }
+    },
+    {
+      "name": "reselect-after-death",
+      "reselect": {
+        "echoHp": 100
+      },
+      "dead": {
+        "hunter": true,
+        "echoHp": 1
+      },
+      "playerHurt": {
+        "echoHp": 0,
+        "playerHp": 64,
+        "shots": 0,
+        "assist": false,
+        "enemies": [
+          {
+            "kind": "hunter",
+            "tk": "player",
+            "tid": 1
+          }
+        ],
+        "targetKind": "player",
+        "targetId": 1,
+        "bossTargetKind": null
+      }
+    }
+  ]
+}

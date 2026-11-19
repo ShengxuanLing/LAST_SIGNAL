@@ -1,0 +1,132 @@
+{
+  "total": 21,
+  "pass": 21,
+  "fail": 0,
+  "results": [
+    {
+      "name": "M01 dev ready",
+      "verdict": "PASS",
+      "command": "true",
+      "result": "http://localhost:5392"
+    },
+    {
+      "name": "M02 real NEW RUN -> GameScene + ONE relay device",
+      "verdict": "PASS",
+      "command": "{\"deviceId\":\"relay_main\",\"roomId\":0,\"relay\":\"INACTIVE\",\"playerEnergy\":100,\"echoEnergy\":100,\"exitOpen\":false}"
+    },
+    {
+      "name": "M04 hold R 1s => single toggle to ACTIVE",
+      "verdict": "PASS",
+      "command": "R down/up 1000ms",
+      "result": "{\"relay\":\"ACTIVE\",\"exitOpen\":true}"
+    },
+    {
+      "name": "M05 release R + press again => single toggle back to INACTIVE",
+      "verdict": "PASS",
+      "command": "second R press",
+      "result": "{\"relay\":\"INACTIVE\"}"
+    },
+    {
+      "name": "M06 direct scan: first charges player -10",
+      "verdict": "PASS",
+      "command": "world.playerSignalScan() x1",
+      "result": "{\"called\":true,\"energy\":90,\"note\":\"scanCooldown field reads echo cooldown in signalView\"}"
+    },
+    {
+      "name": "M07 direct scan: second blocked, no double charge (energy stays ~90 + regen)",
+      "verdict": "PASS",
+      "command": "world.playerSignalScan() x2 blocked",
+      "result": "{\"called\":true,\"energy\":91}"
+    },
+    {
+      "name": "M08 direct jam: first charges -25 JAMMED",
+      "verdict": "PASS",
+      "command": "world.playerSignalJam() x1",
+      "result": "{\"called\":true,\"energy\":67,\"relay\":\"JAMMED\"}"
+    },
+    {
+      "name": "M09 direct jam: second blocked, no double charge",
+      "verdict": "PASS",
+      "command": "world.playerSignalJam() x2 blocked",
+      "result": "{\"called\":true,\"energy\":68,\"prev\":67,\"relay\":\"JAMMED\"}"
+    },
+    {
+      "name": "M10 jam expiry 360 ticks => ACTIVE recovers, exit open",
+      "verdict": "PASS",
+      "command": "R ACTIVE + jam + wait 6.2s",
+      "result": "{\"jamRelay\":\"JAMMED\",\"afterRelay\":\"ACTIVE\",\"exitOpen\":true,\"simTick\":305}"
+    },
+    {
+      "name": "M11 HUD shows tick units ('t') not seconds",
+      "verdict": "PASS",
+      "command": "txtSignal.text",
+      "result": "{\"hud\":\"RELAY ACTIVE | e:100 p:100 echoScanCD:0t/jamCD:0t · EXIT OPEN\"}"
+    },
+    {
+      "name": "M12 paused: Q does not change energy/CD",
+      "verdict": "PASS",
+      "command": "pause + Q hold",
+      "result": "{\"before\":100,\"after\":100}"
+    },
+    {
+      "name": "M13 inventory overlay: no -10 scan charge (any delta is regen, not scan)",
+      "verdict": "PASS",
+      "command": "inventory open",
+      "result": "{\"before\":100,\"after\":100}"
+    },
+    {
+      "name": "M14 AI/External control set",
+      "verdict": "PASS",
+      "command": "toggleAiControl()",
+      "result": "{\"owner\":\"ai\"}"
+    },
+    {
+      "name": "M15 AI/External: signal keys do not fire",
+      "verdict": "PASS",
+      "command": "Q hold while AI owner",
+      "result": "{\"before\":100,\"after\":100}"
+    },
+    {
+      "name": "M16 back to human control",
+      "verdict": "PASS",
+      "command": "toggleAiControl() again",
+      "result": "{\"owner\":\"human\"}"
+    },
+    {
+      "name": "M17 no page errors",
+      "verdict": "PASS",
+      "command": "page error capture",
+      "result": "[]"
+    },
+    {
+      "name": "VP-800x600 HUD/target-line rendered",
+      "verdict": "PASS",
+      "command": "real run + R toggle",
+      "result": "{\"relay\":\"ACTIVE\",\"hud\":\"RELAY ACTIVE | e:100 p:100 echoScanCD:0t/jamCD:0t · EXIT OPEN\"}"
+    },
+    {
+      "name": "VP-1024x768 HUD/target-line rendered",
+      "verdict": "PASS",
+      "command": "real run + R toggle",
+      "result": "{\"relay\":\"ACTIVE\",\"hud\":\"RELAY ACTIVE | e:100 p:100 echoScanCD:0t/jamCD:0t · EXIT OPEN\"}"
+    },
+    {
+      "name": "VP-1280x720 HUD/target-line rendered",
+      "verdict": "PASS",
+      "command": "real run + R toggle",
+      "result": "{\"relay\":\"ACTIVE\",\"hud\":\"RELAY ACTIVE | e:100 p:100 echoScanCD:0t/jamCD:0t · EXIT OPEN\"}"
+    },
+    {
+      "name": "VP-1366x768 HUD/target-line rendered",
+      "verdict": "PASS",
+      "command": "real run + R toggle",
+      "result": "{\"relay\":\"ACTIVE\",\"hud\":\"RELAY ACTIVE | e:100 p:100 echoScanCD:0t/jamCD:0t · EXIT OPEN\"}"
+    },
+    {
+      "name": "VP-1920x1080 HUD/target-line rendered",
+      "verdict": "PASS",
+      "command": "real run + R toggle",
+      "result": "{\"relay\":\"ACTIVE\",\"hud\":\"RELAY ACTIVE | e:100 p:100 echoScanCD:0t/jamCD:0t · EXIT OPEN\"}"
+    }
+  ]
+}

@@ -1,0 +1,247 @@
+{
+  "meta": {
+    "url": "http://localhost:5293/",
+    "target": "59aa852",
+    "fixture": "none (real menu + real keys only)"
+  },
+  "steps": [
+    {
+      "name": "new-run-from-menu",
+      "detail": {
+        "started": true,
+        "tick": 75,
+        "pending": [],
+        "uncommitted": false,
+        "owner": "human",
+        "aiEnabled": false,
+        "mode": "HUMAN",
+        "action": null,
+        "hp": 100,
+        "currency": 20,
+        "loot": 0,
+        "lootViews": 0,
+        "paused": false,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "ai-enabled",
+      "detail": {
+        "aiOn": true,
+        "tick": 119,
+        "pending": [
+          "move-target",
+          "move-target",
+          "move-target"
+        ],
+        "uncommitted": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "AI",
+        "action": "ENGAGE",
+        "hp": 100,
+        "currency": 30,
+        "loot": 0,
+        "lootViews": 0,
+        "paused": false,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "takeover",
+      "detail": {
+        "tick": 162,
+        "pending": [],
+        "uncommitted": false,
+        "owner": "human",
+        "aiEnabled": false,
+        "mode": "HUMAN",
+        "action": null,
+        "hp": 100,
+        "currency": 30,
+        "loot": 0,
+        "lootViews": 0,
+        "paused": false,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "paused-zero-dt",
+      "detail": {
+        "before": {
+          "hp": 100,
+          "currency": 30,
+          "tick": 162,
+          "pending": 0
+        },
+        "afterEnqueue": {
+          "hp": 100,
+          "currency": 30,
+          "tick": 162,
+          "pending": 2
+        },
+        "afterZero": {
+          "hp": 100,
+          "currency": 30,
+          "tick": 162,
+          "pending": 2,
+          "events": 0
+        },
+        "afterOne": {
+          "hp": 100,
+          "currency": 80,
+          "tick": 163,
+          "pending": 0,
+          "events": [
+            "player-healed",
+            "currency-gained",
+            "player-moved"
+          ]
+        }
+      }
+    },
+    {
+      "name": "far-loot-20",
+      "detail": {
+        "c0": 80,
+        "currency": 90,
+        "loot": 0,
+        "lootViews": 0,
+        "dist": null
+      }
+    }
+  ],
+  "checks": [
+    {
+      "n": "ai-enabled-via-real-menu",
+      "ok": true,
+      "d": {
+        "tick": 119,
+        "pending": [
+          "move-target",
+          "move-target",
+          "move-target"
+        ],
+        "uncommitted": true,
+        "owner": "ai",
+        "aiEnabled": true,
+        "mode": "AI",
+        "action": "ENGAGE",
+        "hp": 100,
+        "currency": 30,
+        "loot": 0,
+        "lootViews": 0,
+        "paused": false,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "n": "real-key-takeover",
+      "ok": true,
+      "d": {
+        "tick": 162,
+        "pending": [],
+        "uncommitted": false,
+        "owner": "human",
+        "aiEnabled": false,
+        "mode": "HUMAN",
+        "action": null,
+        "hp": 100,
+        "currency": 30,
+        "loot": 0,
+        "lootViews": 0,
+        "paused": false,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "n": "paused-enqueue-only",
+      "ok": true,
+      "d": {
+        "before": {
+          "hp": 100,
+          "currency": 30,
+          "tick": 162,
+          "pending": 0
+        },
+        "afterEnqueue": {
+          "hp": 100,
+          "currency": 30,
+          "tick": 162,
+          "pending": 2
+        },
+        "afterZero": {
+          "hp": 100,
+          "currency": 30,
+          "tick": 162,
+          "pending": 2,
+          "events": 0
+        },
+        "afterOne": {
+          "hp": 100,
+          "currency": 80,
+          "tick": 163,
+          "pending": 0,
+          "events": [
+            "player-healed",
+            "currency-gained",
+            "player-moved"
+          ]
+        }
+      }
+    },
+    {
+      "n": "step0-no-commit",
+      "ok": true,
+      "d": {
+        "hp": 100,
+        "currency": 30,
+        "tick": 162,
+        "pending": 2,
+        "events": 0
+      }
+    },
+    {
+      "n": "one-tick-commits",
+      "ok": true,
+      "d": {
+        "hp": 100,
+        "currency": 80,
+        "tick": 163,
+        "pending": 0,
+        "events": [
+          "player-healed",
+          "currency-gained",
+          "player-moved"
+        ]
+      }
+    },
+    {
+      "n": "far-loot-20-not-auto-picked",
+      "ok": false,
+      "d": {
+        "c0": 80,
+        "currency": 90,
+        "loot": 0,
+        "lootViews": 0,
+        "dist": null
+      }
+    },
+    {
+      "n": "no-console-error",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "errors": []
+}

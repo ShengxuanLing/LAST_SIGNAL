@@ -1,0 +1,32 @@
+import { WorldGateway } from './src/ai-native/worldGateway';
+import { CompanionGateway } from './src/ai-native/companionGateway';
+let failures=0; const check=(n:string,c:boolean,d?:unknown)=>{if(c)console.log('PASS',n);else{failures++;console.log('FAIL',n,JSON.stringify(d));}};
+const info=(n:string,d?:unknown)=>console.log('INFO',n,JSON.stringify(d));
+const wg=new WorldGateway(); const l=wg.linkSession({authorized:true,origin:'http://localhost:5412',nowMs:Date.now()});
+if(!l.ok) throw new Error('link');
+const cg=new CompanionGateway(wg); const {session,epoch}=l;
+cg.authorize(session,epoch,'human');
+cg.pushObservation(session,epoch,{epoch,tick:10,player:{x:0,y:0},echo:{x:0,y:0,hp:100,maxHp:100,aimYaw:0},
+  drones:[{id:1,x:1,y:0,hp:5}],schema:'last_signal.echo-observation.v1',
+  perception:{center:{x:0,y:0},radiusTiles:12,requiresExplored:true,requiresLineOfSight:true},targets:[]});
+const mk=(c:string)=>{const id='sug_'+c.repeat(24); cg.suggest({session,epoch,requestId:'req_'+c.repeat(24),suggestionId:id,kind:'fire',reason:'perceived_hostile',target:{x:1,y:0},ttlTicks:600}); return id;};
+const before = cg.markApplied(session,'sug_'+'z'.repeat(24));
+check('applied receipt BEFORE decision rejected', !before.ok);
+const idA=mk('a');
+const dA=cg.decide({session,epoch,suggestionId:idA,decision:'confirm',tick:11});
+check('confirm recorded applied=false (receipt cannot claim effect early)', dA.ok && dA.value.applied===false);
+const a1=cg.markApplied(session,idA);
+const a2=cg.markApplied(session,idA);
+info('double applied receipt', {first:a1.ok?a1.value.applied:undefined, second:a2.ok?a2.value.applied:undefined});
+check('second applied receipt is idempotent-ish (still applied=true, no error)', a2.ok && a2.value.applied===true);
+const idB=mk('b');
+cg.decide({session,epoch,suggestionId:idB,decision:'reject',tick:11});
+const rB=cg.markApplied(session,idB);
+info('applied receipt on a REJECTED id', {ok:rB.ok, applied:rB.ok?rB.value.applied:undefined});
+check('GAP: markApplied does not check decision==confirm (rejected id can be marked applied)', rB.ok && rB.value.applied===true);
+const idC=mk('c');
+const expired=cg.decide({session,epoch,suggestionId:idC,decision:'confirm',tick:10000});
+check('expired suggestion cannot be decided', !expired.ok);
+const rc=cg.markApplied(session,idC);
+check('applied receipt on an EXPIRED/undecided id rejected', !rc.ok);
+console.log(`RECEIPT_${failures===0?'PASS':'FAIL'} failures=${failures}`); if(failures>0)process.exit(1);

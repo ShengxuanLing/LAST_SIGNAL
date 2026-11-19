@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "economy payout/purchase legality"
+  },
+  "steps": [
+    {
+      "name": "initial",
+      "detail": {
+        "room": "start",
+        "aliveEnemies": 0,
+        "currency": 20,
+        "pending": [],
+        "hasProcessPendingCommands": true,
+        "terminalRooms": [
+          5
+        ]
+      }
+    },
+    {
+      "name": "payout",
+      "detail": {
+        "c0": 20,
+        "afterEnqueue": {
+          "currency": 20,
+          "pending": [
+            "add-currency"
+          ]
+        },
+        "afterProcess": {
+          "currency": 32,
+          "pending": []
+        }
+      }
+    },
+    {
+      "name": "terminal-open",
+      "detail": {
+        "opened": false,
+        "bodyHas": false
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "economy-payout-and-purchase-path",
+      "detail": {
+        "state1": {
+          "room": "start",
+          "aliveEnemies": 0,
+          "currency": 20,
+          "pending": [],
+          "hasProcessPendingCommands": true,
+          "terminalRooms": [
+            5
+          ]
+        },
+        "payout": {
+          "c0": 20,
+          "afterEnqueue": {
+            "currency": 20,
+            "pending": [
+              "add-currency"
+            ]
+          },
+          "afterProcess": {
+            "currency": 32,
+            "pending": []
+          }
+        },
+        "opened": {
+          "opened": false,
+          "bodyHas": false
+        },
+        "note": "economy update() enqueues the clear payout and then calls world.processPendingCommands(); purchase uses world.enqueueSetPlayerData + saveCheckpoint"
+      }
+    }
+  ],
+  "errors": []
+}

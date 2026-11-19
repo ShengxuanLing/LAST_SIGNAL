@@ -1,0 +1,55 @@
+{
+  "total": 8,
+  "pass": 8,
+  "fail": 0,
+  "results": [
+    {
+      "name": "G01 propose in room 0",
+      "verdict": "PASS",
+      "command": "suggest",
+      "result": "{\"ok\":true}"
+    },
+    {
+      "name": "G02 confirm decision recorded (applied=false)",
+      "verdict": "PASS",
+      "command": "decide",
+      "result": "{\"ok\":true,\"value\":{\"suggestionId\":\"sug_aaaaaaaaaaaaaaaaaaaaaaaa\",\"decision\":\"confirm\",\"epoch\":1,\"decidedAtTick\":12,\"applied\":false,\"appliedTick\":null,\"generation\":1,\"roomId\":0}}"
+    },
+    {
+      "name": "G03 room change makes the confirmed-unapplied decision stale",
+      "verdict": "PASS",
+      "command": "roomChanged(room=1)",
+      "result": "{\"ok\":true,\"value\":{\"cancelled\":[\"sug_aaaaaaaaaaaaaaaaaaaaaaaa\"],\"generation\":2,\"roomId\":1}}"
+    },
+    {
+      "name": "G04 stale applied OMITTING generation/room refused E_STALE_GENERATION",
+      "verdict": "PASS",
+      "command": "markApplied(no execution)",
+      "result": "{\"ok\":false,\"code\":\"E_STALE_GENERATION\",\"messageKey\":\"companion.applied_generation_mismatch\"}"
+    },
+    {
+      "name": "G05 stale applied with WRONG generation refused",
+      "verdict": "PASS",
+      "command": "markApplied(generation=1,room=1)",
+      "result": "{\"ok\":false,\"code\":\"E_STALE_GENERATION\"}"
+    },
+    {
+      "name": "G06 stale applied correct generation but WRONG room refused",
+      "verdict": "PASS",
+      "command": "markApplied(gen=0,room=1)",
+      "result": "{\"ok\":false,\"code\":\"E_STALE_GENERATION\"}"
+    },
+    {
+      "name": "G07 stale applied with CORRECT original generation/room accepted",
+      "verdict": "PASS",
+      "command": "markApplied(gen=1,room=0)",
+      "result": "{\"ok\":true,\"value\":{\"suggestionId\":\"sug_aaaaaaaaaaaaaaaaaaaaaaaa\",\"decision\":\"confirm\",\"epoch\":1,\"decidedAtTick\":12,\"applied\":true,\"appliedTick\":21,\"generation\":1,\"roomId\":0,\"stale\":true}}"
+    },
+    {
+      "name": "G08 NON-stale record omitting evidence still accepted (loose contract)",
+      "verdict": "PASS",
+      "command": "markApplied(non-stale, no execution)",
+      "result": "{\"ok\":true,\"value\":{\"suggestionId\":\"sug_bbbbbbbbbbbbbbbbbbbbbbbb\",\"decision\":\"confirm\",\"epoch\":1,\"decidedAtTick\":23,\"applied\":true,\"appliedTick\":24,\"generation\":2,\"roomId\":1}}"
+    }
+  ]
+}

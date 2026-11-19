@@ -1,0 +1,4 @@
+branch=feat/gameplay-01-ai-cooperation
+HEAD=1a6306fdaa41cde05d0505affd38969852015d9b
+HEAD_parents=7007ce23cf8cdffa3d41e8e5b1f74d480e9b52a4
+recorded_at=2026-11-18T02:52:16+01:00

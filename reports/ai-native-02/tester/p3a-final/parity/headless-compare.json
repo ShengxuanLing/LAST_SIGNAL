@@ -1,0 +1,78 @@
+{
+  "checks": [
+    [
+      "rendered-initial-has-echo",
+      true
+    ],
+    [
+      "headless-replay-state-byte-equal",
+      true
+    ],
+    [
+      "headless-replay-events-byte-equal",
+      true
+    ],
+    [
+      "final-tick-equal",
+      true
+    ],
+    [
+      "echo-real-fired",
+      true
+    ],
+    [
+      "echo-real-hit-kill",
+      true
+    ],
+    [
+      "echo-independently-hurt",
+      true
+    ],
+    [
+      "echo-hp-changed",
+      true
+    ],
+    [
+      "drones-left-equal",
+      true
+    ],
+    [
+      "targets-left-equal",
+      true
+    ],
+    [
+      "echo-fired-events-present",
+      true
+    ],
+    [
+      "echo-shot-counter-owner-only-diagnostic",
+      true
+    ],
+    [
+      "player-hp-equal",
+      true
+    ]
+  ],
+  "types": [
+    "player-moved",
+    "echo-moved",
+    "drone-step",
+    "enemy-hit",
+    "echo-fired",
+    "projectile-spawned",
+    "enemy-died",
+    "loot-dropped",
+    "xp-gained",
+    "currency-gained",
+    "loot-collected",
+    "echo-hurt",
+    "player-healed"
+  ],
+  "canonicalLen": 1315,
+  "eventsLen": 105098,
+  "echo": {
+    "hp": 92,
+    "x": 8.625,
+    "y": 45
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "rows": [
+    {
+      "seed": 20261117,
+      "pending": {
+        "kind": "scan",
+        "restored": true
+      },
+      "propose": null,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": false,
+        "relay": "ACTIVE",
+        "target": 1,
+        "portal": null,
+        "playerAtPortal": false,
+        "completed": false
+      }
+    },
+    {
+      "seed": 20261118,
+      "pending": {
+        "kind": "scan",
+        "restored": true
+      },
+      "propose": null,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": false,
+        "relay": "ACTIVE",
+        "target": 2,
+        "portal": null,
+        "playerAtPortal": false,
+        "completed": false
+      }
+    },
+    {
+      "seed": 20261119,
+      "pending": {
+        "kind": "scan",
+        "restored": true
+      },
+      "propose": null,
+      "routeState": {
+        "roomId": 0,
+        "roomCleared": false,
+        "relay": "ACTIVE",
+        "target": 5,
+        "portal": null,
+        "playerAtPortal": false,
+        "completed": false
+      }
+    }
+  ]
+}

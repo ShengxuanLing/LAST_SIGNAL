@@ -1,0 +1,114 @@
+### cmd: git rev-parse HEAD; git status --porcelain --untracked-files=no | wc -l
+363eb173207bb5adaa0a21cd1af348dc92f29827
+5
+
+### cmd: wc -l tool-io.jsonl owner-ui.jsonl
+    8 reports/ai-native-02/lead-signal-model-live/tool-io.jsonl
+   20 reports/ai-native-02/lead-signal-model-live/owner-ui.jsonl
+   28 total
+
+### cmd: round/tool sequence
+"round":1,"tool":"echo_observe"
+"round":2,"tool":"echo_suggest"
+"round":3,"tool":"echo_observe"
+"round":4,"tool":"echo_suggest"
+"round":5,"tool":"echo_observe"
+"round":6,"tool":"echo_observe"
+"round":7,"tool":"echo_status"
+
+### cmd: attach env keys
+"childEnvKeys":["PATH","SystemRoot","TEMP","TMP","LAST_SIGNAL_WORLD_BRIDGE_URL","LAST_SIGNAL_WORLD_TOKEN_FILE"]
+
+### cmd: owner-ui commands + at
+"at":"2026-11-16T00:15:56.781Z","command":"_bootstrap_baseline"
+"at":"2026-11-16T00:15:57.796Z","command":"_bootstrap_optin"
+"at":"2026-11-16T00:15:59.326Z","command":"_bootstrap_room_enter"
+"at":"2026-11-16T00:16:05.447Z","command":"_bootstrap_authorize"
+"at":"2026-11-16T00:16:05.500Z","command":"_bootstrap_observation_proof"
+"at":"2026-11-16T00:16:29.080Z","command":"_screenshot"
+"at":"2026-11-16T00:16:36.532Z","command":"_screenshot"
+"at":"2026-11-16T00:16:41.378Z","command":"_owner_confirm"
+"at":"2026-11-16T00:16:46.429Z","command":"_owner_resume"
+"at":"2026-11-16T00:16:57.858Z","command":"_screenshot"
+"at":"2026-11-16T00:17:07.065Z","command":"_screenshot"
+"at":"2026-11-16T00:17:13.140Z","command":"_owner_confirm"
+"at":"2026-11-16T00:17:18.213Z","command":"_owner_resume"
+"at":"2026-11-16T00:17:31.624Z","command":"_screenshot"
+"at":"2026-11-16T00:17:44.680Z","command":"_owner_enter_portal"
+"at":"2026-11-16T00:18:00.653Z","command":"_screenshot"
+"at":"2026-11-16T00:18:09.342Z","command":"_screenshot"
+"at":"2026-11-16T00:18:17.047Z","command":"_shutdown_requested"
+"at":"2026-11-16T00:18:17.077Z","command":"_shutdown"
+"at":"2026-11-16T00:18:17.416Z","command":"_shutdown"
+
+### cmd: adapter suggestion-policy grep (must be help text only)
+18: *     {"tool":"echo_suggest","args":{"requestId":"req_<24hex>","suggestionId":"sug_<24hex>","kind":"scan","reason":"perceived_relay","ttlTicks":600}}
+134:      '  {"tool":"echo_suggest","args":{"requestId":"req_...","suggestionId":"sug_...","kind":"scan|jam|toggle-relay|move|aim|fire","reason":"perceived_relay|objective_blocked|perceived_hostile|no_perceived_target","ttlTicks":600}}',
+
+### cmd: adapter loops grep
+54:    for (const s of secrets) if (s && out.includes(s)) out = out.split(s).join('<redacted>');
+60:    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+195:    for (const [key, command] of ownerMap) {
+
+### cmd: adapter ownerKey grep (must not read the file)
+45:  credentials: { tokenFile: string; controlTokenFile: string; ownerKeyFile: string };
+61:      if (k === 'ownerCap' || k === 'x-owner-cap' || k === 'token' || k === 'ownerKey') { dst[k] = '<redacted>'; continue; }
+
+### cmd: clickText implementation
+async function clickText(page: Page, text: string, what = 'text'): Promise<void> {
+  const p = await page.evaluate((label) => {
+    const g: any = (window as any).__game;
+    const s: any = g.scene.getScene('PauseScene');
+    if (!s) return null;
+    function findText(list: any[]): { x: number; y: number } | null {
+      for (const c of list) {
+        if (!c) continue;
+        if (c.type === 'Text' && (c.text || '').includes(label)) {
+          const b = c.getBounds();
+          return { x: b.centerX, y: b.centerY };
+        }
+        if (c.list && Array.isArray(c.list)) {
+          const found = findText(c.list);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+    return findText(s.children.list);
+  }, text);
+  if (!p) throw new Error(`cannot find ${what} labelled "${text}" in PauseScene`);
+  await page.mouse.click(p.x, p.y);
+}
+
+### cmd: _owner_confirm implementation
+    } else if (command === '_owner_confirm' || command === '_owner_reject') {
+      await ensureCompanionPanel(page);
+      const label = command === '_owner_confirm' ? 'CONFIRM FIRST PROPOSAL (OWNER)' : 'REJECT FIRST PROPOSAL';
+      const pendingBefore = (await receipts(token, bridge.url, before.session, before.epoch));
+      let clicked = true;
+      try { await clickText(page, label, command); } catch { clicked = false; }
+      if (!clicked) {
+        result = { ok: false, code: 'NO_PROPOSAL_BUTTON', detail: '该面板当前没有可点的建议按钮' };
+      } else {
+        await page.waitForTimeout(400);
+        const after = await readState(page);
+        const r = await receipts(token, bridge.url, after.session, after.epoch);
+        result = {
+          ok: true,
+          clicked: label,
+          pendingBefore: pendingBefore.pending ?? null,
+          pendingAfter: r.pending ?? null,
+          receipts: r.receipts ?? [],
+          queuedCommands: after.pendingCommands,
+          note: '决策已记录；Signal 命令在暂停期间保持 queued，必须 _owner_resume 才会被真实 tick 提交'
+        };
+      }
+
+### cmd: _owner_enter_portal rejects -1
+          await page.waitForFunction(({ prev, want }: { prev: number; want: number | null }) => {
+            const gs: any = (window as any).__game.scene.getScene('GameScene');
+            const id = gs.world.currentRoomId;
+            if (id === -1 || id === prev) return false;
+            return want === null ? true : id === want;
+          }, { prev: pre.roomId, want: expected }, { timeout: 25000 });
+        } catch {

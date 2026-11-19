@@ -1,0 +1,22 @@
+### observed at 2026-11-16 01:19 local: frozen state at review start
+git rev-parse HEAD -> 363eb173207bb5adaa0a21cd1af348dc92f29827 ; git status -uno | wc -l -> 0
+
+### observed at 2026-11-16 01:26 local: developer editing tracked sources concurrently
+ M src/ai-native/companionFacet.test.ts
+ M src/ai-native/companionFacet.ts
+ M src/ai-native/echo.ts
+ M src/world/World.ts
+ M src/world/sim/core.ts
+
+### mtimes (developer writes, not this reviewer)
+-rw-r--r-- 1 Rafae 197609 20776 01:22:34 src/ai-native/companionFacet.test.ts
+-rw-r--r-- 1 Rafae 197609 28559 01:22:30 src/ai-native/companionFacet.ts
+-rw-r--r-- 1 Rafae 197609  8194 01:22:20 src/ai-native/echo.ts
+-rw-r--r-- 1 Rafae 197609 79367 01:22:24 src/world/World.ts
+-rw-r--r-- 1 Rafae 197609 56667 01:22:12 src/world/sim/core.ts
+
+### this reviewer wrote only here (untracked):
+reports/ai-native-02/reviewer/lead-signal-model-live/**
+
+### lead artifacts still byte-identical (sha256 -c):
+27

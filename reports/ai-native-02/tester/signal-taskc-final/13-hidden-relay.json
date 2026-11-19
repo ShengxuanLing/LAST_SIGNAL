@@ -1,0 +1,37 @@
+{
+  "total": 5,
+  "pass": 5,
+  "fail": 0,
+  "results": [
+    {
+      "name": "H01 perceived relay IS reported when in radius+explored+LOS",
+      "verdict": "PASS",
+      "command": "buildEchoObservation near",
+      "result": "relay={\"id\":\"relay_main\",\"x\":11,\"y\":10,\"state\":\"INACTIVE\"}"
+    },
+    {
+      "name": "H02 HIDDEN relay out of radius NOT reported",
+      "verdict": "PASS",
+      "command": "buildEchoObservation far",
+      "result": "relay=undefined"
+    },
+    {
+      "name": "H03 relay in radius but UNEXPLORED NOT reported",
+      "verdict": "PASS",
+      "command": "buildEchoObservation unexplored",
+      "result": "relay=undefined"
+    },
+    {
+      "name": "H04 relay in radius+explored but no LOS NOT reported",
+      "verdict": "PASS",
+      "command": "buildEchoObservation blocked LOS",
+      "result": "relay=undefined"
+    },
+    {
+      "name": "H05 no device => no relay field",
+      "verdict": "PASS",
+      "command": "buildEchoObservation no device",
+      "result": "relay=undefined"
+    }
+  ]
+}

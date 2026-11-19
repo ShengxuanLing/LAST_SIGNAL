@@ -1,0 +1,31 @@
+{
+  "total": 4,
+  "pass": 4,
+  "fail": 0,
+  "results": [
+    {
+      "name": "B1 warm snapshot starts without a boss target",
+      "verdict": "PASS",
+      "command": "warm w.sim",
+      "result": "{\"beforeTargets\":0,\"beforeFrozen\":true}"
+    },
+    {
+      "name": "B2 spawnBoss invalidates world.sim (new snapshot + boss target)",
+      "verdict": "PASS",
+      "command": "w.spawnBoss(room)",
+      "result": "{\"afterIsNew\":true,\"afterHasBoss\":true,\"afterTargets\":1,\"beforeTargets\":0}"
+    },
+    {
+      "name": "B3 old frozen snapshot unchanged (immutable history)",
+      "verdict": "PASS",
+      "command": "old w.sim",
+      "result": "{\"beforeUnchanged\":true,\"afterFrozen\":true}"
+    },
+    {
+      "name": "B4 real tick keeps a fresh consistent snapshot with the boss",
+      "verdict": "PASS",
+      "command": "w.stepFrame",
+      "result": "{\"tickAfter\":6,\"tickHasBoss\":true,\"eventsIsArray\":true}"
+    }
+  ]
+}

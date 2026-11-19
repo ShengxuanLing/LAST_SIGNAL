@@ -1,0 +1,37 @@
+{
+  "total": 5,
+  "pass": 5,
+  "fail": 0,
+  "results": [
+    {
+      "name": "C01 first scan charges -10 + CD>0",
+      "verdict": "PASS",
+      "command": "commitSignalScan x1",
+      "result": "{\"ok\":true,\"energy\":90,\"cd\":120}"
+    },
+    {
+      "name": "C02 scan during CD rejected E_COOLDOWN, NO charge",
+      "verdict": "PASS",
+      "command": "commitSignalScan during CD",
+      "result": "{\"code\":\"E_COOLDOWN\",\"energy\":90}"
+    },
+    {
+      "name": "C03 after CD ticks, cooldown recovers to 0",
+      "verdict": "PASS",
+      "command": "120 real unpaused ticks",
+      "result": "{\"cd\":0}"
+    },
+    {
+      "name": "C04 scan after recovery accepted + charged",
+      "verdict": "PASS",
+      "command": "commitSignalScan after recovery",
+      "result": "{\"ok\":true,\"before\":100,\"after\":90}"
+    },
+    {
+      "name": "C05 insufficient energy => E_ENERGY_INSUFFICIENT, NO charge",
+      "verdict": "PASS",
+      "command": "commitSignalScan energy=5",
+      "result": "{\"code\":\"E_ENERGY_INSUFFICIENT\",\"energy\":5}"
+    }
+  ]
+}

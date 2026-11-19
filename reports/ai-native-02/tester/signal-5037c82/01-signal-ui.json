@@ -1,0 +1,133 @@
+{
+  "total": 21,
+  "pass": 21,
+  "fail": 0,
+  "results": [
+    {
+      "name": "U01 dev ready",
+      "verdict": "PASS",
+      "command": "true",
+      "result": "http://localhost:5392"
+    },
+    {
+      "name": "A01 default NEW RUN: NO relay device (legacy)",
+      "verdict": "PASS",
+      "command": "newRun signalView",
+      "result": "null"
+    },
+    {
+      "name": "A02 default HUD: RELAY OFF NO DEVICE",
+      "verdict": "PASS",
+      "command": "txtSignal.text",
+      "result": "{\"hud\":\"RELAY OFF · NO DEVICE\"}"
+    },
+    {
+      "name": "A03 Pause Settings toggle flips opt-in ON",
+      "verdict": "PASS",
+      "command": "click SETTINGS + SIGNAL COLLABORATION",
+      "result": "{\"optAfter\":true,\"hud\":\"RELAY OFF · NO DEVICE\"}"
+    },
+    {
+      "name": "B01 dual-weapon NEW RUN: ONE relay device auto-spawns (opt-in)",
+      "verdict": "PASS",
+      "command": "newRun signalView",
+      "result": "{\"deviceId\":\"relay_main\",\"relay\":\"INACTIVE\"}"
+    },
+    {
+      "name": "B02 dual-weapon fixture: pulse+scatter",
+      "verdict": "PASS",
+      "command": "world.player.data.weapons",
+      "result": "{\"weapons\":[\"pulse\",\"scatter\"],\"key\":\"pulse\"}"
+    },
+    {
+      "name": "B03 Q only switches weapon (pulse->scatter), no signal drain",
+      "verdict": "PASS",
+      "command": "justTap Q",
+      "result": "{\"after\":\"scatter\",\"energy\":100}"
+    },
+    {
+      "name": "B04 E only switches weapon back (scatter->pulse)",
+      "verdict": "PASS",
+      "command": "justTap E",
+      "result": "{\"after\":\"pulse\"}"
+    },
+    {
+      "name": "B05 T scan: player energy drained + CD set",
+      "verdict": "PASS",
+      "command": "justTap T",
+      "result": "{\"before\":100,\"after\":91,\"cd\":107,\"note\":\"regen may soften exact -10 between tap and read\"}"
+    },
+    {
+      "name": "B06 Y jam: player energy drained + relay JAMMED (jam range 6 tiles)",
+      "verdict": "PASS",
+      "command": "justTap Y",
+      "result": "{\"before\":91,\"after\":67,\"relay\":\"JAMMED\",\"pos\":{\"px\":8,\"py\":45,\"dx\":8,\"dy\":45}}"
+    },
+    {
+      "name": "C01 R hold 1s => single toggle to ACTIVE",
+      "verdict": "PASS",
+      "command": "holdKey R 1000ms",
+      "result": "{\"relay\":\"ACTIVE\"}"
+    },
+    {
+      "name": "C02 release R + press again => single toggle back to INACTIVE",
+      "verdict": "PASS",
+      "command": "holdKey R again",
+      "result": "{\"relay\":\"INACTIVE\"}"
+    },
+    {
+      "name": "D01 paused: T hold does not scan",
+      "verdict": "PASS",
+      "command": "pause + T hold",
+      "result": "{\"before\":100,\"after\":100}"
+    },
+    {
+      "name": "D02 resume via RESUME button: unpaused + scan fires",
+      "verdict": "PASS",
+      "command": "click RESUME + justTap T",
+      "result": "{\"paused\":false,\"before\":100,\"after\":91}"
+    },
+    {
+      "name": "E01 enableAi => owner=ai (not paused)",
+      "verdict": "PASS",
+      "command": "control.enableAi(0)",
+      "result": "{\"owner\":\"ai\"}"
+    },
+    {
+      "name": "E02 AI/External physical T => human reclaim AND signal fires",
+      "verdict": "PASS",
+      "command": "holdKey T while ai",
+      "result": "{\"ownerBefore\":\"ai\",\"ownerAfter\":\"human\",\"energyBefore\":100,\"energyAfter\":95}"
+    },
+    {
+      "name": "F01 800x600 HUD two accounts + CD units",
+      "verdict": "PASS",
+      "command": "justTap T",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:106t/jamCD:0t · EXIT CLOSED\",\"pEnergy\":91,\"eEnergy\":100}"
+    },
+    {
+      "name": "F01 1024x768 HUD two accounts + CD units",
+      "verdict": "PASS",
+      "command": "justTap T",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:107t/jamCD:0t · EXIT CLOSED\",\"pEnergy\":91,\"eEnergy\":100}"
+    },
+    {
+      "name": "F01 1280x720 HUD two accounts + CD units",
+      "verdict": "PASS",
+      "command": "justTap T",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:107t/jamCD:0t · EXIT CLOSED\",\"pEnergy\":91,\"eEnergy\":100}"
+    },
+    {
+      "name": "F01 1366x768 HUD two accounts + CD units",
+      "verdict": "PASS",
+      "command": "justTap T",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:106t/jamCD:0t · EXIT CLOSED\",\"pEnergy\":91,\"eEnergy\":100}"
+    },
+    {
+      "name": "F01 1920x1080 HUD two accounts + CD units",
+      "verdict": "PASS",
+      "command": "justTap T",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:106t/jamCD:0t · EXIT CLOSED\",\"pEnergy\":91,\"eEnergy\":100}"
+    }
+  ]
+}

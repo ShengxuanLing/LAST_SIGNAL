@@ -1,0 +1,791 @@
+{
+  "meta": {
+    "target": "4cb59e9",
+    "surface": "Dev (--dev)"
+  },
+  "checks": [
+    {
+      "n": "mid-execution-snapshot-refused",
+      "ok": true,
+      "d": {
+        "code": "E_NOT_APPLICABLE"
+      }
+    },
+    {
+      "n": "snapshot-refusal-does-not-cancel-action",
+      "ok": true,
+      "d": [
+        {
+          "actionId": "aid_02f4819a8bab23726f122446",
+          "requestId": "req_d0391b5a5c8dc767a4a4fb67",
+          "startedTick": 0,
+          "appliedTick": 120,
+          "executedTicks": 120
+        }
+      ]
+    },
+    {
+      "n": "boundary-snapshot-ok",
+      "ok": true,
+      "d": {
+        "boundary": "action"
+      }
+    },
+    {
+      "n": "boundary-restore-epoch-plus-one",
+      "ok": true,
+      "d": {
+        "old": 1,
+        "new": 2
+      }
+    },
+    {
+      "n": "restore-at-same-boundary-tick",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "next-action-same-state-as-no-restore",
+      "ok": true,
+      "d": {
+        "equal": true
+      }
+    },
+    {
+      "n": "next-action-same-events-as-no-restore",
+      "ok": false,
+      "d": {
+        "equal": false
+      }
+    },
+    {
+      "n": "incomplete-export-marked-not-replayable",
+      "ok": true,
+      "d": {
+        "boundary": "mid_execution",
+        "replayable": false
+      }
+    },
+    {
+      "n": "incomplete-frame-restore-refused",
+      "ok": true,
+      "d": {
+        "code": "E_NOT_APPLICABLE"
+      }
+    },
+    {
+      "n": "incomplete-export-did-not-cancel-action",
+      "ok": true,
+      "d": [
+        {
+          "actionId": "aid_9f245f3107ce22da394e10d9",
+          "requestId": "req_09bfe484f2a7fadaff9f63ca",
+          "startedTick": 150,
+          "appliedTick": 270,
+          "executedTicks": 120
+        }
+      ]
+    },
+    {
+      "n": "boundary-export-marked-replayable",
+      "ok": true,
+      "d": {
+        "boundary": "action",
+        "replayable": true,
+        "frameBoundary": "action"
+      }
+    },
+    {
+      "n": "boundary-export-replay-same",
+      "ok": false,
+      "d": {
+        "sameState": false,
+        "firstDivergence": 0
+      }
+    },
+    {
+      "n": "boundary-export-tamper-diverges",
+      "ok": true,
+      "d": {
+        "sameState": false,
+        "firstDivergence": 0
+      }
+    },
+    {
+      "n": "boundary-frame-restore-ok",
+      "ok": true,
+      "d": {
+        "epoch": 2,
+        "old": 1
+      }
+    },
+    {
+      "n": "history-events-immutable",
+      "ok": false,
+      "d": {
+        "firstEventDiff": 123,
+        "projEvents1": [
+          {
+            "id": 1,
+            "pos": {
+              "x": 22.8125,
+              "y": 42.5
+            },
+            "lifetime": 0.5388888888888883
+          },
+          {
+            "id": 2,
+            "pos": {
+              "x": 23,
+              "y": 42.5
+            },
+            "lifetime": 0.5222222222222216
+          },
+          {
+            "id": 3,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 4,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 5,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 6,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 7,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 8,
+            "pos": {
+              "x": 28.8125,
+              "y": 42.5
+            },
+            "lifetime": 0.005555555555554974
+          },
+          {
+            "id": 9,
+            "pos": {
+              "x": 26.75,
+              "y": 42.5
+            },
+            "lifetime": 0.18888888888888827
+          },
+          {
+            "id": 10,
+            "pos": {
+              "x": 24.6875,
+              "y": 42.5
+            },
+            "lifetime": 0.37222222222222157
+          },
+          {
+            "id": 11,
+            "pos": {
+              "x": 22.625,
+              "y": 42.5
+            },
+            "lifetime": 0.555555555555555
+          }
+        ],
+        "projEvents2": [
+          {
+            "id": 1,
+            "pos": {
+              "x": 22.8125,
+              "y": 42.5
+            },
+            "lifetime": 0.5388888888888883
+          },
+          {
+            "id": 2,
+            "pos": {
+              "x": 23,
+              "y": 42.5
+            },
+            "lifetime": 0.5222222222222216
+          },
+          {
+            "id": 3,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 4,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 5,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 6,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 7,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 8,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 9,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 10,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          },
+          {
+            "id": 11,
+            "pos": {
+              "x": 29,
+              "y": 42.5
+            },
+            "lifetime": -0.011111111111111693
+          }
+        ]
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "boundary",
+      "step10": {
+        "actionId": "aid_02f4819a8bab23726f122446",
+        "requestId": "req_d0391b5a5c8dc767a4a4fb67",
+        "actionType": "move",
+        "startedTick": 0,
+        "executedTicks": 10,
+        "remainingTicks": 110,
+        "durationTicks": 120
+      },
+      "midSnap": {
+        "isError": true,
+        "code": "E_NOT_APPLICABLE"
+      },
+      "step110": [
+        {
+          "actionId": "aid_02f4819a8bab23726f122446",
+          "requestId": "req_d0391b5a5c8dc767a4a4fb67",
+          "startedTick": 0,
+          "appliedTick": 120,
+          "executedTicks": 120
+        }
+      ],
+      "okSnap": {
+        "ok": true,
+        "boundary": "action",
+        "hasFrame": true
+      },
+      "restore": {
+        "ok": true,
+        "epoch": 2,
+        "oldEpoch": 1
+      }
+    },
+    {
+      "name": "next-action",
+      "aTick": 150,
+      "bTick": 150,
+      "aApplied": [
+        {
+          "actionId": "aid_2bb89d822f71707e260374d0",
+          "requestId": "req_0cced985be2cf6f8dfd97dbb",
+          "startedTick": 120,
+          "appliedTick": 150,
+          "executedTicks": 30
+        }
+      ],
+      "bApplied": [
+        {
+          "actionId": "aid_b6ab60dcb5efd63d8b29a360",
+          "requestId": "req_96168e43d5e5f3e43399f066",
+          "startedTick": 120,
+          "appliedTick": 150,
+          "executedTicks": 30
+        }
+      ]
+    },
+    {
+      "name": "boundary-replay",
+      "same": [
+        false,
+        false,
+        0
+      ],
+      "tampered": [
+        false,
+        false,
+        0
+      ]
+    },
+    {
+      "name": "event-history",
+      "stepEventsCount": 172,
+      "snap1Events": 172,
+      "snap2Events": 972,
+      "firstEventDiff": 123,
+      "stepEventsUnchangedInSnap1": true,
+      "projEvents1": [
+        {
+          "id": 1,
+          "pos": {
+            "x": 22.8125,
+            "y": 42.5
+          },
+          "lifetime": 0.5388888888888883
+        },
+        {
+          "id": 2,
+          "pos": {
+            "x": 23,
+            "y": 42.5
+          },
+          "lifetime": 0.5222222222222216
+        },
+        {
+          "id": 3,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 4,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 5,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 6,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 7,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 8,
+          "pos": {
+            "x": 28.8125,
+            "y": 42.5
+          },
+          "lifetime": 0.005555555555554974
+        },
+        {
+          "id": 9,
+          "pos": {
+            "x": 26.75,
+            "y": 42.5
+          },
+          "lifetime": 0.18888888888888827
+        },
+        {
+          "id": 10,
+          "pos": {
+            "x": 24.6875,
+            "y": 42.5
+          },
+          "lifetime": 0.37222222222222157
+        },
+        {
+          "id": 11,
+          "pos": {
+            "x": 22.625,
+            "y": 42.5
+          },
+          "lifetime": 0.555555555555555
+        }
+      ],
+      "projEvents2": [
+        {
+          "id": 1,
+          "pos": {
+            "x": 22.8125,
+            "y": 42.5
+          },
+          "lifetime": 0.5388888888888883
+        },
+        {
+          "id": 2,
+          "pos": {
+            "x": 23,
+            "y": 42.5
+          },
+          "lifetime": 0.5222222222222216
+        },
+        {
+          "id": 3,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 4,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 5,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 6,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 7,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 8,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 9,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 10,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 11,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        }
+      ],
+      "projMutated": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "export-incomplete",
+      "boundary": "mid_execution",
+      "replayable": false,
+      "diagnostics": {
+        "boundary": "mid_execution",
+        "replayable": false,
+        "active": {
+          "actionId": "aid_9f245f3107ce22da394e10d9",
+          "requestId": "req_09bfe484f2a7fadaff9f63ca",
+          "actionType": "move",
+          "startedTick": 150,
+          "executedTicks": 10,
+          "remainingTicks": 110,
+          "durationTicks": 120
+        },
+        "queuedActions": 0,
+        "ledger": {
+          "requests": 4,
+          "responses": 2,
+          "evicted": 0,
+          "maxRequests": 256,
+          "maxResponses": 128
+        },
+        "note": "INCOMPLETE reproduction: active/queued actions are still pending; remaining ticks are NOT in the frame"
+      },
+      "hasFrameBoundary": null,
+      "path": "D:\\Project\\AI-NATIVE-02-snapshots\\4cb59e9\\reports\\ai-native-02\\c3c\\failures\\ses_c8676e008ca09e96477fdb8d-1794708977946.failure.json"
+    },
+    {
+      "id": "event-history-mutation",
+      "text": "recorded history in a later snapshot differs from the earlier snapshot",
+      "firstEventDiff": 123,
+      "projMutated": true,
+      "projEvents1": [
+        {
+          "id": 1,
+          "pos": {
+            "x": 22.8125,
+            "y": 42.5
+          },
+          "lifetime": 0.5388888888888883
+        },
+        {
+          "id": 2,
+          "pos": {
+            "x": 23,
+            "y": 42.5
+          },
+          "lifetime": 0.5222222222222216
+        },
+        {
+          "id": 3,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 4,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 5,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 6,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 7,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 8,
+          "pos": {
+            "x": 28.8125,
+            "y": 42.5
+          },
+          "lifetime": 0.005555555555554974
+        },
+        {
+          "id": 9,
+          "pos": {
+            "x": 26.75,
+            "y": 42.5
+          },
+          "lifetime": 0.18888888888888827
+        },
+        {
+          "id": 10,
+          "pos": {
+            "x": 24.6875,
+            "y": 42.5
+          },
+          "lifetime": 0.37222222222222157
+        },
+        {
+          "id": 11,
+          "pos": {
+            "x": 22.625,
+            "y": 42.5
+          },
+          "lifetime": 0.555555555555555
+        }
+      ],
+      "projEvents2": [
+        {
+          "id": 1,
+          "pos": {
+            "x": 22.8125,
+            "y": 42.5
+          },
+          "lifetime": 0.5388888888888883
+        },
+        {
+          "id": 2,
+          "pos": {
+            "x": 23,
+            "y": 42.5
+          },
+          "lifetime": 0.5222222222222216
+        },
+        {
+          "id": 3,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 4,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 5,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 6,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 7,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 8,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 9,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 10,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        },
+        {
+          "id": 11,
+          "pos": {
+            "x": 29,
+            "y": 42.5
+          },
+          "lifetime": -0.011111111111111693
+        }
+      ],
+      "snap1Events": 172,
+      "snap2Events": 972
+    }
+  ]
+}

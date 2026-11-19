@@ -1,0 +1,155 @@
+{
+  "results": [
+    {
+      "step": "HUD visible before menu",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "step": "HUD hidden while paused",
+      "ok": true,
+      "detail": "false"
+    },
+    {
+      "step": "deck announcement + every HUD object hidden while paused",
+      "ok": true,
+      "detail": "objects=23 (before pause=23)"
+    },
+    {
+      "step": "read-only test interface (currentPage/uiObjects/uiButtons)",
+      "ok": true,
+      "detail": "{\"page\":\"pause\",\"objects\":19,\"buttons\":[\"RESUME\",\"INVENTORY\",\"SETTINGS\",\"AI & COMPANION\",\"QUIT TO MENU\"]}"
+    },
+    {
+      "step": "confirm/reject handles are the real controls (read-only aliases only)",
+      "ok": true,
+      "detail": "{\"confirmAliasSame\":true,\"rejectAliasSame\":true}"
+    },
+    {
+      "step": "root entry \"RESUME\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "root entry \"INVENTORY\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "root entry \"SETTINGS\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "root entry \"AI & COMPANION\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "root entry \"QUIT TO MENU\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "root footer has honest AI CONTROL: OFF",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "root footer has EXTERNAL AGENT  NOT CONNECTED",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "AI page has AI CONTROL toggle",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "AI page distinguishes LOCAL DETERMINISTIC",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "AI page has ECHO COMPANION entry",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "AI page has LLM COMPANION entry",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "AI page has AUTHORIZE EXTERNAL AGENT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "echo page has ENABLE ECHO",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "LLM page shows NO PROPOSAL honestly",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "LLM page has ENABLE / RE-AUTHORIZE",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "ESC from LLM returns to AI page (PauseScene still open)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "after ESC we are on AI page",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "second ESC returns to Pause root",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "third ESC resumes and restores HUD",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "step": "settings group AUDIO",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "settings group DISPLAY",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "settings group SIGNAL",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "settings group CONNECTION",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "ESC from inventory returns to Pause root",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "no console/page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "errors": []
+}

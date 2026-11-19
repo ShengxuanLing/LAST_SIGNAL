@@ -1,0 +1,85 @@
+{
+  "total": 13,
+  "pass": 13,
+  "fail": 0,
+  "results": [
+    {
+      "name": "N01 headless --dev exposes world_signal_status",
+      "verdict": "PASS",
+      "command": "listTools",
+      "result": "[\"world_headless_dev_signal_batch\",\"world_headless_dev_signal_command\",\"world_headless_dev_signal_device\",\"world_signal_status\"]"
+    },
+    {
+      "name": "N02 headless exposes ONLY Dev signal command/device/batch (no official signal command on player surface)",
+      "verdict": "PASS",
+      "command": "listTools signal tools",
+      "result": "[\"world_headless_dev_signal_batch\",\"world_headless_dev_signal_command\",\"world_headless_dev_signal_device\",\"world_signal_status\"]"
+    },
+    {
+      "name": "N03 headless does NOT expose a generic world_signal_scan/jam tool",
+      "verdict": "PASS",
+      "command": "listTools",
+      "result": "[\"world_action\",\"world_headless_dev_signal_batch\",\"world_headless_dev_signal_command\",\"world_headless_dev_signal_device\",\"world_signal_status\"]"
+    },
+    {
+      "name": "N04 world_signal_status no device => not supported (truthful)",
+      "verdict": "PASS",
+      "command": "world_signal_status (no device)",
+      "result": "{\"ok\":false,\"code\":\"E_NOT_APPLICABLE\",\"messageKey\":\"world.signal_combat_unsupported\"}"
+    },
+    {
+      "name": "N05 headless create session",
+      "verdict": "PASS",
+      "command": "world_headless_create_session",
+      "result": "{\"ok\":true,\"session\":\"ses_d17802a3a81bcc16f54cf967\"}"
+    },
+    {
+      "name": "N06 world_signal_status session but no device => not supported",
+      "verdict": "PASS",
+      "command": "world_signal_status (session,no device)",
+      "result": "{\"ok\":false,\"code\":\"E_NOT_APPLICABLE\"}"
+    },
+    {
+      "name": "N07 dev spawn ONE relay device",
+      "verdict": "PASS",
+      "command": "world_headless_dev_signal_device",
+      "result": "{\"ok\":true}"
+    },
+    {
+      "name": "N08 world_signal_status with device => supported:true",
+      "verdict": "PASS",
+      "command": "world_signal_status (with device)",
+      "result": "{\"ok\":true,\"supported\":true,\"device\":\"relay_main\",\"relay\":\"INACTIVE\"}"
+    },
+    {
+      "name": "N09 dev signal-command scan charges player -10",
+      "verdict": "PASS",
+      "command": "world_headless_dev_signal_command signal-scan",
+      "result": "{\"ok\":true,\"energy\":90,\"relay\":\"INACTIVE\"}"
+    },
+    {
+      "name": "N10 repeat scan blocked by cooldown (no double charge)",
+      "verdict": "PASS",
+      "command": "repeat signal-scan",
+      "result": "{\"ok\":true,\"energy\":90}"
+    },
+    {
+      "name": "N11 dev signal-command jam => JAMMED -25",
+      "verdict": "PASS",
+      "command": "signal-jam",
+      "result": "{\"ok\":true,\"relay\":\"JAMMED\",\"energy\":65}"
+    },
+    {
+      "name": "N12 repeat jam blocked while jammed (relay stays JAMMED, energy unchanged)",
+      "verdict": "PASS",
+      "command": "repeat signal-jam",
+      "result": "{\"ok\":true,\"relay\":\"JAMMED\",\"energy\":65}"
+    },
+    {
+      "name": "N13 v1 world_action scan rejected (clear error, no silent v2 reinterpretation)",
+      "verdict": "PASS",
+      "command": "world_action {type:scan} v1 schema (isError=true)",
+      "result": "{\"isError\":true}"
+    }
+  ]
+}

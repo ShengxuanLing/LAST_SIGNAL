@@ -1,0 +1,272 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "audit.spec.ts:65 upgrade count"
+  },
+  "samples": {
+    "before": {
+      "levelUpActive": true,
+      "upgrades": 0,
+      "tick": 63,
+      "pending": 0,
+      "paused": true
+    },
+    "buttons": [
+      {
+        "x": 380,
+        "y": 320
+      },
+      {
+        "x": 640,
+        "y": 320
+      },
+      {
+        "x": 900,
+        "y": 320
+      }
+    ],
+    "timeline": [
+      {
+        "t": 1794652185197,
+        "upgrades": 0,
+        "levelUpActive": true,
+        "paused": true,
+        "tick": 63,
+        "pending": 1,
+        "pendingKinds": [
+          "apply-upgrade"
+        ]
+      },
+      {
+        "t": 1794652185265,
+        "upgrades": 0,
+        "levelUpActive": true,
+        "paused": true,
+        "tick": 63,
+        "pending": 1,
+        "pendingKinds": [
+          "apply-upgrade"
+        ]
+      },
+      {
+        "t": 1794652185331,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 65,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185394,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 70,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185449,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 73,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185512,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 76,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185579,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 80,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185635,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 83,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185696,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 88,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185763,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 91,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185829,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 95,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185884,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 98,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652185946,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 102,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186011,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 106,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186078,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 110,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186133,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 113,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186195,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 117,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186262,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 121,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186328,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 125,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186381,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 128,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186445,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 132,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186511,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 136,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186567,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 139,
+        "pending": 0,
+        "pendingKinds": []
+      },
+      {
+        "t": 1794652186629,
+        "upgrades": 0,
+        "levelUpActive": false,
+        "paused": false,
+        "tick": 143,
+        "pending": 0,
+        "pendingKinds": []
+      }
+    ]
+  },
+  "findings": [
+    {
+      "name": "upgrade-commit-is-deferred-to-next-core-tick",
+      "immediateAfterClick": {
+        "t": 1794652185197,
+        "upgrades": 0,
+        "levelUpActive": true,
+        "paused": true,
+        "tick": 63,
+        "pending": 1,
+        "pendingKinds": [
+          "apply-upgrade"
+        ]
+      },
+      "firstUpgradeSampleIndex": -1,
+      "firstUpgradeSample": null,
+      "note": "upgrade never committed within 1.2s"
+    }
+  ],
+  "errors": []
+}

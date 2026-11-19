@@ -1,0 +1,79 @@
+{
+  "total": 7,
+  "pass": 6,
+  "fail": 1,
+  "results": [
+    {
+      "name": "E0 dev server ready",
+      "verdict": "PASS",
+      "observed": {
+        "url": "http://localhost:5392"
+      }
+    },
+    {
+      "name": "E1 bridge launcher prints only non-secret metadata",
+      "verdict": "PASS",
+      "observed": {
+        "bridgeUrl": "http://127.0.0.1:8904",
+        "hasTokenFile": true,
+        "hasOwnerFile": true,
+        "aclPrinted": true
+      }
+    },
+    {
+      "name": "E2 independent 0600/current-SID credential files",
+      "verdict": "PASS",
+      "observed": {
+        "separateFiles": true,
+        "ownerKeyPattern": true,
+        "tokenLength": 64
+      }
+    },
+    {
+      "name": "E3 form has masked token + ownerKey inputs",
+      "verdict": "PASS",
+      "observed": [
+        {
+          "name": "bridgeUrl",
+          "type": "text"
+        },
+        {
+          "name": "token",
+          "type": "password"
+        },
+        {
+          "name": "ownerKey",
+          "type": "password"
+        }
+      ]
+    },
+    {
+      "name": "E4 REAL form completes Owner pairing (no pre-injected global)",
+      "verdict": "FAIL",
+      "observed": {
+        "statusText": "FAILED · owner pairing rejected — control stays human",
+        "formStillOpen": true,
+        "tokenValue": "",
+        "keyValue": "",
+        "companionStatus": "OFF",
+        "globalConfig": null
+      }
+    },
+    {
+      "name": "E5 secrets cleared from DOM inputs after submit",
+      "verdict": "PASS",
+      "observed": {
+        "tokenCleared": true,
+        "keyCleared": true
+      }
+    },
+    {
+      "name": "E6 ownerKey not stored in global config",
+      "verdict": "PASS",
+      "observed": {
+        "globalKeys": null
+      }
+    }
+  ],
+  "consoleErrors": []
+}

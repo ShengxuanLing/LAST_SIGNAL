@@ -1,0 +1,207 @@
+{
+  "start": {
+    "active": true,
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 3,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 1,
+          "when": "RELAY_INACTIVE",
+          "label": "COMBAT"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 5,
+          "y": 41
+        },
+        {
+          "x": 7,
+          "y": 41
+        }
+      ]
+    },
+    "signal": {
+      "deviceId": "relay_main",
+      "roomId": 0,
+      "x": 8,
+      "y": 45,
+      "relay": "ACTIVE",
+      "manualEnabled": true,
+      "powered": true,
+      "jammedUntilTick": 0,
+      "playerEnergy": 100,
+      "echoEnergy": 100,
+      "playerScanCD": 0,
+      "playerJamCD": 0,
+      "echoScanCD": 0,
+      "echoJamCD": 0,
+      "evidence": 0,
+      "exitOpen": true
+    },
+    "linked": [
+      {
+        "id": 1,
+        "hp": 24,
+        "x": 5.67,
+        "y": 41.89
+      },
+      {
+        "id": 2,
+        "hp": 24,
+        "x": 7.24,
+        "y": 41.98
+      }
+    ],
+    "drones": [
+      {
+        "id": 1,
+        "hp": 24,
+        "link": "relay_main"
+      },
+      {
+        "id": 2,
+        "hp": 24,
+        "link": "relay_main"
+      }
+    ],
+    "room": {
+      "id": 0,
+      "kind": "combat",
+      "gx": 4,
+      "gy": 40,
+      "w": 9,
+      "h": 11
+    },
+    "cleared": false,
+    "objective": "CLEAR THE LINKED SENTRY · SCAN 12 / JAM <6 / R TOGGLE RELAY",
+    "portal": null,
+    "hp": 100,
+    "tick": 65,
+    "enemyProjectiles": [
+      {
+        "id": 1,
+        "owner": 2
+      }
+    ]
+  },
+  "after": {
+    "active": true,
+    "scen": {
+      "id": "p1",
+      "roomId": 0,
+      "routes": [
+        {
+          "target": 3,
+          "when": "RELAY_ACTIVE",
+          "label": "COMBAT"
+        },
+        {
+          "target": 1,
+          "when": "RELAY_INACTIVE",
+          "label": "COMBAT"
+        }
+      ],
+      "initial": {
+        "manualEnabled": true,
+        "powered": true
+      },
+      "relay": {
+        "x": 8,
+        "y": 45
+      },
+      "drones": [
+        {
+          "x": 5,
+          "y": 41
+        },
+        {
+          "x": 7,
+          "y": 41
+        }
+      ]
+    },
+    "signal": {
+      "deviceId": "relay_main",
+      "roomId": 0,
+      "x": 8,
+      "y": 45,
+      "relay": "ACTIVE",
+      "manualEnabled": true,
+      "powered": true,
+      "jammedUntilTick": 0,
+      "playerEnergy": 100,
+      "echoEnergy": 100,
+      "playerScanCD": 0,
+      "playerJamCD": 0,
+      "echoScanCD": 0,
+      "echoJamCD": 0,
+      "evidence": 0,
+      "exitOpen": true
+    },
+    "linked": [
+      {
+        "id": 1,
+        "hp": 24,
+        "x": 6.13,
+        "y": 42.51
+      },
+      {
+        "id": 2,
+        "hp": 24,
+        "x": 7.24,
+        "y": 41.98
+      }
+    ],
+    "drones": [
+      {
+        "id": 1,
+        "hp": 24,
+        "link": "relay_main"
+      },
+      {
+        "id": 2,
+        "hp": 24,
+        "link": "relay_main"
+      }
+    ],
+    "room": {
+      "id": 0,
+      "kind": "combat",
+      "gx": 4,
+      "gy": 40,
+      "w": 9,
+      "h": 11
+    },
+    "cleared": false,
+    "objective": "CLEAR THE LINKED SENTRY · SCAN 12 / JAM <6 / R TOGGLE RELAY",
+    "portal": null,
+    "hp": 76,
+    "tick": 297,
+    "enemyProjectiles": [
+      {
+        "id": 5,
+        "owner": 2
+      },
+      {
+        "id": 6,
+        "owner": 1
+      }
+    ]
+  },
+  "errors": []
+}

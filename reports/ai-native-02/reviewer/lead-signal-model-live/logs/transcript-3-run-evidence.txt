@@ -1,0 +1,21 @@
+### cmd: owner-ui confirm#1 (line 8) — trimmed
+{"at":"2026-11-16T00:16:41.378Z","command":"_owner_confirm","params":{"command":"_owner_confirm"},"ok":true,"result":{"ok":true,"clicked":"CONFIRM FIRST PROPOSAL (OWNER)","pendingBefore":1,"pendingAfter":0,"receipts":[{"suggestionId":"sug_a36c017db493e2867d21ab01","status":"confirmed","decidedAtTick":171,"appliedTick":null}],"queuedCommands":["signal-scan"],"note":"决策已记录；Signal 命令在暂停期间保持 queued，必须 _owner_resume 才会被真实 tick 提交"},"stateBefore":{"tick":171,"roomId":3,"roomKind":"combat","pauseOpen":true,"comp
+
+### cmd: owner-ui resume#1 (line 9) — trimmed
+{"at":"2026-11-16T00:16:46.429Z","command":"_owner_resume","params":{"command":"_owner_resume","milliseconds":200},"ok":true,"result":{"ok":true,"resumedMs":200,"tickBefore":171,"tickDuring":197,"tickAfter":200,"relay":"INACTIVE","playerEnergy":100,"echoEnergy":92,"receipts":[{"suggestionId":"sug_a36c017db493e2867d21ab01","status":"applied","decidedAtTick":171,"appliedTick":172}],"queuedCommands":[]},"stateBefore":{"tick":171,"roomId":3,"roomKind":"combat","pauseOpen":true,"companionStatus":"CONNECTED","hasEcho":tr
+
+### cmd: owner-ui resume#2 (line 13) — trimmed
+{"at":"2026-11-16T00:17:18.213Z","command":"_owner_resume","params":{"command":"_owner_resume","milliseconds":200},"ok":true,"result":{"ok":true,"resumedMs":200,"tickBefore":200,"tickDuring":225,"tickAfter":227,"relay":"ACTIVE","playerEnergy":100,"echoEnergy":94,"receipts":[{"suggestionId":"sug_a36c017db493e2867d21ab01","status":"applied","decidedAtTick":171,"appliedTick":172},{"suggestionId":"sug_a36c017db493e2867d21ab02","status":"applied","decidedAtTick":200,"appliedTick":201}],"queuedCommands":[]},"stateBefore"
+
+### cmd: owner-ui enter_portal (line 15) — trimmed
+{"at":"2026-11-16T00:17:44.680Z","command":"_owner_enter_portal","params":{"command":"_owner_enter_portal"},"ok":true,"result":{"ok":true,"roomBefore":3,"roomAfter":5,"roomKind":"elite","relay":"ACTIVE","playerEnergy":100,"echoEnergy":98,"tick":273},"stateBefore":{"tick":227,"roomId":3,"roomKind":"combat","pauseOpen":true,"companionStatus":"CONNECTED","hasEcho":true,"echoPos":{"x":26,"y":46},"echo
+
+### cmd: tool round7 status receipts
+"receipts":[{"suggestionId":"sug_a36c017db493e2867d21ab01","status":"applied","decidedAtTick":171,"appliedTick":172},{"suggestionId":"sug_a36c017db493e2867d21ab02","status":"applied","decidedAtTick":200,"appliedTick":201}]
+
+### cmd: tool round7 availableActions
+"availableActions":[{"kind":"scan","available":true,"reason":"perceived_target"},{"kind":"jam","available":true,"reason":"in_jam_range"}]
+
+### cmd: phantom targets identical across 4 observations (hp=59, x/y)
+
+### cmd: echo position drift + relay still in range

@@ -1,0 +1,480 @@
+{
+  "meta": {
+    "target": "8f1ce6c06eaf95d03a2c6e7c9fc1e3f8c7a1c8f3",
+    "code": "593786bb31ba6ed5af69774d77ded9b682e0f186",
+    "surface": "Player (no --dev)"
+  },
+  "checks": [
+    {
+      "n": "player-tools-exact",
+      "ok": true,
+      "d": [
+        "world_action",
+        "world_close",
+        "world_headless_create_session",
+        "world_headless_step",
+        "world_list_sessions",
+        "world_observe",
+        "world_signal_status"
+      ]
+    },
+    {
+      "n": "player-dev-tool-denied",
+      "ok": true,
+      "d": "MCP error -32602: Tool world_headless_dev_snapshot not found"
+    },
+    {
+      "n": "create-ok",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "player-step-no-canonical",
+      "ok": true,
+      "d": {
+        "stepKeys": [
+          "schema",
+          "ok",
+          "session",
+          "epoch",
+          "requestId",
+          "fromTick",
+          "toTick",
+          "ticks",
+          "blockTicks",
+          "status",
+          "executing",
+          "applied",
+          "rejected",
+          "observation",
+          "eventCount",
+          "events",
+          "replayed"
+        ],
+        "stepStructKeys": [
+          "schema",
+          "ok",
+          "session",
+          "epoch",
+          "requestId",
+          "fromTick",
+          "toTick",
+          "ticks",
+          "blockTicks",
+          "status",
+          "executing",
+          "applied",
+          "rejected",
+          "observation",
+          "eventCount",
+          "events",
+          "replayed"
+        ]
+      }
+    },
+    {
+      "n": "player-raw-recursively-clean",
+      "ok": true,
+      "d": []
+    },
+    {
+      "n": "player-events-allowlisted",
+      "ok": true,
+      "d": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 20.557291666666668,
+            "y": 42.442708333333336
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 20.614583333333336,
+            "y": 42.38541666666667
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 20.671875000000004,
+            "y": 42.32812500000001
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 20.72916666666667,
+            "y": 42.27083333333334
+          }
+        }
+      ]
+    },
+    {
+      "n": "step-intent-without-action-does-not-move",
+      "ok": false,
+      "d": {
+        "moved": 1.9755,
+        "applied": []
+      }
+    },
+    {
+      "n": "step10-reports-executing-not-applied",
+      "ok": true,
+      "d": {
+        "executing": {
+          "actionId": "aid_9519274238e0f05ebe1cddb7",
+          "requestId": "req_5b0cd1e592576e55221d12fa",
+          "actionType": "move",
+          "startedTick": 0,
+          "executedTicks": 10,
+          "remainingTicks": 110,
+          "durationTicks": 120
+        },
+        "applied": []
+      }
+    },
+    {
+      "n": "step110-completes-once",
+      "ok": true,
+      "d": {
+        "applied": [
+          {
+            "actionId": "aid_9519274238e0f05ebe1cddb7",
+            "requestId": "req_5b0cd1e592576e55221d12fa",
+            "startedTick": 0,
+            "appliedTick": 120,
+            "executedTicks": 120
+          }
+        ],
+        "executing": null
+      }
+    },
+    {
+      "n": "same-step-id-no-double-advance",
+      "ok": true,
+      "d": {
+        "first": 1,
+        "replay": 1,
+        "replayed": true
+      }
+    },
+    {
+      "n": "same-id-different-payload-rejected",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_ID_PAYLOAD_MISMATCH",
+        "messageKey": "world.request_payload_mismatch"
+      }
+    },
+    {
+      "n": "evicted-id-tombstoned-no-advance",
+      "ok": true,
+      "d": {
+        "code": "E_RETRY_AFTER_EVICTION",
+        "before": 131,
+        "after": 131
+      }
+    },
+    {
+      "n": "dedup-quota-rejects-without-advance",
+      "ok": true,
+      "d": {
+        "quotaError": "E_RESOURCE_LIMIT",
+        "quotaAt": 125,
+        "quotaTick": {
+          "before": 256,
+          "after": 256
+        }
+      }
+    },
+    {
+      "n": "step-and-action-share-request-namespace",
+      "ok": true,
+      "d": {
+        "step": true,
+        "action": {
+          "schema": "last_signal.mcp.tool-result.v1",
+          "ok": false,
+          "code": "E_ID_PAYLOAD_MISMATCH",
+          "messageKey": "world.request_payload_mismatch"
+        }
+      }
+    },
+    {
+      "n": "same-action-id-same-payload-executes-once",
+      "ok": true,
+      "d": {
+        "first": [
+          {
+            "actionId": "aid_b494a4bfa9ad7b1c6adb82f6",
+            "status": "queued",
+            "applyByTick": 121
+          }
+        ],
+        "same": [
+          {
+            "actionId": "aid_b494a4bfa9ad7b1c6adb82f6",
+            "status": "queued",
+            "applyByTick": 121
+          }
+        ],
+        "replayed": false,
+        "appliedOnce": [
+          {
+            "actionId": "aid_b494a4bfa9ad7b1c6adb82f6",
+            "requestId": "req_a6c44fe4180d768cae69d2db",
+            "startedTick": 1,
+            "appliedTick": 4,
+            "executedTicks": 3
+          }
+        ]
+      }
+    },
+    {
+      "n": "same-action-id-different-payload-rejected",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_ID_PAYLOAD_MISMATCH",
+        "messageKey": "world.action_payload_mismatch"
+      }
+    },
+    {
+      "n": "hidden-drone-not-in-observation",
+      "ok": false,
+      "d": {
+        "drones": [
+          {
+            "id": 1,
+            "kind": "drone",
+            "x": 22.523676703300445,
+            "y": 43.2582041983177,
+            "hp": 27,
+            "state": "attack"
+          }
+        ]
+      }
+    },
+    {
+      "n": "public-events-have-no-hidden-fsm",
+      "ok": true,
+      "d": [
+        "player-moved",
+        "projectile-spawned",
+        "player-hurt"
+      ]
+    },
+    {
+      "n": "public-events-have-no-unperceived-position",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "steps": [
+    {
+      "name": "f1",
+      "stepKeys": [
+        "schema",
+        "ok",
+        "session",
+        "epoch",
+        "requestId",
+        "fromTick",
+        "toTick",
+        "ticks",
+        "blockTicks",
+        "status",
+        "executing",
+        "applied",
+        "rejected",
+        "observation",
+        "eventCount",
+        "events",
+        "replayed"
+      ],
+      "stepStructKeys": [
+        "schema",
+        "ok",
+        "session",
+        "epoch",
+        "requestId",
+        "fromTick",
+        "toTick",
+        "ticks",
+        "blockTicks",
+        "status",
+        "executing",
+        "applied",
+        "rejected",
+        "observation",
+        "eventCount",
+        "events",
+        "replayed"
+      ],
+      "hits": [],
+      "createHits": [],
+      "observationKeys": [
+        "schema",
+        "protocolVersion",
+        "epoch",
+        "tick",
+        "roomId",
+        "player",
+        "drones",
+        "projectiles",
+        "availableActions"
+      ],
+      "eventSample": [
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 20.557291666666668,
+            "y": 42.442708333333336
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 20.614583333333336,
+            "y": 42.38541666666667
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 20.671875000000004,
+            "y": 42.32812500000001
+          }
+        },
+        {
+          "type": "player-moved",
+          "position": {
+            "x": 20.72916666666667,
+            "y": 42.27083333333334
+          }
+        }
+      ]
+    },
+    {
+      "name": "f3-split",
+      "executing": {
+        "actionId": "aid_9519274238e0f05ebe1cddb7",
+        "requestId": "req_5b0cd1e592576e55221d12fa",
+        "actionType": "move",
+        "startedTick": 0,
+        "executedTicks": 10,
+        "remainingTicks": 110,
+        "durationTicks": 120
+      },
+      "applied10": [],
+      "applied110": [
+        {
+          "actionId": "aid_9519274238e0f05ebe1cddb7",
+          "requestId": "req_5b0cd1e592576e55221d12fa",
+          "startedTick": 0,
+          "appliedTick": 120,
+          "executedTicks": 120
+        }
+      ],
+      "executing110": null
+    },
+    {
+      "name": "f4-eviction",
+      "evicted": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_RETRY_AFTER_EVICTION",
+        "messageKey": "world.request_evicted"
+      },
+      "tickBefore": 131,
+      "tickAfter": 131
+    },
+    {
+      "name": "f4-quota",
+      "quotaError": "E_RESOURCE_LIMIT",
+      "quotaAt": 125,
+      "quotaTick": {
+        "before": 256,
+        "after": 256
+      }
+    },
+    {
+      "name": "action-id",
+      "first": [
+        {
+          "actionId": "aid_b494a4bfa9ad7b1c6adb82f6",
+          "status": "queued",
+          "applyByTick": 121
+        }
+      ],
+      "same": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_753f48e3d22fd9924aa7dc51",
+        "epoch": 1,
+        "requestId": "req_09b76476e02804e75c617ed4",
+        "acceptedTick": 1,
+        "applyByTick": 121,
+        "replayed": false,
+        "actions": [
+          {
+            "actionId": "aid_b494a4bfa9ad7b1c6adb82f6",
+            "status": "queued",
+            "applyByTick": 121
+          }
+        ]
+      },
+      "diff": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_ID_PAYLOAD_MISMATCH",
+        "messageKey": "world.action_payload_mismatch"
+      }
+    },
+    {
+      "name": "action-double-exec",
+      "applied": [
+        {
+          "actionId": "aid_b494a4bfa9ad7b1c6adb82f6",
+          "requestId": "req_a6c44fe4180d768cae69d2db",
+          "startedTick": 1,
+          "appliedTick": 4,
+          "executedTicks": 3
+        }
+      ],
+      "allApplied": [
+        {
+          "actionId": "aid_b494a4bfa9ad7b1c6adb82f6",
+          "requestId": "req_a6c44fe4180d768cae69d2db",
+          "startedTick": 1,
+          "appliedTick": 4,
+          "executedTicks": 3
+        }
+      ]
+    },
+    {
+      "name": "f5-events",
+      "hiddenDrones": 1,
+      "types": [
+        "player-moved",
+        "projectile-spawned",
+        "player-hurt"
+      ],
+      "posEvents": [],
+      "eventCount": 242
+    }
+  ],
+  "findings": [
+    {
+      "id": "F2-step-intent-channel",
+      "text": "step intent still drives the player without world_action/TTL/idempotency",
+      "moved": 1.9755,
+      "applied": []
+    }
+  ]
+}

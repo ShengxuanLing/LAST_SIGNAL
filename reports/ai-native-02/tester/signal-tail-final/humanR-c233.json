@@ -1,0 +1,32 @@
+{
+  "tag": "c233",
+  "total": 4,
+  "pass": 4,
+  "fail": 0,
+  "results": [
+    {
+      "name": "c233-A device-in-old-room fresh R after cross-room: control APPLIED (global)",
+      "verdict": "PASS",
+      "command": "fresh toggle after teleport",
+      "result": "{\"activeBefore\":\"ACTIVE\",\"relayAfter\":\"INACTIVE\",\"playerRoom\":1,\"deviceRoom\":5,\"crossed\":true,\"toggled\":true,\"changedEvent\":true,\"exitOpen\":false}"
+    },
+    {
+      "name": "c233-B toggle queued with teleport (same tick): runs in old room",
+      "verdict": "PASS",
+      "command": "teleport+toggle same tick",
+      "result": "{\"relayAfter\":\"INACTIVE\",\"toggledB\":true,\"changedEvent\":true}"
+    },
+    {
+      "name": "c233-C toggle queued BEFORE teleport same tick: runs in old room (ACTIVE)",
+      "verdict": "PASS",
+      "command": "toggle then teleport same tick",
+      "result": "{\"relay\":\"ACTIVE\",\"exitOpen\":true,\"changed\":true}"
+    },
+    {
+      "name": "c233-D toggle committed in prior tick then teleport: effect PRESERVED",
+      "verdict": "PASS",
+      "command": "prior-tick toggle + teleport",
+      "result": "{\"activePre\":\"ACTIVE\",\"relayAfter\":\"ACTIVE\",\"exitOpen\":true}"
+    }
+  ]
+}

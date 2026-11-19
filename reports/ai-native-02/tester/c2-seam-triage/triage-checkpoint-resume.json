@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "checkpoint.spec.ts:185"
+  },
+  "steps": [
+    {
+      "name": "after-fixture",
+      "detail": {
+        "currency": 72,
+        "upgrades": 0,
+        "pending": [],
+        "tick": 82,
+        "loot": 0,
+        "lootViews": 0
+      }
+    },
+    {
+      "name": "after-pick",
+      "detail": {
+        "upgrades": [],
+        "upgradesCount": 0,
+        "currency": 72,
+        "pending": [],
+        "tick": 108,
+        "levelUpActive": false,
+        "loot": 0,
+        "lootViews": 0
+      }
+    },
+    {
+      "name": "checkpoint-save",
+      "detail": {
+        "run": {
+          "currency": 72,
+          "upgrades": [],
+          "hp": 100,
+          "clearedRooms": 2,
+          "id": "3441963427-4126238258-3315010348-2929010647"
+        }
+      }
+    },
+    {
+      "name": "resume-click",
+      "detail": {
+        "clicked": false,
+        "menuLabels": [
+          "LAST SIGNAL",
+          "SIGNAL LOST. SIGNAL REMAINS.",
+          "VERSION 2 · RUNS 0 · BOSSES 0",
+          "NEW RUN",
+          "LOAD RUN",
+          "CONTINUE",
+          "PERMANENT TALENTS · 0 CORES",
+          "PLAYER APPEARANCE",
+          "OPERATOR ↻",
+          "WASD move · MOUSE aim · CLICK fire · SPACE dash · F interact · I inventory · ESC pause"
+        ]
+      }
+    },
+    {
+      "name": "after-resume",
+      "detail": {
+        "before": {
+          "pos": {
+            "x": 25,
+            "y": 46
+          },
+          "hp": 100,
+          "currency": 72,
+          "loot": 0
+        },
+        "after": {
+          "unavailable": true,
+          "hasScene": true,
+          "active": [
+            "MainMenuScene"
+          ]
+        }
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "checkpoint-currency-and-upgrade-restore",
+      "detail": {
+        "save": {
+          "run": {
+            "currency": 72,
+            "upgrades": [],
+            "hp": 100,
+            "clearedRooms": 2,
+            "id": "3441963427-4126238258-3315010348-2929010647"
+          }
+        },
+        "before": {
+          "pos": {
+            "x": 25,
+            "y": 46
+          },
+          "hp": 100,
+          "currency": 72,
+          "loot": 0
+        },
+        "after": {
+          "unavailable": true,
+          "hasScene": true,
+          "active": [
+            "MainMenuScene"
+          ]
+        },
+        "noExtraResources": {
+          "lootBefore": 0,
+          "currencyBefore": 72
+        }
+      }
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,15 @@
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+const SNAP='D:/tmp/gp01-rm-b6a98e5';
+const t=new StdioClientTransport({command:process.execPath,args:[SNAP+'/dist-mcp/worldHeadlessMcpServer.mjs','--dev'],cwd:SNAP});
+const c=new Client({name:'probe2',version:'0'});
+await c.connect(t);
+const u=(r)=>r?.structuredContent ?? JSON.parse(r?.content?.find(x=>x.type==='text')?.text ?? '{}');
+const s=u(await c.callTool({name:'world_headless_create_session',arguments:{seed:20261117}}));
+const sid=s.session;
+const load=u(await c.callTool({name:'world_headless_dev_load_room',arguments:{session:sid,roomId:3,kinds:['drone','drone']}}));
+console.log('load',JSON.stringify(load).slice(0,300));
+const obs=u(await c.callTool({name:'world_observe',arguments:{session:sid,epoch:load.epoch??s.epoch}}));
+const o=obs.observation??obs;
+console.log('after load: room',o.roomId,'enemies',(o.enemies??[]).map(e=>({id:e.id,kind:e.kind,x:e.x,y:e.y,hp:e.hp})),'player',o.player);
+await c.close();

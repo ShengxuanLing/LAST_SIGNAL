@@ -1,0 +1,18 @@
+### per-round observation facts (from tool-io.jsonl raw.structuredContent)
+round 1 tick=171  echo=(26,46) player=(25,46) relay=('relay_main', 25, 46, 'INACTIVE') objBlocked=True energy={'current': 100, 'max': 100} cd={'scanTicks': 0, 'jamTicks': 0}
+          targets=[(1, 'hunter', 22, 44, 59), (2, 'hunter', 24.333, 44, 59), (3, 'hunter', 26.667, 44, 59)]
+          echo->relay distance=1.000 tiles (perceive rule: strictly < 12 + explored + LOS)
+round 2 echo_suggest (no observation)
+round 3 tick=200  echo=(26,46) player=(25,46) relay=('relay_main', 25, 46, 'INACTIVE') objBlocked=True energy={'current': 92, 'max': 100} cd={'scanTicks': 91, 'jamTicks': 0}
+          targets=[(1, 'hunter', 22, 44, 59), (2, 'hunter', 24.333, 44, 59), (3, 'hunter', 26.667, 44, 59)]
+          echo->relay distance=1.000 tiles (perceive rule: strictly < 12 + explored + LOS)
+round 4 echo_suggest (no observation)
+round 5 tick=227  echo=(26,46) player=(25,46) relay=('relay_main', 25, 46, 'ACTIVE') objBlocked=False energy={'current': 94, 'max': 100} cd={'scanTicks': 64, 'jamTicks': 0}
+          targets=[(1, 'hunter', 22, 44, 59), (2, 'hunter', 24.333, 44, 59), (3, 'hunter', 26.667, 44, 59)]
+          echo->relay distance=1.000 tiles (perceive rule: strictly < 12 + explored + LOS)
+round 6 tick=273  echo=(27.165,43.688) player=(115,44) relay=('relay_main', 25, 46, 'ACTIVE') objBlocked=False energy={'current': 98, 'max': 100} cd={'scanTicks': 18, 'jamTicks': 0}
+          targets=[(1, 'hunter', 22, 44, 59), (2, 'hunter', 24.333, 44, 59), (3, 'hunter', 26.667, 44, 59)]
+          echo->relay distance=3.168 tiles (perceive rule: strictly < 12 + explored + LOS)
+round 7 echo_status  (no observation)
+
+### inertness proof: targets identical across ticks 171/200/227/273 -> see lines above

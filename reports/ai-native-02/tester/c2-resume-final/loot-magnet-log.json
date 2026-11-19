@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "url": "http://localhost:5296/",
+    "target": "780cece"
+  },
+  "checks": [
+    {
+      "n": "default-magnet-keeps-18-tile-loot",
+      "ok": true,
+      "d": {
+        "loot": 1,
+        "lootViews": 1,
+        "currency": 0,
+        "before": 0,
+        "collected": false,
+        "pickupRange": 90
+      }
+    },
+    {
+      "n": "near-5-tile-loot-collected",
+      "ok": true,
+      "d": {
+        "loot": 0,
+        "lootViews": 0,
+        "currency": 10,
+        "before": 0,
+        "collected": true,
+        "pickupRange": 90
+      }
+    },
+    {
+      "n": "no-console-error",
+      "ok": true
+    }
+  ],
+  "steps": [
+    {
+      "name": "loot-18",
+      "detail": {
+        "loot": 1,
+        "lootViews": 1,
+        "currency": 0,
+        "before": 0,
+        "collected": false,
+        "pickupRange": 90
+      }
+    },
+    {
+      "name": "loot-5",
+      "detail": {
+        "loot": 0,
+        "lootViews": 0,
+        "currency": 10,
+        "before": 0,
+        "collected": true,
+        "pickupRange": 90
+      }
+    }
+  ],
+  "errors": []
+}

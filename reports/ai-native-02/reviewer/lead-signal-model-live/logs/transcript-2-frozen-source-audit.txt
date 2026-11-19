@@ -1,0 +1,132 @@
+### cmd: frozen tuning constants
+10:  ENERGY_MAX: 100,
+12:  REGEN_TICKS: 12,
+13:  SCAN_COST: 10,
+14:  SCAN_CD_TICKS: 120,
+15:  SCAN_REVEAL_TICKS: 480,
+18:  JAM_COST: 25,
+19:  JAM_CD_TICKS: 480,
+20:  JAM_DURATION_TICKS: 360,
+21:  JAM_RANGE: 6
+
+### cmd: regen/cooldown rules
+/** Real fixed-tick regen: 1 energy per 12 ticks, capped; paused NEVER regens. */
+export function tickEnergyAccount(account: SignalEnergyAccount, paused: boolean): SignalEnergyAccount {
+  if (paused) return { ...account };
+  if (account.energy >= SIGNAL_TUNING.ENERGY_MAX) return { energy: account.energy, regenAcc: 0 };
+  const regenAcc = account.regenAcc + 1;
+  if (regenAcc < SIGNAL_TUNING.REGEN_TICKS) return { energy: account.energy, regenAcc };
+  const energy = account.energy + 1;
+  return { energy, regenAcc: energy >= SIGNAL_TUNING.ENERGY_MAX ? 0 : regenAcc - SIGNAL_TUNING.REGEN_TICKS };
+}
+
+/** Fixed-tick cooldown/expiry decay. Paused ticks do not advance anything. */
+export function tickCooldowns(cooldowns: SignalCooldownState, paused: boolean): SignalCooldownState {
+  if (paused) return { ...cooldowns };
+  const dec = (value: number): number => Math.max(0, value - 1);
+  return {
+    scanCooldownTicks: dec(cooldowns.scanCooldownTicks),
+    scanRevealTicks: dec(cooldowns.scanRevealTicks),
+
+### cmd: scan evidence source (relay only)
+85:export function commitSignalScan(
+86-  device: SimSignalDevice, actor: SignalActorKind, tick: number,
+87-  paused: boolean, legality: SignalLegality
+88-): SignalCommandResult {
+89-  if (!actor || !(actor in device.actors)) return { ok: false, code: 'E_PERMISSION' };
+90-  const permitted = legalScan(device, actor, legality);
+91-  const resources = device.actors[actor];
+92-  const result = tryScan(resources, paused, false, permitted);
+93-  if (!result.ok) return { ok: false, code: result.code };
+94-  device.actors[actor] = result.resources;
+95-  const pos = legality.actorPosition(actor)!;
+96-  const found = scanDiscover(pos, [{
+97-    id: device.deviceId, kind: 'relay', x: device.x, y: device.y
+98-  }], (x, y) => legality.hasLineOfSight(x, y), tick, actor);
+99-  device.evidence.push(...found);
+100-  device.evidence = expireEvidence(device.evidence, tick);
+101-  return {
+102-    ok: true,
+103-    found: found.length > 0,
+104-    energy: result.resources.energy.energy,
+105-    cooldownTicks: result.resources.cooldowns.scanCooldownTicks
+106-  };
+107-}
+
+### cmd: echo observation input in rendered World (sim.targets)
+  echoView(): EchoObservation | null {
+    const echo = this._sim.echo;
+    if (!echo) return null;
+    const signal = this._sim.signal;
+    const echoAccount = signal?.actors.echo;
+    return buildEchoObservation({
+      echo,
+      player: { x: this._sim.player.x, y: this._sim.player.y },
+      tick: this._sim.tick,
+      drones: this._sim.drones.map((drone) => ({ id: drone.id, x: drone.x, y: drone.y, hp: drone.hp })),
+      targets: this._sim.targets.map((target) => ({
+        id: target.id, kind: target.kind, x: target.x, y: target.y, hp: target.hp, isBoss: target.isBoss
+      })),
+      isExplored: (x, y) => this.isExploredCell(x, y),
+      isOpaque: (x, y) => this.isOpaqueCell(x, y),
+      // Echo-only Signal knowledge: the builder itself decides whether the
+      // echo currently perceives the device (no player-side leak).
+      signal: signal
+        ? {
+            deviceId: signal.deviceId, x: signal.x, y: signal.y, relay: signal.relay,
+            powered: signal.powered, manualEnabled: signal.manualEnabled,
+            jammedUntilTick: signal.jammedUntilTick
+          }
+        : null,
+      energy: echoAccount
+        ? { current: echoAccount.energy.energy, max: SIGNAL_TUNING.ENERGY_MAX }
+        : undefined,
+      cooldowns: echoAccount
+        ? { scanTicks: echoAccount.cooldowns.scanCooldownTicks, jamTicks: echoAccount.cooldowns.jamCooldownTicks }
+
+### cmd: memory kind hardcode
+498:      this.memoryValue.push({ tick, kind: 'relay', id: `target_${target.id}_${target.kind}`, x: target.x, y: target.y });
+500:    if (relay) this.memoryValue.push({ tick, kind: 'relay', id: relay.id, x: relay.x, y: relay.y });
+
+### cmd: test that enshrines the memory mislabel
+  it('records cropped non-drone targets in bounded memory', () => {
+    const f = facet();
+    const r = f.observe(view({
+      targets: [{ id: 9, kind: 'hunter', x: 2, y: 0, hp: 40, isBoss: false }]
+    }));
+    expect(r.ok).toBe(true);
+    expect(f.memory.some((m) => m.kind === 'relay' && String(m.id).startsWith('target_'))).toBe(true);
+    expect(f.status().availableActions.find((a) => a.kind === 'jam')?.available).toBe(true);
+    const far = f.status().availableActions;
+    expect(far).toHaveLength(2);
+
+### cmd: availableActions ignores cooldown/energy
+export function companionAvailableActions(observation: CompanionObservation | null): Array<{
+  kind: CompanionSuggestionKind; available: boolean; reason: string;
+}> {
+  const all = [...(observation?.drones ?? []), ...((observation as unknown as { targets?: unknown[] })?.targets ?? [])] as Array<{ x: number; y: number }>;
+  const center = observation?.echo ?? { x: 0, y: 0 };
+  const nearest = all.reduce((best, actor) => Math.min(best, Math.hypot(actor.x - center.x, actor.y - center.y)), Infinity);
+  return [
+    { kind: 'scan', available: Number.isFinite(nearest) && nearest < COMPANION_LIMITS.PERCEPTION_TILES,
+      reason: Number.isFinite(nearest) && nearest < COMPANION_LIMITS.PERCEPTION_TILES ? 'perceived_target' : 'out_of_range' },
+    { kind: 'jam', available: Number.isFinite(nearest) && nearest < 6,
+      reason: Number.isFinite(nearest) && nearest < 6 ? 'in_jam_range' : 'out_of_range' }
+  ];
+}
+
+### cmd: no echo room-migration logic
+(exit=1 -> 1 means no match)
+
+### cmd: duplicate enemy-spawned case in one switch
+1319:        case 'enemy-spawned': {
+1370:        case 'enemy-spawned':
+  private applySimEvents(events: SimEvent[]): void {
+    for (const event of events) {
+      switch (event.type) {
+        case 'player-moved':
+
+### cmd: memory caps
+15:  memoryEntries: 16,
+16:  memoryTtlTicks: 600,
+134:    const cutoff = view.tick - ECHO_LIMITS.memoryTtlTicks;

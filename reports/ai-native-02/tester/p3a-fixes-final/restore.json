@@ -1,0 +1,213 @@
+{
+  "meta": {
+    "target": "212cd5634ea4ef1e775294eab3ccfca8ecff3a1f",
+    "fixtures": "simFixture HP 42/55, cleared-room flags for a legal checkpoint"
+  },
+  "checks": [
+    {
+      "n": "checkpoint-captured-echo42-player55",
+      "ok": true,
+      "d": {
+        "captured": true,
+        "echoHp": 42,
+        "playerHp": 55,
+        "armed": true,
+        "mode": "hold"
+      }
+    },
+    {
+      "n": "restore-ok",
+      "ok": true,
+      "d": {
+        "ok": true,
+        "assist": false,
+        "mode": "follow",
+        "memory": 0,
+        "suggestion": null,
+        "lastIntent": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "dash": false,
+          "fire": false,
+          "aim": null,
+          "interact": false
+        },
+        "echoHp": 42,
+        "playerHp": 55,
+        "shots": 0,
+        "intentFire": false
+      }
+    },
+    {
+      "n": "restore-revokes-assist-and-memory",
+      "ok": true,
+      "d": {
+        "ok": true,
+        "assist": false,
+        "mode": "follow",
+        "memory": 0,
+        "suggestion": null,
+        "lastIntent": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "dash": false,
+          "fire": false,
+          "aim": null,
+          "interact": false
+        },
+        "echoHp": 42,
+        "playerHp": 55,
+        "shots": 0,
+        "intentFire": false
+      }
+    },
+    {
+      "n": "restore-keeps-hp-42-55",
+      "ok": true,
+      "d": {
+        "echoHp": 42,
+        "playerHp": 55
+      }
+    },
+    {
+      "n": "restore-no-fire-no-shots",
+      "ok": true,
+      "d": {
+        "intentFire": false,
+        "shots": 0
+      }
+    },
+    {
+      "n": "repeated-restore-cannot-farm-hp",
+      "ok": true,
+      "d": {
+        "a": true,
+        "b": true,
+        "echoHp": 42,
+        "playerHp": 55,
+        "assist": false,
+        "shots": 0
+      }
+    },
+    {
+      "n": "old-save-no-echo-then-new-echo-base-hp",
+      "ok": true,
+      "d": {
+        "ok": true,
+        "noEcho": true,
+        "assist": false,
+        "echoHp": 100,
+        "suggestion": null,
+        "intentFire": false,
+        "shots": 0,
+        "memoryAtRestore": 0,
+        "memoryAfterNewObservation": 1
+      }
+    },
+    {
+      "n": "old-save-requires-new-confirmation",
+      "ok": true,
+      "d": {
+        "ok": true,
+        "noEcho": true,
+        "assist": false,
+        "echoHp": 100,
+        "suggestion": null,
+        "intentFire": false,
+        "shots": 0,
+        "memoryAtRestore": 0,
+        "memoryAfterNewObservation": 1
+      }
+    },
+    {
+      "n": "mode-switch-and-restart-revoke-assist",
+      "ok": true,
+      "d": {
+        "armed": true,
+        "afterMode": false,
+        "afterReset": false,
+        "modeAfterReset": "follow"
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "steps": [
+    {
+      "name": "prepared",
+      "prepared": {
+        "frame": true,
+        "armedBefore": true,
+        "modeBefore": "hold",
+        "memoryBefore": 0,
+        "echoHpBefore": 42,
+        "playerHpBefore": 55
+      }
+    },
+    {
+      "name": "restored",
+      "restored": {
+        "ok": true,
+        "assist": false,
+        "mode": "follow",
+        "memory": 0,
+        "suggestion": null,
+        "lastIntent": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "dash": false,
+          "fire": false,
+          "aim": null,
+          "interact": false
+        },
+        "echoHp": 42,
+        "playerHp": 55,
+        "shots": 0,
+        "intentFire": false
+      }
+    },
+    {
+      "name": "no-hp-farm",
+      "repeat": {
+        "a": true,
+        "b": true,
+        "echoHp": 42,
+        "playerHp": 55,
+        "assist": false,
+        "shots": 0
+      }
+    },
+    {
+      "name": "old-save",
+      "oldSave": {
+        "ok": true,
+        "noEcho": true,
+        "assist": false,
+        "echoHp": 100,
+        "suggestion": null,
+        "intentFire": false,
+        "shots": 0,
+        "memoryAtRestore": 0,
+        "memoryAfterNewObservation": 1
+      }
+    },
+    {
+      "name": "lifecycle",
+      "lifecycle": {
+        "armed": true,
+        "afterMode": false,
+        "afterReset": false,
+        "modeAfterReset": "follow"
+      }
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "url": "http://localhost:5296/",
+    "target": "780cece",
+    "fixture": "room cleared + known currency/hp baseline (same shape as the official spec)"
+  },
+  "checks": [
+    {
+      "n": "no-purchased-claim-while-storage-fails",
+      "ok": true,
+      "d": {
+        "reward": "Purchase could not be saved. Retrying…",
+        "memCurrency": 196,
+        "memHp": 75,
+        "pending": [],
+        "ledger": 1
+      }
+    },
+    {
+      "n": "memory-deducted-once",
+      "ok": true,
+      "d": {
+        "base": {
+          "currency": 212,
+          "hp": 40,
+          "disk": 212,
+          "ledger": 0
+        },
+        "failed": {
+          "reward": "Purchase could not be saved. Retrying…",
+          "memCurrency": 196,
+          "memHp": 75,
+          "pending": [],
+          "ledger": 1
+        }
+      }
+    },
+    {
+      "n": "disk-unchanged-while-failing",
+      "ok": true,
+      "d": {
+        "diskDuring": 212,
+        "base": {
+          "currency": 212,
+          "hp": 40,
+          "disk": 212,
+          "ledger": 0
+        }
+      }
+    },
+    {
+      "n": "retry-completes-once",
+      "ok": true,
+      "d": {
+        "recovered": {
+          "reward": "Purchased Repair kit.",
+          "memCurrency": 196,
+          "memHp": 75,
+          "ledger": 1
+        },
+        "save": {
+          "maxHp": 100,
+          "hp": 75,
+          "speed": 220,
+          "armor": 0,
+          "damage": 1,
+          "critChance": 0.1,
+          "critDamage": 1.5,
+          "xpGain": 1,
+          "pickupRange": 90,
+          "dashCooldown": 0.9,
+          "dashDuration": 0.16,
+          "aimYaw": 0,
+          "cooldownReduced": 0,
+          "pierceCount": 0,
+          "hpRegen": 0,
+          "level": 1,
+          "xp": 0,
+          "xpToNext": 30,
+          "currency": 196,
+          "weaponKey": "pulse",
+          "weapons": [
+            {
+              "key": "pulse",
+              "level": 1,
+              "ammo": -1,
+              "magazine": -1,
+              "reloading": false,
+              "reloadTimer": 0
+            }
+          ],
+          "upgrades": [],
+          "abilities": []
+        }
+      }
+    },
+    {
+      "n": "ledger-kept-one-record",
+      "ok": true,
+      "d": {
+        "recovered": {
+          "reward": "Purchased Repair kit.",
+          "memCurrency": 196,
+          "memHp": 75,
+          "ledger": 1
+        },
+        "base": {
+          "currency": 212,
+          "hp": 40,
+          "disk": 212,
+          "ledger": 0
+        }
+      }
+    },
+    {
+      "n": "no-console-error",
+      "ok": true
+    }
+  ],
+  "steps": [
+    {
+      "name": "baseline",
+      "detail": {
+        "currency": 212,
+        "hp": 40,
+        "disk": 212,
+        "ledger": 0
+      }
+    },
+    {
+      "name": "storage-failed",
+      "detail": {
+        "failed": {
+          "reward": "Purchase could not be saved. Retrying…",
+          "memCurrency": 196,
+          "memHp": 75,
+          "pending": [],
+          "ledger": 1
+        },
+        "diskDuring": 212,
+        "base": {
+          "currency": 212,
+          "hp": 40,
+          "disk": 212,
+          "ledger": 0
+        }
+      }
+    },
+    {
+      "name": "recovered",
+      "detail": {
+        "recovered": {
+          "reward": "Purchased Repair kit.",
+          "memCurrency": 196,
+          "memHp": 75,
+          "ledger": 1
+        },
+        "save": {
+          "currency": 196,
+          "hp": 75,
+          "ledger": 1
+        }
+      }
+    }
+  ],
+  "errors": []
+}

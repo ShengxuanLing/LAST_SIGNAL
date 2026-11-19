@@ -1,0 +1,3 @@
+spec=a196c2c2280aa50eba6a747ba6cf32b4f739e8d8891c74c28f4f791b8b05aa35
+match=YES
+result=4 passed / 3 failed (case2,3 proposal generation; case6 nav flake)

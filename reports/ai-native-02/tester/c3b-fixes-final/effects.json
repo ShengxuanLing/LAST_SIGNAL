@@ -1,0 +1,715 @@
+{
+  "meta": {
+    "base": "http://localhost:5303",
+    "bridge": "http://127.0.0.1:8892",
+    "target": "8b9705d6bce1894b08717c0180e127f26de8e2f5",
+    "build": "test mode (__game verification only)"
+  },
+  "checks": [
+    {
+      "n": "form-authorize",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "owner-external",
+      "ok": true,
+      "d": {
+        "status": "CONNECTED",
+        "epoch": 1,
+        "session": "ses_070825e9478411788ec3c895",
+        "pendingCount": 0,
+        "lastAction": null,
+        "lastAppliedTick": null,
+        "humanAuthorized": true
+      }
+    },
+    {
+      "n": "mcp-attached",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_070825e9478411788ec3c895",
+        "epoch": 1,
+        "attached": true,
+        "linkStatus": "connected",
+        "leaseStatus": "live"
+      }
+    },
+    {
+      "n": "fire-120-delivered-120-ticks",
+      "ok": true,
+      "d": {
+        "status": "applied",
+        "appliedTick": 282,
+        "startedTick": 162,
+        "completedTick": 282,
+        "executedTicks": 120,
+        "durationTicks": 120,
+        "code": null
+      }
+    },
+    {
+      "n": "fire-creates-projectiles",
+      "ok": true,
+      "d": {
+        "maxProjectiles": 4
+      }
+    },
+    {
+      "n": "fire-reaches-cooldown",
+      "ok": true,
+      "d": {
+        "cooldownFrames": 19
+      }
+    },
+    {
+      "n": "pulse-ammo-is-infinite",
+      "ok": true,
+      "d": {
+        "before": -1,
+        "after": -1
+      }
+    },
+    {
+      "n": "ticks-1-executes-one-core-tick",
+      "ok": true,
+      "d": {
+        "status": "applied",
+        "appliedTick": 341,
+        "startedTick": 340,
+        "completedTick": 341,
+        "executedTicks": 1,
+        "durationTicks": 1,
+        "code": null
+      }
+    },
+    {
+      "n": "ticks-120-executes-120-core-ticks",
+      "ok": true,
+      "d": {
+        "status": "applied",
+        "appliedTick": 491,
+        "startedTick": 371,
+        "completedTick": 491,
+        "executedTicks": 120,
+        "durationTicks": 120,
+        "code": null
+      }
+    },
+    {
+      "n": "ticks-120-moves-much-further-than-1",
+      "ok": true,
+      "d": {
+        "d1": 0.081023,
+        "d120": 6.238744,
+        "obs1": 0.081023,
+        "obs120": 6.238744
+      }
+    },
+    {
+      "n": "await-window-takeover-no-crash-3x",
+      "ok": true,
+      "d": [
+        {
+          "caught": null,
+          "errs": []
+        },
+        {
+          "caught": null,
+          "errs": []
+        },
+        {
+          "caught": null,
+          "errs": []
+        }
+      ]
+    },
+    {
+      "n": "await-window-takeover-cancels-pending",
+      "ok": true,
+      "d": [
+        {
+          "owner": "human",
+          "pending": 0,
+          "receipt": "cancelled"
+        },
+        {
+          "owner": "human",
+          "pending": 0,
+          "receipt": "cancelled"
+        },
+        {
+          "owner": "human",
+          "pending": 0,
+          "receipt": "cancelled"
+        }
+      ]
+    },
+    {
+      "n": "cancelled-intent-does-not-continue-after-cancel",
+      "ok": true,
+      "d": [
+        {
+          "postCancelDelta": 0,
+          "preCancelMove": 0.162
+        },
+        {
+          "postCancelDelta": 0,
+          "preCancelMove": 0
+        },
+        {
+          "postCancelDelta": 0,
+          "preCancelMove": 0
+        }
+      ]
+    },
+    {
+      "n": "reauthorize-after-race",
+      "ok": true,
+      "d": {
+        "owner": "external"
+      }
+    },
+    {
+      "n": "fresh-agent-attached-after-race",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_5332c6d78fd1aff664f25154",
+        "epoch": 1,
+        "attached": true,
+        "linkStatus": "connected",
+        "leaseStatus": "live"
+      }
+    },
+    {
+      "n": "agent-interact-real-transition",
+      "ok": true,
+      "d": {
+        "roomAfter": 3,
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 1094,
+          "startedTick": 1093,
+          "completedTick": 1094,
+          "executedTicks": 1,
+          "durationTicks": 1,
+          "code": null
+        }
+      }
+    },
+    {
+      "n": "fire-damages-real-drone",
+      "ok": true,
+      "d": {
+        "drops": [
+          {
+            "id": 2,
+            "before": 59,
+            "after": 35.296296296296305,
+            "tick": 1236
+          }
+        ],
+        "projectiles": 0,
+        "hpAfter": 64,
+        "targetsLeft": 3,
+        "targetHp": [
+          "1:137",
+          "2:35.296296296296305",
+          "3:137"
+        ]
+      }
+    },
+    {
+      "n": "kill-setup-authorized",
+      "ok": true,
+      "d": {
+        "killAuth": true,
+        "owner": "external",
+        "hp": 64
+      }
+    },
+    {
+      "n": "reattach-for-kill",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_f284799ebb96ebede6a5b056",
+        "epoch": 1,
+        "attached": true,
+        "linkStatus": "connected",
+        "leaseStatus": "live"
+      }
+    },
+    {
+      "n": "kill-degrades-within-15s",
+      "ok": true,
+      "d": {
+        "ms": 4856,
+        "owner": "human",
+        "status": "LOST",
+        "pending": 0,
+        "tick": 1723
+      }
+    },
+    {
+      "n": "kill-clears-pending",
+      "ok": true,
+      "d": {
+        "pending": 0
+      }
+    },
+    {
+      "n": "kill-old-action-does-not-continue",
+      "ok": true,
+      "d": {
+        "movedBeforeDetection": 6.9838,
+        "movedAfterDetection": 0
+      }
+    },
+    {
+      "n": "dead-list-not-attached",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_PERMISSION",
+        "messageKey": "world.authorization_required"
+      }
+    },
+    {
+      "n": "human-reauthorize-new-session",
+      "ok": true,
+      "d": {
+        "re": true,
+        "session": "ses_80545cb5360772de101430d8",
+        "oldSession": "ses_f284799ebb96ebede6a5b056",
+        "attached": true
+      }
+    },
+    {
+      "n": "new-session-real-observation",
+      "ok": true,
+      "d": {
+        "tick": 1966
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "steps": [
+    {
+      "name": "fire-120-safe",
+      "res": {
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 282,
+          "startedTick": 162,
+          "completedTick": 282,
+          "executedTicks": 120,
+          "durationTicks": 120,
+          "code": null
+        },
+        "maxProjectiles": 4,
+        "cooldownFrames": 19,
+        "ammo": {
+          "before": -1,
+          "after": -1
+        },
+        "magazine": {
+          "before": -1,
+          "after": -1
+        },
+        "weapon": "pulse"
+      }
+    },
+    {
+      "name": "ticks",
+      "t1": {
+        "ticks": 1,
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 341,
+          "startedTick": 340,
+          "completedTick": 341,
+          "executedTicks": 1,
+          "durationTicks": 1,
+          "code": null
+        },
+        "before": {
+          "tick": 330,
+          "x": 8,
+          "y": 45
+        },
+        "after": {
+          "tick": 359,
+          "x": 8.057291666666666,
+          "y": 44.942708333333336
+        },
+        "dist": 0.081023,
+        "obsDist": 0.081023
+      },
+      "t120": {
+        "ticks": 120,
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 491,
+          "startedTick": 371,
+          "completedTick": 491,
+          "executedTicks": 120,
+          "durationTicks": 120,
+          "code": null
+        },
+        "before": {
+          "tick": 363,
+          "x": 8.057291666666666,
+          "y": 44.942708333333336
+        },
+        "after": {
+          "tick": 506,
+          "x": 12.468749999999954,
+          "y": 40.531250000000185
+        },
+        "dist": 6.238744,
+        "obsDist": 6.238744
+      }
+    },
+    {
+      "name": "race",
+      "raceRuns": [
+        {
+          "k": 0,
+          "run": {
+            "started": true,
+            "accepted": "queued",
+            "caught": null,
+            "receipt": "cancelled",
+            "owner": "human",
+            "status": "YIELDED",
+            "pending": 0,
+            "postCancelDelta": 0
+          },
+          "moved": 0.162,
+          "newErrors": []
+        },
+        {
+          "k": 1,
+          "run": {
+            "started": true,
+            "accepted": "queued",
+            "caught": null,
+            "receipt": "cancelled",
+            "owner": "human",
+            "status": "YIELDED",
+            "pending": 0,
+            "postCancelDelta": 0
+          },
+          "moved": 0,
+          "newErrors": []
+        },
+        {
+          "k": 2,
+          "run": {
+            "started": true,
+            "accepted": "queued",
+            "caught": null,
+            "receipt": "cancelled",
+            "owner": "human",
+            "status": "YIELDED",
+            "pending": 0,
+            "postCancelDelta": 0
+          },
+          "moved": 0,
+          "newErrors": []
+        }
+      ]
+    },
+    {
+      "name": "agent-interact",
+      "roomAfter": 3,
+      "receipt": {
+        "status": "applied",
+        "appliedTick": 1094,
+        "startedTick": 1093,
+        "completedTick": 1094,
+        "executedTicks": 1,
+        "durationTicks": 1,
+        "code": null
+      }
+    },
+    {
+      "name": "room-state",
+      "dump": {
+        "player": {
+          "x": 24.75993085012582,
+          "y": 46.288082979849015
+        },
+        "hp": 82,
+        "drones": [],
+        "enemies": 3,
+        "perceived": [
+          {
+            "id": 1,
+            "kind": "sentinel",
+            "x": 22.805655714060187,
+            "y": 44.58661778503904
+          },
+          {
+            "id": 2,
+            "kind": "hunter",
+            "x": 24.357954135447166,
+            "y": 44.0738624063415
+          },
+          {
+            "id": 3,
+            "kind": "sentinel",
+            "x": 26.255566252693374,
+            "y": 44.493320496767964
+          }
+        ]
+      }
+    },
+    {
+      "name": "combat-start",
+      "observedDrones": [
+        {
+          "id": 1,
+          "hp": 137,
+          "kind": "sentinel"
+        },
+        {
+          "id": 2,
+          "hp": 59,
+          "kind": "hunter"
+        },
+        {
+          "id": 3,
+          "hp": 137,
+          "kind": "sentinel"
+        }
+      ],
+      "worldTargets": [
+        {
+          "id": 1,
+          "hp": 137,
+          "x": 22.835119201543826,
+          "y": 44.61226980176175,
+          "kind": "sentinel"
+        },
+        {
+          "id": 2,
+          "hp": 59,
+          "x": 24.357954135447166,
+          "y": 44.0738624063415,
+          "kind": "hunter"
+        },
+        {
+          "id": 3,
+          "hp": 137,
+          "x": 26.255566252693374,
+          "y": 44.493320496767964,
+          "kind": "sentinel"
+        }
+      ]
+    },
+    {
+      "name": "combat",
+      "combat": {
+        "drops": [
+          {
+            "id": 2,
+            "before": 59,
+            "after": 35.296296296296305,
+            "tick": 1236
+          }
+        ],
+        "projectiles": 0,
+        "hpAfter": 64,
+        "targetsLeft": 3,
+        "targetHp": [
+          "1:137",
+          "2:35.296296296296305",
+          "3:137"
+        ]
+      }
+    },
+    {
+      "name": "kill",
+      "oldSession": "ses_f284799ebb96ebede6a5b056",
+      "degraded": {
+        "ms": 4856,
+        "owner": "human",
+        "status": "LOST",
+        "pending": 0,
+        "tick": 1723
+      },
+      "movedBeforeDetection": 6.9838,
+      "movedAfterDetection": 0
+    }
+  ],
+  "findings": [],
+  "toolLog": [
+    {
+      "tool": "world_list_sessions",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_action",
+      "acts": [
+        {
+          "t": "fire",
+          "ticks": 120
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "status": [
+        "queued"
+      ]
+    },
+    {
+      "tool": "world_action",
+      "acts": [
+        {
+          "t": "move",
+          "ticks": 1
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "status": [
+        "queued"
+      ]
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_action",
+      "acts": [
+        {
+          "t": "move",
+          "ticks": 120
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "status": [
+        "queued"
+      ]
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_action",
+      "acts": [
+        {
+          "t": "interact"
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "status": [
+        "queued"
+      ]
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_action",
+      "acts": [
+        {
+          "t": "fire",
+          "ticks": 16
+        },
+        {
+          "t": "move",
+          "ticks": 10
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "status": [
+        "queued",
+        "queued"
+      ]
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_list_sessions",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_action",
+      "acts": [
+        {
+          "t": "move",
+          "ticks": 120
+        }
+      ],
+      "ok": true,
+      "code": null,
+      "status": [
+        "queued"
+      ]
+    },
+    {
+      "tool": "world_list_sessions",
+      "ok": false,
+      "code": "E_PERMISSION"
+    },
+    {
+      "tool": "world_list_sessions",
+      "ok": true,
+      "code": null
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null
+    }
+  ],
+  "pageErrors": [],
+  "video": "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\tester\\c3b-fixes-final\\evidence-effects\\video\\page@b4282a2f7e352ac7235349ce4c3b4704.webm"
+}

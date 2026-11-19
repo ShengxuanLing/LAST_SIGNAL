@@ -1,0 +1,691 @@
+{
+  "meta": {
+    "url": "http://localhost:5296/",
+    "target": "780cece"
+  },
+  "checks": [
+    {
+      "n": "onResume-no-tick",
+      "ok": true,
+      "d": {
+        "before": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": true,
+          "mode": "PAUSED",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterResume": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSubTick": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterFullTick": {
+          "tick": 81,
+          "hp": 100,
+          "currency": 10,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 0,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSecondFull": {
+          "tick": 82,
+          "hp": 100,
+          "currency": 10,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 0,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        }
+      }
+    },
+    {
+      "n": "sub-tick-commits-nothing",
+      "ok": true,
+      "d": {
+        "tick": 80,
+        "hp": 100,
+        "currency": 0,
+        "loot": 0,
+        "projectiles": 0,
+        "enemies": 0,
+        "pending": 2,
+        "paused": false,
+        "mode": "HUMAN",
+        "timers": {
+          "dash": 0,
+          "invuln": 0,
+          "hurt": 0,
+          "fire": 0
+        }
+      }
+    },
+    {
+      "n": "full-tick-commits-once",
+      "ok": true,
+      "d": {
+        "before": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": true,
+          "mode": "PAUSED",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterResume": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSubTick": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterFullTick": {
+          "tick": 81,
+          "hp": 100,
+          "currency": 10,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 0,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSecondFull": {
+          "tick": 82,
+          "hp": 100,
+          "currency": 10,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 0,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        }
+      }
+    },
+    {
+      "n": "next-tick-no-duplicate",
+      "ok": true,
+      "d": {
+        "tick": 82,
+        "hp": 100,
+        "currency": 10,
+        "loot": 0,
+        "projectiles": 0,
+        "enemies": 0,
+        "pending": 0,
+        "paused": false,
+        "mode": "HUMAN",
+        "timers": {
+          "dash": 0,
+          "invuln": 0,
+          "hurt": 0,
+          "fire": 0
+        }
+      }
+    },
+    {
+      "n": "real-raf-advances",
+      "ok": true,
+      "d": {
+        "later": 92,
+        "base": 82
+      }
+    },
+    {
+      "n": "levelup-close-no-forced-tick",
+      "ok": true,
+      "d": {
+        "before": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterClose": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSubTick": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterFullTick": {
+          "tick": 95,
+          "pending": 0,
+          "upgrades": 1,
+          "hp": 115,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        }
+      }
+    },
+    {
+      "n": "levelup-sub-tick-commits-nothing",
+      "ok": true,
+      "d": {
+        "tick": 94,
+        "pending": 1,
+        "upgrades": 0,
+        "hp": 100,
+        "currency": 10,
+        "paused": false,
+        "loot": 0,
+        "projectiles": 0,
+        "timers": {
+          "dash": 0,
+          "invuln": 0,
+          "hurt": 0,
+          "fire": 0
+        }
+      }
+    },
+    {
+      "n": "levelup-one-real-tick-commits-once",
+      "ok": true,
+      "d": {
+        "before": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterClose": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSubTick": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterFullTick": {
+          "tick": 95,
+          "pending": 0,
+          "upgrades": 1,
+          "hp": 115,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        }
+      }
+    },
+    {
+      "n": "inventory-close-no-forced-tick",
+      "ok": true,
+      "d": {
+        "before": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": true,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterResume": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterSubTick": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterFullTick": {
+          "tick": 97,
+          "pending": 0,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        }
+      }
+    },
+    {
+      "n": "inventory-sub-tick-commits-nothing",
+      "ok": true,
+      "d": {
+        "tick": 96,
+        "pending": 1,
+        "weapon": "pulse",
+        "paused": false,
+        "projectiles": 0,
+        "loot": 0
+      }
+    },
+    {
+      "n": "inventory-one-real-tick-commits-once",
+      "ok": true,
+      "d": {
+        "before": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": true,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterResume": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterSubTick": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterFullTick": {
+          "tick": 97,
+          "pending": 0,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        }
+      }
+    },
+    {
+      "n": "no-console-error",
+      "ok": true
+    }
+  ],
+  "steps": [
+    {
+      "name": "onResume",
+      "detail": {
+        "before": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": true,
+          "mode": "PAUSED",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterResume": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSubTick": {
+          "tick": 80,
+          "hp": 100,
+          "currency": 0,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 2,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterFullTick": {
+          "tick": 81,
+          "hp": 100,
+          "currency": 10,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 0,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSecondFull": {
+          "tick": 82,
+          "hp": 100,
+          "currency": 10,
+          "loot": 0,
+          "projectiles": 0,
+          "enemies": 0,
+          "pending": 0,
+          "paused": false,
+          "mode": "HUMAN",
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "levelupClose-isolated",
+      "detail": {
+        "before": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterClose": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterSubTick": {
+          "tick": 94,
+          "pending": 1,
+          "upgrades": 0,
+          "hp": 100,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        },
+        "afterFullTick": {
+          "tick": 95,
+          "pending": 0,
+          "upgrades": 1,
+          "hp": 115,
+          "currency": 10,
+          "paused": false,
+          "loot": 0,
+          "projectiles": 0,
+          "timers": {
+            "dash": 0,
+            "invuln": 0,
+            "hurt": 0,
+            "fire": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "inventoryClose-isolated",
+      "detail": {
+        "before": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": true,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterResume": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterSubTick": {
+          "tick": 96,
+          "pending": 1,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        },
+        "afterFullTick": {
+          "tick": 97,
+          "pending": 0,
+          "weapon": "pulse",
+          "paused": false,
+          "projectiles": 0,
+          "loot": 0
+        }
+      }
+    }
+  ],
+  "errors": []
+}

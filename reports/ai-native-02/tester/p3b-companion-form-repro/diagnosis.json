@@ -1,0 +1,90 @@
+{
+  "total": 10,
+  "pass": 8,
+  "fail": 2,
+  "results": [
+    {
+      "name": "00 dev server ready",
+      "verdict": "PASS",
+      "result": "true",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/00-freeze.log",
+      "detail": {}
+    },
+    {
+      "name": "01 host-only credential files (independent, ACL printed)",
+      "verdict": "PASS",
+      "result": "{\"bridgeUrl\":\"http://127.0.0.1:8904\",\"separateFiles\":true,\"aclPrinted\":true,\"tokenInLog\":false,\"ownerKeyInLog\":false}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-host-config.json",
+      "detail": {}
+    },
+    {
+      "name": "02 token/ownerKey validated from private files (host side only)",
+      "verdict": "PASS",
+      "result": "{\"tokenLen\":48,\"ownerKeyPattern\":true,\"sameValue\":false,\"agentEnvHasOwnerKey\":false}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-host-config.json",
+      "detail": {}
+    },
+    {
+      "name": "pure-ui: form exposes masked bridge token + owner key fields",
+      "verdict": "PASS",
+      "result": "[{\"n\":\"bridgeUrl\",\"t\":\"text\"},{\"n\":\"token\",\"t\":\"password\"},{\"n\":\"ownerKey\",\"t\":\"password\"}]",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-pure-ui.log",
+      "detail": {}
+    },
+    {
+      "name": "03 PURE UI: AUTHORIZE produces a real handshake request",
+      "verdict": "FAIL",
+      "result": "handshakeSent=false",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-pure-ui.json",
+      "detail": {
+        "network": []
+      }
+    },
+    {
+      "name": "04 PURE UI: Owner state after AUTHORIZE",
+      "verdict": "FAIL",
+      "result": "companionStatus=OFF; formStatus=FAILED · owner pairing rejected — control stays human; formOpen=true",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-pure-ui.json",
+      "detail": {
+        "formStatus": "FAILED · owner pairing rejected — control stays human",
+        "globalBefore": [],
+        "pageErrors": []
+      }
+    },
+    {
+      "name": "05 same key/token accepted by bridge directly (not bad credentials)",
+      "verdict": "PASS",
+      "result": "status=200; ok=true; code=; messageKey=",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-credential-control.json",
+      "detail": {}
+    },
+    {
+      "name": "host-config: form exposes masked bridge token + owner key fields",
+      "verdict": "PASS",
+      "result": "[{\"n\":\"bridgeUrl\",\"t\":\"text\"},{\"n\":\"token\",\"t\":\"password\"},{\"n\":\"ownerKey\",\"t\":\"password\"}]",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-host-config.log",
+      "detail": {}
+    },
+    {
+      "name": "06 CONTROL with host config: AUTHORIZE succeeds",
+      "verdict": "PASS",
+      "result": "companionStatus=CONNECTED; handshakeSent=true; network=[\"POST /world-link/handshake\",\"<- 200 /world-link/handshake\",\"POST /world-link/companion-authorize\",\"<- 200 /world-link/companion-authorize\"]",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-host-config.json",
+      "detail": {
+        "formStatus": "(closed)",
+        "globalBefore": [
+          "bridgeUrl",
+          "token"
+        ],
+        "pageErrors": []
+      }
+    },
+    {
+      "name": "07 ownerKey never in host-config global (control injects only url+token)",
+      "verdict": "PASS",
+      "result": "globalKeysBeforeForm=[\"bridgeUrl\",\"token\"]",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/01-host-config.json",
+      "detail": {}
+    }
+  ]
+}

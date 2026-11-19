@@ -1,0 +1,60 @@
+{
+  "results": [
+    {
+      "step": "first authorize creates a live link",
+      "ok": true,
+      "detail": "{\"status\":\"CONNECTED\",\"sameInstance\":true,\"hasLink\":true}"
+    },
+    {
+      "step": "real SDK observation + suggestion creates a pending proposal",
+      "ok": true,
+      "detail": "observe=true suggest=true pending=1 err="
+    },
+    {
+      "step": "B3 rendered proposal is bound to the real suggestionId (▶)",
+      "ok": true,
+      "detail": "{\"page\":\"llm\",\"selected\":\"sug_cccccccccccccccccccccccc\",\"firstId\":\"sug_cccccccccccccccccccccccc\",\"confirmEnabled\":true}"
+    },
+    {
+      "step": "reauth form opens on a live link",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "reauth swaps capability on the SAME CompanionLink (no new instance)",
+      "ok": true,
+      "detail": "{\"status\":\"CONNECTED\",\"sameInstance\":true,\"hasLink\":true}"
+    },
+    {
+      "step": "reauth keeps the link CONNECTED",
+      "ok": true,
+      "detail": "CONNECTED"
+    },
+    {
+      "step": "reauth closes the form on success",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "atomic swap cancels the old pending proposal",
+      "ok": true,
+      "detail": "before=1 after=0"
+    },
+    {
+      "step": "wrong pairing key is rejected",
+      "ok": true,
+      "detail": "RE-AUTH FAILED — link FALLBACK:NO_MODEL"
+    },
+    {
+      "step": "UI message matches the real post-failure link state",
+      "ok": true,
+      "detail": "status=FALLBACK:NO_MODEL sameInstance=true"
+    },
+    {
+      "step": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "errors": []
+}

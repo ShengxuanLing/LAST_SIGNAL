@@ -1,0 +1,314 @@
+{
+  "total": 18,
+  "pass": 18,
+  "fail": 0,
+  "results": [
+    {
+      "name": "01 dev ready",
+      "verdict": "PASS",
+      "command": "npx vite --mode test --port 5392",
+      "result": "dev respond <500",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/00-freeze.log",
+      "detail": {}
+    },
+    {
+      "name": "02 host-only credential files (ACL, no secret in log)",
+      "verdict": "PASS",
+      "command": "npx vite-node scripts/c3b-bridge.mts",
+      "result": "{\"separate\":true,\"aclPrinted\":true}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/00-freeze.log",
+      "detail": {}
+    },
+    {
+      "name": "03 Agent MCP env holds NO owner key (bridgeUrl+token only)",
+      "verdict": "PASS",
+      "command": "StdioClientTransport env={LAST_SIGNAL_WORLD_BRIDGE_URL,LAST_SIGNAL_WORLD_TOKEN}",
+      "result": "{\"ownerKeyInAgentEnv\":false,\"capInAgentEnv\":false,\"tokenOnly\":true}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "04 fresh UI no-global form -> CONNECTED",
+      "verdict": "PASS",
+      "command": "real masked form submit",
+      "result": "globalBefore=[]; status=CONNECTED",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "05 official SDK exposes exactly 4 tools (no confirm)",
+      "verdict": "PASS",
+      "command": "sdk.listTools()",
+      "result": "echo_observe,echo_suggest,echo_status,echo_memory",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "06 immediately after authorize: legal echo_observe (real drone)",
+      "verdict": "PASS",
+      "command": "sdk echo_observe",
+      "result": "{\"ok\":true,\"drones\":1}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "07 paused 15s: core tick unchanged",
+      "verdict": "PASS",
+      "command": "sleep 15000 (paused)",
+      "result": "before=33 after=33",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "08 paused 15s: session stays CONNECTED (renderer heartbeat)",
+      "verdict": "PASS",
+      "command": "renderer heartbeat 1000ms",
+      "result": "status=CONNECTED",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "09 15s-paused Agent echo_observe ok",
+      "verdict": "PASS",
+      "command": "sdk echo_observe",
+      "result": "{\"ok\":true,\"drones\":1}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "10 15s-paused Agent echo_status ok",
+      "verdict": "PASS",
+      "command": "sdk echo_status",
+      "result": "{\"ok\":true,\"link\":\"connected\",\"pending\":0}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "11 15s-paused Agent echo_memory ok",
+      "verdict": "PASS",
+      "command": "sdk echo_memory",
+      "result": "{\"ok\":true,\"entries\":1}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "12 15s-paused Agent echo_suggest proposals",
+      "verdict": "PASS",
+      "command": "sdk echo_suggest",
+      "result": "{\"ok\":true,\"kind\":\"fire\",\"status\":\"proposed\"}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "13 Owner cap never in URL",
+      "verdict": "PASS",
+      "command": "page request capture",
+      "result": "{\"capInUrl\":false,\"reqCount\":21}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "15 Owner confirm while paused -> pending intent, tick unchanged",
+      "verdict": "PASS",
+      "command": "click CONFIRM FIRST PROPOSAL",
+      "result": "tick=33 (was 33)",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "16 OBSERVATION echo_status pending consistency after Owner confirm",
+      "verdict": "PASS",
+      "command": "sdk echo_status (post-confirm)",
+      "result": "{\"pendingCount\":1,\"containsConfirmed\":true,\"note\":\"OBSERVATION: agent echo_status still reports the confirmed suggestion as pending/proposed\"}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {
+        "pendingCount": 1,
+        "containsConfirmed": true,
+        "note": "OBSERVATION: agent echo_status still reports the confirmed suggestion as pending/proposed"
+      }
+    },
+    {
+      "name": "17 resume -> natural core tick produces real echo effect",
+      "verdict": "PASS",
+      "command": "Escape then wait real tick",
+      "result": "{\"tick\":37,\"echoShots\":1,\"pending\":false}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "14 GET Owner read uses x-owner-cap header (never URL)",
+      "verdict": "PASS",
+      "command": "page request capture (full session)",
+      "result": "{\"capHeaderUsed\":true,\"capInUrl\":false,\"getReads\":[\"/world-link/companion-suggestions\",\"/world-link/companion-suggestions\"]}",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    },
+    {
+      "name": "18 no page/console errors",
+      "verdict": "PASS",
+      "command": "page error capture",
+      "result": "[]",
+      "path": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-session-final/01-real-ui.json",
+      "detail": {}
+    }
+  ],
+  "network": [
+    {
+      "m": "POST",
+      "path": "/world-link/handshake",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/companion-authorize",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/companion-observation",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "GET",
+      "path": "/world-link/companion-suggestions",
+      "capInUrl": false,
+      "capHeader": true
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/companion-decision",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "GET",
+      "path": "/world-link/companion-suggestions",
+      "capInUrl": false,
+      "capHeader": true
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/heartbeat",
+      "capInUrl": false,
+      "capHeader": false
+    },
+    {
+      "m": "POST",
+      "path": "/world-link/companion-applied",
+      "capInUrl": false,
+      "capHeader": false
+    }
+  ],
+  "pageErrors": []
+}

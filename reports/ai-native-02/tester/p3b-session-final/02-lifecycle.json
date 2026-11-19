@@ -1,0 +1,107 @@
+{
+  "total": 14,
+  "pass": 14,
+  "fail": 0,
+  "results": [
+    {
+      "name": "L01 human handshake + authorize",
+      "verdict": "PASS",
+      "command": "POST handshake+authorize",
+      "result": "{\"hs\":200,\"au\":200,\"rotated\":true}",
+      "detail": {}
+    },
+    {
+      "name": "L02 agent propose ok",
+      "verdict": "PASS",
+      "command": "POST companion-suggest",
+      "result": "{\"status\":200,\"ok\":true}",
+      "detail": {}
+    },
+    {
+      "name": "L03 agent lease live (attached=true)",
+      "verdict": "PASS",
+      "command": "POST attach + GET agent-status",
+      "result": "{\"attach\":200,\"attached\":true}",
+      "detail": {}
+    },
+    {
+      "name": "L04 hardkill: independent 4s lease expired (attached=false)",
+      "verdict": "PASS",
+      "command": "no agent-renew 5.2s",
+      "result": "{\"status\":200,\"ok\":true,\"attached\":false,\"statusText\":\"closed\",\"epoch\":-1}",
+      "detail": {
+        "heartbeatsOk": 8
+      }
+    },
+    {
+      "name": "L05 browser heartbeat cannot renew agent lease (session closed)",
+      "verdict": "PASS",
+      "command": "500ms browser heartbeat + no agent renew",
+      "result": "{\"attached\":false,\"status\":\"closed\",\"heartbeatsOk\":8}",
+      "detail": {}
+    },
+    {
+      "name": "L06 post-expiry browser heartbeat denied (no revival)",
+      "verdict": "PASS",
+      "command": "POST heartbeat after lease expiry",
+      "result": "{\"status\":403,\"ok\":false,\"code\":\"E_PERMISSION\",\"messageKey\":\"companion.owner_capability_required\"}",
+      "detail": {}
+    },
+    {
+      "name": "L07 old epoch action-submit rejected",
+      "verdict": "PASS",
+      "command": "POST action-submit (old)",
+      "result": "{\"status\":404,\"ok\":false,\"code\":\"E_SESSION_NOT_FOUND\",\"messageKey\":\"world.session_unknown\"}",
+      "detail": {}
+    },
+    {
+      "name": "L08 old session observation rejected",
+      "verdict": "PASS",
+      "command": "GET companion-observation (old)",
+      "result": "{\"status\":404,\"ok\":false,\"code\":\"E_SESSION_NOT_FOUND\",\"messageKey\":\"world.session_unknown\"}",
+      "detail": {}
+    },
+    {
+      "name": "L09 fresh handshake -> new session; old epoch still rejected",
+      "verdict": "PASS",
+      "command": "POST handshake + old action-submit",
+      "result": "{\"newSession\":true,\"oldSubmit\":404,\"oldCode\":\"E_SESSION_NOT_FOUND\",\"authorize\":200}",
+      "detail": {}
+    },
+    {
+      "name": "L10 first confirm+applied accepted",
+      "verdict": "PASS",
+      "command": "confirm + applied",
+      "result": "{\"sug\":200,\"dec1\":200,\"app1\":200}",
+      "detail": {}
+    },
+    {
+      "name": "L11 duplicate confirm rejected (no double execute)",
+      "verdict": "PASS",
+      "command": "second confirm",
+      "result": "{\"status\":400,\"code\":\"E_RETRYABLE\",\"messageKey\":\"companion.decision_exists\"}",
+      "detail": {}
+    },
+    {
+      "name": "L12 duplicate applied rejected (no double receipt)",
+      "verdict": "PASS",
+      "command": "second applied",
+      "result": "{\"status\":400,\"code\":\"E_RETRYABLE\",\"messageKey\":\"companion.decision_already_applied\"}",
+      "detail": {}
+    },
+    {
+      "name": "L13 move confirm once accepted",
+      "verdict": "PASS",
+      "command": "suggest stop + confirm",
+      "result": "{\"sug\":200,\"dec\":200}",
+      "detail": {}
+    },
+    {
+      "name": "L14 move duplicate confirm rejected (single execute)",
+      "verdict": "PASS",
+      "command": "second stop confirm",
+      "result": "{\"status\":400,\"code\":\"E_RETRYABLE\"}",
+      "detail": {}
+    }
+  ]
+}

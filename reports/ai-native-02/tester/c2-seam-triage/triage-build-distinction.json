@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "prod": "http://localhost:5292/",
+    "dev": "http://localhost:5291/",
+    "target": "5f49b24"
+  },
+  "checks": [
+    {
+      "n": true,
+      "name": "prod-simFixture-dev-only",
+      "d": "dev/test only"
+    },
+    {
+      "n": true,
+      "name": "prod-playerDataFixture-dev-only",
+      "d": "dev/test only"
+    },
+    {
+      "n": true,
+      "name": "prod-clearEnemies-dev-only",
+      "d": "dev/test only"
+    },
+    {
+      "n": true,
+      "name": "dev-fixtures-ok",
+      "d": {
+        "simFixture": "ok",
+        "playerDataFixture": "ok",
+        "clearEnemies": "ok"
+      }
+    },
+    {
+      "n": true,
+      "name": "prod-sim-frozen"
+    },
+    {
+      "n": true,
+      "name": "prod-paused-enqueue-no-write",
+      "d": {
+        "before": {
+          "hp": 100,
+          "currency": 20,
+          "tick": 73,
+          "pending": 0,
+          "loot": 0
+        },
+        "after": {
+          "hp": 100,
+          "currency": 20,
+          "tick": 73,
+          "pending": 3
+        }
+      }
+    },
+    {
+      "n": true,
+      "name": "prod-step0-no-commit",
+      "d": {
+        "hp": 100,
+        "currency": 20,
+        "tick": 73,
+        "pending": 3,
+        "events": 0,
+        "loot": 0
+      }
+    },
+    {
+      "n": false,
+      "name": "prod-far-loot-20-not-picked",
+      "d": {
+        "hp": 100,
+        "currency": 80,
+        "tick": 148,
+        "pending": 0,
+        "loot": 0,
+        "lootViews": 0
+      }
+    }
+  ],
+  "prod": {
+    "simFixture": "dev/test only",
+    "playerDataFixture": "dev/test only",
+    "clearEnemies": "dev/test only",
+    "frozen": true,
+    "before": {
+      "hp": 100,
+      "currency": 20,
+      "tick": 73,
+      "pending": 0,
+      "loot": 0
+    },
+    "afterEnqueue": {
+      "hp": 100,
+      "currency": 20,
+      "tick": 73,
+      "pending": 3
+    },
+    "afterZero": {
+      "hp": 100,
+      "currency": 20,
+      "tick": 73,
+      "pending": 3,
+      "events": 0,
+      "loot": 0
+    },
+    "afterTicks": {
+      "hp": 100,
+      "currency": 80,
+      "tick": 148,
+      "pending": 0,
+      "loot": 0,
+      "lootViews": 0
+    }
+  },
+  "dev": {
+    "simFixture": "ok",
+    "playerDataFixture": "ok",
+    "clearEnemies": "ok"
+  },
+  "errors": []
+}

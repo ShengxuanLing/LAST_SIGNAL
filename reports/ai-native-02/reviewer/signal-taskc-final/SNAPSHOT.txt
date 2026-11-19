@@ -1,0 +1,25 @@
+冻结快照与产物溯源（复核者独立生成，未随提交交付）
+
+target_commit: 363eb173207bb5adaa0a21cd1af348dc92f29827
+branch:        feat/ai-native-world-integration
+snapshot_dir:  D:\review-tc-final\snap   (git archive 363eb17 | tar -x)
+tracked_files: 2039
+blob_check:    git ls-tree -r 363eb17 (blob sha1 per path) vs git hash-object over snapshot
+               -> diff 0 lines  (tracked-blobs-363eb17.txt == tracked-blobs-snapshot.txt)
+worktree_drift: git status --porcelain -uno -> 0 lines before AND after all review runs
+               (the reviewed code == the frozen hash, identical to what the tester verifies)
+
+reviewer-regenerated parity export (inside the snapshot, own strictPort 5371):
+  initial.json   2,431,934 B
+  sequence.json     80,749 B   sha256 c3ffbcfcac82b1dad2bfa0da877d9a24b6bec16057a77c961b0fb3ea00be81d4  (identical to dev's)
+  rendered.json    108,312 B
+  -> replay: canonical state + events byte-identical (see logs/gate-parity-replay.log)
+
+clean-archive behaviour (no parity JSONs): 3/3 tests RED  (see logs/gate-parity-clean-archive-red.log)
+
+reviewer-written probes (NOT part of the frozen commit; source kept here for audit):
+  echoViewSignal.probe.test.ts   7/7 PASS  (hidden-relay negatives, field leak checks)
+  zz-portal-probe.spec.ts        1/1 PASS  (room 0 -> 3 -> 5, concrete next room)
+
+secrets: no token / owner pairing key appears in any log (checked 48-hex and 64-hex patterns);
+         the OWNER_KEY only ever lived in the browser form + private file created by the specs.

@@ -1,0 +1,227 @@
+{
+  "checks": [
+    {
+      "n": "echo-on-for-legacy-flows",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "tick": 35
+      }
+    },
+    {
+      "n": "pause-resume-no-forced-tick",
+      "ok": true,
+      "d": {
+        "before": 35,
+        "during": 35,
+        "after": 35,
+        "paused": false
+      }
+    },
+    {
+      "n": "inventory-open-no-forced-tick",
+      "ok": true,
+      "d": {
+        "before": 35,
+        "after": 35,
+        "paused": true,
+        "hasMethod": true
+      }
+    },
+    {
+      "n": "portal-real-transition",
+      "ok": true,
+      "d": {
+        "before": {
+          "room": 0,
+          "tick": 42,
+          "echo": {
+            "x": 9,
+            "y": 45
+          }
+        },
+        "after": {
+          "room": 3,
+          "tick": 44,
+          "echo": {
+            "x": 9.155078541123915,
+            "y": 44.932025822379714
+          }
+        }
+      }
+    },
+    {
+      "n": "portal-echo-follows-same-tick-boundary",
+      "ok": true,
+      "d": {
+        "before": {
+          "room": 0,
+          "tick": 42,
+          "echo": {
+            "x": 9,
+            "y": 45
+          }
+        },
+        "after": {
+          "room": 3,
+          "tick": 44,
+          "echo": {
+            "x": 9.155078541123915,
+            "y": 44.932025822379714
+          }
+        }
+      }
+    },
+    {
+      "n": "portal-no-tick-skip",
+      "ok": true,
+      "d": {
+        "delta": 2
+      }
+    },
+    {
+      "n": "checkpoint-refused-outside-safe-conditions",
+      "ok": true,
+      "d": {
+        "captured": false
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": true,
+      "d": []
+    },
+    {
+      "n": "viewport-1920x1080-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "n": "viewport-1366x768-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "n": "viewport-1280x720-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "n": "viewport-1024x768-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "n": "viewport-800x600-dual-actor-hud",
+      "ok": true,
+      "d": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "pause-resume",
+      "pauseCheck": {
+        "before": 35,
+        "during": 35,
+        "after": 35,
+        "paused": false
+      }
+    },
+    {
+      "name": "inventory",
+      "inv": {
+        "before": 35,
+        "after": 35,
+        "paused": true,
+        "hasMethod": true
+      }
+    },
+    {
+      "name": "portal",
+      "portal": {
+        "before": {
+          "room": 0,
+          "tick": 42,
+          "echo": {
+            "x": 9,
+            "y": 45
+          }
+        },
+        "after": {
+          "room": 3,
+          "tick": 44,
+          "echo": {
+            "x": 9.155078541123915,
+            "y": 44.932025822379714
+          }
+        }
+      }
+    },
+    {
+      "name": "checkpoint",
+      "cp": {
+        "captured": false
+      }
+    },
+    {
+      "name": "viewport-1920x1080",
+      "st": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "name": "viewport-1366x768",
+      "st": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "name": "viewport-1280x720",
+      "st": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "name": "viewport-1024x768",
+      "st": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    },
+    {
+      "name": "viewport-800x600",
+      "st": {
+        "echo": true,
+        "hudEcho": "ECHO 100/100 · FOLLOW · ASSIST SAFE",
+        "hudControl": "CONTROL  HUMAN"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "restoreCanon": "{\"seed\":424242,\"tick\":155,\"rngState\":0,\"mapSeed\":424242,\"mapMinX\":2,\"mapMinY\":37,\"mapHash\":\"fnv1a32:76b6f4d1\",\"player\":{\"x\":30.370209066302074,\"y\":42.95833333333346,\"data\":{\"abilities\":[],\"aimYaw\":0,\"armor\":0,\"cooldownReduced\":0,\"critChance\":0.1,\"critDamage\":1.5,\"currency\":0,\"damage\":1,\"dashCooldown\":0.9,\"dashDuration\":0.16,\"hp\":93,\"hpRegen\":0,\"level\":1,\"maxHp\":100,\"pickupRange\":90,\"pierceCount\":0,\"speed\":220,\"upgrades\":[],\"weaponKey\":\"pulse\",\"weapons\":[{\"ammo\":-1,\"key\":\"pulse\",\"level\":1,\"magazine\":-1,\"reloadTimer\":0,\"reloading\":false}],\"xp\":0,\"xpGain\":1,\"xpToNext\":30},\"dashTimer\":0,\"invuln\":0,\"hurtTimer\":0,\"fireTimer\":0,\"aimYaw\":0},\"drones\":[{\"attackTimer\":0.5499999999999999,\"data\":{\"hitFlash\":0,\"kind\":\"drone\",\"patrolIndex\":1,\"patrolPoints\":[{\"x\":25,\"y\":47},{\"x\":26,\"y\":47},{\"x\":26,\"y\":45},{\"x\":25,\"y\":45}],\"spawnRoom\":3,\"state\":\"patrol\",\"stateTimer\":1.2,\"stats\":{\"aggroRange\":5.3125,\"armor\":0,\"attackCooldown\":1.4,\"attackRange\":3.125,\"currencyValue\":3,\"damage\":7,\"maxHp\":27,\"ranged\":true,\"reachEnemy\":false,\"speed\":1.40625,\"xpValue\":8},\"stunTimer\":0,\"targetId\":0},\"hp\":27,\"id\":1,\"wanderTimer\":1.2,\"x\":23.47911713034239,\"y\":42.48935940973849}],\"targets\":[],\"projectiles\":[{\"crit\":false,\"damage\":7,\"hitIds\":[],\"id\":2,\"kind\":\"plasma\",\"lifetime\":1.6333333333333364,\"ownerId\":1,\"pierce\":0,\"pos\":{\"x\":25.52971154886001,\"y\":41.789711658946125},\"radius\":0.2,\"side\":\"enemy\",\"source\":\"enemy\",\"vel\":{\"x\":2.3660704829048957,\"y\":-0.8072858662990411}}],\"pendingPlayerHits\":[],\"pendingCommands\":[],\"purchaseTransactions\":[],\"loot\":[],\"nextLootId\":1,\"nextProjectileId\":3}",
+  "liveCanon": "{\"seed\":424242,\"tick\":155,\"rngState\":0,\"mapSeed\":424242,\"mapMinX\":2,\"mapMinY\":37,\"mapHash\":\"fnv1a32:76b6f4d1\",\"player\":{\"x\":30.370209066302074,\"y\":42.95833333333346,\"data\":{\"maxHp\":100,\"hp\":93,\"speed\":220,\"armor\":0,\"damage\":1,\"critChance\":0.1,\"critDamage\":1.5,\"xpGain\":1,\"pickupRange\":90,\"dashCooldown\":0.9,\"dashDuration\":0.16,\"aimYaw\":0,\"cooldownReduced\":0,\"pierceCount\":0,\"hpRegen\":0,\"level\":1,\"xp\":0,\"xpToNext\":30,\"currency\":0,\"weaponKey\":\"pulse\",\"weapons\":[{\"key\":\"pulse\",\"level\":1,\"ammo\":-1,\"magazine\":-1,\"reloading\":false,\"reloadTimer\":0}],\"upgrades\":[],\"abilities\":[]},\"dashTimer\":0,\"invuln\":0,\"hurtTimer\":0,\"fireTimer\":0,\"aimYaw\":0},\"drones\":[{\"id\":1,\"x\":23.47911713034239,\"y\":42.48935940973849,\"hp\":27,\"data\":{\"kind\":\"drone\",\"stats\":{\"maxHp\":27,\"speed\":1.40625,\"damage\":7,\"armor\":0,\"aggroRange\":5.3125,\"attackRange\":3.125,\"attackCooldown\":1.4,\"xpValue\":8,\"currencyValue\":3,\"reachEnemy\":false,\"ranged\":true},\"state\":\"patrol\",\"stateTimer\":1.2,\"targetId\":0,\"patrolPoints\":[{\"x\":25,\"y\":47},{\"x\":26,\"y\":47},{\"x\":26,\"y\":45},{\"x\":25,\"y\":45}],\"patrolIndex\":1,\"hitFlash\":0,\"stunTimer\":0,\"spawnRoom\":3},\"attackTimer\":0.5499999999999999,\"wanderTimer\":1.2}],\"targets\":[],\"projectiles\":[{\"id\":2,\"ownerId\":1,\"side\":\"enemy\",\"source\":\"enemy\",\"kind\":\"plasma\",\"pos\":{\"x\":25.52971154886001,\"y\":41.789711658946125},\"vel\":{\"x\":2.3660704829048957,\"y\":-0.8072858662990411},\"damage\":7,\"lifetime\":1.6333333333333364,\"radius\":0.2,\"crit\":false,\"pierce\":0,\"hitIds\":[]}],\"pendingPlayerHits\":[],\"pendingCommands\":[],\"purchaseTransactions\":[],\"loot\":[],\"nextLootId\":1,\"nextProjectileId\":3}",
+  "rep": {
+    "schema": "last_signal.mcp.tool-result.v1",
+    "ok": true,
+    "session": "ses_b81c1fd42c60e3ddfab9a287",
+    "sameState": true,
+    "sameEvents": true,
+    "expectedStateHash": "fnv1a32:4159ebd4",
+    "actualStateHash": "fnv1a32:4159ebd4",
+    "expectedEventsHash": "fnv1a32:75fcb783",
+    "actualEventsHash": "fnv1a32:75fcb783",
+    "expectedNewEventsHash": "fnv1a32:3e553759",
+    "actualNewEventsHash": "fnv1a32:3e553759",
+    "baselineEvents": 243,
+    "historyPreserved": true,
+    "eventsTruncated": false,
+    "firstDivergence": null
+  }
+}

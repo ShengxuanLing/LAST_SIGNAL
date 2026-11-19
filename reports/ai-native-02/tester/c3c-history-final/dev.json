@@ -1,0 +1,183 @@
+{
+  "meta": {
+    "target": "dcb4f14fffceac0c3ef7c44725256b88e0a00cf9",
+    "surface": "Dev (--dev)"
+  },
+  "checks": [
+    {
+      "n": "boundary-replay-same-state",
+      "ok": false,
+      "d": {
+        "sameState": false
+      }
+    },
+    {
+      "n": "boundary-replay-same-events",
+      "ok": true,
+      "d": {
+        "sameEvents": true,
+        "firstDivergence": null
+      }
+    },
+    {
+      "n": "boundary-frame-independent-of-live",
+      "ok": true,
+      "d": {
+        "unchanged": true
+      }
+    },
+    {
+      "n": "tampered-action-diverges-in-new-segment",
+      "ok": true,
+      "d": {
+        "firstDivergence": 243,
+        "baseline": 243
+      }
+    },
+    {
+      "n": "tampered-prefix-fails-at-actual-index",
+      "ok": true,
+      "d": {
+        "historyPreserved": false,
+        "firstDivergence": 5
+      }
+    },
+    {
+      "n": "midrun-prefix-complete-equal",
+      "ok": true,
+      "d": {
+        "prefix": 41,
+        "total": 71
+      }
+    },
+    {
+      "n": "midrun-prefix-identical",
+      "ok": true,
+      "d": {
+        "equal": true
+      }
+    },
+    {
+      "n": "midrun-replay-same-state",
+      "ok": true,
+      "d": {
+        "sameState": true
+      }
+    },
+    {
+      "n": "midrun-replay-prefix-and-suffix",
+      "ok": true,
+      "d": {
+        "firstDivergence": null,
+        "newEqual": true
+      }
+    },
+    {
+      "n": "midrun-tampered-action-diverges-after-prefix",
+      "ok": true,
+      "d": {
+        "firstDivergence": 41,
+        "prefix": 41
+      }
+    },
+    {
+      "n": "midrun-tampered-prefix-fails-at-index",
+      "ok": true,
+      "d": {
+        "firstDivergence": 3
+      }
+    },
+    {
+      "n": "frame-mutation-does-not-touch-live",
+      "ok": true,
+      "d": {
+        "before": 30,
+        "after": 30
+      }
+    },
+    {
+      "n": "live-ticks-do-not-mutate-saved-frame",
+      "ok": true,
+      "d": {
+        "equal": true
+      }
+    },
+    {
+      "n": "restore-applies-saved-frame",
+      "ok": true,
+      "d": {
+        "tick": 30,
+        "frameTick": 30,
+        "x": 22.218750000000036,
+        "frameX": 22.218750000000036
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "boundary-replay",
+      "sameState": false,
+      "sameEvents": true,
+      "historyPreserved": true,
+      "baselineEvents": 243,
+      "firstDivergence": null
+    },
+    {
+      "name": "tamper-action",
+      "sameState": false,
+      "sameEvents": false,
+      "firstDivergence": 243,
+      "baselineEvents": 243
+    },
+    {
+      "name": "tamper-prefix",
+      "historyPreserved": false,
+      "firstDivergence": 5
+    },
+    {
+      "name": "midrun",
+      "initial20": 20,
+      "prefix20": 41,
+      "total35": 71,
+      "eventsPrefixStillEqual": true
+    },
+    {
+      "name": "midrun-replay",
+      "sameState": true,
+      "sameEvents": true,
+      "firstDivergence": null,
+      "baselineEvents": 41,
+      "newEqual": true
+    },
+    {
+      "name": "midrun-tamper-action",
+      "firstDivergence": 41,
+      "baseline": 41
+    },
+    {
+      "name": "midrun-tamper-prefix",
+      "firstDivergence": 3,
+      "historyPreserved": false
+    },
+    {
+      "name": "isolation",
+      "liveUnchangedByFrameMutation": true,
+      "frameUnchangedByLiveTicks": true,
+      "before": {
+        "tick": 30,
+        "x": 22.218750000000036
+      },
+      "after": {
+        "tick": 30,
+        "x": 22.218750000000036
+      }
+    },
+    {
+      "name": "restore-isolation",
+      "epoch": 2,
+      "tick": 30,
+      "x": 22.218750000000036
+    }
+  ],
+  "findings": []
+}

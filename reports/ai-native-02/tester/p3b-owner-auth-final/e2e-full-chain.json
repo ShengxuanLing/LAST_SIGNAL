@@ -1,0 +1,167 @@
+{
+  "total": 18,
+  "pass": 16,
+  "fail": 2,
+  "results": [
+    {
+      "name": "F0 dev ready",
+      "verdict": "PASS",
+      "observed": {
+        "url": "http://localhost:5392"
+      }
+    },
+    {
+      "name": "F1 Owner pairing via real masked form -> CONNECTED",
+      "verdict": "PASS",
+      "observed": {
+        "status": "CONNECTED"
+      }
+    },
+    {
+      "name": "F2 Companion attach (token-only)",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "F3 real echo observation pushed",
+      "verdict": "PASS",
+      "observed": {
+        "targetApprox": {
+          "x": 10,
+          "y": 45
+        }
+      }
+    },
+    {
+      "name": "F4 agent suggest proposed",
+      "verdict": "PASS",
+      "observed": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "F5 no echo effect before Owner confirm",
+      "verdict": "PASS",
+      "observed": {
+        "tick": 5,
+        "projectiles": 0,
+        "pending": false,
+        "echoShots": 0,
+        "echoX": 9,
+        "echoY": 45
+      }
+    },
+    {
+      "name": "F6 agent self-confirm rejected",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "F7 Owner confirm -> pending echo intent / projectile",
+      "verdict": "PASS",
+      "observed": {
+        "queued": true
+      }
+    },
+    {
+      "name": "F8 next core tick commits real echo effect (shot/position)",
+      "verdict": "PASS",
+      "observed": {
+        "before": {
+          "tick": 5,
+          "projectiles": 0,
+          "pending": false,
+          "echoShots": 0,
+          "echoX": 9,
+          "echoY": 45
+        },
+        "after": {
+          "tick": 79,
+          "projectiles": 0,
+          "echoProjectiles": 0,
+          "echoShots": 1,
+          "echoX": 8.625,
+          "echoY": 45,
+          "pending": false
+        }
+      }
+    },
+    {
+      "name": "F9 duplicate decision rejected",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "code": "E_PERMISSION",
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "F10 stale Owner key reauthorization rejected",
+      "verdict": "PASS",
+      "observed": {
+        "status": 403,
+        "messageKey": "companion.owner_capability_required"
+      }
+    },
+    {
+      "name": "F11 fresh Owner key reauthorization via production UI works",
+      "verdict": "FAIL",
+      "observed": {
+        "status": "FAILED · owner pairing rejected — control stays human",
+        "companion": "CONNECTED"
+      }
+    },
+    {
+      "name": "F12 external mode => companion READ_ONLY",
+      "verdict": "PASS",
+      "observed": {
+        "status": "READ_ONLY"
+      }
+    },
+    {
+      "name": "F13 suggest in external mode rejected",
+      "verdict": "PASS",
+      "observed": {
+        "status": 503,
+        "code": "E_LINK_UNAVAILABLE"
+      }
+    },
+    {
+      "name": "F14 back to human => CONNECTED",
+      "verdict": "PASS",
+      "observed": {
+        "status": "CONNECTED"
+      }
+    },
+    {
+      "name": "F15 game HUD clears CONNECTED after agent lease expiry",
+      "verdict": "FAIL",
+      "observed": {
+        "attach": 409,
+        "before": "CONNECTED",
+        "after": "CONNECTED",
+        "note": "bridge-side fallback verified independently in 07-lifecycle.json L11-L13"
+      }
+    },
+    {
+      "name": "F16 browser reload while bridge still running",
+      "verdict": "PASS",
+      "observed": {}
+    },
+    {
+      "name": "F17 no page errors",
+      "verdict": "PASS",
+      "observed": {
+        "errors": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"echoStatusRoute":{"status":403,"json":{"ok":false,"code":"E_PERMISSION","messageKey":"companion.owner_capability_required"}},"echoMemoryRoute":{"status":200,"json":{"ok":true,"session":"ses_c3113adc155490adf369d092","epoch":1,"memoryEntries":0,"memoryTtlTicks":600}}}

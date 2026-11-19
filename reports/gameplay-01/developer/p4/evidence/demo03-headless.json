@@ -1,0 +1,476 @@
+{
+  "schema": "last_signal.p4.demo03.trials.v1",
+  "generatedBy": "reports/gameplay-01/developer/p4/demo03-headless.mts",
+  "modelRequests": 0,
+  "humanPlaytests": 0,
+  "nonBlind": true,
+  "seeds": [
+    20261117,
+    20261118,
+    20261119
+  ],
+  "trials": [
+    {
+      "seed": 20261117,
+      "mode": "HumanOnly",
+      "startedTick": 0,
+      "endedTick": 84,
+      "ticks": 84,
+      "playerHpStart": 100,
+      "playerHpEnd": 100,
+      "playerHpLoss": 0,
+      "echoHpStart": null,
+      "echoHpEnd": null,
+      "echoHpLoss": null,
+      "playerEnergy": 100,
+      "echoEnergy": 100,
+      "signalOps": 0,
+      "suggestions": 0,
+      "accepted": 0,
+      "rejected": 0,
+      "acceptanceFailureRate": null,
+      "routeTarget": 1,
+      "routeLabel": "COMBAT",
+      "routePortal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "completed": true,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "kills": 2,
+      "echoScan": "not-run",
+      "nonBlind": true,
+      "scenario": {
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "relay": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "drones": [
+          {
+            "x": 10.5,
+            "y": 42.5
+          },
+          {
+            "x": 4.5,
+            "y": 44.5
+          }
+        ],
+        "routes": [
+          {
+            "target": 1,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 2,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "initialEvents": [
+        "signal-device-spawned",
+        "signal-linked",
+        "player-moved",
+        "drone-step",
+        "drone-step"
+      ]
+    },
+    {
+      "seed": 20261117,
+      "mode": "HumanEcho",
+      "startedTick": 0,
+      "endedTick": 88,
+      "ticks": 88,
+      "playerHpStart": 100,
+      "playerHpEnd": 100,
+      "playerHpLoss": 0,
+      "echoHpStart": 100,
+      "echoHpEnd": 100,
+      "echoHpLoss": 0,
+      "playerEnergy": 100,
+      "echoEnergy": 90,
+      "signalOps": 1,
+      "suggestions": 1,
+      "accepted": 1,
+      "rejected": 0,
+      "acceptanceFailureRate": 0,
+      "routeTarget": 1,
+      "routeLabel": "COMBAT",
+      "routePortal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "completed": true,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "kills": 2,
+      "echoScan": "applied",
+      "nonBlind": true,
+      "scenario": {
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "relay": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "drones": [
+          {
+            "x": 10.5,
+            "y": 42.5
+          },
+          {
+            "x": 4.5,
+            "y": 44.5
+          }
+        ],
+        "routes": [
+          {
+            "target": 1,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 2,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "initialEvents": [
+        "signal-device-spawned",
+        "signal-linked",
+        "player-moved",
+        "drone-step",
+        "drone-step"
+      ]
+    },
+    {
+      "seed": 20261118,
+      "mode": "HumanOnly",
+      "startedTick": 0,
+      "endedTick": 88,
+      "ticks": 88,
+      "playerHpStart": 100,
+      "playerHpEnd": 100,
+      "playerHpLoss": 0,
+      "echoHpStart": null,
+      "echoHpEnd": null,
+      "echoHpLoss": null,
+      "playerEnergy": 100,
+      "echoEnergy": 100,
+      "signalOps": 0,
+      "suggestions": 0,
+      "accepted": 0,
+      "rejected": 0,
+      "acceptanceFailureRate": null,
+      "routeTarget": 2,
+      "routeLabel": "RESOURCE",
+      "routePortal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "completed": true,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "kills": 2,
+      "echoScan": "not-run",
+      "nonBlind": true,
+      "scenario": {
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "relay": {
+          "x": 11.5,
+          "y": 47.5
+        },
+        "drones": [
+          {
+            "x": 4.5,
+            "y": 48.5
+          },
+          {
+            "x": 6.5,
+            "y": 48.5
+          }
+        ],
+        "routes": [
+          {
+            "target": 2,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 5,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          }
+        ]
+      },
+      "initialEvents": [
+        "signal-device-spawned",
+        "signal-linked",
+        "player-moved",
+        "drone-step",
+        "drone-step"
+      ]
+    },
+    {
+      "seed": 20261118,
+      "mode": "HumanEcho",
+      "startedTick": 0,
+      "endedTick": 92,
+      "ticks": 92,
+      "playerHpStart": 100,
+      "playerHpEnd": 100,
+      "playerHpLoss": 0,
+      "echoHpStart": 100,
+      "echoHpEnd": 100,
+      "echoHpLoss": 0,
+      "playerEnergy": 100,
+      "echoEnergy": 90,
+      "signalOps": 1,
+      "suggestions": 1,
+      "accepted": 1,
+      "rejected": 0,
+      "acceptanceFailureRate": 0,
+      "routeTarget": 2,
+      "routeLabel": "RESOURCE",
+      "routePortal": {
+        "x": 11.5,
+        "y": 49.5
+      },
+      "completed": true,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "kills": 2,
+      "echoScan": "applied",
+      "nonBlind": true,
+      "scenario": {
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "relay": {
+          "x": 11.5,
+          "y": 47.5
+        },
+        "drones": [
+          {
+            "x": 4.5,
+            "y": 48.5
+          },
+          {
+            "x": 6.5,
+            "y": 48.5
+          }
+        ],
+        "routes": [
+          {
+            "target": 2,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 49.5
+            }
+          },
+          {
+            "target": 5,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          }
+        ]
+      },
+      "initialEvents": [
+        "signal-device-spawned",
+        "signal-linked",
+        "player-moved",
+        "drone-step",
+        "drone-step"
+      ]
+    },
+    {
+      "seed": 20261119,
+      "mode": "HumanOnly",
+      "startedTick": 0,
+      "endedTick": 92,
+      "ticks": 92,
+      "playerHpStart": 100,
+      "playerHpEnd": 100,
+      "playerHpLoss": 0,
+      "echoHpStart": null,
+      "echoHpEnd": null,
+      "echoHpLoss": null,
+      "playerEnergy": 100,
+      "echoEnergy": 100,
+      "signalOps": 0,
+      "suggestions": 0,
+      "accepted": 0,
+      "rejected": 0,
+      "acceptanceFailureRate": null,
+      "routeTarget": 5,
+      "routeLabel": "ELITE",
+      "routePortal": {
+        "x": 12.5,
+        "y": 45.5
+      },
+      "completed": true,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "kills": 2,
+      "echoScan": "not-run",
+      "nonBlind": true,
+      "scenario": {
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "relay": {
+          "x": 11.5,
+          "y": 46.5
+        },
+        "drones": [
+          {
+            "x": 4.5,
+            "y": 46.5
+          },
+          {
+            "x": 4.5,
+            "y": 48.5
+          }
+        ],
+        "routes": [
+          {
+            "target": 5,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          },
+          {
+            "target": 3,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "initialEvents": [
+        "signal-device-spawned",
+        "signal-linked",
+        "player-moved",
+        "drone-step",
+        "drone-step"
+      ]
+    },
+    {
+      "seed": 20261119,
+      "mode": "HumanEcho",
+      "startedTick": 0,
+      "endedTick": 96,
+      "ticks": 96,
+      "playerHpStart": 100,
+      "playerHpEnd": 100,
+      "playerHpLoss": 0,
+      "echoHpStart": 100,
+      "echoHpEnd": 100,
+      "echoHpLoss": 0,
+      "playerEnergy": 100,
+      "echoEnergy": 90,
+      "signalOps": 1,
+      "suggestions": 1,
+      "accepted": 1,
+      "rejected": 0,
+      "acceptanceFailureRate": 0,
+      "routeTarget": 5,
+      "routeLabel": "ELITE",
+      "routePortal": {
+        "x": 12.5,
+        "y": 45.5
+      },
+      "completed": true,
+      "roomCleared": true,
+      "relay": "ACTIVE",
+      "kills": 2,
+      "echoScan": "applied",
+      "nonBlind": true,
+      "scenario": {
+        "player": {
+          "x": 8.5,
+          "y": 45.5
+        },
+        "relay": {
+          "x": 11.5,
+          "y": 46.5
+        },
+        "drones": [
+          {
+            "x": 4.5,
+            "y": 46.5
+          },
+          {
+            "x": 4.5,
+            "y": 48.5
+          }
+        ],
+        "routes": [
+          {
+            "target": 5,
+            "when": "RELAY_ACTIVE",
+            "portal": {
+              "x": 12.5,
+              "y": 45.5
+            }
+          },
+          {
+            "target": 3,
+            "when": "RELAY_INACTIVE",
+            "portal": {
+              "x": 11.5,
+              "y": 47.5
+            }
+          }
+        ]
+      },
+      "initialEvents": [
+        "signal-device-spawned",
+        "signal-linked",
+        "player-moved",
+        "drone-step",
+        "drone-step"
+      ]
+    }
+  ]
+}

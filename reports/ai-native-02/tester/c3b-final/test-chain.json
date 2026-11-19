@@ -1,0 +1,170 @@
+{
+  "meta": {
+    "base": "http://localhost:5298",
+    "bridge": "http://127.0.0.1:8788",
+    "target": "8ec87587b0b4dba3146016e53bd6592ccb41be96",
+    "build": "test mode (__game present, verification only)"
+  },
+  "checks": [
+    {
+      "n": "found-real-hostiles",
+      "ok": false,
+      "d": {
+        "enemies": 3,
+        "drones": 0
+      }
+    },
+    {
+      "n": "authorize-control-present",
+      "ok": true,
+      "d": {
+        "x": 640,
+        "y": 622
+      }
+    },
+    {
+      "n": "agent-attaches-after-human-click",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_628f1ec38b7edd21df7fbfa7",
+        "epoch": 1,
+        "attached": true
+      }
+    },
+    {
+      "n": "agent-sees-hostiles-in-its-own-view",
+      "ok": true,
+      "d": {
+        "tick": 313,
+        "drones": [
+          {
+            "id": 1,
+            "hp": 59
+          },
+          {
+            "id": 2,
+            "hp": 59
+          },
+          {
+            "id": 3,
+            "hp": 59
+          }
+        ]
+      }
+    },
+    {
+      "n": "observation-has-no-map-seed",
+      "ok": true,
+      "d": [
+        "schema",
+        "protocolVersion",
+        "epoch",
+        "tick",
+        "roomId",
+        "player",
+        "drones",
+        "projectiles",
+        "availableActions"
+      ]
+    },
+    {
+      "n": "fire-queued-not-applied",
+      "ok": true,
+      "d": {
+        "actionId": "aid_d0629ec480429030636f946c",
+        "status": "queued",
+        "applyByTick": 436
+      }
+    },
+    {
+      "n": "receipt-applied-with-real-tick",
+      "ok": true,
+      "d": {
+        "receipt": {
+          "status": "applied",
+          "appliedTick": 330
+        },
+        "tickBefore": 319
+      }
+    },
+    {
+      "n": "real-damage-on-real-enemy",
+      "ok": false,
+      "d": null
+    },
+    {
+      "n": "hud-shows-real-link-and-last-action",
+      "ok": false,
+      "d": {}
+    }
+  ],
+  "findings": [],
+  "steps": [
+    {
+      "name": "enter-room-1",
+      "res": {
+        "enemies": 0
+      },
+      "enemies": 3,
+      "droneHp": []
+    },
+    {
+      "name": "authorized",
+      "state": {
+        "tick": 165,
+        "paused": true,
+        "owner": "external",
+        "link": {
+          "status": "CONNECTED",
+          "epoch": 1,
+          "session": "ses_628f1ec38b7edd21df7fbfa7",
+          "pendingCount": 0,
+          "lastAction": null,
+          "lastAppliedTick": null,
+          "humanAuthorized": true
+        },
+        "hp": 78,
+        "x": 24.907385773925984,
+        "y": 46.63287573709183,
+        "enemies": 3,
+        "droneHp": []
+      }
+    },
+    {
+      "name": "hud",
+      "hud": {}
+    }
+  ],
+  "toolLog": [
+    {
+      "tool": "world_list_sessions",
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_observe",
+      "aid": null,
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "tick": 313
+    },
+    {
+      "tool": "world_action",
+      "n": 1,
+      "aid": "aid_d0629ec480429030636f946c",
+      "isError": false,
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued"
+      ],
+      "tick": 316
+    }
+  ]
+}

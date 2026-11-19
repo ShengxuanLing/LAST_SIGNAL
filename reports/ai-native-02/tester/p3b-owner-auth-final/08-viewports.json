@@ -1,0 +1,202 @@
+{
+  "total": 11,
+  "pass": 11,
+  "fail": 0,
+  "results": [
+    {
+      "name": "V0 dev ready",
+      "verdict": "PASS",
+      "observed": {}
+    },
+    {
+      "name": "V-800x600 form rendered & fits",
+      "verdict": "PASS",
+      "observed": {
+        "w": 560,
+        "h": 408,
+        "left": 120,
+        "top": 96,
+        "ins": [
+          {
+            "n": "bridgeUrl",
+            "t": "text"
+          },
+          {
+            "n": "token",
+            "t": "password"
+          },
+          {
+            "n": "ownerKey",
+            "t": "password"
+          }
+        ],
+        "fits": true
+      }
+    },
+    {
+      "name": "V-800x600 secrets absent from DOM/global/logs",
+      "verdict": "PASS",
+      "observed": {
+        "domCleared": true,
+        "globalKeys": [
+          "bridgeUrl",
+          "token"
+        ],
+        "logHit": false,
+        "status": "CONNECTED"
+      }
+    },
+    {
+      "name": "V-1024x768 form rendered & fits",
+      "verdict": "PASS",
+      "observed": {
+        "w": 560,
+        "h": 408,
+        "left": 232,
+        "top": 180,
+        "ins": [
+          {
+            "n": "bridgeUrl",
+            "t": "text"
+          },
+          {
+            "n": "token",
+            "t": "password"
+          },
+          {
+            "n": "ownerKey",
+            "t": "password"
+          }
+        ],
+        "fits": true
+      }
+    },
+    {
+      "name": "V-1024x768 secrets absent from DOM/global/logs",
+      "verdict": "PASS",
+      "observed": {
+        "domCleared": true,
+        "globalKeys": [
+          "bridgeUrl",
+          "token"
+        ],
+        "logHit": false,
+        "status": "OFF"
+      }
+    },
+    {
+      "name": "V-1280x720 form rendered & fits",
+      "verdict": "PASS",
+      "observed": {
+        "w": 560,
+        "h": 408,
+        "left": 360,
+        "top": 156,
+        "ins": [
+          {
+            "n": "bridgeUrl",
+            "t": "text"
+          },
+          {
+            "n": "token",
+            "t": "password"
+          },
+          {
+            "n": "ownerKey",
+            "t": "password"
+          }
+        ],
+        "fits": true
+      }
+    },
+    {
+      "name": "V-1280x720 secrets absent from DOM/global/logs",
+      "verdict": "PASS",
+      "observed": {
+        "domCleared": true,
+        "globalKeys": [
+          "bridgeUrl",
+          "token"
+        ],
+        "logHit": false,
+        "status": "CONNECTED"
+      }
+    },
+    {
+      "name": "V-1366x768 form rendered & fits",
+      "verdict": "PASS",
+      "observed": {
+        "w": 560,
+        "h": 408,
+        "left": 403,
+        "top": 180,
+        "ins": [
+          {
+            "n": "bridgeUrl",
+            "t": "text"
+          },
+          {
+            "n": "token",
+            "t": "password"
+          },
+          {
+            "n": "ownerKey",
+            "t": "password"
+          }
+        ],
+        "fits": true
+      }
+    },
+    {
+      "name": "V-1366x768 secrets absent from DOM/global/logs",
+      "verdict": "PASS",
+      "observed": {
+        "domCleared": true,
+        "globalKeys": [
+          "bridgeUrl",
+          "token"
+        ],
+        "logHit": false,
+        "status": "OFF"
+      }
+    },
+    {
+      "name": "V-1920x1080 form rendered & fits",
+      "verdict": "PASS",
+      "observed": {
+        "w": 560,
+        "h": 408,
+        "left": 680,
+        "top": 336,
+        "ins": [
+          {
+            "n": "bridgeUrl",
+            "t": "text"
+          },
+          {
+            "n": "token",
+            "t": "password"
+          },
+          {
+            "n": "ownerKey",
+            "t": "password"
+          }
+        ],
+        "fits": true
+      }
+    },
+    {
+      "name": "V-1920x1080 secrets absent from DOM/global/logs",
+      "verdict": "PASS",
+      "observed": {
+        "domCleared": true,
+        "globalKeys": [
+          "bridgeUrl",
+          "token"
+        ],
+        "logHit": false,
+        "status": "CONNECTED"
+      }
+    }
+  ]
+}

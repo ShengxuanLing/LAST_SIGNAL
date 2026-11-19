@@ -1,0 +1,219 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "upgrade commit ownership"
+  },
+  "steps": [
+    {
+      "name": "levelup-open",
+      "detail": {
+        "active": [
+          "GameScene",
+          "LevelUpScene"
+        ],
+        "choices": [
+          "regen",
+          "critDamage",
+          "datapad"
+        ],
+        "upgrades": 0,
+        "pending": [],
+        "tick": 75
+      }
+    },
+    {
+      "name": "after-click-timeline",
+      "detail": {
+        "first": {
+          "upgrades": 0,
+          "upgradeKeys": [],
+          "pending": [
+            "apply-upgrade"
+          ],
+          "tick": 75,
+          "levelUpActive": true,
+          "paused": true,
+          "dmg": 1,
+          "speed": 220,
+          "maxHp": 100
+        },
+        "last": {
+          "upgrades": 0,
+          "upgradeKeys": [],
+          "pending": [],
+          "tick": 230,
+          "levelUpActive": false,
+          "paused": false,
+          "dmg": 1,
+          "speed": 220,
+          "maxHp": 100
+        },
+        "committed": -1,
+        "samples": [
+          {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [
+              "apply-upgrade"
+            ],
+            "tick": 75,
+            "levelUpActive": true,
+            "paused": true,
+            "dmg": 1,
+            "speed": 220,
+            "maxHp": 100
+          },
+          {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [
+              "apply-upgrade"
+            ],
+            "tick": 75,
+            "levelUpActive": true,
+            "paused": true,
+            "dmg": 1,
+            "speed": 220,
+            "maxHp": 100
+          },
+          {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [],
+            "tick": 79,
+            "levelUpActive": false,
+            "paused": false,
+            "dmg": 1,
+            "speed": 220,
+            "maxHp": 100
+          },
+          {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [],
+            "tick": 85,
+            "levelUpActive": false,
+            "paused": false,
+            "dmg": 1,
+            "speed": 220,
+            "maxHp": 100
+          },
+          {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [],
+            "tick": 91,
+            "levelUpActive": false,
+            "paused": false,
+            "dmg": 1,
+            "speed": 220,
+            "maxHp": 100
+          },
+          {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [],
+            "tick": 97,
+            "levelUpActive": false,
+            "paused": false,
+            "dmg": 1,
+            "speed": 220,
+            "maxHp": 100
+          }
+        ]
+      }
+    },
+    {
+      "name": "manual-tick-while-overlay",
+      "detail": {
+        "before": {
+          "upgrades": 0,
+          "pending": [],
+          "tick": 236,
+          "paused": false
+        },
+        "after": {
+          "upgrades": 0,
+          "upgradeKeys": [],
+          "pending": [],
+          "tick": 237,
+          "events": [
+            "player-moved"
+          ],
+          "dmg": 1,
+          "speed": 220
+        }
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "upgrade-level-not-recorded-in-player-data.upgrades",
+      "detail": {
+        "st0": {
+          "active": [
+            "GameScene",
+            "LevelUpScene"
+          ],
+          "choices": [
+            "regen",
+            "critDamage",
+            "datapad"
+          ],
+          "upgrades": 0,
+          "pending": [],
+          "tick": 75
+        },
+        "timeline": {
+          "first": {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [
+              "apply-upgrade"
+            ],
+            "tick": 75,
+            "levelUpActive": true,
+            "paused": true,
+            "dmg": 1,
+            "speed": 220,
+            "maxHp": 100
+          },
+          "last": {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [],
+            "tick": 230,
+            "levelUpActive": false,
+            "paused": false,
+            "dmg": 1,
+            "speed": 220,
+            "maxHp": 100
+          },
+          "committedIndex": -1
+        },
+        "manual": {
+          "before": {
+            "upgrades": 0,
+            "pending": [],
+            "tick": 236,
+            "paused": false
+          },
+          "after": {
+            "upgrades": 0,
+            "upgradeKeys": [],
+            "pending": [],
+            "tick": 237,
+            "events": [
+              "player-moved"
+            ],
+            "dmg": 1,
+            "speed": 220
+          }
+        }
+      },
+      "note": "core case apply-upgrade calls applyUpgrade(def, state.player.data, level) which only runs def.apply(state, level); it never records data.upgrades.push({key, level}). The 6ac60b2 parent used applyUpgradeToPlayer() which did both. So player.data.upgrades stays empty forever: the upgrade stat IS applied (damage/speed/maxHp change) but the level list is lost."
+    }
+  ],
+  "errors": []
+}

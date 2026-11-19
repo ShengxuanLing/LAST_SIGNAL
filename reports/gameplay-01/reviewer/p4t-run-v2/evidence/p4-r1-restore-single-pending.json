@@ -1,0 +1,39 @@
+{
+  "entry": "restore(frame) seed 20261119",
+  "row": {
+    "entry": "restore(frame) seed 20261119",
+    "frameQueue": [
+      "signal-scan"
+    ],
+    "pendingAfter": null,
+    "proposeAfter": {
+      "id": "local_1_1",
+      "kind": "scan"
+    },
+    "directConfirmAccepted": false,
+    "queueAfterQueue": [
+      "signal-scan"
+    ],
+    "audit": [],
+    "beforeEnergy": {
+      "player": 100,
+      "echo": 100
+    },
+    "afterEnergy": {
+      "player": 100,
+      "echo": 90
+    },
+    "commits": [
+      {
+        "type": "signal-scanned",
+        "actorId": 1,
+        "ok": true,
+        "energy": 90,
+        "code": null
+      }
+    ],
+    "toggles": [],
+    "pendingAfterCommit": null,
+    "appliedHumanLocalRows": 0
+  }
+}

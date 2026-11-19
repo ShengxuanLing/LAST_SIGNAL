@@ -1,0 +1,382 @@
+{
+  "meta": {
+    "target": "b3930c5df4010b896ffac868da9f0d2e0d6695a5",
+    "build": "dev (__game verification)",
+    "fixture": "spawnEnemy for deterministic drone/hunter; menu-only echo controls"
+  },
+  "checks": [
+    {
+      "n": "echo-off-initially",
+      "ok": true,
+      "d": {
+        "echo": null
+      }
+    },
+    {
+      "n": "echo-enabled-independent-actor",
+      "ok": true,
+      "d": {
+        "x": 9,
+        "y": 45,
+        "hp": 100,
+        "maxHp": 100,
+        "aimYaw": 0
+      }
+    },
+    {
+      "n": "echo-independent-coordinates",
+      "ok": true,
+      "d": {
+        "echo": {
+          "x": 9,
+          "y": 45,
+          "hp": 100,
+          "maxHp": 100,
+          "aimYaw": 0
+        },
+        "player": {
+          "x": 8,
+          "y": 45,
+          "hp": 100
+        }
+      }
+    },
+    {
+      "n": "echo-follows-player",
+      "ok": true,
+      "d": {
+        "moved": 1.9510725487329887,
+        "distAfter": 2.9660586632324764
+      }
+    },
+    {
+      "n": "echo-hold-stays",
+      "ok": true,
+      "d": {
+        "delta": 0
+      }
+    },
+    {
+      "n": "echo-own-view-is-echo-centred-and-bounded",
+      "ok": true,
+      "d": {
+        "playerDist": 10.77,
+        "echoDist": 2.5,
+        "echoViewIds": [
+          1
+        ],
+        "playerViewIds": [
+          1
+        ],
+        "note": "start room is too small for a >12 separation; both views can legally see a nearby target, the echo view is still its own bounded projection"
+      }
+    },
+    {
+      "n": "player-safe-during-own-view",
+      "ok": true,
+      "d": {
+        "playerHp": 100
+      }
+    },
+    {
+      "n": "no-attack-before-confirm",
+      "ok": true,
+      "d": {
+        "shots": 0,
+        "before": [
+          {
+            "id": 1,
+            "hp": 28,
+            "x": 7.295728223290378,
+            "y": 40.94232568768626
+          }
+        ],
+        "after": [
+          {
+            "id": 1,
+            "hp": 28,
+            "x": 7.295728223290378,
+            "y": 40.94232568768626
+          }
+        ]
+      }
+    },
+    {
+      "n": "confirm-then-real-fire",
+      "ok": true,
+      "d": {
+        "shotsBeforeConfirm": 0,
+        "after": 3
+      }
+    },
+    {
+      "n": "echo-real-kill",
+      "ok": true,
+      "d": {
+        "drones": []
+      }
+    },
+    {
+      "n": "player-hp-unrelated-to-echo-fire",
+      "ok": true,
+      "d": {
+        "before": 100,
+        "after": 100
+      }
+    },
+    {
+      "n": "echo-takes-independent-damage",
+      "ok": true,
+      "d": {
+        "echoHpBefore": 86,
+        "echoHpAfter": 78,
+        "playerHpBefore": 100,
+        "playerHpAfter": 100,
+        "tick": 547
+      }
+    },
+    {
+      "n": "player-hp-does-not-mirror-echo",
+      "ok": true,
+      "d": {
+        "echoHpBefore": 86,
+        "echoHpAfter": 78,
+        "playerHpBefore": 100,
+        "playerHpAfter": 100,
+        "tick": 547
+      }
+    },
+    {
+      "n": "echo-death-reachable",
+      "ok": true,
+      "d": {
+        "tick": 1063,
+        "shots": 3,
+        "playerHp": 100
+      }
+    },
+    {
+      "n": "no-fire-after-echo-death",
+      "ok": true,
+      "d": {
+        "atDeath": 3,
+        "later": 3
+      }
+    },
+    {
+      "n": "player-survives-echo-death",
+      "ok": true,
+      "d": {
+        "playerHp": 100
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "steps": [
+    {
+      "name": "enabled",
+      "state": {
+        "tick": 107,
+        "paused": false,
+        "player": {
+          "x": 8,
+          "y": 45,
+          "hp": 100
+        },
+        "echo": {
+          "x": 9,
+          "y": 45,
+          "hp": 100,
+          "maxHp": 100,
+          "aimYaw": 0
+        },
+        "echoMode": "follow",
+        "armed": false,
+        "suggestion": null,
+        "shots": 0,
+        "drones": [],
+        "targets": [],
+        "echoSees": 0,
+        "playerSees": 0,
+        "echoViewIds": [],
+        "playerViewIds": [],
+        "enemies": 0
+      }
+    },
+    {
+      "name": "follow",
+      "before": {
+        "x": 9,
+        "y": 45,
+        "hp": 100,
+        "maxHp": 100,
+        "aimYaw": 0
+      },
+      "after": {
+        "x": 8.471951708174286,
+        "y": 43.121743070844836,
+        "hp": 100,
+        "maxHp": 100,
+        "aimYaw": 0
+      },
+      "player": {
+        "x": 11.151041666666634,
+        "y": 41.848958333333464,
+        "hp": 100
+      },
+      "mode": "follow"
+    },
+    {
+      "name": "hold",
+      "before": {
+        "x": 8.471951708174286,
+        "y": 43.121743070844836,
+        "hp": 100,
+        "maxHp": 100,
+        "aimYaw": 0
+      },
+      "after": {
+        "x": 8.471951708174286,
+        "y": 43.121743070844836,
+        "hp": 100,
+        "maxHp": 100,
+        "aimYaw": 0
+      },
+      "mode": "hold"
+    },
+    {
+      "name": "own-view",
+      "spawn": {
+        "echo": {
+          "x": 8.471951708174286,
+          "y": 43.121743070844836
+        },
+        "player": {
+          "x": 12.4,
+          "y": 50.4
+        },
+        "chosen": {
+          "x": 7.284596770752044,
+          "y": 40.92170028658381,
+          "dist": 2.5
+        },
+        "playerDist": 10.77,
+        "echoDist": 2.5,
+        "newIds": [],
+        "prevIds": []
+      },
+      "player": {
+        "x": 12.4,
+        "y": 50.4,
+        "hp": 100
+      },
+      "echo": {
+        "x": 8.471951708174286,
+        "y": 43.121743070844836,
+        "hp": 100,
+        "maxHp": 100,
+        "aimYaw": -2.065694421085457
+      },
+      "echoSees": 1,
+      "playerSees": 1,
+      "echoViewIds": [
+        1
+      ],
+      "playerViewIds": [
+        1
+      ],
+      "drones": [
+        {
+          "id": 1,
+          "hp": 28,
+          "x": 7.295728223290378,
+          "y": 40.94232568768626
+        }
+      ]
+    },
+    {
+      "name": "before-confirm",
+      "shotsBefore": 0,
+      "shotsAfter": 0,
+      "droneHpBefore": [
+        28
+      ],
+      "droneHpAfter": [
+        28
+      ]
+    },
+    {
+      "name": "confirm-kill",
+      "before": {
+        "shots": 2,
+        "drones": [
+          {
+            "id": 1,
+            "hp": 10,
+            "x": 7.176992729548148,
+            "y": 40.722321409260154
+          }
+        ]
+      },
+      "after": {
+        "shots": 3,
+        "drones": [],
+        "armed": true
+      },
+      "kill": {
+        "shots": 3,
+        "tick": 478,
+        "armed": true
+      }
+    },
+    {
+      "name": "revoke",
+      "clicked": true,
+      "armed": false
+    },
+    {
+      "name": "echo-hurt",
+      "hurt": {
+        "echoHpBefore": 86,
+        "echoHpAfter": 78,
+        "playerHpBefore": 100,
+        "playerHpAfter": 100,
+        "tick": 547
+      },
+      "setup": {
+        "echo": {
+          "x": 8.82815818940102,
+          "y": 43.78175590612311,
+          "hp": 86
+        },
+        "player": {
+          "x": 12.4,
+          "y": 50.4,
+          "hp": 100
+        },
+        "placed": {
+          "x": 10.42815818940102,
+          "y": 43.78175590612311,
+          "r": 1.6
+        },
+        "targets": []
+      }
+    },
+    {
+      "name": "echo-death",
+      "death": {
+        "tick": 1063,
+        "shots": 3,
+        "playerHp": 100
+      },
+      "shotsAtDeath": 3,
+      "shotsLater": 3,
+      "echoMode": "hold",
+      "playerHp": 100
+    }
+  ]
+}

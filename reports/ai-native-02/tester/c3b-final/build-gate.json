@@ -1,0 +1,65 @@
+{
+  "checks": [
+    {
+      "n": "prod-no-__game",
+      "ok": true,
+      "d": {
+        "hasGame": false,
+        "hasExternalConfig": false,
+        "canvas": true,
+        "bodyText": ""
+      }
+    },
+    {
+      "n": "prod-no-console-error",
+      "ok": true,
+      "d": []
+    },
+    {
+      "n": "test-has-__game",
+      "ok": true,
+      "d": {
+        "hasGame": true,
+        "hasExternalConfig": false,
+        "canvas": true,
+        "bodyText": ""
+      }
+    },
+    {
+      "n": "test-boots",
+      "ok": true,
+      "d": {
+        "active": true
+      }
+    },
+    {
+      "n": "prod-bundle-keeps-token-out-of-dom",
+      "ok": true,
+      "d": ""
+    }
+  ],
+  "pages": {
+    "prod": {
+      "url": "http://localhost:5297/",
+      "state": {
+        "hasGame": false,
+        "hasExternalConfig": false,
+        "canvas": true,
+        "bodyText": ""
+      },
+      "errs": []
+    },
+    "test": {
+      "url": "http://localhost:5298/",
+      "state": {
+        "hasGame": true,
+        "hasExternalConfig": false,
+        "canvas": true,
+        "bodyText": ""
+      },
+      "errs": [],
+      "devOnly": "no-throw"
+    }
+  },
+  "errors": []
+}

@@ -1,0 +1,258 @@
+[
+  {
+    "item": "single-pending",
+    "at": "2026-11-18T01:19:36.935Z",
+    "runner": "agent (real pause-menu clicks only)",
+    "fixtures": "none",
+    "queue": {
+      "before": [],
+      "afterFirst": [
+        "signal-scan"
+      ],
+      "afterSecond": [
+        "signal-scan"
+      ]
+    },
+    "pendingLocal": {
+      "afterFirst": {
+        "proposalId": "local_62_1",
+        "kind": "scan",
+        "target": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "acceptedTick": 62,
+        "roomGeneration": 1
+      },
+      "afterSecond": {
+        "proposalId": "local_62_1",
+        "kind": "scan",
+        "target": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "acceptedTick": 62,
+        "roomGeneration": 1
+      }
+    },
+    "auditTail": [
+      {
+        "tick": 62,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "result": "enqueued",
+        "proposalId": "local_62_1"
+      }
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2\\shots\\p2-1-single-pending.png"
+  },
+  {
+    "item": "reject",
+    "at": "2026-11-18T01:19:48.836Z",
+    "runner": "agent (real pause-menu clicks only)",
+    "proposalBefore": {
+      "kind": "scan"
+    },
+    "pendingAfter": null,
+    "queueBefore": [],
+    "queueAfter": [],
+    "auditTail": [
+      {
+        "tick": 69,
+        "provenance": "human-local",
+        "action": "scan",
+        "target": {
+          "x": 11.5,
+          "y": 48.5
+        },
+        "result": "rejected",
+        "code": "E_USER_REJECTED",
+        "proposalId": "local_69_1"
+      }
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2\\shots\\p2-2-reject.png"
+  },
+  {
+    "item": "lowrisk-owner-gate",
+    "at": "2026-11-18T01:20:04.261Z",
+    "runner": "agent (real pause-menu switches; real AI menu to change the owner)",
+    "fixtures": "none (the AI option is the product dev entry, labelled LOCAL DETERMINISTIC DEMO)",
+    "humanOn": {
+      "flag": true,
+      "saved": true,
+      "owner": "human"
+    },
+    "nonHumanRefused": true,
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2\\shots\\p2-3-lowrisk.png"
+  },
+  {
+    "item": "restore-contract",
+    "at": "2026-11-18T01:20:04.837Z",
+    "runner": "agent (headless formal entry, no human)",
+    "fixtures": "fixture: raw sim snapshot + HeadlessWorld.fromSimulationState (the documented v3 restore seam)",
+    "saved": {
+      "kinds": [
+        "signal-scan"
+      ]
+    },
+    "restored": {
+      "busy": {
+        "proposalId": null,
+        "kind": "scan",
+        "target": null,
+        "acceptedTick": null,
+        "roomGeneration": 0,
+        "restored": true
+      },
+      "queue": [
+        "signal-scan"
+      ]
+    },
+    "contract": "restored action is busy (unknown provenance), a new local confirm is refused, unrelated commands kept, exactly one execution"
+  },
+  {
+    "item": "viewport",
+    "at": "2026-11-18T01:20:29.800Z",
+    "runner": "agent",
+    "rows": [
+      {
+        "viewport": "1920x1080",
+        "scale": 1.5,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1366x768",
+        "scale": 1.067,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1280x720",
+        "scale": 1,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "1024x768",
+        "scale": 0.8,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      },
+      {
+        "viewport": "800x600",
+        "scale": 0.625,
+        "tooSmall": [],
+        "out": [],
+        "overlaps": []
+      }
+    ],
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2\\shots\\p2-5-viewports.png"
+  },
+  {
+    "item": "legacy-save",
+    "at": "2026-11-18T01:20:41.595Z",
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "fixture: remove ONLY the new optional cooperation fields from a product-written save",
+    "removedFields": [
+      "permanent.echoCooperationOptIn"
+    ],
+    "continued": true,
+    "optIn": false,
+    "echo": true,
+    "pending": null,
+    "note": "a rejection of an arbitrary invalid save would not count as compatibility; this uses a valid save",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2\\shots\\p2-6-legacy-save.png"
+  },
+  {
+    "item": "save-reload-boundary",
+    "at": "2026-11-18T01:20:56.827Z",
+    "runner": "agent (real pause-menu clicks + real reload + real CONTINUE)",
+    "fixtures": "none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm",
+    "beforePause": {
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 145,
+      "echoHp": 100,
+      "energy": 80
+    },
+    "confirmed": {
+      "id": "local_147_1",
+      "kind": "scan",
+      "ok": true,
+      "provenance": "product-boundary call (real click covered by case 1)",
+      "queue": [
+        "signal-scan"
+      ],
+      "applied": false
+    },
+    "after": {
+      "active": [
+        "GameScene"
+      ],
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 206,
+      "echoHp": 100,
+      "energy": 85,
+      "relay": "JAMMED",
+      "queue": [],
+      "pending": null,
+      "appliedAudit": 0,
+      "probe": {
+        "restore": {
+          "ok": true,
+          "tick": 147,
+          "energy": 80,
+          "queue": [],
+          "appliedAudit": 0,
+          "relay": "JAMMED",
+          "savedArg": {
+            "tick": 147,
+            "queue": 0
+          }
+        },
+        "firstTickEvents": [],
+        "scanned": [],
+        "patched": true,
+        "restoreStarted": true
+      },
+      "sameWorldModule": true
+    },
+    "contract": "the confirmed-but-uncommitted local action is not persisted, not executed, no busy marker, no fake applied receipt",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p2\\shots\\p2-7-save-reload.png"
+  },
+  {
+    "item": "save-reload-instant",
+    "at": "2026-11-18T01:20:56.832Z",
+    "savedEnergy": 80,
+    "savedRelay": "JAMMED",
+    "restoreInstant": {
+      "ok": true,
+      "tick": 147,
+      "energy": 80,
+      "queue": [],
+      "appliedAudit": 0,
+      "relay": "JAMMED",
+      "savedArg": {
+        "tick": 147,
+        "queue": 0
+      }
+    },
+    "firstTickEvents": [],
+    "scannedEvents": [],
+    "laterSample": {
+      "energy": 85,
+      "relay": "JAMMED",
+      "tick": 206
+    }
+  }
+]

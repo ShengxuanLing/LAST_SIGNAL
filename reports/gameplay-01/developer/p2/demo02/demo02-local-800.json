@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "viewport": {
+    "w": 800,
+    "h": 600
+  },
+  "canvas": {
+    "x": 0,
+    "y": 75,
+    "w": 800,
+    "h": 450
+  },
+  "cssScale": 0.625,
+  "smallCss": 10,
+  "page": "local-coop",
+  "tokens": 16,
+  "outside": [],
+  "proposal": "LOCAL · SCAN · target 8.0,45.0\nSEEN perceived_relay · evidence relay:relay_main · @tick 67\nEXPIRES tick 187 · room gen 1\nEXPECT reveal relay facts\nUNCERTAIN only if still perceived and permitted\nCOST 10 ECHO ENERGY · HUMAN CONFIRM REQUIRED",
+  "errors": []
+}

@@ -1,0 +1,38 @@
+diff --git a/reports/gameplay-01/TEST_REPORT.md b/reports/gameplay-01/TEST_REPORT.md
+index dfc36c1..1a121ae 100644
+--- a/reports/gameplay-01/TEST_REPORT.md
++++ b/reports/gameplay-01/TEST_REPORT.md
+@@ -7,7 +7,12 @@ every number below is a real run on the frozen bytes, with its absolute log.
+ concurrency, typecheck 0, surface 1/1, build OK, fresh parity 3/3.**
+ **HUMAN ACCEPTANCE: PENDING** — every runner here is an agent (non-blind driver) or a labelled
+ `autoOwner`/seed fixture. Nothing in this report is a human playtest, and the project is **not**
+-declared a whole-project PASS. P5 is still plan-only.
++declared a whole-project PASS. P5 layering: the final **stability regression + metrics
++collection for P5 were executed** (they are part of run11), and the balance / playtest write-ups
++exist in `docs/gameplay/GAMEPLAY_01_BALANCE.md` (sha256 `0813c94e80559886…`) and
++`docs/gameplay/HUMAN_PLAYTEST.md` (sha256 `a9fd8a789fbb4feb…`), with the recorded decision that the
++sample is too small to tune any number. What is **only a proposal** is the new enemy / resource
++**presets** described in `docs/gameplay/P5_VARIANTS_PLAN.md` — not implemented, not shipped.
+ 
+ ---
+ 
+@@ -104,7 +109,7 @@ model, **M** = real model call, **R** = reviewer evidence.
+ | **P2** | ECHO local cooperation: one in-flight action, confirm/reject boundary, restore contract (single pending / exact queue / unknown-source guard), legacy save, 5 viewports | **E** `gameplay-02-echo-coop.spec.ts` (`4bc6288f`), evidence `p2-echo-coop.json` (single-pending, reject, low-risk gate, restore-contract, viewport, legacy-save, save-reload boundary/instant); **H** `src/ai-native/worldHeadlessRestoreSafety.test.ts` + `worldHeadlessFrameAuthored.test.ts`; **U** echo/audit suites | the LLM `CONNECTED` variant is not exercised; `OFF` records are no-connection samples, not disconnection tests; restore contract verified for the four documented entry points only |
+ | **P3** | feedback surfaces F1–F8 (real button states, live HUD sampling, CSS font floors, resize/reopen, queue honesty, disabled focus, audit window) | **E** `gameplay-03-feedback.spec.ts` (`d446a768`), evidence `p3-*.json` (six viewports, HUD 800/1280 with `scaleY×zoom=1`, echo detail, audit window, LLM footer); prior targeted archive `tester/p3/run32` | Done state only at 1280×720; pending only at 800/1920; pointer-only edges untested |
+ | **P4** | Demo-03 cooperative level: real 3-seed × HumanOnly/HumanEcho clears, natural door jam with exact event cost, F blocked while JAMMED, expiry restore, route switch, ECHO proposal→owner confirm on the next processed tick, reject/no-connection, checkpoint reload vs raw frame replay, portal centre | **E** `gameplay-04-coop-level.spec.ts` (`13a83464`) + `gameplay-04-headless-restore.spec.ts` (`22ae61f7`), evidence `p4-route-*`, `p4-layout-3seeds`, `p4-reload-vs-replay`, `p4-reject-noconn`, `p4-r1/r2/r2b`; **H** same-seed `HeadlessWorld` parity (own `map.rooms[id].cleared` + own `room-cleared` event), `fromFrame`/`replay` guard; **R** `reviewer/P4_TEST_REVIEW.md`, `P4_V2/V3/V4_REVIEW.md`; developer `manifest.v4.json` gates | driver is non-blind (reads canonical state to aim/route); owner confirm is an `autoOwner` fixture, not a human click; difficulty/balance not claimed; restored identity across *versions* (R3) untested |
+-| **P5** | state presets (variants of existing mechanics) | **plan only**: `docs/gameplay/P5_VARIANTS_PLAN.md`; **not implemented, not tested** | must not be described as shipped |
++| **P5** | final stability regression + metrics collection; balance/playtest write-up; *proposed* new state presets | **executed:** P5's stability regression and metrics collection are part of run11 (155/155), with the balance/playtest documents committed at `docs/gameplay/GAMEPLAY_01_BALANCE.md` (`0813c94e…`) and `docs/gameplay/HUMAN_PLAYTEST.md` (`a9fd8a78…`), whose recorded decision is **no numeric tuning** (sample too small); the low-energy/resource boundary remains a unit/fixture observation only | the new enemy/resource presets in `docs/gameplay/P5_VARIANTS_PLAN.md` are **not implemented** and must not be described as shipped; no new preset was tested; human acceptance pending |
+ 
+ Cross-cutting gates: **U** 859 tests/73 files (default profile), **H** headless parity + restore
+ suites, **E** 155 Playwright tests, **R** the reviewer reports listed above.
+@@ -144,7 +149,9 @@ suites, **E** 155 Playwright tests, **R** the reviewer reports listed above.
+ ## 7. Risks / open items
+ 
+ 1. **Human acceptance pending** — no human has played; all evidence is agent/fixture.
+-2. **P5 variants not implemented** — plan only.
++2. **P5 is partly done and partly a proposal** — its final stability regression + metrics collection ran in
++   run11 and the balance/playtest docs exist (no numeric tuning: sample too small); the new enemy/resource
++   presets in `docs/gameplay/P5_VARIANTS_PLAN.md` are not implemented and are not claimed as shipped.
+ 3. **Default-concurrency unit load risk** — B7 CLI tests are wall-clock bound; with two dev servers
+    they timed out once (857/859). run11's 859/859 was measured without dev servers. Not claimed
+    eliminated; the bounded profile is labelled separately.

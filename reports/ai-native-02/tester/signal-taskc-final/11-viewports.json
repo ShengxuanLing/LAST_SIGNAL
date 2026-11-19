@@ -1,0 +1,37 @@
+{
+  "total": 5,
+  "pass": 5,
+  "fail": 0,
+  "results": [
+    {
+      "name": "V-800x600 HUD two accounts + CD units visible",
+      "verdict": "PASS",
+      "command": "real NEW RUN + T scan",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:104t/jamCD:0t · EXIT CLOSED\",\"pE\":91,\"eE\":100,\"canvas\":{\"x\":0,\"y\":75,\"w\":800,\"h\":450},\"win\":{\"w\":800,\"h\":600}}"
+    },
+    {
+      "name": "V-1024x768 HUD two accounts + CD units visible",
+      "verdict": "PASS",
+      "command": "real NEW RUN + T scan",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:107t/jamCD:0t · EXIT CLOSED\",\"pE\":91,\"eE\":100,\"canvas\":{\"x\":0,\"y\":96,\"w\":1024,\"h\":576},\"win\":{\"w\":1024,\"h\":768}}"
+    },
+    {
+      "name": "V-1280x720 HUD two accounts + CD units visible",
+      "verdict": "PASS",
+      "command": "real NEW RUN + T scan",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:105t/jamCD:0t · EXIT CLOSED\",\"pE\":91,\"eE\":100,\"canvas\":{\"x\":0,\"y\":0,\"w\":1280,\"h\":720},\"win\":{\"w\":1280,\"h\":720}}"
+    },
+    {
+      "name": "V-1366x768 HUD two accounts + CD units visible",
+      "verdict": "PASS",
+      "command": "real NEW RUN + T scan",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:104t/jamCD:0t · EXIT CLOSED\",\"pE\":91,\"eE\":100,\"canvas\":{\"x\":0,\"y\":0,\"w\":1365.328125,\"h\":768},\"win\":{\"w\":1366,\"h\":768}}"
+    },
+    {
+      "name": "V-1920x1080 HUD two accounts + CD units visible",
+      "verdict": "PASS",
+      "command": "real NEW RUN + T scan",
+      "result": "{\"hud\":\"RELAY INACTIVE | e:100 p:91 echoScanCD:0t/jamCD:0t playerScanCD:108t/jamCD:0t · EXIT CLOSED\",\"pE\":91,\"eE\":100,\"canvas\":{\"x\":0,\"y\":0,\"w\":1920,\"h\":1080},\"win\":{\"w\":1920,\"h\":1080}}"
+    }
+  ]
+}

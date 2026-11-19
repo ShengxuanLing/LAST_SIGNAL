@@ -1,0 +1,28 @@
+{
+  "at": "2026-11-16T00:14:28.205Z",
+  "fixtures": [
+    {
+      "item": "player.reset(portal.wx, portal.wy)",
+      "why": "把主角摆到本房间传送门上，避免脚本寻路（不是 AI 移动）"
+    },
+    {
+      "item": "clear room hostiles (enemies=3, drones=0)",
+      "why": "让 Lead 的模型回合在可观察、可控的房间里进行；只清当前房间普通敌人，不改 HP/资源/伤害/无敌",
+      "detail": "drones 未被清除（如存在仍留在 sim.drones 中，暂停期间不行动）"
+    },
+    {
+      "item": "echo enable order (in-room, real UI)",
+      "why": "先真实过门、再 ENABLE ECHO，否则 echo 会被墙卡在上一房间而无法感知继电器（无 teleport，无坐标写入）",
+      "detail": "{\"hasRelay\":true,\"echo\":{\"x\":26,\"y\":46},\"player\":{\"x\":25,\"y\":46}}"
+    }
+  ],
+  "milestone": [
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\01-new-run-legacy-no-device.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\02-optin-on.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\03-room-with-relay-inactive.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\04-echo-enabled-in-room.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\05-echo-sees-relay.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\06-masked-owner-form-filled.png",
+    "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\lead-signal-model-live\\screenshots\\07-companion-connected-and-paused.png"
+  ]
+}

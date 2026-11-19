@@ -1,0 +1,3242 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "ai-native-world.spec.ts:257",
+    "runs": 6
+  },
+  "results": [
+    {
+      "run": 0,
+      "errors": [],
+      "steps": [
+        {
+          "name": "start",
+          "detail": {
+            "tick": 73,
+            "pending": [],
+            "owner": "human",
+            "aiEnabled": false,
+            "mode": "HUMAN",
+            "action": null,
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 0,
+            "loot": 0
+          }
+        },
+        {
+          "name": "ai-enabled",
+          "detail": {
+            "tick": 106,
+            "pending": [],
+            "owner": "ai",
+            "aiEnabled": true,
+            "mode": "AI",
+            "action": "ENGAGE",
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 3,
+            "loot": 0
+          }
+        }
+      ],
+      "samples": [
+        {
+          "i": 0,
+          "tick": 106,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 1,
+          "tick": 118,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 2,
+          "tick": 131,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 3,
+          "tick": 144,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 4,
+          "tick": 157,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 5,
+          "tick": 170,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 6,
+          "tick": 183,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 7,
+          "tick": 196,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 8,
+          "tick": 210,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 9,
+          "tick": 223,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 10,
+          "tick": 236,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 11,
+          "tick": 249,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 12,
+          "tick": 262,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 13,
+          "tick": 275,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 14,
+          "tick": 288,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 15,
+          "tick": 301,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 16,
+          "tick": 301,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": true,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 17,
+          "tick": 331,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 18,
+          "tick": 344,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [
+            "spawn-enemy-projectile"
+          ],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 19,
+          "tick": 357,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 20,
+          "tick": 370,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 21,
+          "tick": 382,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 22,
+          "tick": 395,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 23,
+          "tick": 407,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 24,
+          "tick": 420,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 25,
+          "tick": 433,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 26,
+          "tick": 446,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 27,
+          "tick": 459,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 28,
+          "tick": 471,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 29,
+          "tick": 485,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 30,
+          "tick": 498,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 31,
+          "tick": 511,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 32,
+          "tick": 524,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 33,
+          "tick": 536,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 34,
+          "tick": 548,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 87,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 35,
+          "tick": 561,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 36,
+          "tick": 574,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 37,
+          "tick": 588,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 38,
+          "tick": 601,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 39,
+          "tick": 613,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "spawn-enemy-projectile",
+            "spawn-enemy-projectile"
+          ],
+          "loot": 0,
+          "targets": 2
+        }
+      ],
+      "summary": {
+        "owners": [
+          "ai"
+        ],
+        "levelUpFrames": 1,
+        "pendingMax": 3,
+        "stuckTicks": 507,
+        "hpMin": 78,
+        "hpMax": 100,
+        "errors": 0
+      },
+      "verdict": "clean"
+    },
+    {
+      "run": 1,
+      "errors": [],
+      "steps": [
+        {
+          "name": "start",
+          "detail": {
+            "tick": 74,
+            "pending": [],
+            "owner": "human",
+            "aiEnabled": false,
+            "mode": "HUMAN",
+            "action": null,
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 0,
+            "loot": 0
+          }
+        },
+        {
+          "name": "ai-enabled",
+          "detail": {
+            "tick": 107,
+            "pending": [],
+            "owner": "ai",
+            "aiEnabled": true,
+            "mode": "AI",
+            "action": "ENGAGE",
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 3,
+            "loot": 0
+          }
+        }
+      ],
+      "samples": [
+        {
+          "i": 0,
+          "tick": 107,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 1,
+          "tick": 120,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 2,
+          "tick": 133,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 3,
+          "tick": 145,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 4,
+          "tick": 158,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 5,
+          "tick": 171,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 6,
+          "tick": 184,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 7,
+          "tick": 197,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 8,
+          "tick": 210,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 9,
+          "tick": 224,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 10,
+          "tick": 237,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 11,
+          "tick": 249,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 12,
+          "tick": 263,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 13,
+          "tick": 275,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 14,
+          "tick": 288,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 15,
+          "tick": 300,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 67,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 16,
+          "tick": 301,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": true,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 17,
+          "tick": 332,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 18,
+          "tick": 345,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 19,
+          "tick": 358,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 20,
+          "tick": 371,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 21,
+          "tick": 385,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 22,
+          "tick": 398,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 23,
+          "tick": 411,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 24,
+          "tick": 424,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 25,
+          "tick": 436,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 26,
+          "tick": 449,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 27,
+          "tick": 462,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 28,
+          "tick": 476,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 29,
+          "tick": 489,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 30,
+          "tick": 501,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 31,
+          "tick": 514,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 32,
+          "tick": 527,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 33,
+          "tick": 540,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 87,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 34,
+          "tick": 553,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 35,
+          "tick": 566,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 36,
+          "tick": 579,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 37,
+          "tick": 592,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 38,
+          "tick": 605,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 39,
+          "tick": 618,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 92,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        }
+      ],
+      "summary": {
+        "owners": [
+          "ai"
+        ],
+        "levelUpFrames": 1,
+        "pendingMax": 2,
+        "stuckTicks": 511,
+        "hpMin": 67,
+        "hpMax": 100,
+        "errors": 0
+      },
+      "verdict": "clean"
+    },
+    {
+      "run": 2,
+      "errors": [],
+      "steps": [
+        {
+          "name": "start",
+          "detail": {
+            "tick": 74,
+            "pending": [],
+            "owner": "human",
+            "aiEnabled": false,
+            "mode": "HUMAN",
+            "action": null,
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 0,
+            "loot": 0
+          }
+        },
+        {
+          "name": "ai-enabled",
+          "detail": {
+            "tick": 107,
+            "pending": [],
+            "owner": "ai",
+            "aiEnabled": true,
+            "mode": "AI",
+            "action": "ENGAGE",
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 3,
+            "loot": 0
+          }
+        }
+      ],
+      "samples": [
+        {
+          "i": 0,
+          "tick": 107,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 1,
+          "tick": 120,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "spawn-enemy-projectile",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 2,
+          "tick": 133,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 3,
+          "tick": 146,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 4,
+          "tick": 158,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 5,
+          "tick": 171,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 6,
+          "tick": 184,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 7,
+          "tick": 197,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 8,
+          "tick": 210,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 9,
+          "tick": 223,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 10,
+          "tick": 236,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "spawn-enemy-projectile",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 11,
+          "tick": 249,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 12,
+          "tick": 262,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 13,
+          "tick": 275,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 14,
+          "tick": 288,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 15,
+          "tick": 301,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 16,
+          "tick": 301,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": true,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 17,
+          "tick": 333,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 18,
+          "tick": 345,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 19,
+          "tick": 358,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 20,
+          "tick": 371,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 21,
+          "tick": 384,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 22,
+          "tick": 397,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 23,
+          "tick": 410,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 24,
+          "tick": 423,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 25,
+          "tick": 436,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 26,
+          "tick": 449,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 27,
+          "tick": 462,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 28,
+          "tick": 475,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 101,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 29,
+          "tick": 488,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 30,
+          "tick": 501,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 31,
+          "tick": 514,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 32,
+          "tick": 527,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 33,
+          "tick": 540,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 34,
+          "tick": 553,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 35,
+          "tick": 566,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 36,
+          "tick": 579,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 37,
+          "tick": 592,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 38,
+          "tick": 605,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 115,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 39,
+          "tick": 618,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 107,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        }
+      ],
+      "summary": {
+        "owners": [
+          "ai"
+        ],
+        "levelUpFrames": 1,
+        "pendingMax": 3,
+        "stuckTicks": 511,
+        "hpMin": 78,
+        "hpMax": 115,
+        "errors": 0
+      },
+      "verdict": "clean"
+    },
+    {
+      "run": 3,
+      "errors": [],
+      "steps": [
+        {
+          "name": "start",
+          "detail": {
+            "tick": 72,
+            "pending": [],
+            "owner": "human",
+            "aiEnabled": false,
+            "mode": "HUMAN",
+            "action": null,
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 0,
+            "loot": 0
+          }
+        },
+        {
+          "name": "ai-enabled",
+          "detail": {
+            "tick": 107,
+            "pending": [],
+            "owner": "ai",
+            "aiEnabled": true,
+            "mode": "AI",
+            "action": "ENGAGE",
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 3,
+            "loot": 0
+          }
+        }
+      ],
+      "samples": [
+        {
+          "i": 0,
+          "tick": 107,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 1,
+          "tick": 120,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 2,
+          "tick": 132,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 3,
+          "tick": 145,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 4,
+          "tick": 158,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 5,
+          "tick": 171,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 6,
+          "tick": 185,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 7,
+          "tick": 198,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 8,
+          "tick": 212,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 9,
+          "tick": 225,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 10,
+          "tick": 238,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 11,
+          "tick": 251,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 12,
+          "tick": 264,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 13,
+          "tick": 278,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 14,
+          "tick": 291,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 15,
+          "tick": 300,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": true,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 16,
+          "tick": 333,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 17,
+          "tick": 346,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 18,
+          "tick": 359,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 19,
+          "tick": 372,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 20,
+          "tick": 385,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 21,
+          "tick": 398,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 22,
+          "tick": 411,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 23,
+          "tick": 424,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 24,
+          "tick": 437,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 25,
+          "tick": 450,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 26,
+          "tick": 463,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 27,
+          "tick": 476,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 28,
+          "tick": 489,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 29,
+          "tick": 502,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target",
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 30,
+          "tick": 515,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 31,
+          "tick": 527,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 32,
+          "tick": 539,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 33,
+          "tick": 553,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 34,
+          "tick": 566,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 35,
+          "tick": 579,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 36,
+          "tick": 592,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 37,
+          "tick": 605,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 38,
+          "tick": 618,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 92,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 39,
+          "tick": 631,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 92,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        }
+      ],
+      "summary": {
+        "owners": [
+          "ai"
+        ],
+        "levelUpFrames": 1,
+        "pendingMax": 4,
+        "stuckTicks": 524,
+        "hpMin": 78,
+        "hpMax": 100,
+        "errors": 0
+      },
+      "verdict": "clean"
+    },
+    {
+      "run": 4,
+      "errors": [],
+      "steps": [
+        {
+          "name": "start",
+          "detail": {
+            "tick": 73,
+            "pending": [],
+            "owner": "human",
+            "aiEnabled": false,
+            "mode": "HUMAN",
+            "action": null,
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 0,
+            "loot": 0
+          }
+        },
+        {
+          "name": "ai-enabled",
+          "detail": {
+            "tick": 106,
+            "pending": [],
+            "owner": "ai",
+            "aiEnabled": true,
+            "mode": "AI",
+            "action": "ENGAGE",
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 3,
+            "loot": 0
+          }
+        }
+      ],
+      "samples": [
+        {
+          "i": 0,
+          "tick": 106,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 1,
+          "tick": 118,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "spawn-enemy-projectile",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 2,
+          "tick": 131,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 3,
+          "tick": 143,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 4,
+          "tick": 155,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 5,
+          "tick": 168,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 6,
+          "tick": 181,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 7,
+          "tick": 194,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 8,
+          "tick": 207,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 9,
+          "tick": 220,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 10,
+          "tick": 233,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 11,
+          "tick": 246,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 12,
+          "tick": 258,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 13,
+          "tick": 271,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 14,
+          "tick": 284,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 15,
+          "tick": 297,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 67,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 16,
+          "tick": 300,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": true,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 17,
+          "tick": 333,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86.54999999999997,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 18,
+          "tick": 347,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86.78333333333329,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 19,
+          "tick": 359,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86.98333333333328,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 20,
+          "tick": 373,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 87.2166666666666,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 21,
+          "tick": 386,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 87.43333333333325,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 22,
+          "tick": 398,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 87.63333333333324,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 23,
+          "tick": 411,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 87.8499999999999,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 24,
+          "tick": 424,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 88.06666666666655,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 25,
+          "tick": 438,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 88.29999999999987,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 26,
+          "tick": 451,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 88.51666666666652,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 27,
+          "tick": 464,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 88.73333333333318,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 28,
+          "tick": 477,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 88.94999999999983,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 29,
+          "tick": 490,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 30,
+          "tick": 503,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "spawn-enemy-projectile",
+            "spawn-enemy-projectile",
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 31,
+          "tick": 516,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 32,
+          "tick": 529,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 33,
+          "tick": 542,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 34,
+          "tick": 554,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 35,
+          "tick": 567,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 36,
+          "tick": 580,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 37,
+          "tick": 594,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 38,
+          "tick": 607,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 39,
+          "tick": 620,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 92.08333333333333,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        }
+      ],
+      "summary": {
+        "owners": [
+          "ai"
+        ],
+        "levelUpFrames": 1,
+        "pendingMax": 4,
+        "stuckTicks": 514,
+        "hpMin": 67,
+        "hpMax": 100,
+        "errors": 0
+      },
+      "verdict": "clean"
+    },
+    {
+      "run": 5,
+      "errors": [],
+      "steps": [
+        {
+          "name": "start",
+          "detail": {
+            "tick": 75,
+            "pending": [],
+            "owner": "human",
+            "aiEnabled": false,
+            "mode": "HUMAN",
+            "action": null,
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 0,
+            "loot": 0
+          }
+        },
+        {
+          "name": "ai-enabled",
+          "detail": {
+            "tick": 108,
+            "pending": [],
+            "owner": "ai",
+            "aiEnabled": true,
+            "mode": "AI",
+            "action": "ENGAGE",
+            "hp": 100,
+            "levelUpActive": false,
+            "pauseActive": false,
+            "active": [
+              "GameScene"
+            ],
+            "drones": 0,
+            "targets": 3,
+            "loot": 0
+          }
+        }
+      ],
+      "samples": [
+        {
+          "i": 0,
+          "tick": 108,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 1,
+          "tick": 121,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 2,
+          "tick": 134,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 3,
+          "tick": 147,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 4,
+          "tick": 160,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 5,
+          "tick": 173,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 6,
+          "tick": 186,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 89,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 7,
+          "tick": 199,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 8,
+          "tick": 212,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 9,
+          "tick": 225,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 10,
+          "tick": 238,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 11,
+          "tick": 251,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 12,
+          "tick": 264,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 13,
+          "tick": 277,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 14,
+          "tick": 290,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 78,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 15,
+          "tick": 302,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 97,
+          "levelUp": true,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 16,
+          "tick": 335,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 17,
+          "tick": 348,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 18,
+          "tick": 361,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 1
+        },
+        {
+          "i": 19,
+          "tick": 374,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 20,
+          "tick": 387,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 21,
+          "tick": 400,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 22,
+          "tick": 412,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 23,
+          "tick": 425,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 24,
+          "tick": 438,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 25,
+          "tick": 452,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 26,
+          "tick": 465,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 27,
+          "tick": 478,
+          "owner": "ai",
+          "action": "TRAVEL",
+          "hp": 86,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 0
+        },
+        {
+          "i": 28,
+          "tick": 491,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 29,
+          "tick": 504,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target",
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 30,
+          "tick": 516,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 31,
+          "tick": 529,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target",
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 32,
+          "tick": 541,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [
+            "move-target"
+          ],
+          "loot": 0,
+          "targets": 4
+        },
+        {
+          "i": 33,
+          "tick": 554,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 34,
+          "tick": 567,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 3
+        },
+        {
+          "i": 35,
+          "tick": 580,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 36,
+          "tick": 593,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 37,
+          "tick": 606,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 100,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 38,
+          "tick": 619,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 92,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        },
+        {
+          "i": 39,
+          "tick": 632,
+          "owner": "ai",
+          "action": "ENGAGE",
+          "hp": 92,
+          "levelUp": false,
+          "pending": [],
+          "loot": 0,
+          "targets": 2
+        }
+      ],
+      "summary": {
+        "owners": [
+          "ai"
+        ],
+        "levelUpFrames": 1,
+        "pendingMax": 4,
+        "stuckTicks": 524,
+        "hpMin": 78,
+        "hpMax": 100,
+        "errors": 0
+      },
+      "verdict": "clean"
+    }
+  ]
+}

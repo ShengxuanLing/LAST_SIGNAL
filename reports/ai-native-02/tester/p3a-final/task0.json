@@ -1,0 +1,125 @@
+{
+  "checks": [
+    {
+      "n": "frame-file-current-user-only",
+      "ok": true,
+      "d": "D:\\Project\\AI-NATIVE-02-snapshots\\b3930c5\\reports\\ai-native-02\\c3c\\frames\\ses_7b3201c514f36ea996bd3e01-1794721381185.frame.json 0��S\\Rafae:(F)\n\n�ѳɹ����� 1 ���ļ�; ���� 0 ���ļ�ʱʧ��\r\n"
+    },
+    {
+      "n": "junction-escape-rejected",
+      "ok": true,
+      "d": {
+        "code": "E_PERMISSION"
+      }
+    },
+    {
+      "n": "oversize-frame-rejected-before-parse",
+      "ok": true,
+      "d": {
+        "code": "E_RESOURCE_LIMIT"
+      }
+    },
+    {
+      "n": "full-result-envelope-bounded",
+      "ok": true,
+      "d": {
+        "envBytes": 15054
+      }
+    },
+    {
+      "n": "legal-frame-file-restore-works",
+      "ok": true,
+      "d": {
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "n": "player-has-no-dev-file-ref-tools",
+      "ok": true,
+      "d": [
+        "world_action",
+        "world_close",
+        "world_headless_create_session",
+        "world_headless_step",
+        "world_list_sessions",
+        "world_observe",
+        "world_signal_status"
+      ]
+    },
+    {
+      "n": "dev-has-owner-file-tools",
+      "ok": true,
+      "d": [
+        "world_headless_dev_replay_file",
+        "world_headless_dev_restore_file"
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "name": "frame",
+      "path": "D:\\Project\\AI-NATIVE-02-snapshots\\b3930c5\\reports\\ai-native-02\\c3c\\frames\\ses_7b3201c514f36ea996bd3e01-1794721381185.frame.json",
+      "bytes": 953654,
+      "ref": "frameref_0046d534ee28e04de90340d4"
+    },
+    {
+      "name": "acl",
+      "acl": "D:\\Project\\AI-NATIVE-02-snapshots\\b3930c5\\reports\\ai-native-02\\c3c\\frames\\ses_7b3201c514f36ea996bd3e01-1794721381185.frame.json 0��S\\Rafae:(F)\n\n�ѳɹ����� 1 ���ļ�; ���� 0 ���ļ�ʱʧ��\r\n"
+    },
+    {
+      "name": "junction",
+      "created": true,
+      "status": 0,
+      "junctionFile": "D:\\Project\\AI-NATIVE-02-snapshots\\b3930c5\\reports\\ai-native-02\\c3c\\frames\\tester-outside-junction\\frame.json",
+      "code": "E_PERMISSION"
+    },
+    {
+      "name": "oversize",
+      "bytes": 17825792,
+      "code": "E_RESOURCE_LIMIT"
+    },
+    {
+      "name": "envelope",
+      "textBytes": 7527,
+      "structuredBytes": 7527,
+      "total": 15054,
+      "hasBoth": true
+    },
+    {
+      "name": "legal",
+      "ok": true,
+      "epoch": 2
+    },
+    {
+      "name": "tool-isolation",
+      "playerTools": [
+        "world_action",
+        "world_close",
+        "world_headless_create_session",
+        "world_headless_step",
+        "world_list_sessions",
+        "world_observe",
+        "world_signal_status"
+      ],
+      "devTools": [
+        "world_headless_dev_batch",
+        "world_headless_dev_compare",
+        "world_headless_dev_events",
+        "world_headless_dev_events_summary",
+        "world_headless_dev_export_failure",
+        "world_headless_dev_frame_export",
+        "world_headless_dev_inspect",
+        "world_headless_dev_load_room",
+        "world_headless_dev_perf",
+        "world_headless_dev_replay",
+        "world_headless_dev_replay_file",
+        "world_headless_dev_restore",
+        "world_headless_dev_restore_file",
+        "world_headless_dev_snapshot",
+        "world_headless_dev_spawn_enemies",
+        "world_headless_dev_state"
+      ]
+    }
+  ]
+}

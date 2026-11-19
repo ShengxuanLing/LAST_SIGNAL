@@ -1,0 +1,17 @@
+{
+  "tiny": [],
+  "count": 14,
+  "hud": {
+    "texts": [
+      {
+        "t": "F · R-03 COMBAT",
+        "x": 3456,
+        "y": 398
+      }
+    ],
+    "zoom": 0.8,
+    "scrollX": 2704,
+    "scrollY": 0,
+    "repo": true
+  }
+}

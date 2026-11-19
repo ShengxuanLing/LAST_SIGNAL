@@ -1,0 +1,331 @@
+{
+  "meta": {
+    "target": "82734f639b5efa6683fd0ac046fa10ac93d9516a",
+    "surface": "Dev (--dev), official MCP SDK, no browser"
+  },
+  "checks": [
+    {
+      "n": "dev-tools-registered",
+      "ok": true,
+      "d": [
+        "world_action",
+        "world_close",
+        "world_headless_create_session",
+        "world_headless_dev_batch",
+        "world_headless_dev_compare",
+        "world_headless_dev_export_failure",
+        "world_headless_dev_inspect",
+        "world_headless_dev_load_room",
+        "world_headless_dev_perf",
+        "world_headless_dev_replay",
+        "world_headless_dev_restore",
+        "world_headless_dev_snapshot",
+        "world_headless_dev_spawn_enemies",
+        "world_headless_step",
+        "world_list_sessions",
+        "world_observe",
+        "world_signal_status"
+      ]
+    },
+    {
+      "n": "dev-create-with-seed",
+      "ok": true,
+      "d": {
+        "seed": 424242,
+        "session": "ses_9e765a11dbd24cf8dfc1064c"
+      }
+    },
+    {
+      "n": "dev-snapshot-frame",
+      "ok": true,
+      "d": {
+        "bytes": 946076
+      }
+    },
+    {
+      "n": "dev-restore-bumps-epoch",
+      "ok": true,
+      "d": {
+        "before": 1,
+        "after": 2
+      }
+    },
+    {
+      "n": "dev-restore-rewinds-tick",
+      "ok": true,
+      "d": {
+        "tick": 0
+      }
+    },
+    {
+      "n": "dev-replay-same-state-events",
+      "ok": true,
+      "d": {
+        "sameState": true,
+        "sameEvents": true
+      }
+    },
+    {
+      "n": "dev-replay-no-divergence",
+      "ok": true,
+      "d": null
+    },
+    {
+      "n": "dev-tampered-replay-diverges",
+      "ok": true,
+      "d": {
+        "sameState": false,
+        "firstDivergence": 46
+      }
+    },
+    {
+      "n": "dev-export-failure",
+      "ok": true,
+      "d": {
+        "path": "D:\\Project\\AI-NATIVE-02-snapshots\\82734f6\\reports\\ai-native-02\\c3c\\failures\\ses_9e765a11dbd24cf8dfc1064c-1794702533165.failure.json",
+        "bytes": 989356
+      }
+    },
+    {
+      "n": "dev-load-room",
+      "ok": true,
+      "d": null
+    },
+    {
+      "n": "dev-spawn-enemies",
+      "ok": true,
+      "d": null
+    },
+    {
+      "n": "dev-batch",
+      "ok": true,
+      "d": [
+        {
+          "seed": 11,
+          "status": "cleared",
+          "ticks": 25,
+          "kills": 1
+        },
+        {
+          "seed": 22,
+          "status": "cleared",
+          "ticks": 25,
+          "kills": 1
+        },
+        {
+          "seed": 33,
+          "status": "cleared",
+          "ticks": 25,
+          "kills": 1
+        }
+      ]
+    },
+    {
+      "n": "dev-compare-baselines",
+      "ok": true,
+      "d": [
+        "hold",
+        "seek-and-fire"
+      ]
+    },
+    {
+      "n": "dev-perf-1000x10",
+      "ok": true,
+      "d": {
+        "wallMs": 5084.54,
+        "cpuUserMs": 4750,
+        "heapUsedBytes": 0,
+        "totalEvents": 30340,
+        "liveCombatTicks": 9200,
+        "sessions": 10
+      }
+    },
+    {
+      "n": "dev-perf-10000x10",
+      "ok": true,
+      "d": {
+        "wallMs": 14680.07,
+        "cpuUserMs": 7454,
+        "heapUsedBytes": 110555256,
+        "totalEvents": 304610,
+        "liveCombatTicks": 91900,
+        "sessions": 10
+      }
+    },
+    {
+      "n": "dev-cleanup-all-closed",
+      "ok": true,
+      "d": []
+    },
+    {
+      "n": "dev-session-gone-after-close",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": false,
+        "code": "E_SESSION_NOT_FOUND",
+        "messageKey": "world.session_unknown"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "dev-tools",
+      "tools": [
+        "world_action",
+        "world_close",
+        "world_headless_create_session",
+        "world_headless_dev_batch",
+        "world_headless_dev_compare",
+        "world_headless_dev_export_failure",
+        "world_headless_dev_inspect",
+        "world_headless_dev_load_room",
+        "world_headless_dev_perf",
+        "world_headless_dev_replay",
+        "world_headless_dev_restore",
+        "world_headless_dev_snapshot",
+        "world_headless_dev_spawn_enemies",
+        "world_headless_step",
+        "world_list_sessions",
+        "world_observe",
+        "world_signal_status"
+      ]
+    },
+    {
+      "name": "restore",
+      "tickAfter": 20,
+      "restoreEpoch": 2,
+      "restoredTick": 0,
+      "status": "running"
+    },
+    {
+      "name": "replay",
+      "sameState": true,
+      "sameEvents": true,
+      "firstDivergence": null
+    },
+    {
+      "name": "replay-tampered",
+      "sameState": false,
+      "sameEvents": false,
+      "firstDivergence": 46
+    },
+    {
+      "name": "export-failure",
+      "path": "D:\\Project\\AI-NATIVE-02-snapshots\\82734f6\\reports\\ai-native-02\\c3c\\failures\\ses_9e765a11dbd24cf8dfc1064c-1794702533165.failure.json",
+      "bytes": 989356
+    },
+    {
+      "name": "batch",
+      "runs": [
+        {
+          "seed": 11,
+          "status": "cleared",
+          "ticks": 25,
+          "kills": 1
+        },
+        {
+          "seed": 22,
+          "status": "cleared",
+          "ticks": 25,
+          "kills": 1
+        },
+        {
+          "seed": 33,
+          "status": "cleared",
+          "ticks": 25,
+          "kills": 1
+        }
+      ]
+    },
+    {
+      "name": "compare",
+      "result": {
+        "scenario": "deterministic-baseline-comparison",
+        "note": "deterministic baselines, NOT an AI agent and NOT Signal Combat",
+        "seeds": [
+          11,
+          22
+        ],
+        "maxTicks": 120,
+        "results": [
+          {
+            "policy": "hold",
+            "runs": 2,
+            "deaths": 0,
+            "cleared": 0,
+            "running": 2,
+            "totalTicks": 240,
+            "totalKills": 0,
+            "totalShots": 0,
+            "totalDamageTaken": 14
+          },
+          {
+            "policy": "seek-and-fire",
+            "runs": 2,
+            "deaths": 0,
+            "cleared": 2,
+            "running": 0,
+            "totalTicks": 50,
+            "totalKills": 2,
+            "totalShots": 6,
+            "totalDamageTaken": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "perf-1000-10",
+      "perf": {
+        "wallMs": 5084.54,
+        "cpuUserMs": 4750,
+        "cpuSystemMs": 453,
+        "heapUsedBytes": 0,
+        "heapUsedTotalBytes": 40212952,
+        "totalEvents": 30340,
+        "totalKills": 320,
+        "totalShots": 910,
+        "liveCombatTicks": 9200,
+        "sessions": 10,
+        "ticksPerSession": 1000,
+        "runCount": 10
+      }
+    },
+    {
+      "name": "perf-10000-10",
+      "perf": {
+        "wallMs": 14680.07,
+        "cpuUserMs": 7454,
+        "cpuSystemMs": 2375,
+        "heapUsedBytes": 110555256,
+        "heapUsedTotalBytes": 150824560,
+        "totalEvents": 304610,
+        "totalKills": 3230,
+        "totalShots": 9100,
+        "liveCombatTicks": 91900,
+        "sessions": 10,
+        "ticksPerSession": 10000,
+        "runCount": 10
+      }
+    },
+    {
+      "name": "signal",
+      "status": {
+        "isError": true,
+        "body": {
+          "schema": "last_signal.mcp.tool-result.v1",
+          "ok": false,
+          "code": "E_NOT_APPLICABLE",
+          "messageKey": "world.signal_combat_unsupported"
+        },
+        "structured": {
+          "schema": "last_signal.mcp.tool-result.v1",
+          "ok": false,
+          "code": "E_NOT_APPLICABLE",
+          "messageKey": "world.signal_combat_unsupported"
+        }
+      }
+    }
+  ],
+  "findings": []
+}

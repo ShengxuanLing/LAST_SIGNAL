@@ -1,0 +1,376 @@
+{
+  "total": 22,
+  "expected": 22,
+  "unexpected": 0,
+  "results": [
+    {
+      "name": "H1 human handshake",
+      "observed": {
+        "status": 200,
+        "session": "ses_3bf0a7fa4223523497228449",
+        "epoch": 1
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "H2 human authorize stores REAL owner-secret hash",
+      "observed": 200,
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "A0 agent attach (token only)",
+      "observed": 200,
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "H3 human-origin observation accepted",
+      "observed": 200,
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "H4 agent suggest accepted",
+      "observed": {
+        "status": 200,
+        "ok": true
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "G1 forged Origin + token, NO secret -> 403",
+      "observed": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "code": "E_PERMISSION",
+          "messageKey": "companion.owner_capability_required"
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X1 agent re-handshake while live -> 409 (blocked)",
+      "observed": {
+        "status": 409,
+        "json": {
+          "ok": false,
+          "code": "E_PERMISSION",
+          "messageKey": "world.duplicate_handshake"
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X2 agent re-authorize OVERWRITES owner-secret hash -> 200",
+      "observed": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "session": "ses_3bf0a7fa4223523497228449",
+          "epoch": 1,
+          "protocolVersion": 1,
+          "companion": true
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X3 old REAL secret now rejected -> 403",
+      "observed": {
+        "status": 403,
+        "json": {
+          "ok": false,
+          "code": "E_PERMISSION",
+          "messageKey": "companion.owner_capability_required"
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X4 agent self-POST observation via forged Origin -> 200",
+      "observed": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "value": {
+            "schema": "last_signal.companion.v1",
+            "epoch": 1,
+            "tick": 20,
+            "echo": {
+              "x": 0,
+              "y": 0,
+              "hp": 100,
+              "maxHp": 100,
+              "aimYaw": 0
+            },
+            "player": {
+              "x": 0,
+              "y": 0
+            },
+            "drones": [
+              {
+                "id": 1,
+                "x": 1,
+                "y": 0,
+                "hp": 5
+              }
+            ],
+            "targets": [],
+            "relay": null,
+            "objectiveBlocked": false,
+            "memory": [
+              {
+                "tick": 10,
+                "kind": "drone",
+                "id": 1,
+                "x": 1,
+                "y": 0
+              },
+              {
+                "tick": 20,
+                "kind": "drone",
+                "id": 1,
+                "x": 1,
+                "y": 0
+              }
+            ]
+          }
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X5 agent self-suggest -> 200",
+      "observed": {
+        "status": 200,
+        "ok": true
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X6 agent self-CONFIRM -> 200 (B1 HOLE)",
+      "observed": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "value": {
+            "suggestionId": "sug_aaaaaaaaaaaaaaaaaaaaaaaa",
+            "decision": "confirm",
+            "epoch": 1,
+            "decidedAtTick": 21,
+            "applied": false
+          }
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X7 agent markApplied -> applied:true (B1 HOLE)",
+      "observed": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "value": {
+            "suggestionId": "sug_aaaaaaaaaaaaaaaaaaaaaaaa",
+            "decision": "confirm",
+            "epoch": 1,
+            "decidedAtTick": 21,
+            "applied": true
+          }
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X8 re-authorize ownerMode=external",
+      "observed": 200,
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "X9 agent flips external -> human via companion-mode -> 200 (B1 HOLE)",
+      "observed": {
+        "status": 200,
+        "json": {
+          "ok": true,
+          "value": {
+            "readOnly": false
+          }
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "Y0 pure gateway observation at tick 100",
+      "observed": {
+        "ok": true,
+        "value": {
+          "schema": "last_signal.companion.v1",
+          "epoch": 1,
+          "tick": 100,
+          "echo": {
+            "x": 0,
+            "y": 0,
+            "hp": 100,
+            "maxHp": 100,
+            "aimYaw": 0
+          },
+          "player": {
+            "x": 0,
+            "y": 0
+          },
+          "drones": [
+            {
+              "id": 1,
+              "x": 1,
+              "y": 0,
+              "hp": 5
+            }
+          ],
+          "targets": [],
+          "relay": null,
+          "objectiveBlocked": false,
+          "memory": [
+            {
+              "tick": 100,
+              "kind": "drone",
+              "id": 1,
+              "x": 1,
+              "y": 0
+            }
+          ]
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "Y1 suggestion created at tick 100",
+      "observed": {
+        "ok": true,
+        "value": {
+          "suggestion": {
+            "schema": "last_signal.companion.v1",
+            "session": "ses_09bc85c225c950ec051a270c",
+            "epoch": 1,
+            "suggestionId": "sug_bbbbbbbbbbbbbbbbbbbbbbbb",
+            "actorId": 1,
+            "kind": "fire",
+            "reason": "perceived_hostile",
+            "target": {
+              "x": 1,
+              "y": 0
+            },
+            "confidence": null,
+            "createdAtTick": 100,
+            "expiresAtTick": 220,
+            "status": "proposed",
+            "replayed": false
+          },
+          "replayed": false,
+          "requestId": "req_bbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "Y2 production Gateway.decide accepts tick 50 < createdAtTick 100",
+      "observed": {
+        "ok": true,
+        "value": {
+          "suggestionId": "sug_bbbbbbbbbbbbbbbbbbbbbbbb",
+          "decision": "confirm",
+          "epoch": 1,
+          "decidedAtTick": 50,
+          "applied": false
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": "strict CompanionOwnerLedger rejects with E_STALE_TICK"
+    },
+    {
+      "name": "Y3 suggestion for reject created",
+      "observed": {
+        "ok": true,
+        "value": {
+          "suggestion": {
+            "schema": "last_signal.companion.v1",
+            "session": "ses_09bc85c225c950ec051a270c",
+            "epoch": 1,
+            "suggestionId": "sug_cccccccccccccccccccccccc",
+            "actorId": 1,
+            "kind": "fire",
+            "reason": "perceived_hostile",
+            "target": {
+              "x": 1,
+              "y": 0
+            },
+            "confidence": null,
+            "createdAtTick": 100,
+            "expiresAtTick": 220,
+            "status": "proposed",
+            "replayed": false
+          },
+          "replayed": false,
+          "requestId": "req_cccccccccccccccccccccccc"
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "Y4 reject decision recorded",
+      "observed": {
+        "ok": true,
+        "value": {
+          "suggestionId": "sug_cccccccccccccccccccccccc",
+          "decision": "reject",
+          "epoch": 1,
+          "decidedAtTick": 101,
+          "applied": false
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "Y5 reject record markApplied -> applied:true",
+      "observed": {
+        "ok": true,
+        "value": {
+          "suggestionId": "sug_cccccccccccccccccccccccc",
+          "decision": "reject",
+          "epoch": 1,
+          "decidedAtTick": 101,
+          "applied": true
+        }
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    },
+    {
+      "name": "Y6 strict CompanionOwnerLedger rejects tick 50 -> E_STALE_TICK",
+      "observed": {
+        "ok": false,
+        "code": "E_STALE_TICK",
+        "messageKey": "companion.tick_before_creation"
+      },
+      "verdict": "EXPECTED",
+      "detail": ""
+    }
+  ]
+}

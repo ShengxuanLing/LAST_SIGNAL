@@ -1,0 +1,7 @@
+workdir=/d/tmp/ls-p3-accept devRoot=D:/tmp/ls-p3-accept PORT=5492 commit=0083e20 specSha=2f343cb347f3677a
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:345:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 2) REJECT LOCAL retires the proposal and leaves no queued cooperation command
+[2/2] [chromium] › tests\gameplay-02-echo-coop.spec.ts:368:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 3) low-risk cooperation defaults OFF, is saved, and a non-human owner cannot flip it
+  2 passed (28.9s)

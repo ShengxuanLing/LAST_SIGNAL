@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "base": "http://localhost:5302",
+    "bridge": "http://127.0.0.1:8893",
+    "target": "8b9705d6bce1894b08717c0180e127f26de8e2f5",
+    "build": "production (no __game)"
+  },
+  "checks": [
+    {
+      "n": "prod-no-game-handle",
+      "ok": true
+    },
+    {
+      "n": "in-game-form-opens",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "form-token-input-masked",
+      "ok": true
+    },
+    {
+      "n": "form-authorize-closes-on-success",
+      "ok": true,
+      "d": {
+        "settle": "closed"
+      }
+    },
+    {
+      "n": "token-cleared-from-dom",
+      "ok": true
+    },
+    {
+      "n": "mcp-attaches-after-form-authorize",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_b3f3fa9ace0f91d0cd3d88b5",
+        "epoch": 1,
+        "attached": true,
+        "linkStatus": "connected",
+        "leaseStatus": "live"
+      }
+    },
+    {
+      "n": "mcp-observes-real-tick",
+      "ok": true,
+      "d": {
+        "tick": 260
+      }
+    },
+    {
+      "n": "mcp-action-accepted",
+      "ok": true,
+      "d": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_b3f3fa9ace0f91d0cd3d88b5",
+        "epoch": 1,
+        "requestId": "req_024248497a71a2d295aaf0f8",
+        "acceptedTick": 265,
+        "applyByTick": 865,
+        "replayed": false,
+        "actions": [
+          {
+            "actionId": "aid_40ca04a32750609b4686f420",
+            "status": "queued",
+            "applyByTick": 865
+          }
+        ]
+      }
+    },
+    {
+      "n": "mcp-action-really-moves",
+      "ok": true,
+      "d": {
+        "from": 8,
+        "to": 8.458333333333329,
+        "tick": 286
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "steps": [
+    {
+      "name": "typed",
+      "tokenInputType": "password",
+      "tokenInDomBeforeSubmit": false
+    }
+  ],
+  "toolLog": [
+    {
+      "tool": "world_list_sessions",
+      "ok": true,
+      "code": null,
+      "tick": null
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null,
+      "tick": 260
+    },
+    {
+      "tool": "world_action",
+      "ok": true,
+      "code": null,
+      "statuses": [
+        "queued"
+      ],
+      "tick": 265
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null,
+      "tick": 278
+    },
+    {
+      "tool": "world_observe",
+      "ok": true,
+      "code": null,
+      "tick": 286
+    }
+  ],
+  "pageErrors": [],
+  "video": "D:\\Project\\LAST_SIGNAL\\reports\\ai-native-02\\tester\\c3b-fixes-final\\evidence-form-prod\\video\\page@e95a65ae0f21485e5c4d1d737de8b157.webm"
+}

@@ -1,0 +1,178 @@
+[
+  {
+    "item": "p1-jam-range",
+    "at": "2026-11-17T21:30:27.549Z",
+    "runner": "agent (real walking + real Y)",
+    "fixtures": "none for the natural rejection",
+    "distanceRelayDoor": 6.4031242374328485,
+    "distanceRelayPlayer": 5.91839445561696,
+    "jamRange": 6,
+    "before": {
+      "energy": 100,
+      "relay": "ACTIVE"
+    },
+    "after": {
+      "energy": 100,
+      "relayState": "ACTIVE",
+      "jamCD": 18,
+      "room": 0
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\shots\\p1-4-door-range-reject.png"
+  },
+  {
+    "item": "p1-jam-door-fixture",
+    "at": "2026-11-17T21:30:29.392Z",
+    "runner": "agent (real F)",
+    "fixtures": "FIXTURE: setPlayerPositionForTest(relay) so the real-key jam is in range; the door approach is real walking",
+    "jammed": {
+      "relay": "JAMMED",
+      "portal": null,
+      "routeTarget": null,
+      "room": 0
+    },
+    "roomAfterF": 0,
+    "roomBefore": 0,
+    "proves": "a JAMMED relay closes the authored route portal and F cannot pass",
+    "cannotProve": "that a player can jam from the door (natural attempt above was range-rejected)"
+  },
+  {
+    "item": "p1-save-reload-continue",
+    "at": "2026-11-17T21:30:40.554Z",
+    "runner": "agent (real reload + CONTINUE click)",
+    "fixtures": "none",
+    "before": {
+      "room": {
+        "id": 0,
+        "kind": "combat",
+        "cleared": true
+      },
+      "manual": false,
+      "routeTarget": 2,
+      "tick": 309
+    },
+    "after": {
+      "room": {
+        "id": 0,
+        "kind": "combat",
+        "cleared": true
+      },
+      "manual": false,
+      "routeTarget": 2,
+      "tick": 255
+    },
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\shots\\p1-5-continue.png"
+  },
+  {
+    "item": "p1-seeds",
+    "at": "2026-11-17T21:30:50.141Z",
+    "runner": "agent (real menu entry per seed)",
+    "fixtures": "seed override only",
+    "rows": [
+      {
+        "seed": 20261117,
+        "ok": true,
+        "error": null,
+        "relay": "ACTIVE",
+        "routeTargets": [
+          1,
+          2
+        ],
+        "drones": 2,
+        "roomKind": "combat"
+      },
+      {
+        "seed": 4242,
+        "ok": true,
+        "error": null,
+        "relay": "ACTIVE",
+        "routeTargets": [
+          2,
+          5
+        ],
+        "drones": 2,
+        "roomKind": "combat"
+      },
+      {
+        "seed": 7,
+        "ok": true,
+        "error": null,
+        "relay": "ACTIVE",
+        "routeTargets": [
+          5,
+          3
+        ],
+        "drones": 2,
+        "roomKind": "combat"
+      }
+    ]
+  },
+  {
+    "item": "p1-viewports",
+    "at": "2026-11-17T21:31:10.243Z",
+    "runner": "agent",
+    "fixtures": "none",
+    "rows": [
+      {
+        "viewport": "1920x1080",
+        "scale": 1.5,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1366x768",
+        "scale": 1.067,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1280x720",
+        "scale": 1,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "1024x768",
+        "scale": 0.8,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      },
+      {
+        "viewport": "800x600",
+        "scale": 0.625,
+        "hudElements": 14,
+        "tooSmall": [],
+        "outOfView": [],
+        "overlaps": [],
+        "pauseTexts": 14,
+        "pauseTooSmall": [],
+        "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM",
+        "escResumes": true
+      }
+    ],
+    "note": "HUD/pause text measured as fontSize * canvas scale (CSS px)"
+  }
+]

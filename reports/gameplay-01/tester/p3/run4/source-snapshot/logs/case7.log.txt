@@ -1,0 +1,6 @@
+workdir=/d/tmp/ls-p3-accept devRoot=D:/tmp/ls-p3-accept PORT=5492 commit=0083e20 specSha=9b5900aa1059972895c945d426653796d61eaef1a84b7f4e17b323b6bddef6ce 2026-11-18T00:37:29Z
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests\gameplay-02-echo-coop.spec.ts:583:3 › GAMEPLAY-01 P2 · ECHO local cooperation › 7) real save + reload: a confirmed-but-uncommitted local action is never persisted nor executed
+  1 passed (18.4s)

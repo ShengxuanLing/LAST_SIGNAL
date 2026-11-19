@@ -1,0 +1,40 @@
+[
+  {
+    "item": "save-reload-boundary",
+    "at": "2026-11-18T00:37:14.552Z",
+    "runner": "agent (real pause-menu clicks + real reload + real CONTINUE)",
+    "fixtures": "none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm",
+    "beforePause": {
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 137,
+      "echoHp": 94,
+      "energy": 80
+    },
+    "confirmed": {
+      "id": "local_138_1",
+      "kind": "scan",
+      "ok": true,
+      "queue": [
+        "signal-scan"
+      ],
+      "applied": false
+    },
+    "after": {
+      "active": [
+        "GameScene"
+      ],
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 188,
+      "echoHp": 94,
+      "energy": 85,
+      "relay": "JAMMED",
+      "queue": [],
+      "pending": null,
+      "appliedAudit": 0
+    },
+    "contract": "the confirmed-but-uncommitted local action is not persisted, not executed, no busy marker, no fake applied receipt",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p3\\run3\\shots\\p2-7-save-reload.png"
+  }
+]

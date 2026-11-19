@@ -1,0 +1,190 @@
+[
+  {
+    "step": "hud-1024x768",
+    "detail": {
+      "box": {
+        "x": 0,
+        "y": 96,
+        "w": 1024,
+        "h": 576,
+        "vw": 1024,
+        "vh": 768
+      },
+      "scale": 0.8,
+      "canvasCssWidth": 1024,
+      "canvasCssHeight": 576,
+      "logicalResolution": "1280x720",
+      "renderedHeights": [
+        {
+          "name": "txtWeapon",
+          "cssPx": 13.600000000000001
+        },
+        {
+          "name": "txtRoom",
+          "cssPx": 13.600000000000001
+        },
+        {
+          "name": "txtEnemies",
+          "cssPx": 13.600000000000001
+        },
+        {
+          "name": "txtControl",
+          "cssPx": 14.4
+        },
+        {
+          "name": "txtAiAction",
+          "cssPx": 13.600000000000001
+        },
+        {
+          "name": "txtAiTarget",
+          "cssPx": 13.600000000000001
+        },
+        {
+          "name": "txtAgentLink",
+          "cssPx": 13.600000000000001
+        }
+      ],
+      "minRow": {
+        "name": "txtAgentLink",
+        "cssPx": 13.600000000000001
+      },
+      "help": {
+        "cssPx": 12.8,
+        "color": "#8fb8c8",
+        "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL"
+      },
+      "geometryOnly": true,
+      "readabilityClaim": false,
+      "note": "numeric threshold is a geometry check; screenshots saved for human visual review",
+      "rects": [
+        {
+          "name": "txtWeapon",
+          "text": "Pulse Rifle [△]",
+          "x": 1115.1445541381843,
+          "y": 15.097824096679684,
+          "w": 145,
+          "h": 17,
+          "color": "#ff8a3c"
+        },
+        {
+          "name": "txtRoom",
+          "text": "COMBAT ROOM",
+          "x": 1157.1445541381843,
+          "y": 41.0978240966797,
+          "w": 103,
+          "h": 17,
+          "color": "#8fb8c8"
+        },
+        {
+          "name": "txtEnemies",
+          "text": "HOSTILES 2",
+          "x": 1166.1445541381843,
+          "y": 67.0978240966797,
+          "w": 94,
+          "h": 17,
+          "color": "#8fb8c8"
+        },
+        {
+          "name": "txtControl",
+          "text": "CONTROL  AI · LOCAL DETERMINISTIC",
+          "x": 951.1445541381843,
+          "y": 95.09782409667969,
+          "w": 309,
+          "h": 18,
+          "color": "#7ff0ff"
+        },
+        {
+          "name": "txtAiAction",
+          "text": "AI ACTION  ENGAGE ×11",
+          "x": 1063.1445541381843,
+          "y": 123.09782409667969,
+          "w": 197,
+          "h": 17,
+          "color": "#8fb8c8"
+        },
+        {
+          "name": "txtAiTarget",
+          "text": "AI TARGET  HOSTILE #3 hunter",
+          "x": 998.1445541381843,
+          "y": 151.0978240966797,
+          "w": 262,
+          "h": 17,
+          "color": "#8fb8c8"
+        },
+        {
+          "name": "txtAgentLink",
+          "text": "LOCAL DETERMINISTIC DEMO · EXTERNAL NOT CONNECTED",
+          "x": 802.1445541381843,
+          "y": 179.09782409667972,
+          "w": 458,
+          "h": 17,
+          "color": "#ff8a3c"
+        },
+        {
+          "name": "txtHp",
+          "text": "HP 78/100",
+          "x": 128.14455413818357,
+          "y": 19.097824096679684,
+          "w": 80,
+          "h": 17,
+          "color": "#eafaff"
+        },
+        {
+          "name": "txtXp",
+          "text": "XP 18/30",
+          "x": 128.14455413818357,
+          "y": 39.09782409667968,
+          "w": 53,
+          "h": 13,
+          "color": "#8fb8c8"
+        },
+        {
+          "name": "txtCurrency",
+          "text": "CREDITS 4",
+          "x": 20.144554138183572,
+          "y": 59.0978240966797,
+          "w": 70,
+          "h": 15,
+          "color": "#ffd233"
+        },
+        {
+          "name": "txtLevel",
+          "text": "LV 1",
+          "x": 20.144554138183572,
+          "y": 79.0978240966797,
+          "w": 31,
+          "h": 15,
+          "color": "#33e0ff"
+        },
+        {
+          "name": "timer",
+          "text": "0:06",
+          "x": 20.144554138183572,
+          "y": 103.09782409667969,
+          "w": 27,
+          "h": 13,
+          "color": "#5a7480"
+        },
+        {
+          "name": "txtStats",
+          "text": "KILLS 1 · LOOT 1 · DMG 90 · 6s",
+          "x": 20.144554138183572,
+          "y": 699.0978240966798,
+          "w": 198,
+          "h": 13,
+          "color": "#3d535d"
+        },
+        {
+          "name": "txtHelp",
+          "text": "ESC PAUSE · ANY MOVE / FIRE / F TAKES HUMAN CONTROL",
+          "x": 20.144554138183572,
+          "y": 667.0978240966798,
+          "w": 449,
+          "h": 16,
+          "color": "#8fb8c8"
+        }
+      ],
+      "mode": "AI"
+    }
+  }
+]

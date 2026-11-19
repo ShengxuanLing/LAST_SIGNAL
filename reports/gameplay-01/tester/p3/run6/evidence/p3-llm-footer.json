@@ -1,0 +1,6 @@
+{
+  "pageName": "pause",
+  "body": "PAUSED\nCONTINUE RESUMES FROM YOUR LAST SAFE CHECKPOINT\nRESUME\nINVENTORY\nSETTINGS\nAI & COMPANION\nQUIT TO MENU\nSTATUS\nCONTROL  HUMAN\nAI CONTROL: OFF\nEXTERNAL AGENT  NOT CONNECTED\nECHO  OFF · LLM COMPANION  OFF\nSIGNAL COLLABORATION · OFF · RELAY OFF\nESC RESUME · ↑↓ SELECT · ENTER ACTIVATE",
+  "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p3\\run6\\shots\\p3-07-llm-footer.png",
+  "fixture": "connection state: as shown by the real page (no model call made)"
+}

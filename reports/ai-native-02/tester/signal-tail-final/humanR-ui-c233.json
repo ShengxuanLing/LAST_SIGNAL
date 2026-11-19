@@ -1,0 +1,26 @@
+{
+  "tag": "c233",
+  "total": 3,
+  "pass": 3,
+  "fail": 0,
+  "results": [
+    {
+      "name": "c233-U1 human R in room A makes relay ACTIVE",
+      "verdict": "PASS",
+      "command": "R hold 120ms",
+      "result": "{\"relay\":\"ACTIVE\",\"roomId\":0,\"deviceRoom\":0}"
+    },
+    {
+      "name": "c233-U2 real portal A->B (device stays in A)",
+      "verdict": "PASS",
+      "command": "portal interact",
+      "result": "{\"roomA\":0,\"roomB\":3,\"deviceRoom\":0,\"relay\":\"ACTIVE\"}"
+    },
+    {
+      "name": "c233-U3 human R in room B (device in old room A): APPLIED (global control preserved)",
+      "verdict": "PASS",
+      "command": "R hold 120ms in room B",
+      "result": "{\"before\":{\"relay\":\"ACTIVE\",\"exitOpen\":true},\"after\":{\"relay\":\"INACTIVE\",\"exitOpen\":false},\"toggled\":true}"
+    }
+  ]
+}

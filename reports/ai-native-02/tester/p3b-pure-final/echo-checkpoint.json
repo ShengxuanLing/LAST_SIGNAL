@@ -1,0 +1,175 @@
+{
+  "checks": [
+    {
+      "n": "checkpoint-captured",
+      "ok": true,
+      "d": {
+        "captured": true,
+        "valid": true,
+        "echoValid": true,
+        "rejected": {
+          "maxHp": true,
+          "speed": true,
+          "armor": true,
+          "damage": true,
+          "critChance": true,
+          "critDamage": true,
+          "xpGain": true,
+          "pickupRange": true,
+          "dashCooldown": true,
+          "dashDuration": true,
+          "cooldownReduced": true,
+          "pierceCount": true,
+          "hpRegen": true,
+          "level": true,
+          "xp": true,
+          "xpToNext": true,
+          "currency": true,
+          "weaponKey": true,
+          "upgrades": true,
+          "abilities": true
+        },
+        "legacyValid": true,
+        "okRestore": true,
+        "after": {
+          "echoHp": 42,
+          "playerHp": 55,
+          "aimYaw": -1.2,
+          "dashTimer": 0.05,
+          "invuln": 0.3,
+          "hurtTimer": 0.2,
+          "fireTimer": 0.1,
+          "reloadTimer": 0.4,
+          "assist": false,
+          "mode": "follow",
+          "shots": 0
+        }
+      }
+    },
+    {
+      "n": "valid-echo-actor",
+      "ok": true,
+      "d": {
+        "valid": true,
+        "echoValid": true
+      }
+    },
+    {
+      "n": "exact-base-stats-enforced",
+      "ok": true,
+      "d": {
+        "maxHp": true,
+        "speed": true,
+        "armor": true,
+        "damage": true,
+        "critChance": true,
+        "critDamage": true,
+        "xpGain": true,
+        "pickupRange": true,
+        "dashCooldown": true,
+        "dashDuration": true,
+        "cooldownReduced": true,
+        "pierceCount": true,
+        "hpRegen": true,
+        "level": true,
+        "xp": true,
+        "xpToNext": true,
+        "currency": true,
+        "weaponKey": true,
+        "upgrades": true,
+        "abilities": true
+      }
+    },
+    {
+      "n": "old-save-without-echo-valid",
+      "ok": true,
+      "d": true
+    },
+    {
+      "n": "damaged-running-frame-restores",
+      "ok": true,
+      "d": {
+        "echoHp": 42,
+        "playerHp": 55,
+        "aimYaw": -1.2,
+        "dashTimer": 0.05,
+        "invuln": 0.3,
+        "hurtTimer": 0.2,
+        "fireTimer": 0.1,
+        "reloadTimer": 0.4,
+        "assist": false,
+        "mode": "follow",
+        "shots": 0
+      }
+    },
+    {
+      "n": "restore-clears-authority",
+      "ok": true,
+      "d": {
+        "echoHp": 42,
+        "playerHp": 55,
+        "aimYaw": -1.2,
+        "dashTimer": 0.05,
+        "invuln": 0.3,
+        "hurtTimer": 0.2,
+        "fireTimer": 0.1,
+        "reloadTimer": 0.4,
+        "assist": false,
+        "mode": "follow",
+        "shots": 0
+      }
+    },
+    {
+      "n": "no-page-errors",
+      "ok": true,
+      "d": []
+    }
+  ],
+  "steps": [
+    {
+      "name": "result",
+      "r": {
+        "captured": true,
+        "valid": true,
+        "echoValid": true,
+        "rejected": {
+          "maxHp": true,
+          "speed": true,
+          "armor": true,
+          "damage": true,
+          "critChance": true,
+          "critDamage": true,
+          "xpGain": true,
+          "pickupRange": true,
+          "dashCooldown": true,
+          "dashDuration": true,
+          "cooldownReduced": true,
+          "pierceCount": true,
+          "hpRegen": true,
+          "level": true,
+          "xp": true,
+          "xpToNext": true,
+          "currency": true,
+          "weaponKey": true,
+          "upgrades": true,
+          "abilities": true
+        },
+        "legacyValid": true,
+        "okRestore": true,
+        "after": {
+          "echoHp": 42,
+          "playerHp": 55,
+          "aimYaw": -1.2,
+          "dashTimer": 0.05,
+          "invuln": 0.3,
+          "hurtTimer": 0.2,
+          "fireTimer": 0.1,
+          "reloadTimer": 0.4,
+          "assist": false,
+          "mode": "follow",
+          "shots": 0
+        }
+      }
+    }
+  ]
+}

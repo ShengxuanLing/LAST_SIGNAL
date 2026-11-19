@@ -1,0 +1,352 @@
+{
+  "meta": {
+    "url": "http://localhost:5294/",
+    "target": "ae72a67"
+  },
+  "checks": [
+    {
+      "n": "pause-frozen-300",
+      "ok": true,
+      "d": {
+        "pauseMs": 300
+      }
+    },
+    {
+      "n": "resume-forces-exactly-one-tick-300",
+      "ok": false,
+      "d": {
+        "pauseMs": 300,
+        "delta": 0
+      }
+    },
+    {
+      "n": "pause-frozen-1500",
+      "ok": true,
+      "d": {
+        "pauseMs": 1500
+      }
+    },
+    {
+      "n": "resume-forces-exactly-one-tick-1500",
+      "ok": false,
+      "d": {
+        "pauseMs": 1500,
+        "delta": 0
+      }
+    },
+    {
+      "n": "paused-pending-commits-once-on-resume",
+      "ok": false,
+      "d": {
+        "beforePending": {
+          "b": {
+            "currency": 0,
+            "tick": 100,
+            "pending": 0
+          },
+          "afterEnqueue": {
+            "currency": 0,
+            "pending": 1
+          }
+        },
+        "afterResume": {
+          "currency": 0,
+          "tick": 100,
+          "pending": 1
+        },
+        "afterResume2": {
+          "currency": 50,
+          "tick": 117,
+          "pending": 0
+        }
+      }
+    },
+    {
+      "n": "ai-takeover-real-keys",
+      "ok": true,
+      "d": {
+        "aiState": {
+          "tick": 162,
+          "pending": [],
+          "owner": "ai",
+          "aiEnabled": true,
+          "mode": "AI",
+          "hp": 100,
+          "currency": 50,
+          "upgrades": [],
+          "loot": 0,
+          "lootViews": 0,
+          "paused": false,
+          "active": [
+            "GameScene"
+          ]
+        },
+        "takenOver": {
+          "tick": 196,
+          "pending": [],
+          "owner": "human",
+          "aiEnabled": false,
+          "mode": "HUMAN",
+          "hp": 100,
+          "currency": 50,
+          "upgrades": [],
+          "loot": 0,
+          "lootViews": 0,
+          "paused": false,
+          "active": [
+            "GameScene"
+          ]
+        }
+      }
+    },
+    {
+      "n": "far-20-not-collected",
+      "ok": true,
+      "d": {
+        "c0": 50,
+        "currency": 50,
+        "loot": 1,
+        "dist": 20,
+        "collected": false
+      }
+    },
+    {
+      "n": "far-40-not-collected",
+      "ok": true,
+      "d": {
+        "c0": 50,
+        "currency": 50,
+        "loot": 2,
+        "dist": 19.71,
+        "collected": false
+      }
+    },
+    {
+      "n": "far-85-not-collected",
+      "ok": true,
+      "d": {
+        "c0": 50,
+        "currency": 50,
+        "loot": 3,
+        "dist": 19.56,
+        "collected": false
+      }
+    },
+    {
+      "n": "near-5-collected",
+      "ok": true,
+      "d": {
+        "c0": 50,
+        "currency": 60,
+        "loot": 3,
+        "dist": 19.28,
+        "collected": true
+      }
+    },
+    {
+      "n": "upgrade-recorded-live-and-saved",
+      "ok": false,
+      "d": {
+        "upLive": {
+          "tick": 470,
+          "pending": [],
+          "owner": "human",
+          "aiEnabled": false,
+          "mode": "HUMAN",
+          "hp": 34,
+          "currency": 60,
+          "upgrades": [
+            {
+              "key": "magnet",
+              "level": 1
+            }
+          ],
+          "loot": 3,
+          "lootViews": 3,
+          "paused": false,
+          "active": [
+            "GameScene"
+          ]
+        },
+        "save": []
+      }
+    },
+    {
+      "n": "no-console-error",
+      "ok": true
+    }
+  ],
+  "steps": [
+    {
+      "name": "new-run",
+      "detail": {
+        "tick": 76,
+        "pending": [],
+        "owner": "human",
+        "aiEnabled": false,
+        "mode": "HUMAN",
+        "hp": 100,
+        "currency": 0,
+        "upgrades": [],
+        "loot": 0,
+        "lootViews": 0,
+        "paused": false,
+        "active": [
+          "GameScene"
+        ]
+      }
+    },
+    {
+      "name": "resume-300ms",
+      "detail": {
+        "t0tick": 76,
+        "frozenTick": 77,
+        "frozenDelta": 0,
+        "resumeImmediateTick": 77,
+        "resumeImmediateDelta": 0,
+        "after300Tick": 87,
+        "after300Delta": 10,
+        "pauseMs": 300
+      }
+    },
+    {
+      "name": "resume-1500ms",
+      "detail": {
+        "t0tick": 89,
+        "frozenTick": 89,
+        "frozenDelta": 0,
+        "resumeImmediateTick": 89,
+        "resumeImmediateDelta": 0,
+        "after300Tick": 100,
+        "after300Delta": 11,
+        "pauseMs": 1500
+      }
+    },
+    {
+      "name": "paused-pending-commit",
+      "detail": {
+        "beforePending": {
+          "b": {
+            "currency": 0,
+            "tick": 100,
+            "pending": 0
+          },
+          "afterEnqueue": {
+            "currency": 0,
+            "pending": 1
+          }
+        },
+        "afterResume": {
+          "currency": 0,
+          "tick": 100,
+          "pending": 1
+        },
+        "afterResume2": {
+          "currency": 50,
+          "tick": 117,
+          "pending": 0
+        }
+      }
+    },
+    {
+      "name": "ai-takeover",
+      "detail": {
+        "aiOn": true,
+        "aiState": {
+          "tick": 162,
+          "pending": [],
+          "owner": "ai",
+          "aiEnabled": true,
+          "mode": "AI",
+          "hp": 100,
+          "currency": 50,
+          "upgrades": [],
+          "loot": 0,
+          "lootViews": 0,
+          "paused": false,
+          "active": [
+            "GameScene"
+          ]
+        },
+        "takenOver": {
+          "tick": 196,
+          "pending": [],
+          "owner": "human",
+          "aiEnabled": false,
+          "mode": "HUMAN",
+          "hp": 100,
+          "currency": 50,
+          "upgrades": [],
+          "loot": 0,
+          "lootViews": 0,
+          "paused": false,
+          "active": [
+            "GameScene"
+          ]
+        }
+      }
+    },
+    {
+      "name": "resumed-before-loot",
+      "detail": {
+        "paused": false
+      }
+    },
+    {
+      "name": "loot-20",
+      "detail": {
+        "c0": 50,
+        "currency": 50,
+        "loot": 1,
+        "dist": 20,
+        "collected": false
+      }
+    },
+    {
+      "name": "loot-40",
+      "detail": {
+        "c0": 50,
+        "currency": 50,
+        "loot": 2,
+        "dist": 19.71,
+        "collected": false
+      }
+    },
+    {
+      "name": "loot-85",
+      "detail": {
+        "c0": 50,
+        "currency": 50,
+        "loot": 3,
+        "dist": 19.56,
+        "collected": false
+      }
+    },
+    {
+      "name": "loot-5",
+      "detail": {
+        "c0": 50,
+        "currency": 60,
+        "loot": 3,
+        "dist": 19.28,
+        "collected": true
+      }
+    },
+    {
+      "name": "upgrade-persist",
+      "detail": {
+        "overlayOpened": true,
+        "choice": "magnet",
+        "liveUpgrades": [
+          {
+            "key": "magnet",
+            "level": 1
+          }
+        ],
+        "saveUpgrades": []
+      }
+    }
+  ],
+  "findings": [],
+  "errors": []
+}

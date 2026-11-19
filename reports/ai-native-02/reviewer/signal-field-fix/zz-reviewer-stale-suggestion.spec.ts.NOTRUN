@@ -1,0 +1,268 @@
+// REVIEWER PROBE (not part of the frozen commit) — does a suggestion proposed in
+// the OLD room survive a real portal transition and still get confirmed+executed
+// in the NEW room? The 246469b fix clears the local EchoController, so the
+// question is whether the bridge/gateway-side pending proposal stays confirmable.
+import { expect, test } from '@playwright/test';
+import { randomBytes } from 'node:crypto';
+import { resolve } from 'node:path';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { WorldGateway } from '../src/ai-native/worldGateway';
+import { startWorldBridge } from '../src/ai-native/worldBridgeServer';
+import { TEST_OWNER_KEY, TEST_OWNER_KEY_HASH } from '../src/ai-native/ownerAuthFixture';
+
+const PORT = Number(process.env.PORT ?? 5372);
+const ORIGIN = `http://localhost:${PORT}`;
+const TOKEN = randomBytes(24).toString('hex');
+const COMPANION_SERVER = resolve(process.cwd(), 'dist-mcp/companionMcpServer.mjs');
+
+async function clickText(page: any, text: string): Promise<void> {
+  const p = await page.evaluate((label: string) => {
+    const g: any = (window as any).__game;
+    const s: any = g.scene.getScene('PauseScene');
+    if (!s) return null;
+    function findText(list: any[]): { x: number; y: number } | null {
+      for (const c of list) {
+        if (!c) continue;
+        if (c.type === 'Text' && (c.text || '').includes(label)) {
+          const b = c.getBounds();
+          return { x: b.centerX, y: b.centerY };
+        }
+        if (c.list && Array.isArray(c.list)) {
+          const found = findText(c.list);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+    return findText(s.children.list);
+  }, text);
+  expect(p, `text ${text}`).not.toBeNull();
+  await page.mouse.click(p!.x, p!.y);
+}
+
+async function openPause(page: any): Promise<void> {
+  for (let i = 0; i < 10; i += 1) {
+    if (await page.evaluate(() => !!(window as any).__game?.scene.isActive('PauseScene'))) return;
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+  }
+  throw new Error('pause did not open');
+}
+
+async function closePause(page: any): Promise<void> {
+  for (let i = 0; i < 10; i += 1) {
+    if (await page.evaluate(() => !(window as any).__game?.scene.isActive('PauseScene'))) return;
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+  }
+  throw new Error('pause did not close');
+}
+
+async function snapshot(page: any): Promise<any> {
+  return page.evaluate(() => {
+    const w = (window as any).__game.scene.getScene('GameScene').world;
+    const view = w.echoView();
+    return {
+      tick: w.sim.tick, roomId: w.currentRoomId,
+      player: { x: w.sim.player.x, y: w.sim.player.y },
+      echo: w.sim.echo ? { x: w.sim.echo.x, y: w.sim.echo.y } : null,
+      relay: w.sim.signal ? { x: w.sim.signal.x, y: w.sim.signal.y, state: w.sim.signal.relay, roomId: w.sim.signal.roomId } : null,
+      echoSeesRelay: view ? (view as any).relay ?? null : null,
+      exitOpen: w.signalView() ? w.signalView().exitOpen : null,
+      echoEnergy: w.sim.signal ? w.sim.signal.actors.echo.energy.energy : null,
+      pendingCommands: (w.sim.pendingCommands || []).map((c: any) => c.type),
+      assistArmed: w.echoAssistArmed
+    };
+  });
+}
+
+test('reviewer probe: old-room suggestion after a real portal transition', async ({ page }) => {
+  test.setTimeout(180000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const gateway = new WorldGateway();
+  const bridge = await startWorldBridge({
+    gateway, token: TOKEN, ownerKeyHash: TEST_OWNER_KEY_HASH,
+    allowedOrigins: [ORIGIN], heartbeatIntervalMs: 1000
+  });
+  let sdk: { client: Client; transport: StdioClientTransport } | null = null;
+  const out: Record<string, unknown> = {};
+  try {
+    // 1) boot + real opt-in via the Pause settings UI
+    await page.goto('/');
+    await page.evaluate(() => localStorage.removeItem('lastSignal.save.v1'));
+    await page.reload();
+    await page.waitForFunction(() => (window as any).__game?.scene.isActive('MainMenuScene'));
+    const newRun = await page.evaluate(() => {
+      const g: any = (window as any).__game;
+      for (const s of Object.values(g.scene.scenes) as any[]) {
+        if (!g.scene.isActive(s.sys.settings.key)) continue;
+        const t = s.children.list.find((c: any) => c.type === 'Text' && (c.text || '').trim().startsWith('NEW RUN') && c.visible !== false);
+        if (t) return { x: t.x, y: t.y };
+      }
+      return null;
+    });
+    await page.mouse.click(newRun!.x, newRun!.y);
+    await page.waitForFunction(() => (window as any).__game?.scene.isActive('GameScene'));
+
+    await openPause(page);
+    await clickText(page, 'SETTINGS');
+    await page.waitForTimeout(300);
+    await clickText(page, 'SIGNAL COLLABORATION · OFF');
+    await page.waitForTimeout(200);
+    await clickText(page, 'BACK');
+    await page.waitForTimeout(200);
+    await closePause(page);
+
+    // 2) real portal -> new room -> the World spawns the relay INACTIVE
+    const room0 = await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.currentRoomId);
+    await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      w.player.reset(w.portal.wx, w.portal.wy);
+    });
+    await page.waitForTimeout(400);
+    await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.player.requestInteract());
+    await page.waitForFunction(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      return !!w.sim.signal && w.currentRoomId > 0;
+    }, undefined, { timeout: 25000 });
+    out.room0 = room0;
+    out.roomA = await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.currentRoomId);
+
+    // 3) echo + real Owner authorization through the in-game form
+    await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      if (!w.sim.echo) w.enableEcho();
+    });
+    await page.waitForFunction(() => !!(window as any).__game.scene.getScene('GameScene').world.sim.echo, undefined, { timeout: 20000 });
+    await openPause(page);
+    await clickText(page, 'LLM COMPANION >');
+    await page.waitForTimeout(300);
+    await clickText(page, 'ENABLE / RE-AUTHORIZE');
+    await page.waitForSelector('[data-testid="external-link-form"]', { timeout: 10000 });
+    await page.fill('[data-testid="external-link-form"] input[name="bridgeUrl"]', bridge.url);
+    await page.fill('[data-testid="external-link-form"] input[name="token"]', TOKEN);
+    await page.fill('[data-testid="external-link-form"] input[name="ownerKey"]', TEST_OWNER_KEY);
+    await page.click('[data-testid="external-link-form"] button[type="submit"]');
+    await page.waitForFunction(() => (window as any).__game.scene.getScene('GameScene').companionStatus === 'CONNECTED', undefined, { timeout: 20000 });
+
+    sdk = {
+      client: new Client({ name: 'stale-suggestion-probe', version: '0.0.0' }),
+      transport: new StdioClientTransport({
+        command: process.execPath,
+        args: [COMPANION_SERVER],
+        env: { ...process.env, LAST_SIGNAL_WORLD_BRIDGE_URL: bridge.url, LAST_SIGNAL_WORLD_TOKEN: TOKEN } as never,
+        stderr: 'pipe'
+      })
+    };
+    await sdk.client.connect(sdk.transport);
+
+    // 4) ROUND 1 (old room): observe -> suggest scan, DO NOT confirm.
+    const obs1 = (await sdk.client.callTool({ name: 'echo_observe', arguments: {} })).structuredContent as any;
+    expect(obs1.ok, JSON.stringify(obs1)).toBe(true);
+    const req1 = 'req_' + randomBytes(12).toString('hex');
+    const sug1 = 'sug_' + randomBytes(12).toString('hex');
+    const s1 = (await sdk.client.callTool({
+      name: 'echo_suggest',
+      arguments: { requestId: req1, suggestionId: sug1, kind: 'scan', reason: 'perceived_relay', ttlTicks: 600 }
+    })).structuredContent as any;
+    expect(s1.ok, JSON.stringify(s1)).toBe(true);
+    out.observedRelayInRoomA = obs1.observation?.relay ?? null;
+
+    // 5) open the door with a direct core command (fixture; the Owner path is
+    //    already covered by tests/signal-coop-e2e.spec.ts)
+    await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.toggleRelay(true));
+    await page.waitForFunction(() => (window as any).__game.scene.getScene('GameScene').world.sim.signal.relay === 'ACTIVE', undefined, { timeout: 20000 });
+
+    // 6) ROUND 2 (still old room): suggest toggle-relay, DO NOT confirm.
+    const req2 = 'req_' + randomBytes(12).toString('hex');
+    const sug2 = 'sug_' + randomBytes(12).toString('hex');
+    await page.waitForTimeout(600);
+    const obs2 = (await sdk.client.callTool({ name: 'echo_observe', arguments: {} })).structuredContent as any;
+    expect(obs2.ok, JSON.stringify(obs2)).toBe(true);
+    const s2 = (await sdk.client.callTool({
+      name: 'echo_suggest',
+      arguments: { requestId: req2, suggestionId: sug2, kind: 'toggle-relay', reason: 'perceived_relay', ttlTicks: 600 }
+    })).structuredContent as any;
+    expect(s2.ok, JSON.stringify(s2)).toBe(true);
+    out.suggestionsMade = [sug1, sug2];
+    out.pendingBefore = (await page.evaluate(async () => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      const p = await w.companionLink.pending();
+      return p.map((x: any) => ({ id: x.suggestionId, kind: x.kind, reason: x.reason }));
+    }));
+
+    // 7) REAL portal transition into the next room (echo must migrate).
+    await closePause(page);
+    await page.evaluate(() => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      w.player.reset(w.portal.wx, w.portal.wy);
+    });
+    await page.waitForTimeout(400);
+    await page.evaluate(() => (window as any).__game.scene.getScene('GameScene').world.player.requestInteract());
+    await page.waitForFunction((prev: number) => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      return w.currentRoomId > 0 && w.currentRoomId !== prev;
+    }, out.roomA as number, { timeout: 25000 });
+    await page.waitForTimeout(1200); // let the link push the post-transition observation
+    out.afterTransition = await snapshot(page);
+
+    // 8) Does the OLD room's undecided proposal still exist for the Owner?
+    out.pendingAfter = (await page.evaluate(async () => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      const p = await w.companionLink.pending();
+      return p.map((x: any) => ({ id: x.suggestionId, kind: x.kind, reason: x.reason }));
+    }));
+
+    // 9) Real Owner UI click on CONFIRM FIRST PROPOSAL in the NEW room.
+    await openPause(page);
+    await clickText(page, 'LLM COMPANION >');
+    await page.waitForTimeout(300);
+    const beforeConfirm = await snapshot(page);
+    await clickText(page, 'CONFIRM FIRST PROPOSAL (OWNER)');
+    await page.waitForTimeout(800);
+    const afterConfirm = await snapshot(page);
+    out.confirmInPause = {
+      queuedBefore: beforeConfirm.pendingCommands,
+      queuedAfter: afterConfirm.pendingCommands,
+      relayAfter: afterConfirm.relay,
+      exitOpenAfter: afterConfirm.exitOpen,
+      echoEnergyBefore: beforeConfirm.echoEnergy
+    };
+    // commit with real frames
+    await closePause(page);
+    await page.waitForTimeout(1200);
+    out.afterCommit1 = await snapshot(page);
+
+    // 10) Confirm the SECOND stale proposal (toggle-relay) as well.
+    await openPause(page);
+    await clickText(page, 'LLM COMPANION >');
+    await page.waitForTimeout(300);
+    const pendingNow = await page.evaluate(async () => {
+      const w = (window as any).__game.scene.getScene('GameScene').world;
+      const p = await w.companionLink.pending();
+      return p.map((x: any) => ({ id: x.suggestionId, kind: x.kind, reason: x.reason }));
+    });
+    out.pendingBeforeSecond = pendingNow;
+    if (pendingNow.length > 0) {
+      await clickText(page, 'CONFIRM FIRST PROPOSAL (OWNER)');
+      await page.waitForTimeout(800);
+    }
+    await closePause(page);
+    await page.waitForTimeout(1200);
+    out.afterCommit2 = await snapshot(page);
+
+    // 11) receipts / status as the model sees them
+    const status = (await sdk.client.callTool({ name: 'echo_status', arguments: {} })).structuredContent as any;
+    out.receipts = status.status?.receipts ?? null;
+    out.pendingFromAgent = status.pending ?? null;
+    out.availableActions = status.status?.availableActions ?? null;
+
+    console.log('PROBE_RESULT ' + JSON.stringify(out));
+    expect(errors).toEqual([]);
+  } finally {
+    try { await sdk?.client.close(); } catch { /* ignore */ }
+    await bridge.close();
+  }
+});

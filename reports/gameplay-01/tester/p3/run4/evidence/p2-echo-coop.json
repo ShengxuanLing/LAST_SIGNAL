@@ -1,0 +1,85 @@
+[
+  {
+    "item": "save-reload-boundary",
+    "at": "2026-11-18T00:37:50.734Z",
+    "runner": "agent (real pause-menu clicks + real reload + real CONTINUE)",
+    "fixtures": "none for the boundary; the checkpoint is written through the product saveCheckpoint() before the confirm",
+    "beforePause": {
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 137,
+      "echoHp": 94,
+      "energy": 80
+    },
+    "confirmed": {
+      "id": "local_139_1",
+      "kind": "scan",
+      "ok": true,
+      "provenance": "product-boundary call (real click covered by case 1)",
+      "queue": [
+        "signal-scan"
+      ],
+      "applied": false
+    },
+    "after": {
+      "active": [
+        "GameScene"
+      ],
+      "roomId": 0,
+      "demo": "p1",
+      "tick": 190,
+      "echoHp": 94,
+      "energy": 85,
+      "relay": "JAMMED",
+      "queue": [],
+      "pending": null,
+      "appliedAudit": 0,
+      "probe": {
+        "restore": {
+          "ok": true,
+          "tick": 139,
+          "energy": 80,
+          "queue": [],
+          "appliedAudit": 0,
+          "relay": "JAMMED",
+          "savedArg": {
+            "tick": 139,
+            "queue": 0
+          }
+        },
+        "firstTickEvents": [],
+        "scanned": [],
+        "patched": true,
+        "restoreStarted": true
+      },
+      "sameWorldModule": true
+    },
+    "contract": "the confirmed-but-uncommitted local action is not persisted, not executed, no busy marker, no fake applied receipt",
+    "shot": "D:\\Project\\LAST_SIGNAL\\reports\\gameplay-01\\tester\\p3\\run4\\shots\\p2-7-save-reload.png"
+  },
+  {
+    "item": "save-reload-instant",
+    "at": "2026-11-18T00:37:50.746Z",
+    "savedEnergy": 80,
+    "savedRelay": "JAMMED",
+    "restoreInstant": {
+      "ok": true,
+      "tick": 139,
+      "energy": 80,
+      "queue": [],
+      "appliedAudit": 0,
+      "relay": "JAMMED",
+      "savedArg": {
+        "tick": 139,
+        "queue": 0
+      }
+    },
+    "firstTickEvents": [],
+    "scannedEvents": [],
+    "laterSample": {
+      "energy": 85,
+      "relay": "JAMMED",
+      "tick": 190
+    }
+  }
+]

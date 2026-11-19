@@ -1,0 +1,567 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "checkpoint.spec.ts:61 equip"
+  },
+  "samples": {
+    "before": {
+      "weapon": "pulse",
+      "buttons": [
+        {
+          "label": "EQUIPPED",
+          "y": 186,
+          "enabled": false
+        },
+        {
+          "label": "EQUIP",
+          "y": 230,
+          "enabled": true
+        },
+        {
+          "label": "EQUIP",
+          "y": 274,
+          "enabled": true
+        }
+      ],
+      "pending": [],
+      "tick": 48
+    },
+    "timeline": [
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      }
+    ]
+  },
+  "findings": [
+    {
+      "name": "equip-command-committed-on-next-tick-only",
+      "immediateAfterClick": {
+        "weapon": "pulse",
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ],
+        "pending": [
+          "equip-weapon"
+        ],
+        "tick": 48,
+        "paused": true
+      },
+      "committedAtSampleIndex": -1,
+      "committedSample": null,
+      "note": "equip never committed within 1s"
+    }
+  ],
+  "errors": []
+}

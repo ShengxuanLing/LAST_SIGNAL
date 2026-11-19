@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "manual stepFrame while overlay open"
+  },
+  "equip": {
+    "before": {
+      "weapon": "pulse",
+      "pending": [
+        "equip-weapon"
+      ],
+      "tick": 60,
+      "paused": true
+    },
+    "after": {
+      "weapon": "scatter",
+      "pending": [],
+      "tick": 61,
+      "paused": true,
+      "events": [
+        "player-equipped",
+        "player-moved"
+      ]
+    },
+    "labels": [
+      {
+        "label": "EQUIPPED",
+        "y": 186,
+        "enabled": false
+      },
+      {
+        "label": "EQUIP",
+        "y": 230,
+        "enabled": true
+      },
+      {
+        "label": "EQUIP",
+        "y": 274,
+        "enabled": true
+      }
+    ]
+  },
+  "upgrade": {
+    "lvl": {
+      "active": true,
+      "choices": [
+        "critical",
+        "power",
+        "vitality"
+      ],
+      "upgrades": 0,
+      "pending": [],
+      "tick": 83,
+      "paused": true
+    },
+    "afterKey": {
+      "upgrades": 0,
+      "pending": [],
+      "tick": 102,
+      "levelUpActive": false,
+      "paused": false
+    },
+    "afterManual": {
+      "upgrades": 0,
+      "pending": [],
+      "tick": 103,
+      "events": [
+        "player-moved"
+      ],
+      "damage": 1,
+      "speed": 220
+    }
+  },
+  "findings": [
+    {
+      "name": "manual-stepFrame-inside-overlay",
+      "note": "the test already issues a manual stepFrame after the click; whether the command commits depends on whether the core tick actually runs while the overlay is open",
+      "equip": {
+        "before": {
+          "weapon": "pulse",
+          "pending": [
+            "equip-weapon"
+          ],
+          "tick": 60,
+          "paused": true
+        },
+        "after": {
+          "weapon": "scatter",
+          "pending": [],
+          "tick": 61,
+          "paused": true,
+          "events": [
+            "player-equipped",
+            "player-moved"
+          ]
+        },
+        "labels": [
+          {
+            "label": "EQUIPPED",
+            "y": 186,
+            "enabled": false
+          },
+          {
+            "label": "EQUIP",
+            "y": 230,
+            "enabled": true
+          },
+          {
+            "label": "EQUIP",
+            "y": 274,
+            "enabled": true
+          }
+        ]
+      },
+      "upgrade": {
+        "lvl": {
+          "active": true,
+          "choices": [
+            "critical",
+            "power",
+            "vitality"
+          ],
+          "upgrades": 0,
+          "pending": [],
+          "tick": 83,
+          "paused": true
+        },
+        "afterKey": {
+          "upgrades": 0,
+          "pending": [],
+          "tick": 102,
+          "levelUpActive": false,
+          "paused": false
+        },
+        "afterManual": {
+          "upgrades": 0,
+          "pending": [],
+          "tick": 103,
+          "events": [
+            "player-moved"
+          ],
+          "damage": 1,
+          "speed": 220
+        }
+      }
+    }
+  ],
+  "errors": []
+}

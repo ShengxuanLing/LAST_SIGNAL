@@ -1,0 +1,90 @@
+{
+  "total": 7,
+  "pass": 6,
+  "fail": 1,
+  "results": [
+    {
+      "name": "X01 companion CONNECTED via real form",
+      "verdict": "PASS",
+      "command": "form submit",
+      "result": "status=CONNECTED"
+    },
+    {
+      "name": "X02 echo_observe sees relay",
+      "verdict": "PASS",
+      "command": "sdk echo_observe",
+      "result": "relay={\"id\":\"relay_main\",\"x\":8,\"y\":45,\"state\":\"INACTIVE\"}"
+    },
+    {
+      "name": "X03 unconfirmed suggestion seeded in room A",
+      "verdict": "PASS",
+      "command": "sdk echo_suggest",
+      "result": "{\"ok\":true,\"kind\":\"fire\",\"target\":{\"x\":10,\"y\":45}}"
+    },
+    {
+      "name": "X04 suggestion pending before portal",
+      "verdict": "PASS",
+      "command": "sdk echo_status",
+      "result": "{\"pending\":[\"sug_d30293709fb6c9b7bf3b73db\"]}"
+    },
+    {
+      "name": "X05 real portal transition A->B",
+      "verdict": "PASS",
+      "command": "portal interact",
+      "result": "{\"roomA\":0,\"roomB\":3}"
+    },
+    {
+      "name": "X06 OBSERVE: old suggestion pending after portal?",
+      "verdict": "PASS",
+      "command": "sdk echo_status (after portal)",
+      "result": "{\"pendingAfter\":[\"sug_d30293709fb6c9b7bf3b73db\"],\"stillThere\":true}"
+    },
+    {
+      "name": "X07 NEGATIVE: old unconfirmed suggestion cannot mis-execute after portal",
+      "verdict": "FAIL",
+      "command": "Owner confirm old suggestion after portal",
+      "result": "{\"decideResult\":{\"found\":true,\"decided\":true,\"error\":\"\",\"kind\":\"fire\",\"target\":{\"x\":10,\"y\":45}},\"echoBeforeConfirm\":{\"x\":26,\"y\":46,\"pending\":false},\"afterConfirm\":{\"x\":25.881414587743684,\"y\":46.35575623676894,\"pending\":false,\"roomId\":3,\"projectiles\":1},\"staleApplied\":true}"
+    }
+  ],
+  "detail": {
+    "roomA": {
+      "roomId": 0,
+      "x": 9,
+      "y": 45
+    },
+    "roomB": 3,
+    "oldTarget": {
+      "x": 10,
+      "y": 45
+    },
+    "sugId": "sug_d30293709fb6c9b7bf3b73db",
+    "pendIdsBefore": [
+      "sug_d30293709fb6c9b7bf3b73db"
+    ],
+    "pendIdsAfter": [
+      "sug_d30293709fb6c9b7bf3b73db"
+    ],
+    "decideResult": {
+      "found": true,
+      "decided": true,
+      "error": "",
+      "kind": "fire",
+      "target": {
+        "x": 10,
+        "y": 45
+      }
+    },
+    "echoBeforeConfirm": {
+      "x": 26,
+      "y": 46,
+      "pending": false
+    },
+    "afterConfirm": {
+      "x": 25.881414587743684,
+      "y": 46.35575623676894,
+      "pending": false,
+      "roomId": 3,
+      "projectiles": 1
+    }
+  }
+}

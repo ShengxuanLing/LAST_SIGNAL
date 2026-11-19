@@ -1,0 +1,5438 @@
+[
+  {
+    "kind": "enableEcho",
+    "x": 9,
+    "y": 45
+  },
+  {
+    "kind": "setEchoMode",
+    "mode": "hold"
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "enableSignalDevice",
+    "deviceId": "relay_main",
+    "roomId": 0,
+    "x": 9.5,
+    "y": 45
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "signalCommand",
+    "type": "signal-scan",
+    "actor": "echo"
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "signalCommand",
+    "type": "signal-jam",
+    "actor": "player"
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "signalCommand",
+    "type": "toggle-relay",
+    "enabled": true
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 9,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 9,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 9,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 9,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 9,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "kind": "step",
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  }
+]

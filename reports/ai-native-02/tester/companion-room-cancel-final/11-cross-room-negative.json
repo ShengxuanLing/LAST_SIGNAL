@@ -1,0 +1,125 @@
+{
+  "total": 14,
+  "pass": 14,
+  "fail": 0,
+  "results": [
+    {
+      "name": "X01 companion CONNECTED via real form",
+      "verdict": "PASS",
+      "command": "form submit",
+      "result": "status=CONNECTED"
+    },
+    {
+      "name": "X02 seed unconfirmed fire suggestion in room A",
+      "verdict": "PASS",
+      "command": "sdk echo_suggest",
+      "result": "{\"ok\":true,\"kind\":\"fire\",\"target\":{\"x\":10,\"y\":45},\"generation\":0,\"roomId\":null}"
+    },
+    {
+      "name": "X03 pending before portal",
+      "verdict": "PASS",
+      "command": "sdk echo_status",
+      "result": "{\"pending\":[\"sug_00668941d882f8909127aab8\"]}"
+    },
+    {
+      "name": "X04 Owner link holds the old object",
+      "verdict": "PASS",
+      "command": "companionLink.pending",
+      "result": "{\"held\":true}"
+    },
+    {
+      "name": "X05 real portal transition A->B",
+      "verdict": "PASS",
+      "command": "portal interact",
+      "result": "{\"roomA\":0,\"roomB\":3}"
+    },
+    {
+      "name": "X06 after portal: no old pending + cancelled receipt(reason room_changed) + roomId=B",
+      "verdict": "PASS",
+      "command": "sdk echo_status (after)",
+      "result": "{\"pending\":[],\"receipt\":{\"suggestionId\":\"sug_00668941d882f8909127aab8\",\"status\":\"cancelled\",\"reason\":\"room_changed\",\"decidedAtTick\":null,\"appliedTick\":null},\"statusRoomId\":3}"
+    },
+    {
+      "name": "X07 held OLD confirm refused E_STALE_GENERATION + no execution",
+      "verdict": "PASS",
+      "command": "companionLink.decide(old,confirm)",
+      "result": "{\"decided\":{\"ok\":false,\"error\":\"E_STALE_GENERATION companion.suggestion_room_changed\"},\"before\":{\"echoProj\":0,\"pendingIntent\":false,\"pendingCmds\":[],\"echoEnergy\":100},\"after\":{\"echoProj\":0,\"pendingIntent\":false,\"pendingCmds\":[],\"echoEnergy\":100}}"
+    },
+    {
+      "name": "X08 old duplicate suggest refused (no revive)",
+      "verdict": "PASS",
+      "command": "sdk echo_suggest(old id)",
+      "result": "{\"ok\":false,\"code\":\"E_STALE_GENERATION\",\"messageKey\":\"companion.suggestion_room_changed\"}"
+    },
+    {
+      "name": "X09 late applied old id refused (no phantom execution)",
+      "verdict": "PASS",
+      "command": "companionLink.postApplied(old)",
+      "result": "{\"ok\":false,\"error\":\"E_STALE_GENERATION companion.suggestion_room_changed\"}"
+    },
+    {
+      "name": "X10 Agent token direct cancel refused 403",
+      "verdict": "PASS",
+      "command": "fetch POST /companion-room (token only)",
+      "result": "{\"status\":403}"
+    },
+    {
+      "name": "X11 observation memory is new room (no old-room entries)",
+      "verdict": "PASS",
+      "command": "sdk echo_observe (room B)",
+      "result": "{\"memCount\":9,\"memInOldRoom\":0,\"pendingAfter\":0}"
+    },
+    {
+      "name": "X12 new-room suggestion accepted (roomId=B)",
+      "verdict": "PASS",
+      "command": "sdk echo_suggest (room B)",
+      "result": "{\"ok\":true,\"roomId\":3,\"generation\":1}"
+    },
+    {
+      "name": "X13 new-room Owner confirm accepted + enqueues intent",
+      "verdict": "PASS",
+      "command": "companionLink.decide(new,confirm)",
+      "result": "{\"ok\":true,\"pending\":true}"
+    },
+    {
+      "name": "X14 new-room confirm executes once on next tick (receipt confirmed/applied)",
+      "verdict": "PASS",
+      "command": "sdk echo_status (after new confirm)",
+      "result": "{\"receipt\":{\"suggestionId\":\"sug_ec807be53f48cb5cd72a5a8f\",\"status\":\"applied\",\"decidedAtTick\":102,\"appliedTick\":107},\"pending\":[]}"
+    }
+  ],
+  "detail": {
+    "roomA": 0,
+    "roomB": 3,
+    "oldId": "sug_00668941d882f8909127aab8",
+    "newId": "sug_ec807be53f48cb5cd72a5a8f",
+    "receiptB": {
+      "suggestionId": "sug_00668941d882f8909127aab8",
+      "status": "cancelled",
+      "reason": "room_changed",
+      "decidedAtTick": null,
+      "appliedTick": null
+    },
+    "pendingB": [],
+    "decided": {
+      "ok": false,
+      "error": "E_STALE_GENERATION companion.suggestion_room_changed"
+    },
+    "before": {
+      "echoProj": 0,
+      "pendingIntent": false,
+      "pendingCmds": [],
+      "echoEnergy": 100
+    },
+    "after": {
+      "echoProj": 0,
+      "pendingIntent": false,
+      "pendingCmds": [],
+      "echoEnergy": 100
+    },
+    "lateApplied": {
+      "ok": false,
+      "error": "E_STALE_GENERATION companion.suggestion_room_changed"
+    }
+  }
+}

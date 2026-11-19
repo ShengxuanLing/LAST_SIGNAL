@@ -1,0 +1,3 @@
+commit=363eb173207bb5adaa0a21cd1af348dc92f29827
+branch=feat/ai-native-world-integration
+tracked-clean

@@ -1,0 +1,418 @@
+{
+  "meta": {
+    "target": "87d6ae026bdafa8fef0350dcc91a84d9974b9db1",
+    "functional": [
+      "f5629ef",
+      "3058348",
+      "b3b0e00"
+    ],
+    "surface": "Dev"
+  },
+  "checks": [
+    {
+      "n": "snapshot-returns-ref-not-inline-frame",
+      "ok": true,
+      "d": {
+        "keys": [
+          "schema",
+          "ok",
+          "session",
+          "epoch",
+          "boundary",
+          "ref",
+          "frameBytes",
+          "eventsRetained",
+          "eventsTotal",
+          "eventsTruncated",
+          "stateFingerprint",
+          "eventsFingerprint"
+        ]
+      }
+    },
+    {
+      "n": "snapshot-hash-matches-dev-state",
+      "ok": true,
+      "d": {
+        "snap": "fnv1a32:11a521b6",
+        "state": "fnv1a32:11a521b6"
+      }
+    },
+    {
+      "n": "restore-ref-bumps-epoch",
+      "ok": true,
+      "d": {
+        "old": 1,
+        "new": 2
+      }
+    },
+    {
+      "n": "restore-ref-cross-session-hash-equal",
+      "ok": true,
+      "d": {
+        "before": "fnv1a32:11a521b6",
+        "after": "fnv1a32:11a521b6"
+      }
+    },
+    {
+      "n": "cross-session-state-equal",
+      "ok": true,
+      "d": {
+        "a": "fnv1a32:d37e4aec",
+        "c": "fnv1a32:d37e4aec"
+      }
+    },
+    {
+      "n": "cross-session-events-equal",
+      "ok": true,
+      "d": {
+        "a": "fnv1a32:86706da1",
+        "c": "fnv1a32:86706da1"
+      }
+    },
+    {
+      "n": "ref-replay-same-state-events",
+      "ok": true,
+      "d": {
+        "sameState": true,
+        "sameEvents": true,
+        "firstDivergence": null
+      }
+    },
+    {
+      "n": "frame-export-owner-path",
+      "ok": true,
+      "d": {
+        "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\reports\\ai-native-02\\c3c\\frames\\ses_81cb0194a01b748c79381d6a-1794716060062.frame.json",
+        "bytes": 997832
+      }
+    },
+    {
+      "n": "restore-file-bumps-epoch-and-hash",
+      "ok": true,
+      "d": {
+        "epoch": 2,
+        "hashEqual": true
+      }
+    },
+    {
+      "n": "replay-file-same-state-events",
+      "ok": true,
+      "d": {
+        "sameState": true,
+        "sameEvents": true
+      }
+    },
+    {
+      "n": "tampered-real-payload-first-divergence",
+      "ok": true,
+      "d": {
+        "expect": 7,
+        "got": 7
+      }
+    },
+    {
+      "n": "tampered-state-value-detected",
+      "ok": true,
+      "d": {
+        "sameState": false,
+        "firstDivergence": null
+      }
+    },
+    {
+      "n": "path-traversal-denied",
+      "ok": true,
+      "d": [
+        {
+          "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\reports\\ai-native-02\\c3c\\failures\\x.json",
+          "code": "E_PERMISSION",
+          "denied": true
+        },
+        {
+          "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\package.json",
+          "code": "E_PERMISSION",
+          "denied": true
+        },
+        {
+          "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\reports\\ai-native-02\\failures\\x.json",
+          "code": "E_PERMISSION",
+          "denied": true
+        },
+        {
+          "path": "D:/Windows/win.ini",
+          "code": "E_PERMISSION",
+          "denied": true
+        }
+      ]
+    },
+    {
+      "n": "legal-path-still-works",
+      "ok": true,
+      "d": {
+        "ok": true
+      }
+    },
+    {
+      "n": "old-ref-evicted",
+      "ok": true,
+      "d": {
+        "code": "E_SNAPSHOT_INVALID"
+      }
+    },
+    {
+      "n": "latest-ref-works",
+      "ok": true,
+      "d": {
+        "ok": true
+      }
+    },
+    {
+      "n": "stdio-survives-beyond-20k-events",
+      "ok": true,
+      "d": {
+        "eventTotal": 25840,
+        "steps": 80
+      }
+    },
+    {
+      "n": "per-response-bounded",
+      "ok": true,
+      "d": {
+        "maxLen": 17484
+      }
+    },
+    {
+      "n": "summary-total-truncated-accurate",
+      "ok": true,
+      "d": {
+        "total": 25840,
+        "retained": 20000,
+        "windowStart": 5840,
+        "truncated": true
+      }
+    },
+    {
+      "n": "paging-reports-lost-prefix",
+      "ok": true,
+      "d": {
+        "offset": 5840,
+        "lostPrefix": 5840
+      }
+    },
+    {
+      "n": "paging-covers-retained-window",
+      "ok": true,
+      "d": {
+        "items": 20000,
+        "retained": 20000,
+        "pages": 40
+      }
+    },
+    {
+      "n": "page-response-bounded",
+      "ok": true,
+      "d": {
+        "maxPageLen": 129725
+      }
+    },
+    {
+      "n": "snapshot-ref-large-frame-bounded",
+      "ok": true,
+      "d": {
+        "frameBytes": 5992352,
+        "responseLen": 330,
+        "truncated": true
+      }
+    },
+    {
+      "n": "restore-large-ref-works",
+      "ok": true,
+      "d": {
+        "ok": true,
+        "code": null
+      }
+    },
+    {
+      "n": "large-frame-file-restore-works",
+      "ok": true,
+      "d": {
+        "bytes": 5992352
+      }
+    },
+    {
+      "n": "export-truncated-not-replayable-truthful",
+      "ok": true,
+      "d": {
+        "replayable": false,
+        "truncated": true,
+        "note": "HISTORY TRUNCATED (eventTotal > retained events): the retained window alone is not a full reproduction and cannot be claimed replayable"
+      }
+    },
+    {
+      "n": "stdio-still-alive-at-end",
+      "ok": true,
+      "d": {
+        "sessions": 0
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "snapshot",
+      "snap": {
+        "ref": "frameref_8a2595971c772d50816ad4de",
+        "frameBytes": 997832,
+        "truncated": false
+      },
+      "hasInlineFrame": false,
+      "stateFingerprint": "fnv1a32:11a521b6"
+    },
+    {
+      "name": "restore-ref",
+      "epoch": 2,
+      "old": 1,
+      "hashEqual": true,
+      "stateFingerprint": "fnv1a32:11a521b6"
+    },
+    {
+      "name": "same-actions",
+      "aState": "fnv1a32:d37e4aec",
+      "cState": "fnv1a32:d37e4aec",
+      "aEvents": "fnv1a32:86706da1",
+      "cEvents": "fnv1a32:86706da1",
+      "replay": {
+        "sameState": true,
+        "sameEvents": true,
+        "historyPreserved": true,
+        "firstDivergence": null
+      }
+    },
+    {
+      "name": "frame-export",
+      "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\reports\\ai-native-02\\c3c\\frames\\ses_81cb0194a01b748c79381d6a-1794716060062.frame.json",
+      "bytes": 997832,
+      "underFrameDir": true
+    },
+    {
+      "name": "replay-file",
+      "sameState": true,
+      "sameEvents": true
+    },
+    {
+      "name": "tamper-prefix",
+      "eventIndex": 7,
+      "historyPreserved": false,
+      "firstDivergence": 7
+    },
+    {
+      "name": "path-guard",
+      "traversal": [
+        {
+          "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\reports\\ai-native-02\\c3c\\failures\\x.json",
+          "code": "E_PERMISSION",
+          "denied": true
+        },
+        {
+          "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\package.json",
+          "code": "E_PERMISSION",
+          "denied": true
+        },
+        {
+          "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\reports\\ai-native-02\\failures\\x.json",
+          "code": "E_PERMISSION",
+          "denied": true
+        },
+        {
+          "path": "D:/Windows/win.ini",
+          "code": "E_PERMISSION",
+          "denied": true
+        }
+      ],
+      "legalOk": true
+    },
+    {
+      "name": "ref-eviction",
+      "refs": [
+        {
+          "ref": "frameref_a9a80e1a452374dc6c729bfb",
+          "ok": true
+        },
+        {
+          "ref": "frameref_46e284c5772c48a7573702c6",
+          "ok": true
+        },
+        {
+          "ref": "frameref_544ecfce406739c246034461",
+          "ok": true
+        }
+      ],
+      "evicted": {
+        "isError": true,
+        "code": "E_SNAPSHOT_INVALID"
+      },
+      "latestOk": true
+    },
+    {
+      "name": "long-run",
+      "steps": 80,
+      "eventTotal": 25840,
+      "maxResponseBytes": 17484,
+      "lastTick": 24000
+    },
+    {
+      "name": "summary",
+      "summary": {
+        "schema": "last_signal.mcp.tool-result.v1",
+        "ok": true,
+        "session": "ses_4c6d36764a35181560f06de2",
+        "epoch": 1,
+        "eventTotal": 25840,
+        "eventsRetained": 20000,
+        "windowStart": 5840,
+        "eventsTruncated": true,
+        "eventsFingerprint": "fnv1a32:128b0e33"
+      }
+    },
+    {
+      "name": "page-first",
+      "offset": 5840,
+      "requested": 0,
+      "lostPrefix": 5840,
+      "items": 512,
+      "nextCursor": 6352,
+      "len": 129097
+    },
+    {
+      "name": "paging",
+      "pages": 40,
+      "items": 20000,
+      "retained": 20000,
+      "maxPageLen": 129725
+    },
+    {
+      "name": "snapshot-20k",
+      "ref": "frameref_32a02f1849662c557eda9343",
+      "frameBytes": 5992352,
+      "truncated": true,
+      "responseLen": 330
+    },
+    {
+      "name": "restore-20k-ref",
+      "epoch": 2
+    },
+    {
+      "name": "restore-20k-file",
+      "path": "D:\\Project\\AI-NATIVE-02-snapshots\\87d6ae0\\reports\\ai-native-02\\c3c\\frames\\ses_4c6d36764a35181560f06de2-1794716151918.frame.json",
+      "bytes": 5992352,
+      "ok": true,
+      "epoch": 2
+    },
+    {
+      "name": "export-truncated",
+      "boundary": "action",
+      "replayable": false,
+      "truncated": true,
+      "note": "HISTORY TRUNCATED (eventTotal > retained events): the retained window alone is not a full reproduction and cannot be claimed replayable"
+    }
+  ],
+  "findings": []
+}

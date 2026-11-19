@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24",
+    "case": "economy.spec.ts:11"
+  },
+  "steps": [
+    {
+      "name": "after-test-flow",
+      "detail": {
+        "before": {
+          "currency": 20,
+          "pending": [],
+          "tick": 50,
+          "paused": false
+        },
+        "after": {
+          "currency": 30,
+          "pending": [],
+          "tick": 53,
+          "paused": false
+        },
+        "room": "combat",
+        "rooms": [
+          {
+            "id": 0,
+            "kind": "start",
+            "spawned": true,
+            "cleared": true
+          },
+          {
+            "id": 1,
+            "kind": "combat",
+            "spawned": false,
+            "cleared": false
+          },
+          {
+            "id": 2,
+            "kind": "resource",
+            "spawned": false,
+            "cleared": false
+          },
+          {
+            "id": 3,
+            "kind": "combat",
+            "spawned": true,
+            "cleared": true
+          },
+          {
+            "id": 4,
+            "kind": "boss",
+            "spawned": false,
+            "cleared": false
+          },
+          {
+            "id": 5,
+            "kind": "elite",
+            "spawned": false,
+            "cleared": false
+          }
+        ],
+        "aliveEnemies": 3,
+        "hasProcessPendingCommands": true
+      }
+    },
+    {
+      "name": "ui-state",
+      "detail": {
+        "dialogVisible": false,
+        "hasSupplyHint": true
+      }
+    },
+    {
+      "name": "wait-4s",
+      "detail": {
+        "hintVisible": true,
+        "afterMs": 0
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "economy-supply-terminal-requires-cleared-room-and-no-alive-enemies",
+      "detail": {
+        "afterFlow": {
+          "before": {
+            "currency": 20,
+            "pending": [],
+            "tick": 50,
+            "paused": false
+          },
+          "after": {
+            "currency": 30,
+            "pending": [],
+            "tick": 53,
+            "paused": false
+          },
+          "room": "combat",
+          "rooms": [
+            {
+              "id": 0,
+              "kind": "start",
+              "spawned": true,
+              "cleared": true
+            },
+            {
+              "id": 1,
+              "kind": "combat",
+              "spawned": false,
+              "cleared": false
+            },
+            {
+              "id": 2,
+              "kind": "resource",
+              "spawned": false,
+              "cleared": false
+            },
+            {
+              "id": 3,
+              "kind": "combat",
+              "spawned": true,
+              "cleared": true
+            },
+            {
+              "id": 4,
+              "kind": "boss",
+              "spawned": false,
+              "cleared": false
+            },
+            {
+              "id": 5,
+              "kind": "elite",
+              "spawned": false,
+              "cleared": false
+            }
+          ],
+          "aliveEnemies": 3,
+          "hasProcessPendingCommands": true
+        },
+        "note": "economy safeRoom() requires: room cleared, no alive enemies, and NO spawned-but-uncleared room in the whole map. The test flow only advances the player through the portal and commits room-enter; remaining rooms stay spawned&&!cleared, so the terminal never opens."
+      }
+    }
+  ],
+  "errors": []
+}

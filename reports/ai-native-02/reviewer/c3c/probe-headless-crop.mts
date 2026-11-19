@@ -1,0 +1,13 @@
+import { HeadlessWorld } from './src/ai-native/worldHeadless';
+let failures=0; const check=(n:string,c:boolean,d?:unknown)=>{if(c)console.log('PASS',n);else{failures++;console.log('FAIL',n,JSON.stringify(d));}};
+const w=new HeadlessWorld({seed:424242});
+const p=w.observation();
+const px=p.player.x, py=p.player.y;
+const far={x:px+80,y:py+80};
+check('far point is NOT perceivable', w['isPerceivable'](far.x,far.y)===false, {far});
+(w as any).sim.projectiles.push({id:999,ownerId:0,side:'enemy',source:'enemy',kind:'plasma',pos:{...far},vel:{x:1,y:0},damage:15,lifetime:2,radius:0.2,crit:false,pierce:0,hitIds:[]} as any);
+const obs=w.observation();
+const ids=obs.projectiles.map((x:any)=>x.id);
+check('far/hidden enemy projectile LEAKS into headless observation', ids.includes(999), {ids, far});
+console.log(`C3C_CROP_${failures===0?'PASS':'FAIL'} failures=${failures}`);
+if(failures>0)process.exit(1);

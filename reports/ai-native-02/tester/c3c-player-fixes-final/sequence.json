@@ -1,0 +1,338 @@
+[
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11.25,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11.25,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11.25,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": true,
+      "aim": {
+        "x": 11.1796875,
+        "y": 45
+      },
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  },
+  {
+    "ticks": 1,
+    "intent": {
+      "move": {
+        "x": 0,
+        "y": 0
+      },
+      "dash": false,
+      "fire": false,
+      "aim": null,
+      "interact": false
+    }
+  }
+]

@@ -1,0 +1,16 @@
+import { HeadlessWorldManager } from './src/ai-native/worldHeadlessMcpTools';
+import { execFileSync } from 'node:child_process';
+import { join, resolve } from 'node:path';
+let failures=0; const check=(n:string,c:boolean,d?:unknown)=>{if(c)console.log('PASS',n);else{failures++;console.log('FAIL',n,JSON.stringify(d));}};
+const m=new HeadlessWorldManager(true,()=>424242); const c=(m.createSession()).structuredContent as any; const s=c.session, e=c.epoch;
+const exp=(await m.frameExport(s,{})).structuredContent as any;
+const icacls=(p:string)=>{const root=process.env.SystemRoot??'C:'+String.fromCharCode(92)+'Windows';return execFileSync(join(root,'System32','icacls.exe'),[p],{encoding:'utf8'});};
+const fa=icacls(exp.path), da=icacls(resolve('reports/ai-native-02/c3c/frames'));
+const broad=(a:string)=>/BUILTIN\Users|Authenticated Users|Everyone|\(I\)/i.test(a);
+check('frame file ACL current-SID only (no broad/inherited)', !broad(fa), { acl: fa });
+check('frames dir ACL current-SID only (no broad/inherited)', !broad(da), { acl: da });
+console.log('ACL_FILE', fa.replace(/\r?\n/g,' | ').slice(0,240));
+console.log('ACL_DIR', da.replace(/\r?\n/g,' | ').slice(0,240));
+m.close(s);
+console.log(`TASK0_ACL_${failures===0?'PASS':'FAIL'} failures=${failures}`);
+if(failures>0)process.exit(1);

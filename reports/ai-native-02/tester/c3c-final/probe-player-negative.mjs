@@ -1,0 +1,16 @@
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+const SNAP='D:/Project/AI-NATIVE-02-snapshots/82734f6';
+const c=new Client({name:'neg',version:'1.0.0'});
+await c.connect(new StdioClientTransport({command:'node',args:[SNAP+'/dist-mcp/worldHeadlessMcpServer.mjs'],cwd:SNAP,env:{...process.env},stderr:'pipe'}));
+const r=await c.callTool({name:'world_headless_create_session',arguments:{}});
+const b=JSON.parse(r.content[0].text);
+const checks=[];
+const tryCall=async(name,args,label)=>{const x=await c.callTool({name,arguments:args});const t=x.content?.[0]?.text??'';let j=null;try{j=JSON.parse(t)}catch{};checks.push({label,isError:!!x.isError,code:j?.code??null,text:t.slice(0,120)});};
+await tryCall('world_headless_step',{session:b.session,epoch:b.epoch,requestId:'req_'+'aa'.repeat(12),ticks:5,intent:{move:{x:0,y:0},dash:false,fire:false,aim:null,interact:false,hp:1}},'step-intent-cannot-write-hp');
+await tryCall('world_headless_step',{session:b.session,epoch:b.epoch,requestId:'req_'+'ab'.repeat(12),ticks:5,seed:7},'step-cannot-take-seed');
+await tryCall('world_headless_create_session',{seed:42},'player-create-cannot-take-seed');
+await tryCall('world_headless_dev_snapshot',{session:b.session},'player-has-no-dev-snapshot');
+await tryCall('world_action',{session:b.session,epoch:b.epoch,requestId:'req_'+'ac'.repeat(12),actions:[{type:'move',actionId:'aid_'+'ac'.repeat(12),dir:{x:1,y:0},ticks:5,hp:1}]},'action-cannot-write-hp');
+await c.close();
+console.log(JSON.stringify(checks,null,2));

@@ -1,0 +1,12 @@
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+const SNAP='D:/tmp/gp01-rm-b6a98e5';
+const t=new StdioClientTransport({command:process.execPath,args:[SNAP+'/dist-mcp/worldHeadlessMcpServer.mjs','--dev'],cwd:SNAP});
+const c=new Client({name:'probe4',version:'0'});
+await c.connect(t);
+const u=(r)=>r?.structuredContent ?? JSON.parse(r?.content?.find(x=>x.type==='text')?.text ?? '{}');
+const s=u(await c.callTool({name:'world_headless_create_session',arguments:{seed:20261117}}));
+const load=u(await c.callTool({name:'world_headless_dev_load_room',arguments:{session:s.session,roomId:3,kinds:['drone','drone']}}));
+const obs=u(await c.callTool({name:'world_observe',arguments:{session:s.session,epoch:load.epoch}}));
+console.log(JSON.stringify(obs).slice(0,1600));
+await c.close();

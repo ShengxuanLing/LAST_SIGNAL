@@ -1,0 +1,305 @@
+{
+  "meta": {
+    "url": "http://localhost:5291/",
+    "target": "5f49b24"
+  },
+  "steps": [
+    {
+      "name": "paused-zero-dt",
+      "detail": {
+        "before": {
+          "hp": 100,
+          "currency": 20,
+          "xp": 0,
+          "tick": 74,
+          "pending": 0,
+          "paused": true
+        },
+        "afterEnqueue": {
+          "hp": 100,
+          "currency": 20,
+          "xp": 0,
+          "tick": 74,
+          "pending": 4
+        },
+        "afterZero": {
+          "hp": 100,
+          "currency": 20,
+          "xp": 0,
+          "tick": 74,
+          "pending": 4,
+          "events": 0,
+          "loot": 0
+        },
+        "afterOne": {
+          "hp": 100,
+          "currency": 70,
+          "xp": 5,
+          "tick": 75,
+          "pending": 0,
+          "loot": 1,
+          "events": [
+            "player-healed",
+            "currency-gained",
+            "xp-gained",
+            "loot-dropped",
+            "player-moved"
+          ]
+        },
+        "afterTwo": {
+          "hp": 100,
+          "currency": 70,
+          "tick": 76,
+          "events": [
+            "player-moved"
+          ]
+        }
+      }
+    },
+    {
+      "name": "far-loot-20",
+      "detail": {
+        "c0": 70,
+        "samples": [
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          },
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          },
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          },
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          },
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          }
+        ],
+        "last": {
+          "tick": 76,
+          "loot": 1,
+          "currency": 70,
+          "dist": 16.85
+        },
+        "stayed": true,
+        "distMoved": 16.85
+      }
+    },
+    {
+      "name": "checkpoint-pending",
+      "detail": {
+        "before": {
+          "currency": 70,
+          "pending": 1
+        },
+        "withPending": {
+          "currency": 70,
+          "pending": 2
+        },
+        "savedCurrency": 70,
+        "savedTick": 76,
+        "hasPendingField": false
+      }
+    }
+  ],
+  "checks": [
+    {
+      "n": "paused-enqueue-only",
+      "ok": true,
+      "d": {
+        "before": {
+          "hp": 100,
+          "currency": 20,
+          "xp": 0,
+          "tick": 74,
+          "pending": 0,
+          "paused": true
+        },
+        "afterEnqueue": {
+          "hp": 100,
+          "currency": 20,
+          "xp": 0,
+          "tick": 74,
+          "pending": 4
+        },
+        "afterZero": {
+          "hp": 100,
+          "currency": 20,
+          "xp": 0,
+          "tick": 74,
+          "pending": 4,
+          "events": 0,
+          "loot": 0
+        },
+        "afterOne": {
+          "hp": 100,
+          "currency": 70,
+          "xp": 5,
+          "tick": 75,
+          "pending": 0,
+          "loot": 1,
+          "events": [
+            "player-healed",
+            "currency-gained",
+            "xp-gained",
+            "loot-dropped",
+            "player-moved"
+          ]
+        },
+        "afterTwo": {
+          "hp": 100,
+          "currency": 70,
+          "tick": 76,
+          "events": [
+            "player-moved"
+          ]
+        }
+      }
+    },
+    {
+      "n": "step0-no-commit",
+      "ok": true,
+      "d": {
+        "hp": 100,
+        "currency": 20,
+        "xp": 0,
+        "tick": 74,
+        "pending": 4,
+        "events": 0,
+        "loot": 0
+      }
+    },
+    {
+      "n": "one-tick-commits",
+      "ok": true,
+      "d": {
+        "hp": 100,
+        "currency": 70,
+        "xp": 5,
+        "tick": 75,
+        "pending": 0,
+        "loot": 1,
+        "events": [
+          "player-healed",
+          "currency-gained",
+          "xp-gained",
+          "loot-dropped",
+          "player-moved"
+        ]
+      }
+    },
+    {
+      "n": "no-duplicate-next-tick",
+      "ok": true,
+      "d": {
+        "hp": 100,
+        "currency": 70,
+        "tick": 76,
+        "events": [
+          "player-moved"
+        ]
+      }
+    },
+    {
+      "n": "far-loot-20-not-auto-picked",
+      "ok": true,
+      "d": {
+        "c0": 70,
+        "samples": [
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          },
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          },
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          },
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          },
+          {
+            "tick": 76,
+            "loot": 1,
+            "currency": 70,
+            "dist": 16.85
+          }
+        ],
+        "last": {
+          "tick": 76,
+          "loot": 1,
+          "currency": 70,
+          "dist": 16.85
+        },
+        "stayed": true,
+        "distMoved": 16.85
+      }
+    },
+    {
+      "n": "checkpoint-does-not-capture-pending",
+      "ok": true,
+      "d": {
+        "before": {
+          "currency": 70,
+          "pending": 1
+        },
+        "withPending": {
+          "currency": 70,
+          "pending": 2
+        },
+        "savedCurrency": 70,
+        "savedTick": 76,
+        "hasPendingField": false
+      }
+    }
+  ],
+  "findings": [
+    {
+      "name": "pending-commands-not-in-checkpoint",
+      "detail": {
+        "before": {
+          "currency": 70,
+          "pending": 1
+        },
+        "withPending": {
+          "currency": 70,
+          "pending": 2
+        },
+        "savedCurrency": 70,
+        "savedTick": 76,
+        "hasPendingField": false
+      },
+      "note": "captureCheckpoint stores player data/coreState but no pendingCommands; a queued purchase/heal/upgrade is lost if the run is saved before the next tick commits it"
+    }
+  ],
+  "errors": []
+}

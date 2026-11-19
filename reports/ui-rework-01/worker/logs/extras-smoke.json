@@ -1,0 +1,54 @@
+{
+  "results": [
+    {
+      "step": "resize 1280->800 while paused rebuilds with compact tokens",
+      "ok": true,
+      "detail": "{\"before\":{\"page\":\"pause\",\"compact\":false,\"minLogical\":12,\"count\":20},\"after\":{\"page\":\"pause\",\"compact\":true,\"minLogical\":16,\"count\":20}}"
+    },
+    {
+      "step": "resize rebuild does not duplicate objects",
+      "ok": true,
+      "detail": "before=20 after=20"
+    },
+    {
+      "step": "resize back to 1280 restores normal tokens",
+      "ok": true,
+      "detail": "{\"page\":\"pause\",\"compact\":false,\"minLogical\":12,\"count\":20}"
+    },
+    {
+      "step": "inventory EQUIP row is keyboard-focused on entry (visible highlight)",
+      "ok": true,
+      "detail": "[{\"text\":\"EQUIPPED\",\"bg\":\"#00000000\"},{\"text\":\"EQUIP\",\"bg\":\"#33e0ff\"}]"
+    },
+    {
+      "step": "ENTER activates the focused EQUIP row (queued core command)",
+      "ok": true,
+      "detail": "scatter"
+    },
+    {
+      "step": "inventory region registered a real wheel handler",
+      "ok": true,
+      "detail": "{\"hasWheel\":true,\"objects\":45}"
+    },
+    {
+      "step": "direct handler invocation shifts the region",
+      "ok": true,
+      "detail": "{\"bx\":708,\"ax\":684}"
+    },
+    {
+      "step": "Phaser scene receives wheel events",
+      "ok": true,
+      "detail": "wheelEvents=2 dy=480 inputEnabled=true"
+    },
+    {
+      "step": "mouse wheel scrolls an overflowing inventory region",
+      "ok": true,
+      "detail": "beforeY=756 afterY=684"
+    },
+    {
+      "step": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

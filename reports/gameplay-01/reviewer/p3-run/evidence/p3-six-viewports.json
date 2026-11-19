@@ -1,0 +1,117 @@
+{
+  "rows": [
+    {
+      "phase": "default 800x600",
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ],
+      "tiny": [],
+      "raw": [],
+      "overlaps": [],
+      "page": "local-coop"
+    },
+    {
+      "phase": "default 1024x768",
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ],
+      "tiny": [],
+      "raw": [],
+      "overlaps": [],
+      "page": "local-coop"
+    },
+    {
+      "phase": "default 1280x720",
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ],
+      "tiny": [],
+      "raw": [],
+      "overlaps": [],
+      "page": "local-coop"
+    },
+    {
+      "phase": "default 1366x768",
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ],
+      "tiny": [],
+      "raw": [],
+      "overlaps": [],
+      "page": "local-coop"
+    },
+    {
+      "phase": "default 1600x900",
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ],
+      "tiny": [],
+      "raw": [],
+      "overlaps": [],
+      "page": "local-coop"
+    },
+    {
+      "phase": "default 1920x1080",
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ],
+      "tiny": [],
+      "raw": [],
+      "overlaps": [],
+      "page": "local-coop"
+    },
+    {
+      "phase": "pending 800x600",
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ],
+      "tiny": [],
+      "raw": [],
+      "overlaps": [],
+      "page": "local-coop"
+    },
+    {
+      "phase": "pending 1920x1080",
+      "labels": [
+        "LOW-RISK COOPERATION: OFF",
+        "CONFIRM (HUMAN)",
+        "REJECT",
+        "RECENT ACTIONS",
+        "BACK"
+      ],
+      "tiny": [],
+      "raw": [],
+      "overlaps": [],
+      "page": "local-coop"
+    }
+  ],
+  "pid": "local_82_1"
+}

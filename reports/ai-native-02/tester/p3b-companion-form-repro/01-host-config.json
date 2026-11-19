@@ -1,0 +1,24 @@
+{
+  "formStatus": "(closed)",
+  "formOpen": false,
+  "companionStatus": "CONNECTED",
+  "hasLink": true,
+  "tokenVal": "",
+  "keyVal": "",
+  "globalKeys": [
+    "bridgeUrl",
+    "token"
+  ],
+  "globalBefore": [
+    "bridgeUrl",
+    "token"
+  ],
+  "network": [
+    "POST /world-link/handshake",
+    "<- 200 /world-link/handshake",
+    "POST /world-link/companion-authorize",
+    "<- 200 /world-link/companion-authorize"
+  ],
+  "pageErrors": [],
+  "screenshot": "D:/Project/LAST_SIGNAL/reports/ai-native-02/tester/p3b-companion-form-repro/evidence/host-config.png"
+}

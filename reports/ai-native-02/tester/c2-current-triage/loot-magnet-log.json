@@ -1,0 +1,264 @@
+{
+  "meta": {
+    "url": "http://localhost:5293/",
+    "target": "59aa852",
+    "pickupRangeConfig": 90
+  },
+  "trials": [
+    {
+      "dist": 20,
+      "c0": 20,
+      "currency": 30,
+      "collected": true,
+      "samples": [
+        {
+          "tick": 85,
+          "loot": 0,
+          "currency": 30,
+          "d": null
+        }
+      ],
+      "pickupRange": 90
+    },
+    {
+      "dist": 40,
+      "c0": 30,
+      "currency": 40,
+      "collected": true,
+      "samples": [
+        {
+          "tick": 93,
+          "loot": 1,
+          "currency": 30,
+          "d": 30.39
+        },
+        {
+          "tick": 101,
+          "loot": 1,
+          "currency": 30,
+          "d": 18.93
+        },
+        {
+          "tick": 109,
+          "loot": 0,
+          "currency": 40,
+          "d": null
+        }
+      ],
+      "pickupRange": 90
+    },
+    {
+      "dist": 85,
+      "c0": 40,
+      "currency": 40,
+      "collected": false,
+      "samples": [
+        {
+          "tick": 117,
+          "loot": 1,
+          "currency": 40,
+          "d": 84.04
+        },
+        {
+          "tick": 125,
+          "loot": 1,
+          "currency": 40,
+          "d": 82.89
+        },
+        {
+          "tick": 133,
+          "loot": 1,
+          "currency": 40,
+          "d": 81.53
+        },
+        {
+          "tick": 141,
+          "loot": 1,
+          "currency": 40,
+          "d": 79.9
+        },
+        {
+          "tick": 149,
+          "loot": 1,
+          "currency": 40,
+          "d": 77.96
+        },
+        {
+          "tick": 156,
+          "loot": 1,
+          "currency": 40,
+          "d": 75.95
+        },
+        {
+          "tick": 164,
+          "loot": 1,
+          "currency": 40,
+          "d": 73.25
+        },
+        {
+          "tick": 172,
+          "loot": 1,
+          "currency": 40,
+          "d": 70.03
+        },
+        {
+          "tick": 179,
+          "loot": 1,
+          "currency": 40,
+          "d": 66.71
+        },
+        {
+          "tick": 187,
+          "loot": 1,
+          "currency": 40,
+          "d": 62.23
+        },
+        {
+          "tick": 195,
+          "loot": 1,
+          "currency": 40,
+          "d": 56.9
+        },
+        {
+          "tick": 203,
+          "loot": 1,
+          "currency": 40,
+          "d": 50.53
+        }
+      ],
+      "pickupRange": 90
+    }
+  ],
+  "findings": [
+    {
+      "name": "magnet-radius-90-grid-units-swallows-far-drops",
+      "detail": [
+        {
+          "dist": 20,
+          "c0": 20,
+          "currency": 30,
+          "collected": true,
+          "samples": [
+            {
+              "tick": 85,
+              "loot": 0,
+              "currency": 30,
+              "d": null
+            }
+          ],
+          "pickupRange": 90
+        },
+        {
+          "dist": 40,
+          "c0": 30,
+          "currency": 40,
+          "collected": true,
+          "samples": [
+            {
+              "tick": 93,
+              "loot": 1,
+              "currency": 30,
+              "d": 30.39
+            },
+            {
+              "tick": 101,
+              "loot": 1,
+              "currency": 30,
+              "d": 18.93
+            },
+            {
+              "tick": 109,
+              "loot": 0,
+              "currency": 40,
+              "d": null
+            }
+          ],
+          "pickupRange": 90
+        },
+        {
+          "dist": 85,
+          "c0": 40,
+          "currency": 40,
+          "collected": false,
+          "samples": [
+            {
+              "tick": 117,
+              "loot": 1,
+              "currency": 40,
+              "d": 84.04
+            },
+            {
+              "tick": 125,
+              "loot": 1,
+              "currency": 40,
+              "d": 82.89
+            },
+            {
+              "tick": 133,
+              "loot": 1,
+              "currency": 40,
+              "d": 81.53
+            },
+            {
+              "tick": 141,
+              "loot": 1,
+              "currency": 40,
+              "d": 79.9
+            },
+            {
+              "tick": 149,
+              "loot": 1,
+              "currency": 40,
+              "d": 77.96
+            },
+            {
+              "tick": 156,
+              "loot": 1,
+              "currency": 40,
+              "d": 75.95
+            },
+            {
+              "tick": 164,
+              "loot": 1,
+              "currency": 40,
+              "d": 73.25
+            },
+            {
+              "tick": 172,
+              "loot": 1,
+              "currency": 40,
+              "d": 70.03
+            },
+            {
+              "tick": 179,
+              "loot": 1,
+              "currency": 40,
+              "d": 66.71
+            },
+            {
+              "tick": 187,
+              "loot": 1,
+              "currency": 40,
+              "d": 62.23
+            },
+            {
+              "tick": 195,
+              "loot": 1,
+              "currency": 40,
+              "d": 56.9
+            },
+            {
+              "tick": 203,
+              "loot": 1,
+              "currency": 40,
+              "d": 50.53
+            }
+          ],
+          "pickupRange": 90
+        }
+      ],
+      "note": "stepLoot uses p.data.pickupRange (config value 90) directly as a GRID distance for the magnet pull, so any drop within 90 grid units is dragged in and auto-collected within a fraction of a second while the game runs. The 5f49b24 report claim \"20-tile far loot is NOT auto-picked up (20 > 12.5)\" only holds if the magnet pull never runs (paused/zero-dt). The C1 pickup threshold (12.5 grid) is therefore not the effective pickup distance."
+    }
+  ],
+  "errors": []
+}

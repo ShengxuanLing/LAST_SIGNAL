@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "url": "http://localhost:5294/",
+    "target": "ae72a67",
+    "fixture": "room enemies cleared via core arrays/helper to reach a safe terminal"
+  },
+  "checks": [
+    {
+      "n": "supply-open-visible",
+      "ok": true
+    },
+    {
+      "n": "dialog-open",
+      "ok": true
+    },
+    {
+      "n": "enabled-offer-found",
+      "ok": true,
+      "d": {
+        "label": "Buy Weapon calibration for 28 credits",
+        "price": 28
+      }
+    },
+    {
+      "n": "purchase-queued-not-charged-yet",
+      "ok": true,
+      "d": {
+        "feedback": "+12 credits · room cleared",
+        "pending": [
+          "purchase-supply"
+        ],
+        "currency": 94,
+        "hp": 100
+      }
+    },
+    {
+      "n": "purchase-charged-once",
+      "ok": true,
+      "d": {
+        "start": {
+          "currency": 94,
+          "hp": 100,
+          "ledger": 0,
+          "save": true
+        },
+        "committed": {
+          "currency": 66,
+          "hp": 100,
+          "pending": 0,
+          "ledger": 1,
+          "receipt": "Purchased Weapon calibration."
+        },
+        "offer": {
+          "label": "Buy Weapon calibration for 28 credits",
+          "price": 28
+        }
+      }
+    },
+    {
+      "n": "ledger-persisted-in-checkpoint",
+      "ok": true,
+      "d": {
+        "ledger": [
+          "424242-1-92336208"
+        ]
+      }
+    },
+    {
+      "n": "no-double-charge-after-reload",
+      "ok": true,
+      "d": {
+        "committed": {
+          "currency": 66,
+          "hp": 100,
+          "pending": 0,
+          "ledger": 1,
+          "receipt": "Purchased Weapon calibration."
+        },
+        "afterReload": {
+          "currency": 66,
+          "hp": 100,
+          "ledger": 1
+        }
+      }
+    },
+    {
+      "n": "ledger-restored-after-reload",
+      "ok": true,
+      "d": {
+        "committedLedger": 1,
+        "afterReload": {
+          "currency": 66,
+          "hp": 100,
+          "ledger": 1
+        }
+      }
+    },
+    {
+      "n": "pause-resume-keeps-ledger-and-charge",
+      "ok": true,
+      "d": {
+        "beforeResume": {
+          "tick": 162,
+          "pending": 0,
+          "ledger": 1,
+          "currency": 66
+        },
+        "afterResume": {
+          "tick": 178,
+          "pending": 0,
+          "ledger": 1,
+          "currency": 66
+        }
+      }
+    },
+    {
+      "n": "no-console-error",
+      "ok": true
+    }
+  ],
+  "steps": [
+    {
+      "name": "terminal-ready",
+      "detail": {
+        "currency": 94,
+        "hp": 100,
+        "ledger": 0,
+        "save": true
+      }
+    },
+    {
+      "name": "offer-selected",
+      "detail": {
+        "label": "Buy Weapon calibration for 28 credits",
+        "price": 28
+      }
+    },
+    {
+      "name": "purchase-queued",
+      "detail": {
+        "feedback": "+12 credits · room cleared",
+        "pending": [
+          "purchase-supply"
+        ],
+        "currency": 94,
+        "hp": 100
+      }
+    },
+    {
+      "name": "purchase-committed",
+      "detail": {
+        "currency": 66,
+        "hp": 100,
+        "pending": 0,
+        "ledger": 1,
+        "receipt": "Purchased Weapon calibration."
+      }
+    },
+    {
+      "name": "after-reload-continue",
+      "detail": {
+        "start": {
+          "currency": 94,
+          "hp": 100,
+          "ledger": 0,
+          "save": true
+        },
+        "committed": {
+          "currency": 66,
+          "hp": 100,
+          "pending": 0,
+          "ledger": 1,
+          "receipt": "Purchased Weapon calibration."
+        },
+        "afterReload": {
+          "currency": 66,
+          "hp": 100,
+          "ledger": 1
+        }
+      }
+    },
+    {
+      "name": "pause-resume-after-purchase",
+      "detail": {
+        "beforeResume": {
+          "tick": 162,
+          "pending": 0,
+          "ledger": 1,
+          "currency": 66
+        },
+        "afterResume": {
+          "tick": 178,
+          "pending": 0,
+          "ledger": 1,
+          "currency": 66
+        }
+      }
+    }
+  ],
+  "errors": []
+}

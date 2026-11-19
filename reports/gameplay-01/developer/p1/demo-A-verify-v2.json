@@ -1,0 +1,162 @@
+{
+  "ok": true,
+  "active0": {
+    "relay": "ACTIVE",
+    "energy": 100,
+    "jamRemaining": 0,
+    "linkedFire": true,
+    "hp": 94,
+    "tick": 169,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [
+      3,
+      4
+    ],
+    "allEnemyShots": [
+      3,
+      4
+    ],
+    "portal": null
+  },
+  "jam0": {
+    "relay": "JAMMED",
+    "energy": 77,
+    "jamRemaining": 328,
+    "linkedFire": false,
+    "hp": 88,
+    "tick": 226,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [],
+    "allEnemyShots": [],
+    "portal": null
+  },
+  "jam1": {
+    "relay": "JAMMED",
+    "energy": 91,
+    "jamRemaining": 161,
+    "linkedFire": false,
+    "hp": 88,
+    "tick": 393,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [],
+    "allEnemyShots": [],
+    "portal": null
+  },
+  "exp0": {
+    "relay": "ACTIVE",
+    "energy": 100,
+    "jamRemaining": 0,
+    "linkedFire": true,
+    "hp": 88,
+    "tick": 560,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [],
+    "allEnemyShots": [],
+    "portal": null
+  },
+  "exp1": {
+    "relay": "ACTIVE",
+    "energy": 100,
+    "jamRemaining": 0,
+    "linkedFire": true,
+    "hp": 76,
+    "tick": 709,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [],
+    "allEnemyShots": [],
+    "portal": null
+  },
+  "off0": {
+    "relay": "INACTIVE",
+    "energy": 100,
+    "jamRemaining": 0,
+    "linkedFire": false,
+    "hp": 76,
+    "tick": 728,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [
+      8
+    ],
+    "allEnemyShots": [
+      8
+    ],
+    "portal": null
+  },
+  "off1": {
+    "relay": "INACTIVE",
+    "energy": 100,
+    "jamRemaining": 0,
+    "linkedFire": false,
+    "hp": 70,
+    "tick": 889,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [],
+    "allEnemyShots": [],
+    "portal": null
+  },
+  "on0": {
+    "relay": "ACTIVE",
+    "energy": 100,
+    "jamRemaining": 0,
+    "linkedFire": true,
+    "hp": 70,
+    "tick": 941,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [],
+    "allEnemyShots": [],
+    "portal": null
+  },
+  "on1": {
+    "relay": "ACTIVE",
+    "energy": 100,
+    "jamRemaining": 0,
+    "linkedFire": true,
+    "hp": 52,
+    "tick": 1123,
+    "objective": "CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE",
+    "linkedIds": [
+      1,
+      2
+    ],
+    "linkedShots": [
+      11
+    ],
+    "allEnemyShots": [
+      11
+    ],
+    "portal": null
+  },
+  "errors": []
+}
