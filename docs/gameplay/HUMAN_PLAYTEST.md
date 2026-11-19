@@ -1,7 +1,7 @@
 # GAMEPLAY-01 — human playtest guide (DEMO 01 cooperative level)
 
-Status: **HUMAN ACCEPTANCE PENDING — no human has played this build yet.** This file is the
-session script and the empty result sheet. Until a person fills it in, no claim about human
+Status: **HUMAN ACCEPTANCE PENDING — the owner has started checking the entry flow; gameplay
+sessions have not been recorded.** This file is the session script and the empty result sheet. Until a person fills it in, no claim about human
 experience, difficulty or fun exists anywhere in this project.
 
 It needs **no key, no account and no model pairing**. A model/owner key never belongs in this
@@ -13,9 +13,18 @@ private to the person entering it.
 1. Launch the game and wait for the main menu.
 2. Click **DEMO 01** (normal player entry; the cooperative level is the authored DEMO 01 scene —
    the menu copy is intentionally unchanged).
-3. The HUD must show `RELAY ACTIVE · EXIT OPEN` (or `ROUTE A/B OPEN`) and the objective
+3. **If a run checkpoint already exists**, clicking DEMO 01 first opens a confirmation page:
+   `STARTING OVER REPLACES THE CURRENT RUN CHECKPOINT.` This is still the main menu, not the
+   demo room. Choose **REPLACE AND START** only if you are willing to replace the current
+   single-run checkpoint; permanent cores, talents and weapon unlocks are kept. The confirmation
+   preserves the DEMO 01 selection. To keep playing the saved run instead, choose **BACK**,
+   then **CONTINUE**; that resumes the saved run rather than starting this demo. With no run
+   checkpoint, DEMO 01 starts directly. Do not clear browser storage to bypass this choice.
+4. **After the game room actually appears**, the HUD must show `RELAY ACTIVE · EXIT OPEN` (or `ROUTE A/B OPEN`) and the objective
    `CLEAR THE LINKED SENTRY · T SCAN · Y JAM · R TOGGLE`.
-4. Do not use dev tools, console edits, teleports or a seed override: this playtest measures the
+   These HUD checks do not apply to the replacement-confirmation page. A portal still requires
+   clearing the sentries; the relay status alone does not mean the room has been cleared.
+5. Do not use dev tools, console edits, teleports or a seed override: this playtest measures the
    normal entry a player gets.
 
 ## 2. Controls (real product bindings)
